@@ -43,10 +43,14 @@ const INPUT = (() => {
     window.addEventListener('mouseup', e => {
       if (e.button === 1) { mouse.mmb = false; return; }
       if (e.button !== 0) return;
-      if (!game.started || game.over) { mouse.down = false; dragBox = null; return; }
+      const wasDown = mouse.down;
       const wasDrag = !!dragBox;
       const box = dragBox;
       mouse.down = false; dragBox = null;
+      // only handle releases of presses that began on the game canvas —
+      // otherwise HUD button clicks would fire world-click logic too
+      if (!wasDown) return;
+      if (!game.started || game.over || game.paused) return;
 
       if (placing) { tryPlace(e.shiftKey); return; }
       if (targeting) { fireTargeted(); return; }
@@ -96,6 +100,7 @@ const INPUT = (() => {
       if (game.over) return;
       if (k === 'p') { UI.togglePause(); return; }
       if (k === 'm') { UI.toggleSound(); return; }
+      if (game.paused) return;   // no orders / spending while paused
       if (k === ' ') { e.preventDefault(); UI.jumpToLastEvent(); return; }
       if (k === 'backspace') { e.preventDefault(); centerOnBase(); return; }
       if (k === 'f1') { e.preventDefault(); UI.showHelp(); return; }
@@ -354,7 +359,7 @@ const INPUT = (() => {
     if (dozers.length) {
       let best = dozers[0], bd = Infinity;
       for (const d of dozers) { const dd = U.dist2(d.x, d.y, b.x, b.y); if (dd < bd) { bd = dd; best = d; } }
-      best.giveOrder({ type: 'build', targetId: b.id });
+      best.giveOrder({ type: 'build', targetId: b.id }, shift);   // shift chains builds instead of replacing
     }
     SFX.build();
     if (!shift) { placing = null; UI.refreshCmd(); }
@@ -391,8 +396,16 @@ const INPUT = (() => {
     return 'default';
   }
 
+  function resetMatch() {
+    selection = [];
+    dragBox = null; placing = null; targeting = null; awaitAttackMove = false;
+    for (const k in groups) delete groups[k];   // groups hold refs to the previous game's entities
+    lastClickT = 0; lastClickId = 0;
+    mouse.down = false; mouse.mmb = false;
+  }
+
   return {
-    init, updateCamera, prune, centerOn, centerOnBase,
+    init, updateCamera, prune, centerOn, centerOnBase, resetMatch,
     beginPlace, beginTargeting, stopSelected, issueAttackMove,
     get mouse() { return mouse; },
     get selection() { return selection; },

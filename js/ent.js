@@ -39,8 +39,8 @@ function applyDamage(target, rawDmg, dtype, attacker) {
   if (dmg <= 0) return;
   target.hp -= dmg;
 
-  // retaliation & alerts
-  if (attacker) {
+  // retaliation & alerts — only against genuine enemies (friendly splash must not flip units)
+  if (attacker && attacker.owner !== target.owner) {
     if (target.kind === 'unit' && !target.def.noAutoAttack && target.def.weapon &&
         (!target.order || target.order.type === 'idle' || target.order.type === 'guard') &&
         weaponCanHit(target.def.weapon, attacker) && !target.def.air) {
@@ -63,6 +63,7 @@ function killEnt(e, attacker) {
     FX.explosion(e.x, e.y, 1.3 + e.size * 0.35);
     SFX.explo(e.x, e.y, 1.6);
     RENDER.addRubble(e.x, e.y, e.size);
+    RENDER.cleanGhost(e.id);
     if (p) { p.stats.buildingsLost++; recomputePower(e.owner); }
     if (e.owner === 0) { UI.feed(bName(e.key, p.faction) + ' destroyed', 'bad'); SFX.say('Structure lost'); }
   } else {
@@ -262,11 +263,11 @@ class Unit {
   /* --------- combat --------- */
   findTarget(range) {
     const w = this.def.weapon;
-    if (!w) return null;
+    if (!w && !this.def.suicide) return null;
     let best = null, bestScore = Infinity;
     for (const e of game.ents) {
       if (e.dead || !isEnemy(this, e)) continue;
-      if (!weaponCanHit(w, e)) continue;
+      if (w ? !weaponCanHit(w, e) : (e.kind === 'unit' && e.def.air)) continue;
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.03) continue;
       const d = U.dist(this.x, this.y, e.x, e.y);
       if (d > range) continue;
@@ -361,7 +362,8 @@ class Unit {
         if (this.idleResumeT <= 0) {
           this.idleResumeT = 2;
           const dock = nearestDockWithSupplies(this.x, this.y);
-          if (dock && nearestOwnBuilding(this.owner, 'supply', this.x, this.y)) this.giveOrder({ type: 'harvest' });
+          if ((dock || this.carrying > 0) && nearestOwnBuilding(this.owner, 'supply', this.x, this.y))
+            this.giveOrder({ type: 'harvest' });
         }
       }
       return;
@@ -381,9 +383,10 @@ class Unit {
 
   doAttackMove(dt, o) {
     this.scanT -= dt;
-    if (this.scanT <= 0 && this.def.weapon && !this.def.noAutoAttack) {
+    if (this.scanT <= 0 && ((this.def.weapon && !this.def.noAutoAttack) || this.def.suicide)) {
       this.scanT = 0.35;
-      const t = this.findTarget(Math.max(this.def.weapon.range + 80, this.def.sight * TILE));
+      const t = this.findTarget(this.def.weapon ?
+        Math.max(this.def.weapon.range + 80, this.def.sight * TILE) : this.def.sight * TILE);
       if (t) {
         this.orderQueue.unshift({ type: 'attackmove', x: o.x, y: o.y });
         this.order = { type: 'attack', targetId: t.id, resume: true };
@@ -422,6 +425,7 @@ class Unit {
   }
 
   doSuicide(dt, target) {
+    if (target.kind === 'unit' && target.def.air) { this.nextOrder(); return; }
     const d = U.dist(this.x, this.y, target.x, target.y);
     const hitR = this.radius + (target.kind === 'building' ? target.size * TILE * 0.5 : target.def.radius) + 8;
     if (d < hitR) {
@@ -442,8 +446,8 @@ class Unit {
 
   doHarvest(dt, o) {
     const p = game.players[this.owner];
-    // full → deliver
-    if (this.carrying >= this.def.capacity) {
+    // full (or forced partial delivery) → deliver
+    if (this.carrying >= this.def.capacity || (o.forceDeliver && this.carrying > 0)) {
       const dep = nearestOwnBuilding(this.owner, 'supply', this.x, this.y);
       if (!dep) { this.order = { type: 'guard' }; return; }
       const d = U.dist(this.x, this.y, dep.x, dep.y);
@@ -452,6 +456,7 @@ class Unit {
         p.stats.moneyEarned += this.carrying;
         if (this.owner === 0) { FX.text(this.x, this.y - 18, '+$' + this.carrying, '#ffd76a'); SFX.cash(); }
         this.carrying = 0;
+        o.forceDeliver = false;
         this.path = null;
       } else {
         if (!this.path) this.setPathTo(dep.x, dep.y + dep.size * TILE * 0.35);
@@ -463,7 +468,7 @@ class Unit {
     let dock = o.dock && o.dock.amount > 0 ? o.dock : null;
     if (!dock) dock = nearestDockWithSupplies(this.x, this.y);
     if (!dock) {
-      if (this.carrying > 0) { this.carrying = this.def.capacity; return; } // deliver partial
+      if (this.carrying > 0) { o.forceDeliver = true; return; } // deliver the real partial load
       this.order = { type: 'guard' }; return;
     }
     o.dock = dock;
@@ -474,9 +479,9 @@ class Unit {
       this.path = null;
       if (this.loadT > 2.6) {
         this.loadT = 0;
-        const take = Math.min(this.def.capacity, dock.amount);
+        const take = Math.min(this.def.capacity - this.carrying, dock.amount);
         world.depleteDock(dock, take);
-        this.carrying = take;
+        this.carrying += take;
         if (dock.amount <= 0 && this.owner === 0) UI.feed('Supply pile exhausted', 'bad');
       }
     } else {
@@ -567,7 +572,9 @@ class Unit {
       }
       case 'attack': {
         const t = game.byId.get(this.order.targetId || this.persistTargetId);
-        if (!t || t.dead) { this.jetState = pad ? 'return' : 'idle'; this.persistTargetId = 0; break; }
+        if (!t || t.dead || !weaponCanHit(def.weapon, t)) {
+          this.jetState = pad ? 'return' : 'idle'; this.persistTargetId = 0; break;
+        }
         if (this.ammo <= 0) { this.jetState = 'return'; break; }
         const d = flyToward(t.x, t.y, def.speed);
         if (d < def.weapon.range && this.cool <= 0) {
@@ -954,11 +961,12 @@ function updateProjectiles(dt) {
         }
         break;
       }
-      case 'bomb': { // powers: falling bomb at fixed point
+      case 'bomb': { // powers: falling bomb / beam strike at fixed point
         p.t += dt;
         if (p.t >= p.fly) {
-          dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, null);
+          dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, null, !!p.beam);
           FX.explosion(p.tx, p.ty, p.fxSize || 1.2);
+          if (p.beam) FX.addBeam(p.tx, p.ty - 720, p.tx, p.ty, 11, '#bfe8ff', 0.5);
           SFX.explo(p.tx, p.ty, p.fxSize || 1.2);
           p.dead = true;
         }

@@ -8,6 +8,8 @@ const FX = (() => {
   let beams = [];        // lingering beams {x0,y0,x1,y1,w,color,life,t}
 
   function spawn(p) {
+    // draw code emits ambient smoke every frame; while paused nothing expires, so don't spawn
+    if (typeof game !== 'undefined' && game.paused) return;
     if (parts.length > 1400) parts.splice(0, 200);
     parts.push(p);
   }

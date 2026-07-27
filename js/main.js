@@ -42,9 +42,10 @@ function startGame(cfg) {
   game.ents = []; game.byId = new Map();
   game.projs = []; game.nukes = []; game.beamStrikes = [];
   game.shake = 0;
+  game.revealAll = false;
   FX.clear();
-  INPUT.selection = [];
-  INPUT.placing = null; INPUT.targeting = null; INPUT.awaitAttackMove = false;
+  INPUT.resetMatch();
+  UI.resetMatch();
 
   const ms = MAPSIZES[cfg.map];
   world = new World(ms.w, ms.h, (Math.random() * 1e9) | 0);
@@ -92,8 +93,10 @@ function checkVictory() {
   for (let pi = 0; pi < 2; pi++) {
     const hasBuilding = game.ents.some(e => !e.dead && e.owner === pi && e.kind === 'building');
     const p = game.players[pi];
-    const hasDozerMoney = game.ents.some(e => !e.dead && e.owner === pi && e.kind === 'unit' && e.def.builder) &&
-      p.money >= BUILDINGS.cc.cost * 0.5;
+    // grace only if a builder survives AND the money can actually restart an economy
+    const cheapestRestart = Math.min(BUILDINGS.market.cost, BUILDINGS.supply.cost + UNITS.truck.cost);
+    const hasDozerMoney = p.money >= cheapestRestart &&
+      game.ents.some(e => !e.dead && e.owner === pi && e.kind === 'unit' && e.def.builder);
     if (!hasBuilding && !hasDozerMoney) {
       game.over = true;
       const win = pi === 1;
@@ -146,16 +149,19 @@ function simStep(dt) {
 }
 
 /* ---------------- main loop ---------------- */
-let lastTime = 0, acc = 0;
+let lastTime = 0, acc = 0, rafFrame = 0;
 function loop(ts) {
   requestAnimationFrame(loop);
   const rdt = Math.min(0.1, (ts - lastTime) / 1000 || 0.016);
   lastTime = ts;
+  rafFrame++;
 
   if (!game.started) return;
 
   game.renderT += rdt;
   INPUT.updateCamera(rdt);
+
+  if (game.paused && game.shake > 0) game.shake = Math.max(0, game.shake - rdt * 22);
 
   if (!game.paused) {
     acc += rdt;
@@ -172,8 +178,8 @@ function loop(ts) {
 
   RENDER.frame();
 
-  // HUD refresh at ~5 Hz
-  if ((game.frame % 6 === 0 && !game.paused) || game.frame % 60 === 0) {
+  // HUD refresh at ~5 Hz (rAF-based while paused, since sim frames freeze)
+  if ((!game.paused && game.frame % 6 === 0) || (game.paused && rafFrame % 30 === 0)) {
     UI.refreshTop();
     UI.drawMinimap();
     UI.refreshCmdProgress();

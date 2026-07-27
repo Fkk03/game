@@ -323,9 +323,9 @@ const RENDER = (() => {
     if (game.revealAll) return true;
     if (e.kind === 'building') {
       // buildings render if currently visible; ghosts handle the rest
+      // (killEnt calls RENDER.cleanGhost to drop destroyed buildings from the map)
       const vis = world.isVisible(e.x, e.y);
       if (vis) ghosts.set(e.id, { ent: e, tx0: U.clamp(e.tx, 0, world.w - 1), ty0: U.clamp(e.ty, 0, world.h - 1) });
-      if (e.dead) ghosts.delete(e.id);
       return vis;
     }
     return world.isVisible(e.x, e.y);
@@ -688,7 +688,7 @@ const RENDER = (() => {
     const p = game.players[b.owner];
     const fac = p ? p.faction : 'coalition';
     const [c1r, c2r] = teamColors(b);
-    const c1 = ghost ? '#777' : c1r, c2 = ghost ? '#444' : c2r;
+    const c1 = ghost ? '#777777' : c1r, c2 = ghost ? '#444444' : c2r;
     const s = b.size * TILE;
     const x0 = b.tx * TILE, y0 = b.ty * TILE;
     ctx.save();
@@ -1087,7 +1087,7 @@ const RENDER = (() => {
     }
     ctx.globalAlpha = 0.55;
     const fake = { key: pl.key, def, tx, ty, size: def.size, owner: 0, constructed: true,
-      buildProgress: 1, swReady: false, queue: [], tAngle: 0 };
+      buildProgress: 1, swReady: false, swTimer: def.swTimer || 0, queue: [], tAngle: 0 };
     drawBuildingSprite(fake, !ok);
     ctx.restore();
   }

@@ -490,6 +490,17 @@ const UI = (() => {
     orderFlashes.push({ x, y, kind, t: 0 });
   }
 
+  /* reset per-match state so alarms/pings from the previous game don't leak in */
+  function resetMatch() {
+    pings.length = 0;
+    orderFlashes.length = 0;
+    lastEvent = null;
+    lastAttackFeedT = -99;
+    announceT = 0;
+    $('announce').classList.add('hidden');
+    hideTooltip();
+  }
+
   /* per-frame housekeeping */
   function update(dt) {
     if (announceT > 0) { announceT -= dt; if (announceT <= 0) $('announce').classList.add('hidden'); }
@@ -503,7 +514,7 @@ const UI = (() => {
   function drawMinimap() { RENDER.drawMinimap(mmCanvas); }
 
   return {
-    init, showGameHud, quitToMenu, togglePause, toggleSound, showHelp, showEnd,
+    init, showGameHud, quitToMenu, togglePause, toggleSound, showHelp, showEnd, resetMatch,
     refreshTop, refreshPowers, refreshSel, refreshCmd, refreshCmdProgress, triggerHotkey,
     feed, announce, ping, underAttack, jumpToLastEvent, flashOrder, update, drawMinimap,
     hideTooltip,

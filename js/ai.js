@@ -35,7 +35,8 @@ const AI = (() => {
     const cc = myBuildings('cc')[0];
     if (cc) return cc;
     const any = myBuildings()[0];
-    return any || null;
+    if (any) return any;
+    return myUnits('dozer')[0] || null;   // decapitated: rally around a surviving builder
   }
 
   const p = () => game.players[PI];
@@ -139,9 +140,9 @@ const AI = (() => {
       const idle = dozers.find(d => d.order.type === 'idle' || d.order.type === 'guard');
       if (idle) idle.giveOrder({ type: 'repair', targetId: hurt.id });
     }
-    // start new construction
+    // start new construction (only when a builder exists to work the site)
     const want = wantedStructure();
-    if (want && sites.length < 2) {
+    if (want && sites.length < 2 && dozers.length) {
       const spot = findPlacement(want);
       if (spot && p().money >= BUILDINGS[want].cost) {
         p().money -= BUILDINGS[want].cost;
@@ -225,12 +226,15 @@ const AI = (() => {
       case 'gathering': {
         S.gatherT -= dt2;
         if (S.gatherT <= 0) {
-          const target = playerKeyBuilding();
+          // hunt any surviving player entity (dozers included) when no buildings remain
+          const anchor = baseAnchor();
+          const target = playerKeyBuilding() ||
+            (anchor ? nearestPlayerEntTo(anchor.x, anchor.y) : null);
           if (!target) { S.attackState = 'idle'; S.waveT = S.diff.waveEvery; break; }
           S.attackState = 'attacking';
           S.attackTargetId = target.id;
           S.armyValueStart = army.reduce((s, u) => s + u.def.cost, 0);
-          for (const u of army) u.giveOrder({ type: 'attackmove', x: target.x + U.rand(-60, 60), y: target.y + U.rand(-60, 60) });
+          for (const u of army) orderAssault(u, target);
           // jets strike the player's army or defenses
           const cl = playerCluster();
           for (const j of jets) {
@@ -251,14 +255,21 @@ const AI = (() => {
           }
         }
         if (!target || target.dead) {
-          const next = playerKeyBuilding();
+          const anchor = baseAnchor();
+          const next = playerKeyBuilding() ||
+            (anchor ? nearestPlayerEntTo(anchor.x, anchor.y) : null);
           if (next) {
             S.attackTargetId = next.id;
             for (const u of army) {
-              if (u.order.type === 'idle' || u.order.type === 'guard')
-                u.giveOrder({ type: 'attackmove', x: next.x + U.rand(-60, 60), y: next.y + U.rand(-60, 60) });
+              if (u.order.type === 'idle' || u.order.type === 'guard') orderAssault(u, next);
             }
           } else { S.attackState = 'idle'; S.waveT = S.diff.waveEvery; }
+        } else if (target.kind === 'building' && !target.constructed) {
+          // 0%-progress sites are invisible to auto-acquire — order direct attacks
+          for (const u of army) {
+            if (u.order.type === 'idle' || u.order.type === 'guard')
+              u.giveOrder({ type: 'attack', targetId: target.id });
+          }
         } else if (S.armyValueStart && val < S.armyValueStart * 0.25) {
           // retreat
           const anchor = baseAnchor();
@@ -288,10 +299,23 @@ const AI = (() => {
     let best = null, bd = Infinity;
     for (const e of game.ents) {
       if (e.dead || e.owner !== 0) continue;
+      if (e.kind === 'unit' && e.def.air) continue;   // most weapons can't reach air
       const d = U.dist2(x, y, e.x, e.y);
       if (d < bd) { bd = d; best = e; }
     }
     return best;
+  }
+
+  /* attackmove toward a target; direct attack when auto-acquire can't see it
+     (unconstructed sites) or the target is a lone unit like a dozer */
+  function orderAssault(u, target) {
+    if ((target.kind === 'building' && !target.constructed) || target.kind === 'unit') {
+      if (u.def.suicide || (u.def.weapon && weaponCanHit(u.def.weapon, target))) {
+        u.giveOrder({ type: 'attack', targetId: target.id });
+        return;
+      }
+    }
+    u.giveOrder({ type: 'attackmove', x: target.x + U.rand(-60, 60), y: target.y + U.rand(-60, 60) });
   }
 
   /* ------------- powers & superweapon ------------- */
@@ -305,8 +329,7 @@ const AI = (() => {
         return;
       }
     }
-    // fallback: unlock anything possible
-    for (const k of keys) if (POWERS_SYS.canUnlock(me, k)) { POWERS_SYS.unlock(PI, k); return; }
+    // no fallback beyond the tier cap — unspent points bank harmlessly
   }
 
   function usePowers() {
@@ -356,7 +379,8 @@ const AI = (() => {
   function tick(dt2) {
     if (!S || game.over) return;
     if (S.defendT > 0) S.defendT -= dt2;
-    if (!myBuildings().length) return;   // defeated — main loop handles
+    if (!myEnts().length) return;   // fully defeated — main loop handles
+    // decapitated but alive (dozer + money): keep managing so it can rebuild
     manageDozers();
     manageEconomy();
     manageArmy();
