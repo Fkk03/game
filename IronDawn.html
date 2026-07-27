@@ -1472,7 +1472,6 @@ const FX = (() => {
       rings.push({ x, y, t: 0, life: 0.35, maxR: 45 * size });
       spawn({ x, y, vx: 0, vy: 0, t: 0, life: 0.1, r: 22 * size, kind: 'flash' });
       RENDER.addDecal(x, y, 14 * size);
-      game.shake = Math.min(14, game.shake + 2.4 * size);
     },
 
     nukeExplosion(x, y) {
@@ -1489,7 +1488,6 @@ const FX = (() => {
       rings.push({ x, y, t: 0, life: 0.9, maxR: 320 });
       flashes.push({ color: '255,240,200', a: 0.85, fade: 0.9 });
       RENDER.addDecal(x, y, 110);
-      game.shake = 26;
     },
 
     flame(x, y, ang) {
@@ -3164,10 +3162,6 @@ const RENDER = (() => {
     ctx.fillRect(0, 0, W, H);
 
     ctx.save();
-    // screen shake
-    if (game.shake > 0.2) {
-      ctx.translate(U.rand(-game.shake, game.shake) * 0.5, U.rand(-game.shake, game.shake) * 0.5);
-    }
     ctx.scale(z, z);
     ctx.translate(-cam.x, -cam.y);
 
@@ -5834,7 +5828,6 @@ function simStep(dt) {
     checkVictory();
   }
 
-  if (game.shake > 0) game.shake = Math.max(0, game.shake - dt * 22);
 }
 
 /* ---------------- main loop ---------------- */
@@ -5849,8 +5842,6 @@ function loop(ts) {
 
   game.renderT += rdt;
   INPUT.updateCamera(rdt);
-
-  if (game.paused && game.shake > 0) game.shake = Math.max(0, game.shake - rdt * 22);
 
   if (!game.paused) {
     acc += rdt;

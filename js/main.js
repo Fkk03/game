@@ -172,7 +172,6 @@ function simStep(dt) {
     checkVictory();
   }
 
-  if (game.shake > 0) game.shake = Math.max(0, game.shake - dt * 22);
 }
 
 /* ---------------- main loop ---------------- */
@@ -187,8 +186,6 @@ function loop(ts) {
 
   game.renderT += rdt;
   INPUT.updateCamera(rdt);
-
-  if (game.paused && game.shake > 0) game.shake = Math.max(0, game.shake - rdt * 22);
 
   if (!game.paused) {
     acc += rdt;

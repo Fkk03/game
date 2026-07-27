@@ -178,10 +178,6 @@ const RENDER = (() => {
     ctx.fillRect(0, 0, W, H);
 
     ctx.save();
-    // screen shake
-    if (game.shake > 0.2) {
-      ctx.translate(U.rand(-game.shake, game.shake) * 0.5, U.rand(-game.shake, game.shake) * 0.5);
-    }
     ctx.scale(z, z);
     ctx.translate(-cam.x, -cam.y);
 

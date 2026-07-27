@@ -88,7 +88,6 @@ const FX = (() => {
       rings.push({ x, y, t: 0, life: 0.35, maxR: 45 * size });
       spawn({ x, y, vx: 0, vy: 0, t: 0, life: 0.1, r: 22 * size, kind: 'flash' });
       RENDER.addDecal(x, y, 14 * size);
-      game.shake = Math.min(14, game.shake + 2.4 * size);
     },
 
     nukeExplosion(x, y) {
@@ -105,7 +104,6 @@ const FX = (() => {
       rings.push({ x, y, t: 0, life: 0.9, maxR: 320 });
       flashes.push({ color: '255,240,200', a: 0.85, fade: 0.9 });
       RENDER.addDecal(x, y, 110);
-      game.shake = 26;
     },
 
     flame(x, y, ang) {
