@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRON DAWN — Modern Warfare RTS</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
+</head>
+<body>
+<div id="game-wrap">
+  <canvas id="game"></canvas>
+
+  <!-- ======= TOP BAR ======= -->
+  <div id="topbar" class="hud hidden">
+    <div class="tb-group">
+      <span class="tb-icon">$</span><span id="money">0</span>
+    </div>
+    <div class="tb-group" id="powergroup">
+      <span class="tb-icon">⚡</span>
+      <div id="powerbar"><div id="powerfill"></div></div>
+      <span id="powertext"></span>
+    </div>
+    <div class="tb-group">
+      <span id="rankstars"></span>
+      <div id="xpbar"><div id="xpfill"></div></div>
+      <span id="ptsleft" title="Promotion points available"></span>
+    </div>
+    <div class="tb-group" id="powersrow"></div>
+    <div class="tb-group" id="swtimers"></div>
+    <div class="tb-spacer"></div>
+    <div class="tb-group">
+      <span id="clock">0:00</span>
+      <button id="btn-sound" class="tb-btn" title="Toggle sound (M)">🔊</button>
+      <button id="btn-menu" class="tb-btn" title="Menu (Esc)">☰</button>
+    </div>
+  </div>
+
+  <!-- ======= BOTTOM BAR ======= -->
+  <div id="bottombar" class="hud hidden">
+    <div id="minimap-wrap">
+      <canvas id="minimap" width="196" height="196"></canvas>
+    </div>
+    <div id="selpanel">
+      <div id="selinfo"></div>
+      <div id="selgrid"></div>
+    </div>
+    <div id="cmdpanel">
+      <div id="cmdtitle"></div>
+      <div id="cmdgrid"></div>
+    </div>
+  </div>
+
+  <div id="feed" class="hud hidden"></div>
+  <div id="announce" class="hidden"></div>
+  <div id="tooltip" class="hidden"></div>
+
+  <!-- ======= MAIN MENU ======= -->
+  <div id="menu" class="overlay">
+    <div class="menu-box">
+      <h1 class="title">IRON&nbsp;DAWN</h1>
+      <div class="subtitle">a modern-warfare RTS &mdash; an original homage to the golden age of desert-war strategy games</div>
+
+      <div class="menu-section">
+        <div class="menu-label">YOUR FACTION</div>
+        <div id="faction-pick" class="cards"></div>
+      </div>
+
+      <div class="menu-row">
+        <div class="menu-section">
+          <div class="menu-label">ENEMY FACTION</div>
+          <div id="enemy-pick" class="pills"></div>
+        </div>
+        <div class="menu-section">
+          <div class="menu-label">DIFFICULTY</div>
+          <div id="diff-pick" class="pills"></div>
+        </div>
+      </div>
+      <div class="menu-row">
+        <div class="menu-section">
+          <div class="menu-label">MAP SIZE</div>
+          <div id="map-pick" class="pills"></div>
+        </div>
+        <div class="menu-section">
+          <div class="menu-label">STARTING FUNDS</div>
+          <div id="money-pick" class="pills"></div>
+        </div>
+      </div>
+
+      <button id="btn-start" class="bigbtn">▶ &nbsp;START SKIRMISH</button>
+      <button id="btn-help" class="smallbtn">CONTROLS &amp; HELP</button>
+      <div class="fineprint">Original fan-made game. No assets, code, names or audio from any commercial game.
+        All graphics procedurally drawn &middot; all sound synthesized in-browser.</div>
+    </div>
+  </div>
+
+  <!-- ======= PAUSE MENU ======= -->
+  <div id="pausemenu" class="overlay hidden">
+    <div class="menu-box small">
+      <h2>PAUSED</h2>
+      <button id="btn-resume" class="bigbtn">RESUME</button>
+      <button id="btn-restart" class="smallbtn">RESTART SKIRMISH</button>
+      <button id="btn-quit" class="smallbtn">QUIT TO MENU</button>
+      <button id="btn-help2" class="smallbtn">CONTROLS &amp; HELP</button>
+    </div>
+  </div>
+
+  <!-- ======= END SCREEN ======= -->
+  <div id="endscreen" class="overlay hidden">
+    <div class="menu-box small">
+      <h1 id="endtitle">VICTORY</h1>
+      <div id="endstats"></div>
+      <button id="btn-again" class="bigbtn">PLAY AGAIN</button>
+      <button id="btn-quit2" class="smallbtn">MAIN MENU</button>
+    </div>
+  </div>
+
+  <!-- ======= HELP ======= -->
+  <div id="helpoverlay" class="overlay hidden">
+    <div class="menu-box wide">
+      <h2>CONTROLS</h2>
+      <div class="help-cols">
+        <div>
+          <h3>Mouse</h3>
+          <table class="keys">
+            <tr><td>Left click / drag</td><td>Select units</td></tr>
+            <tr><td>Double click</td><td>Select all of type on screen</td></tr>
+            <tr><td>Right click</td><td>Move / Attack / Harvest / Repair / Set rally</td></tr>
+            <tr><td>Shift + Right click</td><td>Queue orders (waypoints)</td></tr>
+            <tr><td>Middle drag / Arrow keys</td><td>Pan camera</td></tr>
+            <tr><td>Mouse wheel</td><td>Zoom</td></tr>
+            <tr><td>Minimap click</td><td>Jump camera</td></tr>
+          </table>
+          <h3>Keys</h3>
+          <table class="keys">
+            <tr><td>Q W E R / A S D F / Z X C V</td><td>Command grid hotkeys</td></tr>
+            <tr><td>Ctrl + 1–9</td><td>Assign control group</td></tr>
+            <tr><td>1–9</td><td>Select group (tap ×2 to center)</td></tr>
+            <tr><td>Space</td><td>Jump to last event</td></tr>
+            <tr><td>Backspace</td><td>Jump to base</td></tr>
+            <tr><td>P</td><td>Pause &nbsp;·&nbsp; M — mute &nbsp;·&nbsp; Esc — menu</td></tr>
+          </table>
+        </div>
+        <div>
+          <h3>How to play</h3>
+          <ul class="howto">
+            <li><b>Build</b> with your <b>Dozer / Worker</b> — select it and pick a structure from the command grid (bottom right).</li>
+            <li><b>Money</b>: build a <b>Supply Center</b> near supply piles; it produces <b>Supply Trucks</b> that haul crates automatically. Markets give a steady trickle.</li>
+            <li><b>Power</b>: most structures need it — keep the ⚡ bar green or everything slows down and defenses go offline. The Scorpion Cartel needs no power at all.</li>
+            <li><b>Army</b>: Barracks trains infantry, War Factory builds vehicles, Airfield builds strike jets (jets rearm at the airfield).</li>
+            <li><b>Promotions</b>: combat earns ★ ranks — spend points on General's Powers (top bar): airstrikes, ambushes, carpet bombs…</li>
+            <li><b>Superweapon</b>: each faction has one. Long countdown, devastating result. The enemy sees your timer — and you see theirs.</li>
+            <li><b>Win</b> by destroying every enemy structure.</li>
+          </ul>
+        </div>
+      </div>
+      <button id="btn-closehelp" class="bigbtn">CLOSE</button>
+    </div>
+  </div>
+
+  <div id="loading" class="overlay"><div class="menu-box small"><h2>LOADING…</h2></div></div>
+</div>
+
+<script src="js/util.js"></script>
+<script src="js/data.js"></script>
+<script src="js/sfx.js"></script>
+<script src="js/world.js"></script>
+<script src="js/path.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/ent.js"></script>
+<script src="js/powers.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/input.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
