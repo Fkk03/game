@@ -243,6 +243,13 @@ const AI = (() => {
       case 'attacking': {
         const target = game.byId.get(S.attackTargetId);
         const val = army.reduce((s, u) => s + u.def.cost, 0);
+        // jets that finished rearming (or were built mid-attack) join the strike
+        for (const j of jets) {
+          if (j.jetState === 'idle' && j.ammo > 0) {
+            const jt = target && !target.dead ? target : playerKeyBuilding();
+            if (jt) j.giveOrder({ type: 'attack', targetId: jt.id });
+          }
+        }
         if (!target || target.dead) {
           const next = playerKeyBuilding();
           if (next) {
