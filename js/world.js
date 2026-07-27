@@ -2,10 +2,11 @@
 'use strict';
 
 class World {
-  constructor(wTiles, hTiles, seed) {
+  constructor(wTiles, hTiles, seed, playerTeams) {
     this.w = wTiles; this.h = hTiles;
     this.pw = wTiles * TILE; this.ph = hTiles * TILE;   // pixel size
     this.seed = seed;
+    this.playerTeams = playerTeams || [0, 1];   // team id per player slot
     this.terrain = new Uint8Array(wTiles * hTiles);     // 0 sand, 1 rough, 2 cliff (impassable)
     this.blocked = new Uint8Array(wTiles * hTiles);     // 0 free, 1 building, 2 supply pile
     this.explored = new Uint8Array(wTiles * hTiles);    // player fog
@@ -52,27 +53,53 @@ class World {
       }
     }
 
-    // start positions: SW for player, NE for enemy
-    const m = Math.round(w * 0.16);
-    const p0 = { tx: m, ty: h - 1 - m }, p1 = { tx: w - 1 - m, ty: m };
-    this.starts = [
-      { x: (p0.tx + 0.5) * TILE, y: (p0.ty + 0.5) * TILE },
-      { x: (p1.tx + 0.5) * TILE, y: (p1.ty + 0.5) * TILE },
-    ];
-    this.clearArea(p0.tx, p0.ty, 13);
-    this.clearArea(p1.tx, p1.ty, 13);
+    // start positions: team 0 on the SW arc, team 1 on the NE arc of a ring
+    const teams = this.playerTeams;
+    const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.36;
+    const byTeam = {};
+    teams.forEach((t, pi) => { (byTeam[t] = byTeam[t] || []).push(pi); });
+    const baseAng = { 0: Math.PI * 0.75, 1: -Math.PI * 0.25 };   // SW / NE
+    this.starts = new Array(teams.length);
+    for (const t in byTeam) {
+      const members = byTeam[t];
+      const k = members.length;
+      const spacing = k > 1 ? Math.min(0.55, 1.7 / (k - 1)) : 0;
+      members.forEach((pi, i) => {
+        const a = (baseAng[t] !== undefined ? baseAng[t] : U.rand(0, 6.28)) + (i - (k - 1) / 2) * spacing;
+        const tx = U.clamp(Math.round(cx + Math.cos(a) * R), 8, w - 9);
+        const ty = U.clamp(Math.round(cy + Math.sin(a) * R), 8, h - 9);
+        this.starts[pi] = { x: (tx + 0.5) * TILE, y: (ty + 0.5) * TILE, tx, ty };
+        this.clearArea(tx, ty, 12);
+      });
+    }
 
-    // supply docks: one near each base + two mirrored mid-map
-    const dockDefs = [
-      { tx: p0.tx + 9, ty: p0.ty - 9, amt: 18000 },
-      { tx: p1.tx - 9, ty: p1.ty + 9, amt: 18000 },
-      { tx: Math.round(w * 0.30), ty: Math.round(h * 0.30), amt: 24000 },
-      { tx: Math.round(w * 0.70), ty: Math.round(h * 0.70), amt: 24000 },
-    ];
-    for (const d of dockDefs) this.makeDock(d.tx, d.ty, d.amt, rng);
+    // supply docks: one rich dock near each base + many scattered across the map
+    for (const st of this.starts) {
+      const dir = Math.atan2(cy - st.ty, cx - st.tx);
+      const dx = U.clamp(st.tx + Math.round(Math.cos(dir) * 9), 6, w - 8);
+      const dy = U.clamp(st.ty + Math.round(Math.sin(dir) * 9), 6, h - 8);
+      this.makeDock(dx, dy, 30000, rng);
+    }
+    const nScatter = teams.length * 2 + 4;
+    for (let i = 0; i < nScatter; i++) {
+      let placed = false;
+      for (let att = 0; att < 200 && !placed; att++) {
+        const tx = U.randInt(Math.round(w * 0.08), Math.round(w * 0.88));
+        const ty = U.randInt(Math.round(h * 0.08), Math.round(h * 0.88));
+        let ok = true;
+        for (const st of this.starts) if (U.dist(tx, ty, st.tx, st.ty) < 13) { ok = false; break; }
+        if (ok) for (const d of this.docks) if (U.dist(tx, ty, d.x / TILE, d.y / TILE) < 9) { ok = false; break; }
+        if (!ok) continue;
+        this.makeDock(tx, ty, 24000, rng);
+        placed = true;
+      }
+    }
 
-    // guarantee connectivity between starts and every dock
-    this.ensureReachable(p0, p1);
+    // guarantee connectivity: start 0 must reach every other start and every dock
+    const p0 = { tx: this.starts[0].tx, ty: this.starts[0].ty };
+    for (let i = 1; i < this.starts.length; i++) {
+      this.ensureReachable(p0, { tx: this.starts[i].tx, ty: this.starts[i].ty });
+    }
     for (const d of this.docks) {
       this.ensureReachable(p0, { tx: Math.floor(d.x / TILE), ty: Math.floor(d.y / TILE) - 3 });
     }
@@ -82,8 +109,11 @@ class World {
     for (let i = 0; i < nProps; i++) {
       const tx = U.randInt(2, w - 3), ty = U.randInt(2, h - 3);
       if (this.terrain[this.idx(tx, ty)] === 2 || this.blocked[this.idx(tx, ty)]) continue;
-      if (U.dist((tx + .5) * TILE, (ty + .5) * TILE, this.starts[0].x, this.starts[0].y) < 9 * TILE) continue;
-      if (U.dist((tx + .5) * TILE, (ty + .5) * TILE, this.starts[1].x, this.starts[1].y) < 9 * TILE) continue;
+      let nearStart = false;
+      for (const st of this.starts) {
+        if (U.dist((tx + .5) * TILE, (ty + .5) * TILE, st.x, st.y) < 9 * TILE) { nearStart = true; break; }
+      }
+      if (nearStart) continue;
       this.props.push({
         x: (tx + 0.5) * TILE + U.rand(-12, 12), y: (ty + 0.5) * TILE + U.rand(-12, 12),
         type: rng() < 0.55 ? 'scrub' : 'rock', s: U.rand(0.6, 1.5), rot: U.rand(0, Math.PI * 2),
@@ -195,8 +225,11 @@ class World {
   recomputeFog() {
     this.visible.fill(0);
     this.visionSources = [];
+    const humanTeam = game.players[0].team;
     for (const e of game.ents) {
-      if (e.dead || e.owner !== 0) continue;
+      if (e.dead || e.owner < 0) continue;
+      const p = game.players[e.owner];
+      if (!p || p.team !== humanTeam) continue;          // allies share vision
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.05) continue;
       this.stampVision(e.x, e.y, e.def.sight);
       this.visionSources.push({ x: e.x, y: e.y, r: e.def.sight * TILE });

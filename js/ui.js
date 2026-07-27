@@ -10,7 +10,8 @@ const UI = (() => {
   let announceT = 0;
 
   /* menu config state */
-  const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000 };
+  const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000,
+    allies: 0, enemies: 1 };
 
   function init() {
     mmCanvas = $('minimap');
@@ -30,6 +31,9 @@ const UI = (() => {
     }
     buildPills('enemy-pick', [['random', 'Random'], ...Object.keys(FACTIONS).map(k => [k, FACTIONS[k].name])],
       v => cfg.enemy = v, 'random');
+    buildPills('allies-pick', [[0, 'None'], [1, '1'], [2, '2'], [3, '3']], v => cfg.allies = +v, 0);
+    buildPills('enemies-pick', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7']],
+      v => cfg.enemies = +v, 1);
     buildPills('diff-pick', Object.keys(DIFFICULTY).map(k => [k, DIFFICULTY[k].label]), v => cfg.diff = v, 'normal');
     buildPills('map-pick', Object.keys(MAPSIZES).map(k => [k, MAPSIZES[k].label]), v => cfg.map = v, 'medium');
     buildPills('money-pick', [[5000, '$5,000'], [10000, '$10,000'], [20000, '$20,000']],
@@ -174,15 +178,16 @@ const UI = (() => {
       Math.round(U.clamp((p.xp - base) / (nxt - base), 0, 1) * 100) + '%';
     $('ptsleft').textContent = p.powerPoints > 0 ? `+${p.powerPoints} pts` : '';
 
-    // superweapon timers
+    // superweapon timers (friendly = green, hostile = red)
     const sw = $('swtimers');
     let html = '';
+    const humanTeam = game.players[0].team;
     for (const e of game.ents) {
       if (e.dead || e.kind !== 'building' || e.key !== 'superweapon' || !e.constructed) continue;
-      const mine = e.owner === 0;
+      const friendly = game.players[e.owner].team === humanTeam;
       const kind = BUILDINGS.superweapon.swByFaction[game.players[e.owner].faction];
       const nm = SUPERWEAPONS[kind].name;
-      html += `<span class="sw-timer ${mine ? 'mine' : ''} ${e.swReady ? 'ready' : ''}">${mine ? '' : '☠ '}${nm}: ${e.swReady ? 'READY' : U.fmtTime(e.swTimer)}</span>`;
+      html += `<span class="sw-timer ${friendly ? 'mine' : ''} ${e.swReady ? 'ready' : ''}">${friendly ? '' : '☠ '}${nm}: ${e.swReady ? 'READY' : U.fmtTime(e.swTimer)}</span>`;
     }
     sw.innerHTML = html;
   }
@@ -315,6 +320,7 @@ const UI = (() => {
       title.textContent = units.length === 1 ? uName(units[0].key, p.faction) : units.length + ' units';
       curCmds[4] = { type: 'attackmove' };   // A
       curCmds[5] = { type: 'stop' };         // S
+      curCmds[6] = { type: 'guardbtn' };     // D
     } else if (building) {
       title.textContent = bName(building.key, p.faction);
       if (!building.constructed) {
@@ -352,6 +358,8 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">⚔️</span><span>Attack-Move</span>`;
       } else if (c.type === 'stop') {
         b.innerHTML = `${hk}<span class="icon">✋</span><span>Stop</span>`;
+      } else if (c.type === 'guardbtn') {
+        b.innerHTML = `${hk}<span class="icon">🛡️</span><span>Guard Area</span>`;
       } else if (c.type === 'sell') {
         b.innerHTML = `${hk}<span class="icon">💵</span><span>Sell 50%</span>`;
       } else if (c.type === 'cancelsite') {
@@ -378,6 +386,7 @@ const UI = (() => {
         break;
       }
       case 'attackmove': INPUT.awaitAttackMove = true; SFX.click(); break;
+      case 'guardbtn': INPUT.awaitGuard = true; SFX.click(); break;
       case 'stop': INPUT.stopSelected(); break;
       case 'sell': {
         const b = INPUT.selection[0];
@@ -434,6 +443,8 @@ const UI = (() => {
       tooltipHtml(el, `<h4>⚔️ Attack-Move</h4><div class="tt-desc">Move while engaging every enemy on the way. Hotkey A, then click the map.</div>`);
     } else if (c.type === 'stop') {
       tooltipHtml(el, `<h4>✋ Stop</h4><div class="tt-desc">Halt and hold position.</div>`);
+    } else if (c.type === 'guardbtn') {
+      tooltipHtml(el, `<h4>🛡️ Guard Area</h4><div class="tt-desc">Move to a point and hold it — engages enemies that come near, then returns to the post. Hotkey D, then click the map.</div>`);
     } else if (c.type === 'sell') {
       tooltipHtml(el, `<h4>💵 Sell</h4><div class="tt-desc">Demolish this structure for a 50% refund.</div>`);
     }

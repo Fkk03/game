@@ -27,8 +27,13 @@ const POWERS_SYS = (() => {
     if (!isReady(p, key)) return false;
     p.cooldowns[key] = POWERS[key].cd;
     execute(pi, key, x, y);
-    if (pi === 1 && world.isExplored(x, y)) UI.feed('⚠ Enemy ' + POWERS[key].name + ' inbound!', 'bad');
+    if (isEnemyOfHumanPlayer(pi) && world.isExplored(x, y)) UI.feed('⚠ Enemy ' + POWERS[key].name + ' inbound!', 'bad');
     return true;
+  }
+
+  function isEnemyOfHumanPlayer(pi) {
+    const p = game.players[pi];
+    return p && p.team !== game.players[0].team;
   }
 
   function execute(pi, key, x, y) {
@@ -61,6 +66,56 @@ const POWERS_SYS = (() => {
         strikeWarning(pi, x, y, 190);
         if (world.isVisible(x, y)) SFX.klaxon();
         break;
+
+      case 'supplydrop': {
+        const p = game.players[pi];
+        for (let i = 0; i < 4; i++) FX.chute(x + U.rand(-45, 45), y + U.rand(-45, 45));
+        p.addMoney(1200);
+        if (pi === 0) { FX.text(x, y, '📦 +$1,200', '#ffd76a'); SFX.cash(); }
+        break;
+      }
+
+      case 'paradrop': {
+        const p = game.players[pi];
+        const infKey = p.faction === 'dynasty' ? 'rifleman' : p.faction === 'coalition' ? 'ranger' : 'raider';
+        const rktKey = p.faction === 'dynasty' ? 'rpg' : p.faction === 'coalition' ? 'rocketeer' : 'rocketraider';
+        const drops = [infKey, infKey, infKey, infKey, infKey, infKey, rktKey, rktKey];
+        for (const k of drops) {
+          const sp = PATH.nearestOpen(world, Math.floor((x + U.rand(-70, 70)) / TILE), Math.floor((y + U.rand(-70, 70)) / TILE), 8);
+          if (!sp) continue;
+          const u = new Unit(pi, k, (sp.tx + 0.5) * TILE, (sp.ty + 0.5) * TILE);
+          game.addEnt(u);
+          game.players[pi].stats.unitsBuilt++;
+          FX.chute((sp.tx + 0.5) * TILE, (sp.ty + 0.5) * TILE);
+        }
+        FX.text(x, y, '🪂 AIRBORNE ASSAULT', '#c9e8a0');
+        break;
+      }
+
+      case 'frenzy': {
+        game.players[pi].frenzyUntil = game.t + 30;
+        if (pi === 0) { UI.announce('🔥 WAR FRENZY 🔥'); SFX.promote(); }
+        else if (isEnemyOfHumanPlayer(pi)) UI.feed('⚠ Enemy forces are frenzied (+30% damage)!', 'bad');
+        break;
+      }
+
+      case 'sabotage': {
+        let n = 0;
+        for (const e of game.ents) {
+          if (e.dead || e.kind !== 'building' || !e.constructed) continue;
+          const pe = game.players[e.owner];
+          if (!pe || pe.team === game.players[pi].team) continue;
+          if (U.dist(x, y, e.x, e.y) < 175) {
+            e.disabledUntil = game.t + 25;
+            applyDamage(e, 150, 'explosive', null);
+            FX.smokePuff(e.x, e.y, 10, true);
+            n++;
+          }
+        }
+        if (pi === 0) FX.text(x, y, n ? '🔌 ' + n + ' STRUCTURES SABOTAGED' : 'No targets in range', '#e8c96a');
+        if (n && isEnemyOfHumanPlayer(pi)) UI.feed('⚠ Our structures have been sabotaged!', 'bad');
+        break;
+      }
 
       case 'barrage': {
         for (let i = 0; i < 10; i++) {
@@ -141,7 +196,7 @@ const POWERS_SYS = (() => {
   }
 
   function strikeWarning(pi, x, y, r) {
-    if (pi === 1 && world.isExplored(x, y)) {
+    if (isEnemyOfHumanPlayer(pi) && world.isExplored(x, y)) {
       UI.ping(x, y, '#ff5540');
       SFX.alarm();
     }
@@ -154,8 +209,11 @@ const POWERS_SYS = (() => {
     silo.swTimer = silo.def.swTimer;
     const p = game.players[pi];
     const kind = BUILDINGS.superweapon.swByFaction[p.faction];
-    UI.feed(pi === 0 ? SUPERWEAPONS[kind].name + ' launched!' : '⚠⚠ ENEMY SUPERWEAPON LAUNCHED ⚠⚠', pi === 0 ? 'gold' : 'bad');
-    if (pi === 1) { SFX.klaxon(); SFX.say('Warning. Incoming superweapon', true); UI.ping(x, y, '#ff2200'); }
+    const hostile = isEnemyOfHumanPlayer(pi);
+    UI.feed(pi === 0 ? SUPERWEAPONS[kind].name + ' launched!' :
+      hostile ? '⚠⚠ ENEMY SUPERWEAPON LAUNCHED ⚠⚠' : 'Allied ' + SUPERWEAPONS[kind].name + ' launched',
+      hostile ? 'bad' : 'gold');
+    if (hostile) { SFX.klaxon(); SFX.say('Warning. Incoming superweapon', true); UI.ping(x, y, '#ff2200'); }
 
     switch (kind) {
       case 'nuke':

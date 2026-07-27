@@ -13,16 +13,18 @@ let game = {
 };
 let world = null;
 
-function makePlayer(idx, faction, isAI) {
+function makePlayer(idx, faction, isAI, team) {
   return {
-    idx, faction, isAI,
-    color: FACTIONS[faction].color,
-    colorDark: FACTIONS[faction].colorDark,
+    idx, faction, isAI, team,
+    color: PLAYER_COLORS[idx % PLAYER_COLORS.length],
+    colorDark: U.shade(PLAYER_COLORS[idx % PLAYER_COLORS.length], 0.5),
     money: 0,
     powerCap: 0, powerUse: 0, lowPower: false,
     xp: 0, rank: 0, powerPoints: 0,
     unlocked: {}, cooldowns: {},
     incomeMult: 1,
+    frenzyUntil: 0,
+    defeated: false,
     stats: { unitsBuilt: 0, unitsLost: 0, kills: 0, buildingsLost: 0, moneyEarned: 0 },
     addMoney(amt, isIncome) {
       this.money += amt * (isIncome ? this.incomeMult : 1);
@@ -47,21 +49,33 @@ function startGame(cfg) {
   INPUT.resetMatch();
   UI.resetMatch();
 
-  const ms = MAPSIZES[cfg.map];
-  world = new World(ms.w, ms.h, (Math.random() * 1e9) | 0);
-
-  const enemyFaction = cfg.enemy === 'random' ? U.pick(Object.keys(FACTIONS)) : cfg.enemy;
+  // roster: you + allies (team 0) vs enemies (team 1), max 8 players
   const diff = DIFFICULTY[cfg.diff];
-  game.players = [
-    makePlayer(0, cfg.faction, false),
-    makePlayer(1, enemyFaction, true),
-  ];
-  game.players[0].money = cfg.money;
-  game.players[1].money = cfg.money + diff.startBonus;
-  game.players[1].incomeMult = diff.income;
+  const nAllies = U.clamp(cfg.allies || 0, 0, 3);
+  const nEnemies = U.clamp(Math.min(cfg.enemies || 1, 7 - nAllies), 1, 7);
+  const facs = Object.keys(FACTIONS);
+  game.players = [makePlayer(0, cfg.faction, false, 0)];
+  for (let i = 0; i < nAllies; i++) game.players.push(makePlayer(game.players.length, U.pick(facs), true, 0));
+  for (let i = 0; i < nEnemies; i++) {
+    const f = cfg.enemy === 'random' ? U.pick(facs) : cfg.enemy;
+    game.players.push(makePlayer(game.players.length, f, true, 1));
+  }
+  for (const p of game.players) {
+    p.money = cfg.money + (p.isAI ? diff.startBonus : 0);
+    if (p.isAI) p.incomeMult = diff.income;
+  }
 
-  // starting base: CC + dozer for each side
-  for (let pi = 0; pi < 2; pi++) {
+  // map auto-grows with player count so everyone fits
+  const total = game.players.length;
+  const sizeOrder = ['small', 'medium', 'large', 'huge'];
+  let mapKey = cfg.map;
+  const minIdx = total >= 7 ? 3 : total >= 5 ? 2 : total >= 4 ? 1 : 0;
+  if (sizeOrder.indexOf(mapKey) < minIdx) mapKey = sizeOrder[minIdx];
+  const ms = MAPSIZES[mapKey];
+  world = new World(ms.w, ms.h, (Math.random() * 1e9) | 0, game.players.map(p => p.team));
+
+  // starting base: CC + dozer for every player
+  for (let pi = 0; pi < total; pi++) {
     const s = world.starts[pi];
     const tx = Math.floor(s.x / TILE) - 2, ty = Math.floor(s.y / TILE) - 2;
     const cc = new Building(pi, 'cc', tx, ty, true);
@@ -87,27 +101,40 @@ function startGame(cfg) {
   SFX.say('Battle control online');
 }
 
-/* ---------------- victory check ---------------- */
+/* ---------------- victory check (team-based) ---------------- */
 function checkVictory() {
   if (game.over) return;
-  for (let pi = 0; pi < 2; pi++) {
+  const cheapestRestart = Math.min(BUILDINGS.market.cost, BUILDINGS.supply.cost + UNITS.truck.cost);
+
+  for (const p of game.players) {
+    if (p.defeated) continue;
+    const pi = p.idx;
     const hasBuilding = game.ents.some(e => !e.dead && e.owner === pi && e.kind === 'building');
-    const p = game.players[pi];
     // grace only if a builder survives AND the money can actually restart an economy
-    const cheapestRestart = Math.min(BUILDINGS.market.cost, BUILDINGS.supply.cost + UNITS.truck.cost);
     const hasDozerMoney = p.money >= cheapestRestart &&
       game.ents.some(e => !e.dead && e.owner === pi && e.kind === 'unit' && e.def.builder);
     if (!hasBuilding && !hasDozerMoney) {
-      game.over = true;
-      const win = pi === 1;
-      game.revealAll = true;
-      setTimeout(() => {
-        UI.showEnd(win);
-        if (win) { SFX.promote(); SFX.say('Victory. The battlefield is yours, General', true); }
-        else { SFX.error(); SFX.say('Mission failed', true); }
-      }, 1400);
-      return;
+      p.defeated = true;
+      if (pi !== 0) {
+        const hostile = p.team !== game.players[0].team;
+        UI.feed((hostile ? '💀 Enemy' : '🏳 Allied') + ' general (' + FACTIONS[p.faction].name + ') eliminated!',
+          hostile ? 'gold' : 'bad');
+        if (hostile) SFX.say('Enemy general eliminated');
+      }
     }
+  }
+
+  const humanTeam = game.players[0].team;
+  const lost = game.players[0].defeated;
+  const won = !lost && game.players.every(p => p.team === humanTeam || p.defeated);
+  if (lost || won) {
+    game.over = true;
+    game.revealAll = true;
+    setTimeout(() => {
+      UI.showEnd(won);
+      if (won) { SFX.promote(); SFX.say('Victory. The battlefield is yours, General', true); }
+      else { SFX.error(); SFX.say('Mission failed', true); }
+    }, 1400);
   }
 }
 

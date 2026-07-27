@@ -7,6 +7,13 @@ const INPUT = (() => {
   let placing = null;            // {key, tx, ty, ok}
   let targeting = null;          // {kind:'power'|'sw', key, siloId, label}
   let awaitAttackMove = false;
+  let awaitGuard = false;
+
+  function isEnemyOfHuman(e) {
+    if (!e || e.owner < 0) return false;
+    const p = game.players[e.owner];
+    return p && p.team !== game.players[0].team;
+  }
   const groups = {};             // ctrl groups 1..9
   let lastClickT = 0, lastClickId = 0;
   let lastGroupKey = '', lastGroupT = 0;
@@ -59,6 +66,11 @@ const INPUT = (() => {
         awaitAttackMove = false;
         return;
       }
+      if (awaitGuard) {
+        issueGuard(RENDER.toWorldX(mouse.x), RENDER.toWorldY(mouse.y), e.shiftKey);
+        awaitGuard = false;
+        return;
+      }
       if (wasDrag) boxSelect(box, e.shiftKey);
       else clickSelect(e.shiftKey);
     });
@@ -69,6 +81,7 @@ const INPUT = (() => {
       if (placing) { placing = null; UI.refreshCmd(); return; }
       if (targeting) { targeting = null; UI.refreshPowers(); return; }
       if (awaitAttackMove) { awaitAttackMove = false; return; }
+      if (awaitGuard) { awaitGuard = false; return; }
       issueSmartOrder(RENDER.toWorldX(e.clientX), RENDER.toWorldY(e.clientY), e.shiftKey);
     });
 
@@ -94,6 +107,7 @@ const INPUT = (() => {
         if (placing) { placing = null; UI.refreshCmd(); }
         else if (targeting) { targeting = null; UI.refreshPowers(); }
         else if (awaitAttackMove) awaitAttackMove = false;
+        else if (awaitGuard) awaitGuard = false;
         else UI.togglePause();
         e.preventDefault(); return;
       }
@@ -180,10 +194,7 @@ const INPUT = (() => {
     let best = null, bestScore = -1;
     for (const e of game.ents) {
       if (e.dead) continue;
-      if (e.owner === 1) {
-        if (e.kind === 'unit' && !world.isVisible(e.x, e.y)) continue;
-        if (e.kind === 'building' && !world.isVisible(e.x, e.y)) continue;
-      }
+      if (isEnemyOfHuman(e) && !world.isVisible(e.x, e.y)) continue;
       let hit = false;
       if (e.kind === 'unit') hit = U.dist(wx, wy, e.x, e.y) < e.radius + 7;
       else hit = wx >= e.tx * TILE && wx <= (e.tx + e.size) * TILE && wy >= e.ty * TILE && wy <= (e.ty + e.size) * TILE;
@@ -266,7 +277,7 @@ const INPUT = (() => {
     }
 
     let acted = false;
-    if (target && target.owner === 1) {
+    if (target && isEnemyOfHuman(target)) {
       for (const u of units) {
         if (u.def.suicide || (u.def.weapon && weaponCanHit(u.def.weapon, target))) {
           u.giveOrder({ type: 'attack', targetId: target.id }, shift);
@@ -321,6 +332,15 @@ const INPUT = (() => {
       else u.giveOrder({ type: 'move', x: wx, y: wy }, shift);
     }
     if (units.length) { SFX.ack(); UI.flashOrder(wx, wy, 'attack'); }
+  }
+
+  function issueGuard(wx, wy, shift) {
+    const units = myUnitsSelected();
+    for (const u of units) {
+      if (u.def.weapon && !u.def.noAutoAttack) u.giveOrder({ type: 'guardarea', x: wx, y: wy }, shift);
+      else u.giveOrder({ type: 'move', x: wx, y: wy }, shift);
+    }
+    if (units.length) { SFX.ack(); UI.flashOrder(wx, wy, 'move'); }
   }
 
   function stopSelected() {
@@ -383,13 +403,13 @@ const INPUT = (() => {
 
   /* cursor mode for renderer */
   function cursorMode() {
-    if (targeting || awaitAttackMove) return 'target';
+    if (targeting || awaitAttackMove || awaitGuard) return 'target';
     if (placing) return 'default';
     if (!game.started || mouse.x < 0) return 'default';
     const wx = mouse.wx, wy = mouse.wy;
     const hover = entAt(wx, wy);
     const units = myUnitsSelected();
-    if (hover && hover.owner === 1 && units.some(u => u.def.weapon || u.def.suicide)) return 'attack';
+    if (hover && isEnemyOfHuman(hover) && units.some(u => u.def.weapon || u.def.suicide)) return 'attack';
     if (hover && hover.owner === 0 && hover.kind === 'building' && hover.hp < hover.maxHp &&
         units.some(u => u.def.builder)) return 'repair';
     if (world.dockAt(wx, wy) && units.some(u => u.def.harvester)) return 'harvest';
@@ -398,7 +418,7 @@ const INPUT = (() => {
 
   function resetMatch() {
     selection = [];
-    dragBox = null; placing = null; targeting = null; awaitAttackMove = false;
+    dragBox = null; placing = null; targeting = null; awaitAttackMove = false; awaitGuard = false;
     for (const k in groups) delete groups[k];   // groups hold refs to the previous game's entities
     lastClickT = 0; lastClickId = 0;
     mouse.down = false; mouse.mmb = false;
@@ -418,5 +438,8 @@ const INPUT = (() => {
     get cursorMode() { return cursorMode(); },
     set awaitAttackMove(v) { awaitAttackMove = v; },
     get awaitAttackMove() { return awaitAttackMove; },
+    set awaitGuard(v) { awaitGuard = v; },
+    get awaitGuard() { return awaitGuard; },
+    isEnemyOfHuman,
   };
 })();

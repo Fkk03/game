@@ -256,6 +256,16 @@ ul.howto b { color:#ffe9a0; }
 
       <div class="menu-row">
         <div class="menu-section">
+          <div class="menu-label">ALLIES ON YOUR TEAM</div>
+          <div id="allies-pick" class="pills"></div>
+        </div>
+        <div class="menu-section">
+          <div class="menu-label">ENEMIES (up to 8 players total)</div>
+          <div id="enemies-pick" class="pills"></div>
+        </div>
+      </div>
+      <div class="menu-row">
+        <div class="menu-section">
           <div class="menu-label">ENEMY FACTION</div>
           <div id="enemy-pick" class="pills"></div>
         </div>
@@ -468,7 +478,11 @@ const MAPSIZES = {
   small:  { label: 'Small',  w: 72,  h: 72 },
   medium: { label: 'Medium', w: 96,  h: 96 },
   large:  { label: 'Large',  w: 120, h: 120 },
+  huge:   { label: 'Huge',   w: 150, h: 150 },
 };
+
+/* per-player-slot colors (faction identity comes from units, color from slot) */
+const PLAYER_COLORS = ['#3d7edb', '#d43a2f', '#e8c33c', '#3fae5a', '#8e5bd6', '#e07b2f', '#38b8b8', '#c95b74'];
 
 /* =====================================================================
    FACTIONS — three original armies:
@@ -482,8 +496,8 @@ const FACTIONS = {
     desc: 'High-tech expeditionary force. Expensive but elite units, strike jets and precision firepower.',
     usesPower: true,
     dozerName: 'Combat Dozer', dozerIcon: '🚜',
-    buildings: ['cc', 'power', 'supply', 'barracks', 'factory', 'airfield', 'turret', 'market', 'superweapon'],
-    powers: ['recon', 'airstrike', 'thermobomb'],
+    buildings: ['cc', 'power', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'turret', 'market', 'superweapon'],
+    powers: ['recon', 'supplydrop', 'airstrike', 'paradrop', 'thermobomb'],
     eva: 'Command',
   },
   dynasty: {
@@ -491,8 +505,8 @@ const FACTIONS = {
     desc: 'Industrial war machine. Cheap infantry hordes, heavy tanks, flame weapons and raw firepower.',
     usesPower: true,
     dozerName: 'Worker Dozer', dozerIcon: '🚜',
-    buildings: ['cc', 'power', 'supply', 'barracks', 'factory', 'airfield', 'turret', 'market', 'superweapon'],
-    powers: ['barrage', 'reinforce', 'carpet'],
+    buildings: ['cc', 'power', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'turret', 'market', 'superweapon'],
+    powers: ['recon', 'barrage', 'reinforce', 'frenzy', 'carpet'],
     eva: 'Command',
   },
   cartel: {
@@ -500,8 +514,8 @@ const FACTIONS = {
     desc: 'Desert guerrillas. Dirt-cheap fast units, no power grid needed, salvage wrecks to upgrade vehicles.',
     usesPower: false,
     dozerName: 'Worker', dozerIcon: '👷',
-    buildings: ['cc', 'supply', 'barracks', 'factory', 'turret', 'market', 'superweapon'],
-    powers: ['ambush', 'demo', 'vengeance'],
+    buildings: ['cc', 'supply', 'barracks', 'factory', 'repairbay', 'turret', 'market', 'superweapon'],
+    powers: ['recon', 'ambush', 'demo', 'sabotage', 'vengeance'],
     eva: 'Boss',
   },
 };
@@ -565,10 +579,16 @@ const BUILDINGS = {
       cartel:    { dmg: 52, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
     },
   },
+  repairbay: {
+    name: { coalition: 'Service Depot', dynasty: 'Repair Yard', cartel: 'Scrap Garage' },
+    icon: '🔧', cost: 1200, hp: 1500, size: 3, buildTime: 16, power: 2, armor: 'building',
+    sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft (16 hp/s).',
+    healRadius: 200, healRate: 16,
+  },
   market: {
     name: { coalition: 'Trade Uplink', dynasty: 'Trade Port', cartel: 'Black Market' },
     icon: '💰', cost: 1500, hp: 1000, size: 2, buildTime: 18, power: 1, armor: 'building',
-    sight: 5, desc: 'Generates a steady stream of cash ($8/s). Max 2.', income: 8, limit: 2,
+    sight: 5, desc: 'Generates a steady stream of cash ($32/s). Max 2.', income: 32, limit: 2,
   },
   superweapon: {
     name: { coalition: 'Solaris Array', dynasty: 'Nuclear Silo', cartel: 'Rocket Storm Pit' },
@@ -708,6 +728,15 @@ const POWERS = {
     desc: 'Two Falcon jets pound the target area with missiles.' },
   thermobomb: { name: 'Thermobaric Bomb', icon: '☄️', tier: 3, cd: 300,
     desc: 'A massive fuel-air bomb levels everything in a huge radius.' },
+
+  supplydrop: { name: 'Emergency Supplies', icon: '📦', tier: 1, cd: 150,
+    desc: 'Airdrop supply crates worth $1,200 anywhere on the map.' },
+  paradrop:   { name: 'Airborne Assault', icon: '🪂', tier: 2, cd: 200,
+    desc: 'Paradrop 6 riflemen and 2 rocket troopers anywhere on the map.' },
+  frenzy:     { name: 'War Frenzy', icon: '🔥', tier: 2, cd: 210,
+    desc: 'All your forces deal +30% damage for 30 seconds.' },
+  sabotage:   { name: 'Sabotage', icon: '🔌', tier: 2, cd: 160,
+    desc: 'Saboteurs disable enemy structures near the target for 25 seconds.' },
 
   barrage:    { name: 'Artillery Barrage', icon: '💥', tier: 1, cd: 120,
     desc: 'Off-map artillery saturates the target area with 10 shells.' },
@@ -928,10 +957,11 @@ const SFX = (() => {
 'use strict';
 
 class World {
-  constructor(wTiles, hTiles, seed) {
+  constructor(wTiles, hTiles, seed, playerTeams) {
     this.w = wTiles; this.h = hTiles;
     this.pw = wTiles * TILE; this.ph = hTiles * TILE;   // pixel size
     this.seed = seed;
+    this.playerTeams = playerTeams || [0, 1];   // team id per player slot
     this.terrain = new Uint8Array(wTiles * hTiles);     // 0 sand, 1 rough, 2 cliff (impassable)
     this.blocked = new Uint8Array(wTiles * hTiles);     // 0 free, 1 building, 2 supply pile
     this.explored = new Uint8Array(wTiles * hTiles);    // player fog
@@ -978,27 +1008,53 @@ class World {
       }
     }
 
-    // start positions: SW for player, NE for enemy
-    const m = Math.round(w * 0.16);
-    const p0 = { tx: m, ty: h - 1 - m }, p1 = { tx: w - 1 - m, ty: m };
-    this.starts = [
-      { x: (p0.tx + 0.5) * TILE, y: (p0.ty + 0.5) * TILE },
-      { x: (p1.tx + 0.5) * TILE, y: (p1.ty + 0.5) * TILE },
-    ];
-    this.clearArea(p0.tx, p0.ty, 13);
-    this.clearArea(p1.tx, p1.ty, 13);
+    // start positions: team 0 on the SW arc, team 1 on the NE arc of a ring
+    const teams = this.playerTeams;
+    const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.36;
+    const byTeam = {};
+    teams.forEach((t, pi) => { (byTeam[t] = byTeam[t] || []).push(pi); });
+    const baseAng = { 0: Math.PI * 0.75, 1: -Math.PI * 0.25 };   // SW / NE
+    this.starts = new Array(teams.length);
+    for (const t in byTeam) {
+      const members = byTeam[t];
+      const k = members.length;
+      const spacing = k > 1 ? Math.min(0.55, 1.7 / (k - 1)) : 0;
+      members.forEach((pi, i) => {
+        const a = (baseAng[t] !== undefined ? baseAng[t] : U.rand(0, 6.28)) + (i - (k - 1) / 2) * spacing;
+        const tx = U.clamp(Math.round(cx + Math.cos(a) * R), 8, w - 9);
+        const ty = U.clamp(Math.round(cy + Math.sin(a) * R), 8, h - 9);
+        this.starts[pi] = { x: (tx + 0.5) * TILE, y: (ty + 0.5) * TILE, tx, ty };
+        this.clearArea(tx, ty, 12);
+      });
+    }
 
-    // supply docks: one near each base + two mirrored mid-map
-    const dockDefs = [
-      { tx: p0.tx + 9, ty: p0.ty - 9, amt: 18000 },
-      { tx: p1.tx - 9, ty: p1.ty + 9, amt: 18000 },
-      { tx: Math.round(w * 0.30), ty: Math.round(h * 0.30), amt: 24000 },
-      { tx: Math.round(w * 0.70), ty: Math.round(h * 0.70), amt: 24000 },
-    ];
-    for (const d of dockDefs) this.makeDock(d.tx, d.ty, d.amt, rng);
+    // supply docks: one rich dock near each base + many scattered across the map
+    for (const st of this.starts) {
+      const dir = Math.atan2(cy - st.ty, cx - st.tx);
+      const dx = U.clamp(st.tx + Math.round(Math.cos(dir) * 9), 6, w - 8);
+      const dy = U.clamp(st.ty + Math.round(Math.sin(dir) * 9), 6, h - 8);
+      this.makeDock(dx, dy, 30000, rng);
+    }
+    const nScatter = teams.length * 2 + 4;
+    for (let i = 0; i < nScatter; i++) {
+      let placed = false;
+      for (let att = 0; att < 200 && !placed; att++) {
+        const tx = U.randInt(Math.round(w * 0.08), Math.round(w * 0.88));
+        const ty = U.randInt(Math.round(h * 0.08), Math.round(h * 0.88));
+        let ok = true;
+        for (const st of this.starts) if (U.dist(tx, ty, st.tx, st.ty) < 13) { ok = false; break; }
+        if (ok) for (const d of this.docks) if (U.dist(tx, ty, d.x / TILE, d.y / TILE) < 9) { ok = false; break; }
+        if (!ok) continue;
+        this.makeDock(tx, ty, 24000, rng);
+        placed = true;
+      }
+    }
 
-    // guarantee connectivity between starts and every dock
-    this.ensureReachable(p0, p1);
+    // guarantee connectivity: start 0 must reach every other start and every dock
+    const p0 = { tx: this.starts[0].tx, ty: this.starts[0].ty };
+    for (let i = 1; i < this.starts.length; i++) {
+      this.ensureReachable(p0, { tx: this.starts[i].tx, ty: this.starts[i].ty });
+    }
     for (const d of this.docks) {
       this.ensureReachable(p0, { tx: Math.floor(d.x / TILE), ty: Math.floor(d.y / TILE) - 3 });
     }
@@ -1008,8 +1064,11 @@ class World {
     for (let i = 0; i < nProps; i++) {
       const tx = U.randInt(2, w - 3), ty = U.randInt(2, h - 3);
       if (this.terrain[this.idx(tx, ty)] === 2 || this.blocked[this.idx(tx, ty)]) continue;
-      if (U.dist((tx + .5) * TILE, (ty + .5) * TILE, this.starts[0].x, this.starts[0].y) < 9 * TILE) continue;
-      if (U.dist((tx + .5) * TILE, (ty + .5) * TILE, this.starts[1].x, this.starts[1].y) < 9 * TILE) continue;
+      let nearStart = false;
+      for (const st of this.starts) {
+        if (U.dist((tx + .5) * TILE, (ty + .5) * TILE, st.x, st.y) < 9 * TILE) { nearStart = true; break; }
+      }
+      if (nearStart) continue;
       this.props.push({
         x: (tx + 0.5) * TILE + U.rand(-12, 12), y: (ty + 0.5) * TILE + U.rand(-12, 12),
         type: rng() < 0.55 ? 'scrub' : 'rock', s: U.rand(0.6, 1.5), rot: U.rand(0, Math.PI * 2),
@@ -1121,8 +1180,11 @@ class World {
   recomputeFog() {
     this.visible.fill(0);
     this.visionSources = [];
+    const humanTeam = game.players[0].team;
     for (const e of game.ents) {
-      if (e.dead || e.owner !== 0) continue;
+      if (e.dead || e.owner < 0) continue;
+      const p = game.players[e.owner];
+      if (!p || p.team !== humanTeam) continue;          // allies share vision
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.05) continue;
       this.stampVision(e.x, e.y, e.def.sight);
       this.visionSources.push({ x: e.x, y: e.y, r: e.def.sight * TILE });
@@ -1592,7 +1654,11 @@ function entsInRadius(x, y, r, filter) {
   return out;
 }
 
-function isEnemy(a, b) { return a.owner !== b.owner && b.owner !== -1 && a.owner !== -1; }
+function isEnemy(a, b) {
+  if (a.owner === -1 || b.owner === -1 || a.owner === b.owner) return false;
+  const pa = game.players[a.owner], pb = game.players[b.owner];
+  return !pa || !pb || pa.team !== pb.team;      // allies (same team) are not enemies
+}
 
 function weaponCanHit(w, target) {
   if (target.kind === 'unit' && target.def.air) return !!w.aa;
@@ -1604,6 +1670,10 @@ function effDamage(w, attacker) {
   if (attacker && attacker.kind === 'unit') {
     d *= VET_DMG[attacker.vetRank];
     if (attacker.def.horde && attacker.hordeOn) d *= 1.25;
+  }
+  if (attacker) {
+    const p = game.players[attacker.owner];
+    if (p && p.frenzyUntil > game.t) d *= 1.3;   // War Frenzy power
   }
   return d;
 }
@@ -1624,7 +1694,7 @@ function applyDamage(target, rawDmg, dtype, attacker) {
       target.order = { type: 'attack', targetId: attacker.id, fromGuard: true };
     }
     if (target.owner === 0) UI.underAttack(target);
-    if (target.owner === 1) AI.notifyAttack(target, attacker);
+    else if (game.players[target.owner] && game.players[target.owner].isAI) AI.notifyAttack(target, attacker);
   }
 
   if (target.hp <= 0) killEnt(target, attacker);
@@ -1688,7 +1758,7 @@ function addPlayerXp(pi, amt) {
       UI.announce('★ RANK ' + p.rank + ' ★');
       SFX.promote(); SFX.say('Promotion earned');
     } else {
-      AI.spendPowerPoints();
+      AI.spendPowerPoints(pi);
     }
   }
 }
@@ -1766,10 +1836,10 @@ class Unit {
   applyOrder(o) {
     this.order = o;
     this.path = null;
-    if (o.type === 'move' || o.type === 'attackmove') { this.guardX = o.x; this.guardY = o.y; }
+    if (o.type === 'move' || o.type === 'attackmove' || o.type === 'guardarea') { this.guardX = o.x; this.guardY = o.y; }
     if (this.def.air) {
       if (o.type === 'attack') { this.jetState = 'attack'; this.persistTargetId = o.targetId; }
-      else if (o.type === 'move' || o.type === 'attackmove') { this.jetState = 'moveto'; this.persistTargetId = 0; }
+      else if (o.type === 'move' || o.type === 'attackmove' || o.type === 'guardarea') { this.jetState = 'moveto'; this.persistTargetId = 0; }
     }
   }
 
@@ -1904,6 +1974,7 @@ class Unit {
         if (this.moveAlongPath(dt)) this.nextOrder();
         break;
       case 'attackmove': this.doAttackMove(dt, o); break;
+      case 'guardarea': this.doGuardMove(dt, o); break;
       case 'attack': this.doAttack(dt, o); break;
       case 'harvest': this.doHarvest(dt, o); break;
       case 'build': this.doBuild(dt, o); break;
@@ -1973,6 +2044,27 @@ class Unit {
     }
     if (!this.path) this.setPathTo(o.x, o.y);
     if (this.moveAlongPath(dt)) this.nextOrder();
+  }
+
+  /* move to a point engaging on the way, then hold that ground (guard anchor there) */
+  doGuardMove(dt, o) {
+    this.scanT -= dt;
+    if (this.scanT <= 0 && this.def.weapon && !this.def.noAutoAttack) {
+      this.scanT = 0.35;
+      const t = this.findTarget(Math.max(this.def.weapon.range + 80, this.def.sight * TILE));
+      if (t) {
+        this.orderQueue.unshift({ type: 'guardarea', x: o.x, y: o.y });
+        this.order = { type: 'attack', targetId: t.id, fromGuard: true };
+        this.path = null;
+        return;
+      }
+    }
+    if (!this.path) this.setPathTo(o.x, o.y);
+    if (this.moveAlongPath(dt)) {
+      this.order = { type: 'guard' };
+      this.guardX = o.x; this.guardY = o.y;
+      this.path = null;
+    }
   }
 
   doAttack(dt, o) {
@@ -2227,11 +2319,15 @@ class Building {
       UI.refreshCmd();
     }
     if (this.key === 'superweapon') {
-      const other = this.owner === 0 ? 'Enemy' : 'Your';
-      UI.feed((this.owner === 0 ? 'Superweapon construction complete' : '⚠ ENEMY SUPERWEAPON DETECTED'), this.owner === 0 ? 'gold' : 'bad');
-      if (this.owner === 1) { SFX.klaxon(); SFX.say('Warning. Enemy superweapon detected', true); }
+      const sameTeam = p.team === game.players[0].team;
+      if (this.owner === 0) UI.feed('Superweapon construction complete', 'gold');
+      else if (sameTeam) UI.feed('Allied superweapon online', 'gold');
+      else {
+        UI.feed('⚠ ENEMY SUPERWEAPON DETECTED', 'bad');
+        SFX.klaxon(); SFX.say('Warning. Enemy superweapon detected', true);
+      }
     }
-    if (this.owner === 1) AI.onBuildingDone(this);
+    if (p.isAI) AI.onBuildingDone(this);
   }
 
   get powered() {
@@ -2242,6 +2338,26 @@ class Building {
   update(dt) {
     if (!this.constructed) return;
     const p = game.players[this.owner];
+
+    // sabotaged: everything offline until the timer runs out
+    if (this.disabledUntil && game.t < this.disabledUntil) {
+      if (Math.random() < dt * 3) FX.smokePuff(this.x + U.rand(-this.size * 10, this.size * 10), this.y, 1, true);
+      return;
+    }
+
+    // repair bay: heal nearby friendly vehicles & aircraft
+    if (this.key === 'repairbay') {
+      const R = this.def.healRadius, rate = this.def.healRate * (this.powered ? 1 : 0.5);
+      for (const e of game.ents) {
+        if (e.dead || e.kind !== 'unit' || e.hp >= e.maxHp) continue;
+        const ep = game.players[e.owner];
+        if (!ep || ep.team !== p.team) continue;
+        if (e.def.chassis === 'inf' || e.def.chassis === 'rocketinf') continue;
+        if (U.dist2(this.x, this.y, e.x, e.y) > R * R) continue;
+        e.hp = Math.min(e.maxHp, e.hp + rate * dt);
+        if (Math.random() < dt * 1.5) FX.sparks(e.x + U.rand(-9, 9), e.y + U.rand(-9, 9), 2);
+      }
+    }
 
     // production
     if (this.queue.length) {
@@ -2259,7 +2375,7 @@ class Building {
         else if (udef.harvester) u.giveOrder({ type: 'harvest' });
         else u.giveOrder({ type: 'attackmove', x: this.rallyX, y: this.rallyY });
         if (this.owner === 0) { SFX.ready(); UI.refreshCmd(); }
-        if (this.owner === 1) AI.onUnitDone(u);
+        if (game.players[this.owner] && game.players[this.owner].isAI) AI.onUnitDone(u);
       }
     }
 
@@ -2621,8 +2737,13 @@ const POWERS_SYS = (() => {
     if (!isReady(p, key)) return false;
     p.cooldowns[key] = POWERS[key].cd;
     execute(pi, key, x, y);
-    if (pi === 1 && world.isExplored(x, y)) UI.feed('⚠ Enemy ' + POWERS[key].name + ' inbound!', 'bad');
+    if (isEnemyOfHumanPlayer(pi) && world.isExplored(x, y)) UI.feed('⚠ Enemy ' + POWERS[key].name + ' inbound!', 'bad');
     return true;
+  }
+
+  function isEnemyOfHumanPlayer(pi) {
+    const p = game.players[pi];
+    return p && p.team !== game.players[0].team;
   }
 
   function execute(pi, key, x, y) {
@@ -2655,6 +2776,56 @@ const POWERS_SYS = (() => {
         strikeWarning(pi, x, y, 190);
         if (world.isVisible(x, y)) SFX.klaxon();
         break;
+
+      case 'supplydrop': {
+        const p = game.players[pi];
+        for (let i = 0; i < 4; i++) FX.chute(x + U.rand(-45, 45), y + U.rand(-45, 45));
+        p.addMoney(1200);
+        if (pi === 0) { FX.text(x, y, '📦 +$1,200', '#ffd76a'); SFX.cash(); }
+        break;
+      }
+
+      case 'paradrop': {
+        const p = game.players[pi];
+        const infKey = p.faction === 'dynasty' ? 'rifleman' : p.faction === 'coalition' ? 'ranger' : 'raider';
+        const rktKey = p.faction === 'dynasty' ? 'rpg' : p.faction === 'coalition' ? 'rocketeer' : 'rocketraider';
+        const drops = [infKey, infKey, infKey, infKey, infKey, infKey, rktKey, rktKey];
+        for (const k of drops) {
+          const sp = PATH.nearestOpen(world, Math.floor((x + U.rand(-70, 70)) / TILE), Math.floor((y + U.rand(-70, 70)) / TILE), 8);
+          if (!sp) continue;
+          const u = new Unit(pi, k, (sp.tx + 0.5) * TILE, (sp.ty + 0.5) * TILE);
+          game.addEnt(u);
+          game.players[pi].stats.unitsBuilt++;
+          FX.chute((sp.tx + 0.5) * TILE, (sp.ty + 0.5) * TILE);
+        }
+        FX.text(x, y, '🪂 AIRBORNE ASSAULT', '#c9e8a0');
+        break;
+      }
+
+      case 'frenzy': {
+        game.players[pi].frenzyUntil = game.t + 30;
+        if (pi === 0) { UI.announce('🔥 WAR FRENZY 🔥'); SFX.promote(); }
+        else if (isEnemyOfHumanPlayer(pi)) UI.feed('⚠ Enemy forces are frenzied (+30% damage)!', 'bad');
+        break;
+      }
+
+      case 'sabotage': {
+        let n = 0;
+        for (const e of game.ents) {
+          if (e.dead || e.kind !== 'building' || !e.constructed) continue;
+          const pe = game.players[e.owner];
+          if (!pe || pe.team === game.players[pi].team) continue;
+          if (U.dist(x, y, e.x, e.y) < 175) {
+            e.disabledUntil = game.t + 25;
+            applyDamage(e, 150, 'explosive', null);
+            FX.smokePuff(e.x, e.y, 10, true);
+            n++;
+          }
+        }
+        if (pi === 0) FX.text(x, y, n ? '🔌 ' + n + ' STRUCTURES SABOTAGED' : 'No targets in range', '#e8c96a');
+        if (n && isEnemyOfHumanPlayer(pi)) UI.feed('⚠ Our structures have been sabotaged!', 'bad');
+        break;
+      }
 
       case 'barrage': {
         for (let i = 0; i < 10; i++) {
@@ -2735,7 +2906,7 @@ const POWERS_SYS = (() => {
   }
 
   function strikeWarning(pi, x, y, r) {
-    if (pi === 1 && world.isExplored(x, y)) {
+    if (isEnemyOfHumanPlayer(pi) && world.isExplored(x, y)) {
       UI.ping(x, y, '#ff5540');
       SFX.alarm();
     }
@@ -2748,8 +2919,11 @@ const POWERS_SYS = (() => {
     silo.swTimer = silo.def.swTimer;
     const p = game.players[pi];
     const kind = BUILDINGS.superweapon.swByFaction[p.faction];
-    UI.feed(pi === 0 ? SUPERWEAPONS[kind].name + ' launched!' : '⚠⚠ ENEMY SUPERWEAPON LAUNCHED ⚠⚠', pi === 0 ? 'gold' : 'bad');
-    if (pi === 1) { SFX.klaxon(); SFX.say('Warning. Incoming superweapon', true); UI.ping(x, y, '#ff2200'); }
+    const hostile = isEnemyOfHumanPlayer(pi);
+    UI.feed(pi === 0 ? SUPERWEAPONS[kind].name + ' launched!' :
+      hostile ? '⚠⚠ ENEMY SUPERWEAPON LAUNCHED ⚠⚠' : 'Allied ' + SUPERWEAPONS[kind].name + ' launched',
+      hostile ? 'bad' : 'gold');
+    if (hostile) { SFX.klaxon(); SFX.say('Warning. Incoming superweapon', true); UI.ping(x, y, '#ff2200'); }
 
     switch (kind) {
       case 'nuke':
@@ -3131,7 +3305,9 @@ const RENDER = (() => {
   }
 
   function entVisibleToPlayer(e) {
-    if (e.owner === 0 || e.owner === -1) return true;
+    if (e.owner === -1) return true;
+    const p = game.players[e.owner];
+    if (p && p.team === game.players[0].team) return true;   // own + allied always visible
     if (game.revealAll) return true;
     if (e.kind === 'building') {
       // buildings render if currently visible; ghosts handle the rest
@@ -3451,6 +3627,15 @@ const RENDER = (() => {
   function drawBuilding(b) {
     if (!b.constructed) { drawConstructionSite(b); return; }
     drawBuildingSprite(b, false);
+    // sabotaged indicator
+    if (b.disabledUntil && game.t < b.disabledUntil) {
+      ctx.globalAlpha = 0.6 + 0.4 * Math.sin(game.renderT * 8);
+      ctx.fillStyle = '#ffcc33'; ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚡', b.x, b.y - b.size * TILE * 0.15);
+      ctx.textAlign = 'left';
+      ctx.globalAlpha = 1;
+    }
     // damage fx
     if (b.hp < b.maxHp * 0.5 && Math.random() < 0.12) FX.smokePuff(b.x + U.rand(-b.size * 12, b.size * 12), b.y + U.rand(-b.size * 12, b.size * 12), 1, true);
     if (b.hp < b.maxHp * 0.25 && Math.random() < 0.08) FX.flame(b.x + U.rand(-b.size * 10, b.size * 10), b.y + U.rand(-b.size * 10, b.size * 10), -Math.PI / 2);
@@ -3522,6 +3707,7 @@ const RENDER = (() => {
       case 'factory': drawFactory(b, s, c1, c2); break;
       case 'airfield': drawAirfield(b, s, c1, c2); break;
       case 'turret': drawTurretB(b, s, c1, c2, fac); break;
+      case 'repairbay': drawRepairBay(b, s, c1, c2); break;
       case 'market': drawMarket(b, s, c1, c2); break;
       case 'superweapon': drawSuper(b, s, c1, c2, fac); break;
     }
@@ -3703,6 +3889,35 @@ const RENDER = (() => {
     }
   }
 
+  function drawRepairBay(b, s, c1, c2) {
+    // open service bay with a vehicle lift
+    box3d(s * 0.06, s * 0.1, s * 0.5, s * 0.76, '#867e6a', '#57503e');
+    ctx.fillStyle = '#2c2a22';
+    ctx.fillRect(s * 0.1, s * 0.3, s * 0.42, s * 0.5);
+    // lift platform + stripes
+    ctx.fillStyle = '#57503c';
+    ctx.fillRect(s * 0.6, s * 0.2, s * 0.32, s * 0.62);
+    for (let i = 0; i < 4; i++) {
+      ctx.fillStyle = i % 2 ? '#e8c33c' : '#2c2a22';
+      ctx.fillRect(s * 0.6, s * 0.2 + i * s * 0.155, s * 0.04, s * 0.155);
+    }
+    // animated crane arm
+    ctx.save();
+    ctx.translate(s * 0.76, s * 0.5);
+    ctx.rotate(Math.sin(game.renderT * 1.4) * 0.5);
+    ctx.strokeStyle = '#b08c30'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(s * 0.22, 0); ctx.stroke();
+    ctx.fillStyle = '#8a8578';
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.05, 0, 7); ctx.fill();
+    ctx.restore();
+    // wrench emblem
+    ctx.fillStyle = '#ffe9a0'; ctx.font = `bold ${Math.round(s * 0.2)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('🔧', s * 0.3, s * 0.24);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = c1; ctx.fillRect(s * 0.06, s * 0.86, s * 0.86, s * 0.06);
+  }
+
   function drawMarket(b, s, c1, c2) {
     box3d(s * 0.1, s * 0.25, s * 0.8, s * 0.6, '#9a8f6c', '#6e6448');
     // awning stripes
@@ -3827,7 +4042,17 @@ const RENDER = (() => {
     for (const e of INPUT.selection) {
       if (e.dead) continue;
       const r = e.kind === 'building' ? e.size * TILE * 0.55 : e.radius + 7;
-      drawBrackets(e.x, e.y, r, e.owner === 0 ? '#9fdc7c' : '#dc7c7c');
+      const ep = game.players[e.owner];
+      const bracketCol = e.owner === 0 ? '#9fdc7c' :
+        (ep && ep.team === game.players[0].team ? '#8fd4e8' : '#dc7c7c');
+      drawBrackets(e.x, e.y, r, bracketCol);
+      // repair bay range ring
+      if (e.kind === 'building' && e.key === 'repairbay' && e.constructed) {
+        ctx.strokeStyle = 'rgba(127,212,255,0.35)'; ctx.lineWidth = 1.5;
+        ctx.setLineDash([8, 8]);
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.def.healRadius, 0, 7); ctx.stroke();
+        ctx.setLineDash([]);
+      }
       // rally point for production buildings
       if (e.kind === 'building' && e.owner === 0 && (bTrains(e.key, game.players[0].faction).length || e.def.trains)) {
         ctx.strokeStyle = 'rgba(159,220,124,0.5)'; ctx.lineWidth = 1.5;
@@ -3969,12 +4194,14 @@ const RENDER = (() => {
       c.fillStyle = '#4a90d8';
       c.fillRect(d.x / TILE * sx - 2, d.y / TILE * sy - 2, 4, 4);
     }
-    // entities
+    // entities (enemies only when visible or remembered as ghosts)
+    const humanTeam = game.players[0].team;
     for (const e of game.ents) {
       if (e.dead) continue;
-      if (e.owner === 1 && !world.isVisible(e.x, e.y) &&
-          !(e.kind === 'building' && ghosts.has(e.id))) continue;
       const p = game.players[e.owner];
+      const hostile = e.owner !== -1 && p && p.team !== humanTeam;
+      if (hostile && !world.isVisible(e.x, e.y) &&
+          !(e.kind === 'building' && ghosts.has(e.id))) continue;
       c.fillStyle = e.owner === -1 ? '#999' : p.color;
       const s = e.kind === 'building' ? Math.max(3, e.size * sx) : 2;
       c.fillRect(e.x / TILE * sx - s / 2, e.y / TILE * sy - s / 2, s, s);
@@ -4017,403 +4244,430 @@ const RENDER = (() => {
 })();
 
 /* ==================== js/ai.js ==================== */
-/* ============ ai.js — skirmish AI opponent ============ */
+/* ============ ai.js — skirmish AI (one instance per AI player) ============ */
 'use strict';
 const AI = (() => {
-  const PI = 1;                 // AI is always player index 1
-  let S = null;                 // AI state
+  let ais = [];
 
-  function initGame(diffKey) {
-    const diff = DIFFICULTY[diffKey];
-    S = {
-      diff, diffKey,
-      tickT: 0,
-      waveT: diff.firstAttack,
-      attackState: 'idle',      // idle | gathering | attacking
-      gatherT: 0,
-      attackTargetId: 0,
-      harassT: diff.harass ? 170 : Infinity,
-      defendT: 0,
-      powerUseT: 20,
-      waveSize: 6,
-    };
-  }
-
-  /* ------------- helpers ------------- */
-  function myEnts() { return game.ents.filter(e => !e.dead && e.owner === PI); }
-  function myBuildings(key) {
-    return game.ents.filter(e => !e.dead && e.owner === PI && e.kind === 'building' && (!key || e.key === key));
-  }
-  function myUnits(key) {
-    return game.ents.filter(e => !e.dead && e.owner === PI && e.kind === 'unit' && (!key || e.key === key));
-  }
-  function combatUnits() {
-    return myUnits().filter(u => u.def.weapon || u.def.suicide);
-  }
-  function baseAnchor() {
-    const cc = myBuildings('cc')[0];
-    if (cc) return cc;
-    const any = myBuildings()[0];
-    if (any) return any;
-    return myUnits('dozer')[0] || null;   // decapitated: rally around a surviving builder
-  }
-
-  const p = () => game.players[PI];
-  const human = () => game.players[0];
-
-  /* densest cluster of player-0 army (for strikes) */
-  function playerCluster() {
-    let best = null, bestVal = 0;
-    const cell = 220, m = new Map();
-    for (const e of game.ents) {
-      if (e.dead || e.owner !== 0 || e.kind !== 'unit' || !e.def.weapon) continue;
-      const k = Math.floor(e.x / cell) + ',' + Math.floor(e.y / cell);
-      const b = m.get(k) || { x: 0, y: 0, n: 0, val: 0 };
-      b.x += e.x; b.y += e.y; b.n++; b.val += e.def.cost;
-      m.set(k, b);
-    }
-    for (const [, b] of m) {
-      if (b.val > bestVal) { bestVal = b.val; best = { x: b.x / b.n, y: b.y / b.n, val: b.val }; }
-    }
-    return best;
-  }
-
-  function playerKeyBuilding() {
-    const order = ['superweapon', 'factory', 'airfield', 'barracks', 'cc', 'supply', 'power', 'market', 'turret'];
-    for (const key of order) {
-      const b = game.ents.find(e => !e.dead && e.owner === 0 && e.kind === 'building' && e.key === key && e.constructed);
-      if (b) return b;
-    }
-    return game.ents.find(e => !e.dead && e.owner === 0 && e.kind === 'building') || null;
-  }
-
-  /* ------------- construction ------------- */
-  function wantedStructure() {
-    const fac = p().faction, F = FACTIONS[fac];
-    const has = k => myBuildings(k).length;
-    const money = p().money;
-
-    if (F.usesPower && p().powerUse + 4 > p().powerCap && money >= BUILDINGS.power.cost) return 'power';
-    if (!has('supply') && money >= BUILDINGS.supply.cost) return 'supply';
-    if (!has('barracks') && money >= BUILDINGS.barracks.cost) return 'barracks';
-    if (!has('factory') && money >= BUILDINGS.factory.cost + 300) return 'factory';
-    if (has('turret') < 2 && money >= BUILDINGS.turret.cost + 600 && game.t > 150) return 'turret';
-    if (has('market') < BUILDINGS.market.limit && money >= BUILDINGS.market.cost + 800) return 'market';
-    if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + 800 && game.t > 240) return 'airfield';
-    if (has('supply') < 2 && game.t > 330 && money >= BUILDINGS.supply.cost + 500) return 'supply';
-    if (S.diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
-    if (S.diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
-    if (has('turret') < 4 && money >= BUILDINGS.turret.cost + 2500 && game.t > 400) return 'turret';
-    if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
-    return null;
-  }
-
-  function findPlacement(key) {
-    const anchor = baseAnchor();
-    if (!anchor) return null;
-    const def = BUILDINGS[key];
-    const ax = Math.floor(anchor.x / TILE), ay = Math.floor(anchor.y / TILE);
-    // bias: turrets toward map center (enemy side), supply near a live dock
-    let bx = ax, by = ay;
-    if (key === 'turret') {
-      const t = playerKeyBuilding();
-      const dir = t ? Math.atan2(t.y - anchor.y, t.x - anchor.x) : Math.atan2(world.ph / 2 - anchor.y, world.pw / 2 - anchor.x);
-      bx = ax + Math.round(Math.cos(dir) * 8); by = ay + Math.round(Math.sin(dir) * 8);
-    } else if (key === 'supply') {
-      const dock = nearestDockWithSupplies(anchor.x, anchor.y);
-      if (dock) { bx = Math.floor(dock.x / TILE) - 4; by = Math.floor(dock.y / TILE) - 4; }
-    }
-    for (let r = 1; r <= 16; r++) {
-      for (let attempt = 0; attempt < 14; attempt++) {
-        const a = U.rand(0, Math.PI * 2);
-        const tx = Math.round(bx + Math.cos(a) * r) - Math.floor(def.size / 2);
-        const ty = Math.round(by + Math.sin(a) * r) - Math.floor(def.size / 2);
-        if (world.canPlace(tx, ty, def.size, PI)) return { tx, ty };
-      }
-    }
-    return null;
-  }
-
-  function manageDozers() {
-    const dozers = myUnits('dozer');
-    const cc = myBuildings('cc')[0];
-    // keep 2 dozers
-    if (dozers.length < 2 && cc && cc.constructed && p().money > UNITS.dozer.cost + 400) {
-      const queued = cc.queue.filter(q => q.key === 'dozer').length;
-      if (dozers.length + queued < 2) cc.enqueue('dozer');
-    }
-    // find pending sites
-    const sites = myBuildings().filter(b => !b.constructed);
-    const busy = new Set();
-    for (const d of dozers) {
-      if (d.order.type === 'build') busy.add(d.order.targetId);
-    }
-    for (const site of sites) {
-      if (busy.has(site.id)) continue;
-      const idle = dozers.find(d => d.order.type !== 'build' && d.order.type !== 'repair');
-      if (idle) { idle.giveOrder({ type: 'build', targetId: site.id }); busy.add(site.id); }
-    }
-    // repairs
-    const hurt = myBuildings().find(b => b.constructed && b.hp < b.maxHp * 0.65);
-    if (hurt) {
-      const idle = dozers.find(d => d.order.type === 'idle' || d.order.type === 'guard');
-      if (idle) idle.giveOrder({ type: 'repair', targetId: hurt.id });
-    }
-    // start new construction (only when a builder exists to work the site)
-    const want = wantedStructure();
-    if (want && sites.length < 2 && dozers.length) {
-      const spot = findPlacement(want);
-      if (spot && p().money >= BUILDINGS[want].cost) {
-        p().money -= BUILDINGS[want].cost;
-        const b = new Building(PI, want, spot.tx, spot.ty, false);
-        game.addEnt(b);
-      }
-    }
-  }
-
-  /* ------------- economy ------------- */
-  function manageEconomy() {
-    for (const sc of myBuildings('supply')) {
-      if (!sc.constructed) continue;
-      const trucks = myUnits('truck');
-      const queued = sc.queue.filter(q => q.key === 'truck').length;
-      const wanted = Math.min(4, 2 * myBuildings('supply').filter(b => b.constructed).length);
-      if (trucks.length + queued < wanted && p().money > UNITS.truck.cost + 300) {
-        sc.enqueue('truck');
-      }
-    }
-  }
-
-  /* ------------- army production ------------- */
   const COMPS = {
     coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, thunder: 2, falcon: 2 },
     dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, salamander: 2, vulture: 2 },
     cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, barrage: 2, demorig: 2 },
   };
 
-  function manageArmy() {
-    const fac = p().faction;
-    const comp = COMPS[fac];
-    const army = combatUnits();
-    if (army.length >= S.diff.armyCap) return;
-    const counts = {};
-    for (const u of army) counts[u.key] = (counts[u.key] || 0) + 1;
-    for (const b of myBuildings()) {
-      if (!b.constructed || b.queue.length >= 2) continue;
-      const trainable = bTrains(b.key, fac).filter(k => comp[k]);
-      if (!trainable.length) continue;
-      // most deficient unit relative to composition target
-      let pick = null, worst = 1e9;
-      for (const k of trainable) {
-        if (b.key === 'airfield') {
-          const jets = myUnits(k).length + b.queue.filter(q => q.key === k).length;
-          if (jets >= (b.def.pads || 2)) continue;
-        }
-        const ratio = (counts[k] || 0) / comp[k];
-        if (ratio < worst) { worst = ratio; pick = k; }
+  /* ---------------- one AI player brain ---------------- */
+  function makeAI(pi, diffKey) {
+    const diff = DIFFICULTY[diffKey];
+    const S = {
+      tickT: 0,
+      waveT: diff.firstAttack + U.rand(-20, 40),
+      attackState: 'idle',      // idle | gathering | attacking
+      gatherT: 0,
+      attackTargetId: 0,
+      harassT: diff.harass ? 170 + U.rand(0, 60) : Infinity,
+      defendT: 0,
+      powerUseT: 20 + U.rand(0, 10),
+      waveSize: 6,
+      armyValueStart: 0,
+    };
+
+    const p = () => game.players[pi];
+    const myTeam = () => p().team;
+
+    function myEnts() { return game.ents.filter(e => !e.dead && e.owner === pi); }
+    function myBuildings(key) {
+      return game.ents.filter(e => !e.dead && e.owner === pi && e.kind === 'building' && (!key || e.key === key));
+    }
+    function myUnits(key) {
+      return game.ents.filter(e => !e.dead && e.owner === pi && e.kind === 'unit' && (!key || e.key === key));
+    }
+    function combatUnits() {
+      return myUnits().filter(u => u.def.weapon || u.def.suicide);
+    }
+    function isEnemyEnt(e) {
+      if (e.owner < 0) return false;
+      const pe = game.players[e.owner];
+      return pe && pe.team !== myTeam();
+    }
+    function baseAnchor() {
+      const cc = myBuildings('cc')[0];
+      if (cc) return cc;
+      const any = myBuildings()[0];
+      if (any) return any;
+      return myUnits('dozer')[0] || null;
+    }
+
+    /* densest cluster of enemy army (for strikes) */
+    function enemyCluster() {
+      let best = null, bestVal = 0;
+      const cell = 220, m = new Map();
+      for (const e of game.ents) {
+        if (e.dead || e.kind !== 'unit' || !e.def.weapon || !isEnemyEnt(e)) continue;
+        const k = Math.floor(e.x / cell) + ',' + Math.floor(e.y / cell);
+        const b = m.get(k) || { x: 0, y: 0, n: 0, val: 0 };
+        b.x += e.x; b.y += e.y; b.n++; b.val += e.def.cost;
+        m.set(k, b);
       }
-      if (pick && p().money > UNITS[pick].cost + (game.t < 300 ? 600 : 250)) {
-        b.enqueue(pick);
+      for (const [, b] of m) {
+        if (b.val > bestVal) { bestVal = b.val; best = { x: b.x / b.n, y: b.y / b.n, val: b.val }; }
+      }
+      return best;
+    }
+
+    function enemyKeyBuilding() {
+      const anchor = baseAnchor();
+      const ax = anchor ? anchor.x : world.pw / 2, ay = anchor ? anchor.y : world.ph / 2;
+      const order = ['superweapon', 'factory', 'airfield', 'barracks', 'cc', 'supply', 'power', 'market', 'repairbay', 'turret'];
+      for (const key of order) {
+        let best = null, bd = Infinity;
+        for (const e of game.ents) {
+          if (e.dead || e.kind !== 'building' || e.key !== key || !e.constructed || !isEnemyEnt(e)) continue;
+          const d = U.dist2(ax, ay, e.x, e.y);
+          if (d < bd) { bd = d; best = e; }
+        }
+        if (best) return best;
+      }
+      return game.ents.find(e => !e.dead && e.kind === 'building' && isEnemyEnt(e)) || null;
+    }
+
+    function nearestEnemyEntTo(x, y) {
+      let best = null, bd = Infinity;
+      for (const e of game.ents) {
+        if (e.dead || !isEnemyEnt(e)) continue;
+        if (e.kind === 'unit' && e.def.air) continue;   // most weapons can't reach air
+        const d = U.dist2(x, y, e.x, e.y);
+        if (d < bd) { bd = d; best = e; }
+      }
+      return best;
+    }
+
+    /* attackmove toward a target; direct attack when auto-acquire can't see it
+       (unconstructed sites) or the target is a lone unit like a dozer */
+    function orderAssault(u, target) {
+      if ((target.kind === 'building' && !target.constructed) || target.kind === 'unit') {
+        if (u.def.suicide || (u.def.weapon && weaponCanHit(u.def.weapon, target))) {
+          u.giveOrder({ type: 'attack', targetId: target.id });
+          return;
+        }
+      }
+      u.giveOrder({ type: 'attackmove', x: target.x + U.rand(-60, 60), y: target.y + U.rand(-60, 60) });
+    }
+
+    /* ------------- construction ------------- */
+    function wantedStructure() {
+      const fac = p().faction, F = FACTIONS[fac];
+      const has = k => myBuildings(k).length;
+      const money = p().money;
+
+      if (F.usesPower && p().powerUse + 4 > p().powerCap && money >= BUILDINGS.power.cost) return 'power';
+      if (!has('supply') && money >= BUILDINGS.supply.cost) return 'supply';
+      if (!has('barracks') && money >= BUILDINGS.barracks.cost) return 'barracks';
+      if (!has('factory') && money >= BUILDINGS.factory.cost + 300) return 'factory';
+      if (has('turret') < 2 && money >= BUILDINGS.turret.cost + 600 && game.t > 150) return 'turret';
+      if (has('market') < BUILDINGS.market.limit && money >= BUILDINGS.market.cost + 800) return 'market';
+      if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + 800 && game.t > 240) return 'airfield';
+      if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + 1200 && game.t > 330) return 'repairbay';
+      if (has('supply') < 2 && game.t > 330 && money >= BUILDINGS.supply.cost + 500) return 'supply';
+      if (diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
+      if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
+      if (has('turret') < 4 && money >= BUILDINGS.turret.cost + 2500 && game.t > 400) return 'turret';
+      if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
+      return null;
+    }
+
+    function findPlacement(key) {
+      const anchor = baseAnchor();
+      if (!anchor) return null;
+      const def = BUILDINGS[key];
+      const ax = Math.floor(anchor.x / TILE), ay = Math.floor(anchor.y / TILE);
+      let bx = ax, by = ay;
+      if (key === 'turret') {
+        const t = enemyKeyBuilding();
+        const dir = t ? Math.atan2(t.y - anchor.y, t.x - anchor.x) : Math.atan2(world.ph / 2 - anchor.y, world.pw / 2 - anchor.x);
+        bx = ax + Math.round(Math.cos(dir) * 8); by = ay + Math.round(Math.sin(dir) * 8);
+      } else if (key === 'supply') {
+        const dock = nearestDockWithSupplies(anchor.x, anchor.y);
+        if (dock) { bx = Math.floor(dock.x / TILE) - 4; by = Math.floor(dock.y / TILE) - 4; }
+      }
+      for (let r = 1; r <= 16; r++) {
+        for (let attempt = 0; attempt < 14; attempt++) {
+          const a = U.rand(0, Math.PI * 2);
+          const tx = Math.round(bx + Math.cos(a) * r) - Math.floor(def.size / 2);
+          const ty = Math.round(by + Math.sin(a) * r) - Math.floor(def.size / 2);
+          if (world.canPlace(tx, ty, def.size, pi)) return { tx, ty };
+        }
+      }
+      return null;
+    }
+
+    function manageDozers() {
+      const dozers = myUnits('dozer');
+      const cc = myBuildings('cc')[0];
+      if (dozers.length < 2 && cc && cc.constructed && p().money > UNITS.dozer.cost + 400) {
+        const queued = cc.queue.filter(q => q.key === 'dozer').length;
+        if (dozers.length + queued < 2) cc.enqueue('dozer');
+      }
+      const sites = myBuildings().filter(b => !b.constructed);
+      const busy = new Set();
+      for (const d of dozers) {
+        if (d.order.type === 'build') busy.add(d.order.targetId);
+      }
+      for (const site of sites) {
+        if (busy.has(site.id)) continue;
+        const idle = dozers.find(d => d.order.type !== 'build' && d.order.type !== 'repair');
+        if (idle) { idle.giveOrder({ type: 'build', targetId: site.id }); busy.add(site.id); }
+      }
+      const hurt = myBuildings().find(b => b.constructed && b.hp < b.maxHp * 0.65);
+      if (hurt) {
+        const idle = dozers.find(d => d.order.type === 'idle' || d.order.type === 'guard');
+        if (idle) idle.giveOrder({ type: 'repair', targetId: hurt.id });
+      }
+      const want = wantedStructure();
+      if (want && sites.length < 2 && dozers.length) {
+        const spot = findPlacement(want);
+        if (spot && p().money >= BUILDINGS[want].cost) {
+          p().money -= BUILDINGS[want].cost;
+          const b = new Building(pi, want, spot.tx, spot.ty, false);
+          game.addEnt(b);
+        }
       }
     }
-  }
 
-  /* ------------- attacks ------------- */
-  function gatherPoint() {
-    const anchor = baseAnchor();
-    if (!anchor) return { x: world.pw / 2, y: world.ph / 2 };
-    const t = playerKeyBuilding();
-    const dir = t ? Math.atan2(t.y - anchor.y, t.x - anchor.x) : 0;
-    return { x: anchor.x + Math.cos(dir) * 260, y: anchor.y + Math.sin(dir) * 260 };
-  }
-
-  function manageAttack(dt2) {
-    const army = combatUnits().filter(u => !u.def.air);
-    const jets = combatUnits().filter(u => u.def.air);
-
-    switch (S.attackState) {
-      case 'idle': {
-        S.waveT -= dt2;
-        if (S.waveT <= 0 && army.length >= Math.min(S.waveSize, S.diff.armyCap * 0.5)) {
-          S.attackState = 'gathering';
-          S.gatherT = 22;
-          const g = gatherPoint();
-          for (const u of army) u.giveOrder({ type: 'attackmove', x: g.x + U.rand(-70, 70), y: g.y + U.rand(-70, 70) });
+    /* ------------- economy ------------- */
+    function manageEconomy() {
+      for (const sc of myBuildings('supply')) {
+        if (!sc.constructed) continue;
+        const trucks = myUnits('truck');
+        const queued = sc.queue.filter(q => q.key === 'truck').length;
+        const wanted = Math.min(4, 2 * myBuildings('supply').filter(b => b.constructed).length);
+        if (trucks.length + queued < wanted && p().money > UNITS.truck.cost + 300) {
+          sc.enqueue('truck');
         }
-        break;
       }
-      case 'gathering': {
-        S.gatherT -= dt2;
-        if (S.gatherT <= 0) {
-          // hunt any surviving player entity (dozers included) when no buildings remain
-          const anchor = baseAnchor();
-          const target = playerKeyBuilding() ||
-            (anchor ? nearestPlayerEntTo(anchor.x, anchor.y) : null);
-          if (!target) { S.attackState = 'idle'; S.waveT = S.diff.waveEvery; break; }
-          S.attackState = 'attacking';
-          S.attackTargetId = target.id;
-          S.armyValueStart = army.reduce((s, u) => s + u.def.cost, 0);
-          for (const u of army) orderAssault(u, target);
-          // jets strike the player's army or defenses
-          const cl = playerCluster();
-          for (const j of jets) {
-            const jt = cl ? nearestPlayerEntTo(cl.x, cl.y) : target;
-            if (jt) j.giveOrder({ type: 'attack', targetId: jt.id });
+    }
+
+    /* ------------- army production ------------- */
+    function manageArmy() {
+      const fac = p().faction;
+      const comp = COMPS[fac];
+      const army = combatUnits();
+      if (army.length >= diff.armyCap) return;
+      const counts = {};
+      for (const u of army) counts[u.key] = (counts[u.key] || 0) + 1;
+      for (const b of myBuildings()) {
+        if (!b.constructed || b.queue.length >= 2) continue;
+        const trainable = bTrains(b.key, fac).filter(k => comp[k]);
+        if (!trainable.length) continue;
+        let pick = null, worst = 1e9;
+        for (const k of trainable) {
+          if (b.key === 'airfield') {
+            const jets = myUnits(k).length + b.queue.filter(q => q.key === k).length;
+            if (jets >= (b.def.pads || 2)) continue;
           }
+          const ratio = (counts[k] || 0) / comp[k];
+          if (ratio < worst) { worst = ratio; pick = k; }
         }
-        break;
+        if (pick && p().money > UNITS[pick].cost + (game.t < 300 ? 600 : 250)) {
+          b.enqueue(pick);
+        }
       }
-      case 'attacking': {
-        const target = game.byId.get(S.attackTargetId);
-        const val = army.reduce((s, u) => s + u.def.cost, 0);
-        // jets that finished rearming (or were built mid-attack) join the strike
-        for (const j of jets) {
-          if (j.jetState === 'idle' && j.ammo > 0) {
-            const jt = target && !target.dead ? target : playerKeyBuilding();
-            if (jt) j.giveOrder({ type: 'attack', targetId: jt.id });
+    }
+
+    /* ------------- attacks ------------- */
+    function gatherPoint() {
+      const anchor = baseAnchor();
+      if (!anchor) return { x: world.pw / 2, y: world.ph / 2 };
+      const t = enemyKeyBuilding();
+      const dir = t ? Math.atan2(t.y - anchor.y, t.x - anchor.x) : 0;
+      return { x: anchor.x + Math.cos(dir) * 260, y: anchor.y + Math.sin(dir) * 260 };
+    }
+
+    function manageAttack(dt2) {
+      const army = combatUnits().filter(u => !u.def.air);
+      const jets = combatUnits().filter(u => u.def.air);
+
+      switch (S.attackState) {
+        case 'idle': {
+          S.waveT -= dt2;
+          if (S.waveT <= 0 && army.length >= Math.min(S.waveSize, diff.armyCap * 0.5)) {
+            S.attackState = 'gathering';
+            S.gatherT = 22;
+            const g = gatherPoint();
+            for (const u of army) u.giveOrder({ type: 'attackmove', x: g.x + U.rand(-70, 70), y: g.y + U.rand(-70, 70) });
           }
+          break;
         }
-        if (!target || target.dead) {
-          const anchor = baseAnchor();
-          const next = playerKeyBuilding() ||
-            (anchor ? nearestPlayerEntTo(anchor.x, anchor.y) : null);
-          if (next) {
-            S.attackTargetId = next.id;
-            for (const u of army) {
-              if (u.order.type === 'idle' || u.order.type === 'guard') orderAssault(u, next);
+        case 'gathering': {
+          S.gatherT -= dt2;
+          if (S.gatherT <= 0) {
+            const anchor = baseAnchor();
+            const target = enemyKeyBuilding() ||
+              (anchor ? nearestEnemyEntTo(anchor.x, anchor.y) : null);
+            if (!target) { S.attackState = 'idle'; S.waveT = diff.waveEvery; break; }
+            S.attackState = 'attacking';
+            S.attackTargetId = target.id;
+            S.armyValueStart = army.reduce((s, u) => s + u.def.cost, 0);
+            for (const u of army) orderAssault(u, target);
+            const cl = enemyCluster();
+            for (const j of jets) {
+              const jt = cl ? nearestEnemyEntTo(cl.x, cl.y) : target;
+              if (jt) j.giveOrder({ type: 'attack', targetId: jt.id });
             }
-          } else { S.attackState = 'idle'; S.waveT = S.diff.waveEvery; }
-        } else if (target.kind === 'building' && !target.constructed) {
-          // 0%-progress sites are invisible to auto-acquire — order direct attacks
-          for (const u of army) {
-            if (u.order.type === 'idle' || u.order.type === 'guard')
-              u.giveOrder({ type: 'attack', targetId: target.id });
           }
-        } else if (S.armyValueStart && val < S.armyValueStart * 0.25) {
-          // retreat
-          const anchor = baseAnchor();
-          if (anchor) for (const u of army) u.giveOrder({ type: 'move', x: anchor.x + U.rand(-90, 90), y: anchor.y + U.rand(-90, 90) });
-          S.attackState = 'idle';
-          S.waveT = S.diff.waveEvery;
-          S.waveSize = Math.min(S.diff.armyCap, S.waveSize + 3);   // escalate next time
+          break;
         }
-        break;
+        case 'attacking': {
+          const target = game.byId.get(S.attackTargetId);
+          const val = army.reduce((s, u) => s + u.def.cost, 0);
+          for (const j of jets) {
+            if (j.jetState === 'idle' && j.ammo > 0) {
+              const jt = target && !target.dead ? target : enemyKeyBuilding();
+              if (jt) j.giveOrder({ type: 'attack', targetId: jt.id });
+            }
+          }
+          if (!target || target.dead) {
+            const anchor = baseAnchor();
+            const next = enemyKeyBuilding() ||
+              (anchor ? nearestEnemyEntTo(anchor.x, anchor.y) : null);
+            if (next) {
+              S.attackTargetId = next.id;
+              for (const u of army) {
+                if (u.order.type === 'idle' || u.order.type === 'guard') orderAssault(u, next);
+              }
+            } else { S.attackState = 'idle'; S.waveT = diff.waveEvery; }
+          } else if (target.kind === 'building' && !target.constructed) {
+            for (const u of army) {
+              if (u.order.type === 'idle' || u.order.type === 'guard')
+                u.giveOrder({ type: 'attack', targetId: target.id });
+            }
+          } else if (S.armyValueStart && val < S.armyValueStart * 0.25) {
+            const anchor = baseAnchor();
+            if (anchor) for (const u of army) u.giveOrder({ type: 'move', x: anchor.x + U.rand(-90, 90), y: anchor.y + U.rand(-90, 90) });
+            S.attackState = 'idle';
+            S.waveT = diff.waveEvery;
+            S.waveSize = Math.min(diff.armyCap, S.waveSize + 3);
+          }
+          break;
+        }
+      }
+
+      // early harass: fast units hit the enemy economy
+      S.harassT -= dt2;
+      if (S.harassT <= 0) {
+        S.harassT = 240;
+        const fastKeys = { coalition: 'viper', dynasty: 'flak', cartel: 'guntruck' };
+        const raiders = myUnits(fastKeys[p().faction]).slice(0, 2);
+        const truck = game.ents.find(e => !e.dead && e.kind === 'unit' && e.def.harvester && isEnemyEnt(e));
+        if (raiders.length && truck) {
+          for (const r of raiders) r.giveOrder({ type: 'attack', targetId: truck.id });
+        }
       }
     }
 
-    // early harass: few fast units at the player's economy
-    S.harassT -= dt2;
-    if (S.harassT <= 0) {
-      S.harassT = 240;
-      const fastKeys = { coalition: 'viper', dynasty: 'flak', cartel: 'guntruck' };
-      const raiders = myUnits(fastKeys[p().faction]).slice(0, 2);
-      const truck = game.ents.find(e => !e.dead && e.owner === 0 && e.kind === 'unit' && e.def.harvester);
-      if (raiders.length && truck) {
-        for (const r of raiders) r.giveOrder({ type: 'attack', targetId: truck.id });
+    /* ------------- powers & superweapon ------------- */
+    function spend() {
+      const me = p();
+      const keys = FACTIONS[me.faction].powers;
+      const maxTier = diff.powers;
+      for (const k of keys) {
+        if (POWERS[k].tier <= maxTier && POWERS_SYS.canUnlock(me, k)) {
+          POWERS_SYS.unlock(pi, k);
+          return;
+        }
       }
     }
-  }
 
-  function nearestPlayerEntTo(x, y) {
-    let best = null, bd = Infinity;
-    for (const e of game.ents) {
-      if (e.dead || e.owner !== 0) continue;
-      if (e.kind === 'unit' && e.def.air) continue;   // most weapons can't reach air
-      const d = U.dist2(x, y, e.x, e.y);
-      if (d < bd) { bd = d; best = e; }
-    }
-    return best;
-  }
-
-  /* attackmove toward a target; direct attack when auto-acquire can't see it
-     (unconstructed sites) or the target is a lone unit like a dozer */
-  function orderAssault(u, target) {
-    if ((target.kind === 'building' && !target.constructed) || target.kind === 'unit') {
-      if (u.def.suicide || (u.def.weapon && weaponCanHit(u.def.weapon, target))) {
-        u.giveOrder({ type: 'attack', targetId: target.id });
-        return;
-      }
-    }
-    u.giveOrder({ type: 'attackmove', x: target.x + U.rand(-60, 60), y: target.y + U.rand(-60, 60) });
-  }
-
-  /* ------------- powers & superweapon ------------- */
-  function spendPowerPoints() {
-    const me = p();
-    const keys = FACTIONS[me.faction].powers;
-    const maxTier = S ? S.diff.powers : 2;
-    for (const k of keys) {
-      if (POWERS[k].tier <= maxTier && POWERS_SYS.canUnlock(me, k)) {
-        POWERS_SYS.unlock(PI, k);
-        return;
-      }
-    }
-    // no fallback beyond the tier cap — unspent points bank harmlessly
-  }
-
-  function usePowers() {
-    const me = p();
-    for (const k of FACTIONS[me.faction].powers) {
-      if (!POWERS_SYS.isReady(me, k)) continue;
-      let x = null, y = null;
-      if (k === 'recon') continue;                          // AI has map knowledge; skip
-      if (k === 'reinforce') {
-        const g = gatherPoint(); x = g.x; y = g.y;
-      } else if (k === 'ambush') {
-        const t = game.ents.find(e => !e.dead && e.owner === 0 && e.kind === 'unit' && e.def.harvester) || playerKeyBuilding();
-        if (t) { x = t.x; y = t.y; }
-      } else {
-        const cl = playerCluster();
-        if (cl && cl.val > 1500) { x = cl.x; y = cl.y; }
-        else {
-          const t = playerKeyBuilding();
+    function usePowers() {
+      const me = p();
+      for (const k of FACTIONS[me.faction].powers) {
+        if (!POWERS_SYS.isReady(me, k)) continue;
+        let x = null, y = null;
+        const anchor = baseAnchor();
+        if (k === 'recon') continue;                     // AI has map knowledge
+        if (k === 'supplydrop') {
+          if (anchor) { x = anchor.x; y = anchor.y; }
+        } else if (k === 'frenzy') {
+          if (S.attackState !== 'attacking' || !anchor) continue;
+          x = anchor.x; y = anchor.y;
+        } else if (k === 'reinforce' || k === 'paradrop') {
+          const g = gatherPoint(); x = g.x; y = g.y;
+        } else if (k === 'ambush') {
+          const t = game.ents.find(e => !e.dead && e.kind === 'unit' && e.def.harvester && isEnemyEnt(e)) || enemyKeyBuilding();
           if (t) { x = t.x; y = t.y; }
+        } else if (k === 'sabotage') {
+          const t = enemyKeyBuilding();
+          if (t) { x = t.x; y = t.y; }
+        } else {
+          const cl = enemyCluster();
+          if (cl && cl.val > 1500) { x = cl.x; y = cl.y; }
+          else {
+            const t = enemyKeyBuilding();
+            if (t) { x = t.x; y = t.y; }
+          }
         }
+        if (x !== null) { POWERS_SYS.activate(pi, k, x, y); return; }
       }
-      if (x !== null) { POWERS_SYS.activate(PI, k, x, y); return; }
+    }
+
+    function useSuperweapon() {
+      const silo = myBuildings('superweapon').find(b => b.constructed && b.swReady);
+      if (!silo) return;
+      const t = enemyKeyBuilding();
+      if (t) POWERS_SYS.fireSuperweapon(pi, silo, t.x, t.y);
+    }
+
+    /* ------------- defense reaction ------------- */
+    function notifyAttack(victim, attacker) {
+      if (S.defendT > 0 || !attacker || !isEnemyEnt(attacker)) return;
+      if (victim.kind !== 'building') return;
+      S.defendT = 18;
+      const defenders = combatUnits().filter(u => !u.def.air &&
+        (u.order.type === 'idle' || u.order.type === 'guard') &&
+        U.dist(u.x, u.y, victim.x, victim.y) < 900);
+      for (const d of defenders) d.giveOrder({ type: 'attackmove', x: attacker.x, y: attacker.y });
+    }
+
+    function tick(dt2) {
+      if (game.over || p().defeated) return;
+      if (S.defendT > 0) S.defendT -= dt2;
+      if (!myEnts().length) return;
+      manageDozers();
+      manageEconomy();
+      manageArmy();
+      manageAttack(dt2);
+      S.powerUseT -= dt2;
+      if (S.powerUseT <= 0) { S.powerUseT = 12; usePowers(); useSuperweapon(); }
+    }
+
+    function onUnitDone(u) {
+      if (u.def.weapon && !u.def.air && S.attackState === 'attacking') {
+        const target = game.byId.get(S.attackTargetId);
+        if (target && !target.dead) u.giveOrder({ type: 'attackmove', x: target.x, y: target.y });
+      }
+    }
+
+    return { pi, tick, notifyAttack, spend, onUnitDone };
+  }
+
+  /* ---------------- module API (routes to instances) ---------------- */
+  function initGame(diffKey) {
+    ais = [];
+    for (const p of game.players) {
+      if (p.isAI) ais.push(makeAI(p.idx, diffKey));
     }
   }
-
-  function useSuperweapon() {
-    const silo = myBuildings('superweapon').find(b => b.constructed && b.swReady);
-    if (!silo) return;
-    // target: player's densest building group — approximate with key building
-    const t = playerKeyBuilding();
-    if (t) POWERS_SYS.fireSuperweapon(PI, silo, t.x, t.y);
-  }
-
-  /* ------------- defense reaction ------------- */
+  function tick(dt2) { for (const a of ais) a.tick(dt2); }
   function notifyAttack(victim, attacker) {
-    if (!S || S.defendT > 0 || !attacker || attacker.owner !== 0) return;
-    if (victim.kind !== 'building') return;
-    S.defendT = 18;
-    // pull nearby idle army to defend
-    const defenders = combatUnits().filter(u => !u.def.air &&
-      (u.order.type === 'idle' || u.order.type === 'guard') &&
-      U.dist(u.x, u.y, victim.x, victim.y) < 900);
-    for (const d of defenders) d.giveOrder({ type: 'attackmove', x: attacker.x, y: attacker.y });
+    const a = ais.find(x => x.pi === victim.owner);
+    if (a) a.notifyAttack(victim, attacker);
   }
-
-  /* ------------- per-frame hook (main calls at 2 Hz) ------------- */
-  function tick(dt2) {
-    if (!S || game.over) return;
-    if (S.defendT > 0) S.defendT -= dt2;
-    if (!myEnts().length) return;   // fully defeated — main loop handles
-    // decapitated but alive (dozer + money): keep managing so it can rebuild
-    manageDozers();
-    manageEconomy();
-    manageArmy();
-    manageAttack(dt2);
-    S.powerUseT -= dt2;
-    if (S.powerUseT <= 0) { S.powerUseT = 12; usePowers(); useSuperweapon(); }
+  function spendPowerPoints(pi) {
+    const a = ais.find(x => x.pi === pi);
+    if (a) a.spend();
   }
-
   function onUnitDone(u) {
-    if (!S) return;
-    if (u.def.weapon && !u.def.air && S.attackState === 'attacking') {
-      const target = game.byId.get(S.attackTargetId);
-      if (target && !target.dead) u.giveOrder({ type: 'attackmove', x: target.x, y: target.y });
-    }
+    const a = ais.find(x => x.pi === u.owner);
+    if (a) a.onUnitDone(u);
   }
   function onBuildingDone(b) { /* hook for future logic */ }
 
@@ -4430,6 +4684,13 @@ const INPUT = (() => {
   let placing = null;            // {key, tx, ty, ok}
   let targeting = null;          // {kind:'power'|'sw', key, siloId, label}
   let awaitAttackMove = false;
+  let awaitGuard = false;
+
+  function isEnemyOfHuman(e) {
+    if (!e || e.owner < 0) return false;
+    const p = game.players[e.owner];
+    return p && p.team !== game.players[0].team;
+  }
   const groups = {};             // ctrl groups 1..9
   let lastClickT = 0, lastClickId = 0;
   let lastGroupKey = '', lastGroupT = 0;
@@ -4482,6 +4743,11 @@ const INPUT = (() => {
         awaitAttackMove = false;
         return;
       }
+      if (awaitGuard) {
+        issueGuard(RENDER.toWorldX(mouse.x), RENDER.toWorldY(mouse.y), e.shiftKey);
+        awaitGuard = false;
+        return;
+      }
       if (wasDrag) boxSelect(box, e.shiftKey);
       else clickSelect(e.shiftKey);
     });
@@ -4492,6 +4758,7 @@ const INPUT = (() => {
       if (placing) { placing = null; UI.refreshCmd(); return; }
       if (targeting) { targeting = null; UI.refreshPowers(); return; }
       if (awaitAttackMove) { awaitAttackMove = false; return; }
+      if (awaitGuard) { awaitGuard = false; return; }
       issueSmartOrder(RENDER.toWorldX(e.clientX), RENDER.toWorldY(e.clientY), e.shiftKey);
     });
 
@@ -4517,6 +4784,7 @@ const INPUT = (() => {
         if (placing) { placing = null; UI.refreshCmd(); }
         else if (targeting) { targeting = null; UI.refreshPowers(); }
         else if (awaitAttackMove) awaitAttackMove = false;
+        else if (awaitGuard) awaitGuard = false;
         else UI.togglePause();
         e.preventDefault(); return;
       }
@@ -4603,10 +4871,7 @@ const INPUT = (() => {
     let best = null, bestScore = -1;
     for (const e of game.ents) {
       if (e.dead) continue;
-      if (e.owner === 1) {
-        if (e.kind === 'unit' && !world.isVisible(e.x, e.y)) continue;
-        if (e.kind === 'building' && !world.isVisible(e.x, e.y)) continue;
-      }
+      if (isEnemyOfHuman(e) && !world.isVisible(e.x, e.y)) continue;
       let hit = false;
       if (e.kind === 'unit') hit = U.dist(wx, wy, e.x, e.y) < e.radius + 7;
       else hit = wx >= e.tx * TILE && wx <= (e.tx + e.size) * TILE && wy >= e.ty * TILE && wy <= (e.ty + e.size) * TILE;
@@ -4689,7 +4954,7 @@ const INPUT = (() => {
     }
 
     let acted = false;
-    if (target && target.owner === 1) {
+    if (target && isEnemyOfHuman(target)) {
       for (const u of units) {
         if (u.def.suicide || (u.def.weapon && weaponCanHit(u.def.weapon, target))) {
           u.giveOrder({ type: 'attack', targetId: target.id }, shift);
@@ -4744,6 +5009,15 @@ const INPUT = (() => {
       else u.giveOrder({ type: 'move', x: wx, y: wy }, shift);
     }
     if (units.length) { SFX.ack(); UI.flashOrder(wx, wy, 'attack'); }
+  }
+
+  function issueGuard(wx, wy, shift) {
+    const units = myUnitsSelected();
+    for (const u of units) {
+      if (u.def.weapon && !u.def.noAutoAttack) u.giveOrder({ type: 'guardarea', x: wx, y: wy }, shift);
+      else u.giveOrder({ type: 'move', x: wx, y: wy }, shift);
+    }
+    if (units.length) { SFX.ack(); UI.flashOrder(wx, wy, 'move'); }
   }
 
   function stopSelected() {
@@ -4806,13 +5080,13 @@ const INPUT = (() => {
 
   /* cursor mode for renderer */
   function cursorMode() {
-    if (targeting || awaitAttackMove) return 'target';
+    if (targeting || awaitAttackMove || awaitGuard) return 'target';
     if (placing) return 'default';
     if (!game.started || mouse.x < 0) return 'default';
     const wx = mouse.wx, wy = mouse.wy;
     const hover = entAt(wx, wy);
     const units = myUnitsSelected();
-    if (hover && hover.owner === 1 && units.some(u => u.def.weapon || u.def.suicide)) return 'attack';
+    if (hover && isEnemyOfHuman(hover) && units.some(u => u.def.weapon || u.def.suicide)) return 'attack';
     if (hover && hover.owner === 0 && hover.kind === 'building' && hover.hp < hover.maxHp &&
         units.some(u => u.def.builder)) return 'repair';
     if (world.dockAt(wx, wy) && units.some(u => u.def.harvester)) return 'harvest';
@@ -4821,7 +5095,7 @@ const INPUT = (() => {
 
   function resetMatch() {
     selection = [];
-    dragBox = null; placing = null; targeting = null; awaitAttackMove = false;
+    dragBox = null; placing = null; targeting = null; awaitAttackMove = false; awaitGuard = false;
     for (const k in groups) delete groups[k];   // groups hold refs to the previous game's entities
     lastClickT = 0; lastClickId = 0;
     mouse.down = false; mouse.mmb = false;
@@ -4841,6 +5115,9 @@ const INPUT = (() => {
     get cursorMode() { return cursorMode(); },
     set awaitAttackMove(v) { awaitAttackMove = v; },
     get awaitAttackMove() { return awaitAttackMove; },
+    set awaitGuard(v) { awaitGuard = v; },
+    get awaitGuard() { return awaitGuard; },
+    isEnemyOfHuman,
   };
 })();
 
@@ -4857,7 +5134,8 @@ const UI = (() => {
   let announceT = 0;
 
   /* menu config state */
-  const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000 };
+  const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000,
+    allies: 0, enemies: 1 };
 
   function init() {
     mmCanvas = $('minimap');
@@ -4877,6 +5155,9 @@ const UI = (() => {
     }
     buildPills('enemy-pick', [['random', 'Random'], ...Object.keys(FACTIONS).map(k => [k, FACTIONS[k].name])],
       v => cfg.enemy = v, 'random');
+    buildPills('allies-pick', [[0, 'None'], [1, '1'], [2, '2'], [3, '3']], v => cfg.allies = +v, 0);
+    buildPills('enemies-pick', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7']],
+      v => cfg.enemies = +v, 1);
     buildPills('diff-pick', Object.keys(DIFFICULTY).map(k => [k, DIFFICULTY[k].label]), v => cfg.diff = v, 'normal');
     buildPills('map-pick', Object.keys(MAPSIZES).map(k => [k, MAPSIZES[k].label]), v => cfg.map = v, 'medium');
     buildPills('money-pick', [[5000, '$5,000'], [10000, '$10,000'], [20000, '$20,000']],
@@ -5021,15 +5302,16 @@ const UI = (() => {
       Math.round(U.clamp((p.xp - base) / (nxt - base), 0, 1) * 100) + '%';
     $('ptsleft').textContent = p.powerPoints > 0 ? `+${p.powerPoints} pts` : '';
 
-    // superweapon timers
+    // superweapon timers (friendly = green, hostile = red)
     const sw = $('swtimers');
     let html = '';
+    const humanTeam = game.players[0].team;
     for (const e of game.ents) {
       if (e.dead || e.kind !== 'building' || e.key !== 'superweapon' || !e.constructed) continue;
-      const mine = e.owner === 0;
+      const friendly = game.players[e.owner].team === humanTeam;
       const kind = BUILDINGS.superweapon.swByFaction[game.players[e.owner].faction];
       const nm = SUPERWEAPONS[kind].name;
-      html += `<span class="sw-timer ${mine ? 'mine' : ''} ${e.swReady ? 'ready' : ''}">${mine ? '' : '☠ '}${nm}: ${e.swReady ? 'READY' : U.fmtTime(e.swTimer)}</span>`;
+      html += `<span class="sw-timer ${friendly ? 'mine' : ''} ${e.swReady ? 'ready' : ''}">${friendly ? '' : '☠ '}${nm}: ${e.swReady ? 'READY' : U.fmtTime(e.swTimer)}</span>`;
     }
     sw.innerHTML = html;
   }
@@ -5162,6 +5444,7 @@ const UI = (() => {
       title.textContent = units.length === 1 ? uName(units[0].key, p.faction) : units.length + ' units';
       curCmds[4] = { type: 'attackmove' };   // A
       curCmds[5] = { type: 'stop' };         // S
+      curCmds[6] = { type: 'guardbtn' };     // D
     } else if (building) {
       title.textContent = bName(building.key, p.faction);
       if (!building.constructed) {
@@ -5199,6 +5482,8 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">⚔️</span><span>Attack-Move</span>`;
       } else if (c.type === 'stop') {
         b.innerHTML = `${hk}<span class="icon">✋</span><span>Stop</span>`;
+      } else if (c.type === 'guardbtn') {
+        b.innerHTML = `${hk}<span class="icon">🛡️</span><span>Guard Area</span>`;
       } else if (c.type === 'sell') {
         b.innerHTML = `${hk}<span class="icon">💵</span><span>Sell 50%</span>`;
       } else if (c.type === 'cancelsite') {
@@ -5225,6 +5510,7 @@ const UI = (() => {
         break;
       }
       case 'attackmove': INPUT.awaitAttackMove = true; SFX.click(); break;
+      case 'guardbtn': INPUT.awaitGuard = true; SFX.click(); break;
       case 'stop': INPUT.stopSelected(); break;
       case 'sell': {
         const b = INPUT.selection[0];
@@ -5281,6 +5567,8 @@ const UI = (() => {
       tooltipHtml(el, `<h4>⚔️ Attack-Move</h4><div class="tt-desc">Move while engaging every enemy on the way. Hotkey A, then click the map.</div>`);
     } else if (c.type === 'stop') {
       tooltipHtml(el, `<h4>✋ Stop</h4><div class="tt-desc">Halt and hold position.</div>`);
+    } else if (c.type === 'guardbtn') {
+      tooltipHtml(el, `<h4>🛡️ Guard Area</h4><div class="tt-desc">Move to a point and hold it — engages enemies that come near, then returns to the post. Hotkey D, then click the map.</div>`);
     } else if (c.type === 'sell') {
       tooltipHtml(el, `<h4>💵 Sell</h4><div class="tt-desc">Demolish this structure for a 50% refund.</div>`);
     }
@@ -5387,16 +5675,18 @@ let game = {
 };
 let world = null;
 
-function makePlayer(idx, faction, isAI) {
+function makePlayer(idx, faction, isAI, team) {
   return {
-    idx, faction, isAI,
-    color: FACTIONS[faction].color,
-    colorDark: FACTIONS[faction].colorDark,
+    idx, faction, isAI, team,
+    color: PLAYER_COLORS[idx % PLAYER_COLORS.length],
+    colorDark: U.shade(PLAYER_COLORS[idx % PLAYER_COLORS.length], 0.5),
     money: 0,
     powerCap: 0, powerUse: 0, lowPower: false,
     xp: 0, rank: 0, powerPoints: 0,
     unlocked: {}, cooldowns: {},
     incomeMult: 1,
+    frenzyUntil: 0,
+    defeated: false,
     stats: { unitsBuilt: 0, unitsLost: 0, kills: 0, buildingsLost: 0, moneyEarned: 0 },
     addMoney(amt, isIncome) {
       this.money += amt * (isIncome ? this.incomeMult : 1);
@@ -5421,21 +5711,33 @@ function startGame(cfg) {
   INPUT.resetMatch();
   UI.resetMatch();
 
-  const ms = MAPSIZES[cfg.map];
-  world = new World(ms.w, ms.h, (Math.random() * 1e9) | 0);
-
-  const enemyFaction = cfg.enemy === 'random' ? U.pick(Object.keys(FACTIONS)) : cfg.enemy;
+  // roster: you + allies (team 0) vs enemies (team 1), max 8 players
   const diff = DIFFICULTY[cfg.diff];
-  game.players = [
-    makePlayer(0, cfg.faction, false),
-    makePlayer(1, enemyFaction, true),
-  ];
-  game.players[0].money = cfg.money;
-  game.players[1].money = cfg.money + diff.startBonus;
-  game.players[1].incomeMult = diff.income;
+  const nAllies = U.clamp(cfg.allies || 0, 0, 3);
+  const nEnemies = U.clamp(Math.min(cfg.enemies || 1, 7 - nAllies), 1, 7);
+  const facs = Object.keys(FACTIONS);
+  game.players = [makePlayer(0, cfg.faction, false, 0)];
+  for (let i = 0; i < nAllies; i++) game.players.push(makePlayer(game.players.length, U.pick(facs), true, 0));
+  for (let i = 0; i < nEnemies; i++) {
+    const f = cfg.enemy === 'random' ? U.pick(facs) : cfg.enemy;
+    game.players.push(makePlayer(game.players.length, f, true, 1));
+  }
+  for (const p of game.players) {
+    p.money = cfg.money + (p.isAI ? diff.startBonus : 0);
+    if (p.isAI) p.incomeMult = diff.income;
+  }
 
-  // starting base: CC + dozer for each side
-  for (let pi = 0; pi < 2; pi++) {
+  // map auto-grows with player count so everyone fits
+  const total = game.players.length;
+  const sizeOrder = ['small', 'medium', 'large', 'huge'];
+  let mapKey = cfg.map;
+  const minIdx = total >= 7 ? 3 : total >= 5 ? 2 : total >= 4 ? 1 : 0;
+  if (sizeOrder.indexOf(mapKey) < minIdx) mapKey = sizeOrder[minIdx];
+  const ms = MAPSIZES[mapKey];
+  world = new World(ms.w, ms.h, (Math.random() * 1e9) | 0, game.players.map(p => p.team));
+
+  // starting base: CC + dozer for every player
+  for (let pi = 0; pi < total; pi++) {
     const s = world.starts[pi];
     const tx = Math.floor(s.x / TILE) - 2, ty = Math.floor(s.y / TILE) - 2;
     const cc = new Building(pi, 'cc', tx, ty, true);
@@ -5461,27 +5763,40 @@ function startGame(cfg) {
   SFX.say('Battle control online');
 }
 
-/* ---------------- victory check ---------------- */
+/* ---------------- victory check (team-based) ---------------- */
 function checkVictory() {
   if (game.over) return;
-  for (let pi = 0; pi < 2; pi++) {
+  const cheapestRestart = Math.min(BUILDINGS.market.cost, BUILDINGS.supply.cost + UNITS.truck.cost);
+
+  for (const p of game.players) {
+    if (p.defeated) continue;
+    const pi = p.idx;
     const hasBuilding = game.ents.some(e => !e.dead && e.owner === pi && e.kind === 'building');
-    const p = game.players[pi];
     // grace only if a builder survives AND the money can actually restart an economy
-    const cheapestRestart = Math.min(BUILDINGS.market.cost, BUILDINGS.supply.cost + UNITS.truck.cost);
     const hasDozerMoney = p.money >= cheapestRestart &&
       game.ents.some(e => !e.dead && e.owner === pi && e.kind === 'unit' && e.def.builder);
     if (!hasBuilding && !hasDozerMoney) {
-      game.over = true;
-      const win = pi === 1;
-      game.revealAll = true;
-      setTimeout(() => {
-        UI.showEnd(win);
-        if (win) { SFX.promote(); SFX.say('Victory. The battlefield is yours, General', true); }
-        else { SFX.error(); SFX.say('Mission failed', true); }
-      }, 1400);
-      return;
+      p.defeated = true;
+      if (pi !== 0) {
+        const hostile = p.team !== game.players[0].team;
+        UI.feed((hostile ? '💀 Enemy' : '🏳 Allied') + ' general (' + FACTIONS[p.faction].name + ') eliminated!',
+          hostile ? 'gold' : 'bad');
+        if (hostile) SFX.say('Enemy general eliminated');
+      }
     }
+  }
+
+  const humanTeam = game.players[0].team;
+  const lost = game.players[0].defeated;
+  const won = !lost && game.players.every(p => p.team === humanTeam || p.defeated);
+  if (lost || won) {
+    game.over = true;
+    game.revealAll = true;
+    setTimeout(() => {
+      UI.showEnd(won);
+      if (won) { SFX.promote(); SFX.say('Victory. The battlefield is yours, General', true); }
+      else { SFX.error(); SFX.say('Mission failed', true); }
+    }, 1400);
   }
 }
 

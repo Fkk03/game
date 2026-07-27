@@ -34,7 +34,11 @@ const MAPSIZES = {
   small:  { label: 'Small',  w: 72,  h: 72 },
   medium: { label: 'Medium', w: 96,  h: 96 },
   large:  { label: 'Large',  w: 120, h: 120 },
+  huge:   { label: 'Huge',   w: 150, h: 150 },
 };
+
+/* per-player-slot colors (faction identity comes from units, color from slot) */
+const PLAYER_COLORS = ['#3d7edb', '#d43a2f', '#e8c33c', '#3fae5a', '#8e5bd6', '#e07b2f', '#38b8b8', '#c95b74'];
 
 /* =====================================================================
    FACTIONS — three original armies:
@@ -48,8 +52,8 @@ const FACTIONS = {
     desc: 'High-tech expeditionary force. Expensive but elite units, strike jets and precision firepower.',
     usesPower: true,
     dozerName: 'Combat Dozer', dozerIcon: '🚜',
-    buildings: ['cc', 'power', 'supply', 'barracks', 'factory', 'airfield', 'turret', 'market', 'superweapon'],
-    powers: ['recon', 'airstrike', 'thermobomb'],
+    buildings: ['cc', 'power', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'turret', 'market', 'superweapon'],
+    powers: ['recon', 'supplydrop', 'airstrike', 'paradrop', 'thermobomb'],
     eva: 'Command',
   },
   dynasty: {
@@ -57,8 +61,8 @@ const FACTIONS = {
     desc: 'Industrial war machine. Cheap infantry hordes, heavy tanks, flame weapons and raw firepower.',
     usesPower: true,
     dozerName: 'Worker Dozer', dozerIcon: '🚜',
-    buildings: ['cc', 'power', 'supply', 'barracks', 'factory', 'airfield', 'turret', 'market', 'superweapon'],
-    powers: ['barrage', 'reinforce', 'carpet'],
+    buildings: ['cc', 'power', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'turret', 'market', 'superweapon'],
+    powers: ['recon', 'barrage', 'reinforce', 'frenzy', 'carpet'],
     eva: 'Command',
   },
   cartel: {
@@ -66,8 +70,8 @@ const FACTIONS = {
     desc: 'Desert guerrillas. Dirt-cheap fast units, no power grid needed, salvage wrecks to upgrade vehicles.',
     usesPower: false,
     dozerName: 'Worker', dozerIcon: '👷',
-    buildings: ['cc', 'supply', 'barracks', 'factory', 'turret', 'market', 'superweapon'],
-    powers: ['ambush', 'demo', 'vengeance'],
+    buildings: ['cc', 'supply', 'barracks', 'factory', 'repairbay', 'turret', 'market', 'superweapon'],
+    powers: ['recon', 'ambush', 'demo', 'sabotage', 'vengeance'],
     eva: 'Boss',
   },
 };
@@ -131,10 +135,16 @@ const BUILDINGS = {
       cartel:    { dmg: 52, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
     },
   },
+  repairbay: {
+    name: { coalition: 'Service Depot', dynasty: 'Repair Yard', cartel: 'Scrap Garage' },
+    icon: '🔧', cost: 1200, hp: 1500, size: 3, buildTime: 16, power: 2, armor: 'building',
+    sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft (16 hp/s).',
+    healRadius: 200, healRate: 16,
+  },
   market: {
     name: { coalition: 'Trade Uplink', dynasty: 'Trade Port', cartel: 'Black Market' },
     icon: '💰', cost: 1500, hp: 1000, size: 2, buildTime: 18, power: 1, armor: 'building',
-    sight: 5, desc: 'Generates a steady stream of cash ($8/s). Max 2.', income: 8, limit: 2,
+    sight: 5, desc: 'Generates a steady stream of cash ($32/s). Max 2.', income: 32, limit: 2,
   },
   superweapon: {
     name: { coalition: 'Solaris Array', dynasty: 'Nuclear Silo', cartel: 'Rocket Storm Pit' },
@@ -274,6 +284,15 @@ const POWERS = {
     desc: 'Two Falcon jets pound the target area with missiles.' },
   thermobomb: { name: 'Thermobaric Bomb', icon: '☄️', tier: 3, cd: 300,
     desc: 'A massive fuel-air bomb levels everything in a huge radius.' },
+
+  supplydrop: { name: 'Emergency Supplies', icon: '📦', tier: 1, cd: 150,
+    desc: 'Airdrop supply crates worth $1,200 anywhere on the map.' },
+  paradrop:   { name: 'Airborne Assault', icon: '🪂', tier: 2, cd: 200,
+    desc: 'Paradrop 6 riflemen and 2 rocket troopers anywhere on the map.' },
+  frenzy:     { name: 'War Frenzy', icon: '🔥', tier: 2, cd: 210,
+    desc: 'All your forces deal +30% damage for 30 seconds.' },
+  sabotage:   { name: 'Sabotage', icon: '🔌', tier: 2, cd: 160,
+    desc: 'Saboteurs disable enemy structures near the target for 25 seconds.' },
 
   barrage:    { name: 'Artillery Barrage', icon: '💥', tier: 1, cd: 120,
     desc: 'Off-map artillery saturates the target area with 10 shells.' },

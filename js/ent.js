@@ -15,7 +15,11 @@ function entsInRadius(x, y, r, filter) {
   return out;
 }
 
-function isEnemy(a, b) { return a.owner !== b.owner && b.owner !== -1 && a.owner !== -1; }
+function isEnemy(a, b) {
+  if (a.owner === -1 || b.owner === -1 || a.owner === b.owner) return false;
+  const pa = game.players[a.owner], pb = game.players[b.owner];
+  return !pa || !pb || pa.team !== pb.team;      // allies (same team) are not enemies
+}
 
 function weaponCanHit(w, target) {
   if (target.kind === 'unit' && target.def.air) return !!w.aa;
@@ -27,6 +31,10 @@ function effDamage(w, attacker) {
   if (attacker && attacker.kind === 'unit') {
     d *= VET_DMG[attacker.vetRank];
     if (attacker.def.horde && attacker.hordeOn) d *= 1.25;
+  }
+  if (attacker) {
+    const p = game.players[attacker.owner];
+    if (p && p.frenzyUntil > game.t) d *= 1.3;   // War Frenzy power
   }
   return d;
 }
@@ -47,7 +55,7 @@ function applyDamage(target, rawDmg, dtype, attacker) {
       target.order = { type: 'attack', targetId: attacker.id, fromGuard: true };
     }
     if (target.owner === 0) UI.underAttack(target);
-    if (target.owner === 1) AI.notifyAttack(target, attacker);
+    else if (game.players[target.owner] && game.players[target.owner].isAI) AI.notifyAttack(target, attacker);
   }
 
   if (target.hp <= 0) killEnt(target, attacker);
@@ -111,7 +119,7 @@ function addPlayerXp(pi, amt) {
       UI.announce('★ RANK ' + p.rank + ' ★');
       SFX.promote(); SFX.say('Promotion earned');
     } else {
-      AI.spendPowerPoints();
+      AI.spendPowerPoints(pi);
     }
   }
 }
@@ -189,10 +197,10 @@ class Unit {
   applyOrder(o) {
     this.order = o;
     this.path = null;
-    if (o.type === 'move' || o.type === 'attackmove') { this.guardX = o.x; this.guardY = o.y; }
+    if (o.type === 'move' || o.type === 'attackmove' || o.type === 'guardarea') { this.guardX = o.x; this.guardY = o.y; }
     if (this.def.air) {
       if (o.type === 'attack') { this.jetState = 'attack'; this.persistTargetId = o.targetId; }
-      else if (o.type === 'move' || o.type === 'attackmove') { this.jetState = 'moveto'; this.persistTargetId = 0; }
+      else if (o.type === 'move' || o.type === 'attackmove' || o.type === 'guardarea') { this.jetState = 'moveto'; this.persistTargetId = 0; }
     }
   }
 
@@ -327,6 +335,7 @@ class Unit {
         if (this.moveAlongPath(dt)) this.nextOrder();
         break;
       case 'attackmove': this.doAttackMove(dt, o); break;
+      case 'guardarea': this.doGuardMove(dt, o); break;
       case 'attack': this.doAttack(dt, o); break;
       case 'harvest': this.doHarvest(dt, o); break;
       case 'build': this.doBuild(dt, o); break;
@@ -396,6 +405,27 @@ class Unit {
     }
     if (!this.path) this.setPathTo(o.x, o.y);
     if (this.moveAlongPath(dt)) this.nextOrder();
+  }
+
+  /* move to a point engaging on the way, then hold that ground (guard anchor there) */
+  doGuardMove(dt, o) {
+    this.scanT -= dt;
+    if (this.scanT <= 0 && this.def.weapon && !this.def.noAutoAttack) {
+      this.scanT = 0.35;
+      const t = this.findTarget(Math.max(this.def.weapon.range + 80, this.def.sight * TILE));
+      if (t) {
+        this.orderQueue.unshift({ type: 'guardarea', x: o.x, y: o.y });
+        this.order = { type: 'attack', targetId: t.id, fromGuard: true };
+        this.path = null;
+        return;
+      }
+    }
+    if (!this.path) this.setPathTo(o.x, o.y);
+    if (this.moveAlongPath(dt)) {
+      this.order = { type: 'guard' };
+      this.guardX = o.x; this.guardY = o.y;
+      this.path = null;
+    }
   }
 
   doAttack(dt, o) {
@@ -650,11 +680,15 @@ class Building {
       UI.refreshCmd();
     }
     if (this.key === 'superweapon') {
-      const other = this.owner === 0 ? 'Enemy' : 'Your';
-      UI.feed((this.owner === 0 ? 'Superweapon construction complete' : '⚠ ENEMY SUPERWEAPON DETECTED'), this.owner === 0 ? 'gold' : 'bad');
-      if (this.owner === 1) { SFX.klaxon(); SFX.say('Warning. Enemy superweapon detected', true); }
+      const sameTeam = p.team === game.players[0].team;
+      if (this.owner === 0) UI.feed('Superweapon construction complete', 'gold');
+      else if (sameTeam) UI.feed('Allied superweapon online', 'gold');
+      else {
+        UI.feed('⚠ ENEMY SUPERWEAPON DETECTED', 'bad');
+        SFX.klaxon(); SFX.say('Warning. Enemy superweapon detected', true);
+      }
     }
-    if (this.owner === 1) AI.onBuildingDone(this);
+    if (p.isAI) AI.onBuildingDone(this);
   }
 
   get powered() {
@@ -665,6 +699,26 @@ class Building {
   update(dt) {
     if (!this.constructed) return;
     const p = game.players[this.owner];
+
+    // sabotaged: everything offline until the timer runs out
+    if (this.disabledUntil && game.t < this.disabledUntil) {
+      if (Math.random() < dt * 3) FX.smokePuff(this.x + U.rand(-this.size * 10, this.size * 10), this.y, 1, true);
+      return;
+    }
+
+    // repair bay: heal nearby friendly vehicles & aircraft
+    if (this.key === 'repairbay') {
+      const R = this.def.healRadius, rate = this.def.healRate * (this.powered ? 1 : 0.5);
+      for (const e of game.ents) {
+        if (e.dead || e.kind !== 'unit' || e.hp >= e.maxHp) continue;
+        const ep = game.players[e.owner];
+        if (!ep || ep.team !== p.team) continue;
+        if (e.def.chassis === 'inf' || e.def.chassis === 'rocketinf') continue;
+        if (U.dist2(this.x, this.y, e.x, e.y) > R * R) continue;
+        e.hp = Math.min(e.maxHp, e.hp + rate * dt);
+        if (Math.random() < dt * 1.5) FX.sparks(e.x + U.rand(-9, 9), e.y + U.rand(-9, 9), 2);
+      }
+    }
 
     // production
     if (this.queue.length) {
@@ -682,7 +736,7 @@ class Building {
         else if (udef.harvester) u.giveOrder({ type: 'harvest' });
         else u.giveOrder({ type: 'attackmove', x: this.rallyX, y: this.rallyY });
         if (this.owner === 0) { SFX.ready(); UI.refreshCmd(); }
-        if (this.owner === 1) AI.onUnitDone(u);
+        if (game.players[this.owner] && game.players[this.owner].isAI) AI.onUnitDone(u);
       }
     }
 

@@ -319,7 +319,9 @@ const RENDER = (() => {
   }
 
   function entVisibleToPlayer(e) {
-    if (e.owner === 0 || e.owner === -1) return true;
+    if (e.owner === -1) return true;
+    const p = game.players[e.owner];
+    if (p && p.team === game.players[0].team) return true;   // own + allied always visible
     if (game.revealAll) return true;
     if (e.kind === 'building') {
       // buildings render if currently visible; ghosts handle the rest
@@ -639,6 +641,15 @@ const RENDER = (() => {
   function drawBuilding(b) {
     if (!b.constructed) { drawConstructionSite(b); return; }
     drawBuildingSprite(b, false);
+    // sabotaged indicator
+    if (b.disabledUntil && game.t < b.disabledUntil) {
+      ctx.globalAlpha = 0.6 + 0.4 * Math.sin(game.renderT * 8);
+      ctx.fillStyle = '#ffcc33'; ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚡', b.x, b.y - b.size * TILE * 0.15);
+      ctx.textAlign = 'left';
+      ctx.globalAlpha = 1;
+    }
     // damage fx
     if (b.hp < b.maxHp * 0.5 && Math.random() < 0.12) FX.smokePuff(b.x + U.rand(-b.size * 12, b.size * 12), b.y + U.rand(-b.size * 12, b.size * 12), 1, true);
     if (b.hp < b.maxHp * 0.25 && Math.random() < 0.08) FX.flame(b.x + U.rand(-b.size * 10, b.size * 10), b.y + U.rand(-b.size * 10, b.size * 10), -Math.PI / 2);
@@ -710,6 +721,7 @@ const RENDER = (() => {
       case 'factory': drawFactory(b, s, c1, c2); break;
       case 'airfield': drawAirfield(b, s, c1, c2); break;
       case 'turret': drawTurretB(b, s, c1, c2, fac); break;
+      case 'repairbay': drawRepairBay(b, s, c1, c2); break;
       case 'market': drawMarket(b, s, c1, c2); break;
       case 'superweapon': drawSuper(b, s, c1, c2, fac); break;
     }
@@ -891,6 +903,35 @@ const RENDER = (() => {
     }
   }
 
+  function drawRepairBay(b, s, c1, c2) {
+    // open service bay with a vehicle lift
+    box3d(s * 0.06, s * 0.1, s * 0.5, s * 0.76, '#867e6a', '#57503e');
+    ctx.fillStyle = '#2c2a22';
+    ctx.fillRect(s * 0.1, s * 0.3, s * 0.42, s * 0.5);
+    // lift platform + stripes
+    ctx.fillStyle = '#57503c';
+    ctx.fillRect(s * 0.6, s * 0.2, s * 0.32, s * 0.62);
+    for (let i = 0; i < 4; i++) {
+      ctx.fillStyle = i % 2 ? '#e8c33c' : '#2c2a22';
+      ctx.fillRect(s * 0.6, s * 0.2 + i * s * 0.155, s * 0.04, s * 0.155);
+    }
+    // animated crane arm
+    ctx.save();
+    ctx.translate(s * 0.76, s * 0.5);
+    ctx.rotate(Math.sin(game.renderT * 1.4) * 0.5);
+    ctx.strokeStyle = '#b08c30'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(s * 0.22, 0); ctx.stroke();
+    ctx.fillStyle = '#8a8578';
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.05, 0, 7); ctx.fill();
+    ctx.restore();
+    // wrench emblem
+    ctx.fillStyle = '#ffe9a0'; ctx.font = `bold ${Math.round(s * 0.2)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('🔧', s * 0.3, s * 0.24);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = c1; ctx.fillRect(s * 0.06, s * 0.86, s * 0.86, s * 0.06);
+  }
+
   function drawMarket(b, s, c1, c2) {
     box3d(s * 0.1, s * 0.25, s * 0.8, s * 0.6, '#9a8f6c', '#6e6448');
     // awning stripes
@@ -1015,7 +1056,17 @@ const RENDER = (() => {
     for (const e of INPUT.selection) {
       if (e.dead) continue;
       const r = e.kind === 'building' ? e.size * TILE * 0.55 : e.radius + 7;
-      drawBrackets(e.x, e.y, r, e.owner === 0 ? '#9fdc7c' : '#dc7c7c');
+      const ep = game.players[e.owner];
+      const bracketCol = e.owner === 0 ? '#9fdc7c' :
+        (ep && ep.team === game.players[0].team ? '#8fd4e8' : '#dc7c7c');
+      drawBrackets(e.x, e.y, r, bracketCol);
+      // repair bay range ring
+      if (e.kind === 'building' && e.key === 'repairbay' && e.constructed) {
+        ctx.strokeStyle = 'rgba(127,212,255,0.35)'; ctx.lineWidth = 1.5;
+        ctx.setLineDash([8, 8]);
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.def.healRadius, 0, 7); ctx.stroke();
+        ctx.setLineDash([]);
+      }
       // rally point for production buildings
       if (e.kind === 'building' && e.owner === 0 && (bTrains(e.key, game.players[0].faction).length || e.def.trains)) {
         ctx.strokeStyle = 'rgba(159,220,124,0.5)'; ctx.lineWidth = 1.5;
@@ -1157,12 +1208,14 @@ const RENDER = (() => {
       c.fillStyle = '#4a90d8';
       c.fillRect(d.x / TILE * sx - 2, d.y / TILE * sy - 2, 4, 4);
     }
-    // entities
+    // entities (enemies only when visible or remembered as ghosts)
+    const humanTeam = game.players[0].team;
     for (const e of game.ents) {
       if (e.dead) continue;
-      if (e.owner === 1 && !world.isVisible(e.x, e.y) &&
-          !(e.kind === 'building' && ghosts.has(e.id))) continue;
       const p = game.players[e.owner];
+      const hostile = e.owner !== -1 && p && p.team !== humanTeam;
+      if (hostile && !world.isVisible(e.x, e.y) &&
+          !(e.kind === 'building' && ghosts.has(e.id))) continue;
       c.fillStyle = e.owner === -1 ? '#999' : p.color;
       const s = e.kind === 'building' ? Math.max(3, e.size * sx) : 2;
       c.fillRect(e.x / TILE * sx - s / 2, e.y / TILE * sy - s / 2, s, s);

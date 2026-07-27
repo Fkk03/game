@@ -26,15 +26,20 @@ python3 -m http.server 8080
 
 ## 🎮 The game
 
+- **Up to 8 players** — choose 0–3 allied AI generals and 1–7 enemies; the map auto-scales
+  (up to the new Huge size), allies share your radar and fight beside you
 - **3 asymmetric factions**
   - 🦅 **Meridian Coalition** — expensive high-tech elite units, strike jets, precision firepower
   - 🐲 **Crimson Dynasty** — cheap infantry hordes (Horde bonus!), heavy Warlord tanks, flame weapons, nukes
   - 🦂 **Scorpion Cartel** — dirt-cheap fast guerrillas, **needs no power grid**, salvages wrecks to upgrade vehicles
 - **Dozer-based construction** — select your Dozer/Worker, pick a structure, place it anywhere you've scouted
-- **Supply economy** — Supply Trucks haul crates from supply piles to your Supply Center; Markets add a trickle
+- **Supply economy** — rich supply piles scattered all across the map; Supply Trucks haul them
+  to your Supply Center, Markets pay a fat $32/s trickle
+- **Repair Center** — automatically fixes your tanks and aircraft in a radius around it
 - **Power grid** — run out of power and production crawls while defenses go offline
-- **General's promotions** — combat XP earns ranks; spend points on powers: airstrikes,
-  artillery barrages, ambushes, carpet bombing, thermobaric bombs…
+- **General's promotions** — combat XP earns ranks; spend points on 5 powers per faction:
+  recon sweeps, airstrikes, artillery barrages, paradrops, emergency supply drops, war frenzy,
+  sabotage, ambushes, carpet bombing, thermobaric bombs…
 - **Superweapons** — Solaris Beam / Nuclear Missile / Rocket Storm, on a 5-minute countdown
   that both players can see
 - **Unit veterancy** (★★★), **fog of war**, **minimap**, control groups, attack-move,
@@ -50,6 +55,7 @@ python3 -m http.server 8080
 | Right click | Move / Attack / Harvest / Repair / Set rally |
 | Shift + right click | Queue waypoints |
 | Q W E R / A S D F / Z X C V | Command-grid hotkeys (shown on buttons) |
+| A / S / D | Attack-move · Stop · Guard area (with units selected) |
 | Ctrl + 1–9 → 1–9 | Control groups (tap twice to center) |
 | Mouse wheel | Zoom · Middle-drag / arrows / screen edge — pan |
 | Space | Jump to last event · Backspace — jump to base |
