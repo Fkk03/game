@@ -25,9 +25,9 @@ const VET_HP  = [1, 1.1, 1.2, 1.35];
 const RANK_XP = [0, 400, 1000, 2000, 3400, 5200];
 
 const DIFFICULTY = {
-  easy:   { label: 'Easy',    income: 0.75, startBonus: 0,    firstAttack: 420, waveEvery: 150, harass: false, superweapon: false, powers: 1, armyCap: 14 },
-  normal: { label: 'Normal',  income: 1.0,  startBonus: 0,    firstAttack: 300, waveEvery: 115, harass: true,  superweapon: true,  powers: 2, armyCap: 24 },
-  hard:   { label: 'Hard',    income: 1.35, startBonus: 5000, firstAttack: 210, waveEvery: 85,  harass: true,  superweapon: true,  powers: 3, armyCap: 34 },
+  easy:   { label: 'Easy',    income: 0.75, startBonus: 0,    firstAttack: 360, waveEvery: 130, harass: false, superweapon: false, powers: 1, armyCap: 14 },
+  normal: { label: 'Normal',  income: 1.0,  startBonus: 0,    firstAttack: 240, waveEvery: 95, harass: true,  superweapon: true,  powers: 2, armyCap: 24 },
+  hard:   { label: 'Hard',    income: 1.35, startBonus: 5000, firstAttack: 170, waveEvery: 70,  harass: true,  superweapon: true,  powers: 3, armyCap: 34 },
 };
 
 const MAPSIZES = {
@@ -144,7 +144,7 @@ const BUILDINGS = {
   market: {
     name: { coalition: 'Trade Uplink', dynasty: 'Trade Port', cartel: 'Black Market' },
     icon: '💰', cost: 1500, hp: 1000, size: 2, buildTime: 18, power: 1, armor: 'building',
-    sight: 5, desc: 'Generates a steady stream of cash ($32/s). Max 2.', income: 32, limit: 2,
+    sight: 5, desc: 'Generates a steady stream of cash ($32/s). Max 15.', income: 32, limit: 15,
   },
   superweapon: {
     name: { coalition: 'Solaris Array', dynasty: 'Nuclear Silo', cartel: 'Rocket Storm Pit' },

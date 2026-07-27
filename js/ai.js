@@ -118,13 +118,14 @@ const AI = (() => {
       if (!has('barracks') && money >= BUILDINGS.barracks.cost) return 'barracks';
       if (!has('factory') && money >= BUILDINGS.factory.cost + 300) return 'factory';
       if (has('turret') < 2 && money >= BUILDINGS.turret.cost + 600 && game.t > 150) return 'turret';
-      if (has('market') < BUILDINGS.market.limit && money >= BUILDINGS.market.cost + 800) return 'market';
+      if (has('market') < 2 && money >= BUILDINGS.market.cost + 800) return 'market';
       if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + 800 && game.t > 240) return 'airfield';
       if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + 1200 && game.t > 330) return 'repairbay';
       if (has('supply') < 2 && game.t > 330 && money >= BUILDINGS.supply.cost + 500) return 'supply';
       if (diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('turret') < 4 && money >= BUILDINGS.turret.cost + 2500 && game.t > 400) return 'turret';
+      if (has('market') < BUILDINGS.market.limit && money >= BUILDINGS.market.cost + 3500 && game.t > 420) return 'market';
       if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
       return null;
     }
@@ -243,7 +244,7 @@ const AI = (() => {
       switch (S.attackState) {
         case 'idle': {
           S.waveT -= dt2;
-          if (S.waveT <= 0 && army.length >= Math.min(S.waveSize, diff.armyCap * 0.5)) {
+          if (S.waveT <= 0 && army.length >= Math.min(S.waveSize, diff.armyCap * 0.4)) {
             S.attackState = 'gathering';
             S.gatherT = 22;
             const g = gatherPoint();
@@ -260,6 +261,7 @@ const AI = (() => {
             if (!target) { S.attackState = 'idle'; S.waveT = diff.waveEvery; break; }
             S.attackState = 'attacking';
             S.attackTargetId = target.id;
+            S.attackT = 0;
             S.armyValueStart = army.reduce((s, u) => s + u.def.cost, 0);
             for (const u of army) orderAssault(u, target);
             const cl = enemyCluster();
@@ -273,6 +275,13 @@ const AI = (() => {
         case 'attacking': {
           const target = game.byId.get(S.attackTargetId);
           const val = army.reduce((s, u) => s + u.def.cost, 0);
+          S.attackT = (S.attackT || 0) + dt2;
+          // keep the pressure on: units that finished a skirmish rejoin the assault
+          if (target && !target.dead) {
+            for (const u of army) {
+              if (u.order.type === 'idle' || u.order.type === 'guard') orderAssault(u, target);
+            }
+          }
           for (const j of jets) {
             if (j.jetState === 'idle' && j.ammo > 0) {
               const jt = target && !target.dead ? target : enemyKeyBuilding();
@@ -294,6 +303,10 @@ const AI = (() => {
               if (u.order.type === 'idle' || u.order.type === 'guard')
                 u.giveOrder({ type: 'attack', targetId: target.id });
             }
+          } else if (S.attackT > 300) {
+            // assault has dragged on too long — regroup and come back with a fresh wave
+            S.attackState = 'idle';
+            S.waveT = 25;
           } else if (S.armyValueStart && val < S.armyValueStart * 0.25) {
             const anchor = baseAnchor();
             if (anchor) for (const u of army) u.giveOrder({ type: 'move', x: anchor.x + U.rand(-90, 90), y: anchor.y + U.rand(-90, 90) });
@@ -400,7 +413,7 @@ const AI = (() => {
       }
     }
 
-    return { pi, tick, notifyAttack, spend, onUnitDone };
+    return { pi, tick, notifyAttack, spend, onUnitDone, S };
   }
 
   /* ---------------- module API (routes to instances) ---------------- */
@@ -425,5 +438,7 @@ const AI = (() => {
   }
   function onBuildingDone(b) { /* hook for future logic */ }
 
-  return { initGame, tick, notifyAttack, spendPowerPoints, onUnitDone, onBuildingDone };
+  return { initGame, tick, notifyAttack, spendPowerPoints, onUnitDone, onBuildingDone,
+    _debug: () => ais.map(a => ({ pi: a.pi, state: a.S.attackState, waveT: Math.round(a.S.waveT),
+      attackT: Math.round(a.S.attackT || 0), waveSize: a.S.waveSize, targetId: a.S.attackTargetId })) };
 })();
