@@ -10,8 +10,11 @@ An original, fan-made homage to the golden age of desert-war real-time strategy 
 
 ## ▶ How to play it
 
-**Option 1 (simplest):** double-click `index.html` — it runs straight off the disk in any
-modern browser (Chrome / Edge / Firefox).
+**Option 0 (easiest — one file):** download **`IronDawn.html`** (the whole game bundled
+into a single file) and double-click it. Nothing else needed.
+
+**Option 1:** download/clone the repo, keep the folder together, double-click `index.html` —
+it runs straight off the disk in any modern browser (Chrome / Edge / Firefox).
 
 **Option 2 (recommended):**
 
