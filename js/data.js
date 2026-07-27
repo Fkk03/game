@@ -144,13 +144,13 @@ const BUILDINGS = {
   market: {
     name: { coalition: 'Trade Uplink', dynasty: 'Trade Port', cartel: 'Black Market' },
     icon: '💰', cost: 1500, hp: 1000, size: 2, buildTime: 18, power: 1, armor: 'building',
-    sight: 5, desc: 'Generates a steady stream of cash ($32/s). Max 15.', income: 32, limit: 15,
+    sight: 5, desc: 'Generates a steady stream of cash ($32/s). No build limit.', income: 32,
   },
   superweapon: {
     name: { coalition: 'Solaris Array', dynasty: 'Nuclear Silo', cartel: 'Rocket Storm Pit' },
     icon: '☢️', cost: 4000, hp: 2500, size: 3, buildTime: 60, power: 6, armor: 'building',
     sight: 6, desc: 'Superweapon. 5-minute countdown, then unleash devastation anywhere on the map.',
-    swTimer: 300, limit: 1,
+    swTimer: 300, limit: 4,
     swByFaction: { coalition: 'solaris', dynasty: 'nuke', cartel: 'rocketstorm' },
   },
 };
@@ -204,8 +204,8 @@ const UNITS = {
   falcon: {
     name: 'Falcon Strike Jet', icon: '✈️', cost: 1300, hp: 260, speed: 235, sight: 8, radius: 14,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 2,
-    desc: 'Strike fighter. Two missiles, then returns to the Airfield to rearm.',
-    weapon: { dmg: 160, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 30, aa: false, ga: true },
+    desc: 'Strike fighter. Two devastating missiles, then returns to the Airfield to rearm.',
+    weapon: { dmg: 400, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 70, aa: false, ga: true },
   },
 
   /* ---- Crimson Dynasty ---- */
@@ -237,8 +237,8 @@ const UNITS = {
   vulture: {
     name: 'Vulture Bomber', icon: '🦅', cost: 1200, hp: 300, speed: 205, sight: 8, radius: 15,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 1,
-    desc: 'Drops one heavy napalm bomb, then rearms at the Airstrip.',
-    weapon: { dmg: 300, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 70, aa: false, ga: true },
+    desc: 'Drops one massive napalm bomb, then rearms at the Airstrip.',
+    weapon: { dmg: 800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 160, aa: false, ga: true },
   },
 
   /* ---- Scorpion Cartel ---- */

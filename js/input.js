@@ -374,12 +374,20 @@ const INPUT = (() => {
     p.money -= def.cost;
     const b = new Building(0, pl.key, pl.tx, pl.ty, false);
     game.addEnt(b);
-    // send selected dozer(s)
-    const dozers = myUnitsSelected().filter(u => u.def.builder);
+    // send a builder: prefer a selected dozer, else the nearest idle one you own
+    let dozers = myUnitsSelected().filter(u => u.def.builder);
+    if (!dozers.length) {
+      dozers = game.ents.filter(e => !e.dead && e.owner === 0 && e.kind === 'unit' && e.def.builder);
+    }
     if (dozers.length) {
-      let best = dozers[0], bd = Infinity;
-      for (const d of dozers) { const dd = U.dist2(d.x, d.y, b.x, b.y); if (dd < bd) { bd = dd; best = d; } }
-      best.giveOrder({ type: 'build', targetId: b.id }, shift);   // shift chains builds instead of replacing
+      let best = null, bd = Infinity;
+      for (const d of dozers) {
+        // prefer dozers that aren't already building (they finish their queue first otherwise)
+        const busyPenalty = (d.order.type === 'build' || d.orderQueue.length) ? 1e9 : 0;
+        const dd = U.dist2(d.x, d.y, b.x, b.y) + busyPenalty;
+        if (dd < bd) { bd = dd; best = d; }
+      }
+      best.giveOrder({ type: 'build', targetId: b.id }, shift || best.order.type === 'build');
     }
     SFX.build();
     if (!shift) { placing = null; UI.refreshCmd(); }

@@ -588,13 +588,13 @@ const BUILDINGS = {
   market: {
     name: { coalition: 'Trade Uplink', dynasty: 'Trade Port', cartel: 'Black Market' },
     icon: '💰', cost: 1500, hp: 1000, size: 2, buildTime: 18, power: 1, armor: 'building',
-    sight: 5, desc: 'Generates a steady stream of cash ($32/s). Max 15.', income: 32, limit: 15,
+    sight: 5, desc: 'Generates a steady stream of cash ($32/s). No build limit.', income: 32,
   },
   superweapon: {
     name: { coalition: 'Solaris Array', dynasty: 'Nuclear Silo', cartel: 'Rocket Storm Pit' },
     icon: '☢️', cost: 4000, hp: 2500, size: 3, buildTime: 60, power: 6, armor: 'building',
     sight: 6, desc: 'Superweapon. 5-minute countdown, then unleash devastation anywhere on the map.',
-    swTimer: 300, limit: 1,
+    swTimer: 300, limit: 4,
     swByFaction: { coalition: 'solaris', dynasty: 'nuke', cartel: 'rocketstorm' },
   },
 };
@@ -648,8 +648,8 @@ const UNITS = {
   falcon: {
     name: 'Falcon Strike Jet', icon: '✈️', cost: 1300, hp: 260, speed: 235, sight: 8, radius: 14,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 2,
-    desc: 'Strike fighter. Two missiles, then returns to the Airfield to rearm.',
-    weapon: { dmg: 160, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 30, aa: false, ga: true },
+    desc: 'Strike fighter. Two devastating missiles, then returns to the Airfield to rearm.',
+    weapon: { dmg: 400, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 70, aa: false, ga: true },
   },
 
   /* ---- Crimson Dynasty ---- */
@@ -681,8 +681,8 @@ const UNITS = {
   vulture: {
     name: 'Vulture Bomber', icon: '🦅', cost: 1200, hp: 300, speed: 205, sight: 8, radius: 15,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 1,
-    desc: 'Drops one heavy napalm bomb, then rearms at the Airstrip.',
-    weapon: { dmg: 300, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 70, aa: false, ga: true },
+    desc: 'Drops one massive napalm bomb, then rearms at the Airstrip.',
+    weapon: { dmg: 800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 160, aa: false, ga: true },
   },
 
   /* ---- Scorpion Cartel ---- */
@@ -1167,12 +1167,7 @@ class World {
       if (this.terrain[i] === 2 || this.blocked[i] !== 0) return false;
       if (playerIdx === 0 && !this.explored[i]) return false;
     }
-    // no units standing in the footprint (except the builder itself is fine — it stands adjacent)
-    const x0 = tx * TILE, y0 = ty * TILE, x1 = (tx + size) * TILE, y1 = (ty + size) * TILE;
-    for (const e of game.ents) {
-      if (e.kind !== 'unit' || e.dead || e.def.air) continue;
-      if (e.x > x0 - 8 && e.x < x1 + 8 && e.y > y0 - 8 && e.y < y1 + 8) return false;
-    }
+    // units standing in the footprint don't block placement — they get nudged out
     return true;
   }
 
@@ -1452,6 +1447,7 @@ const FX = (() => {
     },
 
     explosion(x, y, size = 1) {
+      spawn({ x, y, vx: 0, vy: 0, t: 0, life: 0.38 + size * 0.12, r: 16 * size, kind: 'fireball' });
       const n = Math.round(14 * size);
       for (let i = 0; i < n; i++) {
         const a = U.rand(0, Math.PI * 2), sp = U.rand(30, 190 * size);
@@ -1536,20 +1532,11 @@ const FX = (() => {
 
     /* ---------- render (called from render.js in world space) ---------- */
     draw(ctx) {
+      // pass 1: opaque/smoky particles
       for (const p of parts) {
         const k = p.t / p.life;
         ctx.globalAlpha = 1 - k;
         switch (p.kind) {
-          case 'fire': {
-            const r = p.r * (1 + k * 0.8);
-            ctx.fillStyle = k < 0.3 ? '#fff3b0' : (k < 0.6 ? '#ffab40' : '#c9502a');
-            ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.fill();
-            break;
-          }
-          case 'flash':
-            ctx.fillStyle = '#fff7d8';
-            ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k), 0, 7); ctx.fill();
-            break;
           case 'smoke':
             ctx.globalAlpha = (1 - k) * 0.35;
             ctx.fillStyle = '#cfc8b8';
@@ -1564,11 +1551,6 @@ const FX = (() => {
             ctx.globalAlpha = (1 - k) * 0.25;
             ctx.fillStyle = '#cdb98a';
             ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k), 0, 7); ctx.fill();
-            break;
-          case 'spark':
-            ctx.strokeStyle = '#ffe9a0'; ctx.lineWidth = 1.4;
-            ctx.beginPath(); ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p.x - p.vx * 0.02, p.y - p.vy * 0.02); ctx.stroke();
             break;
           case 'debris':
             ctx.fillStyle = '#55503f';
@@ -1591,6 +1573,49 @@ const FX = (() => {
           }
         }
       }
+      ctx.globalAlpha = 1;
+
+      // pass 2: hot particles with additive blending — fire reads as light, not paint
+      ctx.globalCompositeOperation = 'lighter';
+      for (const p of parts) {
+        const k = p.t / p.life;
+        switch (p.kind) {
+          case 'fire': {
+            const r = p.r * (1 + k * 0.8);
+            ctx.globalAlpha = (1 - k) * 0.45;
+            ctx.fillStyle = '#ff7b20';
+            ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.9, 0, 7); ctx.fill();
+            ctx.globalAlpha = 1 - k;
+            ctx.fillStyle = k < 0.3 ? '#fff3b0' : (k < 0.6 ? '#ffab40' : '#c9502a');
+            ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.fill();
+            break;
+          }
+          case 'fireball': {
+            const r = p.r * (0.6 + k * 2.4);
+            const g = ctx.createRadialGradient(p.x, p.y, r * 0.1, p.x, p.y, r);
+            g.addColorStop(0, `rgba(255,250,225,${0.95 * (1 - k)})`);
+            g.addColorStop(0.35, `rgba(255,190,80,${0.8 * (1 - k)})`);
+            g.addColorStop(0.7, `rgba(230,90,30,${0.5 * (1 - k)})`);
+            g.addColorStop(1, 'rgba(120,40,15,0)');
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = g;
+            ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.fill();
+            break;
+          }
+          case 'flash':
+            ctx.globalAlpha = (1 - k) * 0.9;
+            ctx.fillStyle = '#fff7d8';
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k), 0, 7); ctx.fill();
+            break;
+          case 'spark':
+            ctx.globalAlpha = 1 - k;
+            ctx.strokeStyle = '#ffe9a0'; ctx.lineWidth = 1.4;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x - p.vx * 0.02, p.y - p.vy * 0.02); ctx.stroke();
+            break;
+        }
+      }
+      ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
 
       for (const b of beams) {
@@ -1716,6 +1741,7 @@ function killEnt(e, attacker) {
     else {
       FX.explosion(e.x, e.y, e.def.air ? 1.1 : 0.9);
       SFX.explo(e.x, e.y, 0.9);
+      if (!e.def.air) RENDER.addWreck(e.x, e.y, e.angle || 0, e.def.radius || 14);
       // cartel salvage: vehicles leave scrap if a cartel player is involved
       const cartelInvolved = (p && p.faction === 'cartel') ||
         (attacker && game.players[attacker.owner] && game.players[attacker.owner].faction === 'cartel');
@@ -1963,6 +1989,21 @@ class Unit {
 
     // veteran self-heal
     if (this.vetRank >= 3 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 2 * dt);
+
+    // nudge out of tiles that became blocked (building placed on top of us)
+    this.unstickT = (this.unstickT || 0) - dt;
+    if (this.unstickT <= 0) {
+      this.unstickT = 0.6;
+      if (!world.passableWorld(this.x, this.y)) {
+        // can't walk out of a blocked footprint (every step is blocked) — shove out directly
+        const open = PATH.nearestOpen(world, Math.floor(this.x / TILE), Math.floor(this.y / TILE), 8);
+        if (open) {
+          this.x = (open.tx + 0.5) * TILE + U.rand(-6, 6);
+          this.y = (open.ty + 0.5) * TILE + U.rand(-6, 6);
+          this.path = null;
+        }
+      }
+    }
 
     const o = this.order;
     switch (o.type) {
@@ -2599,10 +2640,11 @@ function updateProjectiles(dt) {
         const d = U.dist(p.x, p.y, p.tx, p.ty);
         if (d < 14 || p.t > 4) {
           const src = game.byId.get(p.srcId);
-          if (t && !t.dead && d < 26) applyDamage(t, p.dmg, p.dtype, src);
+          if (t && !t.dead && d < 26 && p.splash <= 24) applyDamage(t, p.dmg, p.dtype, src);
           else dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, src, true);
-          FX.explosion(p.x, p.y, 0.5);
-          SFX.explo(p.x, p.y, 0.45);
+          const fxs = 0.5 + p.splash / 90;
+          FX.explosion(p.x, p.y, fxs);
+          SFX.explo(p.x, p.y, fxs);
           p.dead = true;
         }
         break;
@@ -2645,9 +2687,11 @@ function updateProjectiles(dt) {
         p.z = 60 * (1 - k * k);
         if (k >= 1) {
           dealSplash(p.tx, p.ty, p.dmg, 'flame', p.splash, p.owner, game.byId.get(p.srcId));
-          FX.explosion(p.tx, p.ty, 1.4);
-          for (let f = 0; f < 12; f++) FX.flame(p.tx + U.rand(-40, 40), p.ty + U.rand(-40, 40), -Math.PI / 2);
-          SFX.explo(p.tx, p.ty, 1.3);
+          const fxs = 1 + p.splash / 80;
+          FX.explosion(p.tx, p.ty, fxs);
+          const nf = Math.round(p.splash / 8);
+          for (let f = 0; f < nf; f++) FX.flame(p.tx + U.rand(-p.splash * 0.8, p.splash * 0.8), p.ty + U.rand(-p.splash * 0.8, p.splash * 0.8), -Math.PI / 2);
+          SFX.explo(p.tx, p.ty, Math.min(2, fxs));
           p.dead = true;
         }
         break;
@@ -2994,6 +3038,7 @@ const RENDER = (() => {
   const TS = 0.5;                             // terrain cache scale
   let ghosts = new Map();                     // last-seen enemy buildings
 
+  let gradeCv = null;
   function init(canvas) {
     cv = canvas; ctx = cv.getContext('2d');
     resize();
@@ -3002,6 +3047,19 @@ const RENDER = (() => {
   function resize() {
     W = cv.width = window.innerWidth;
     H = cv.height = window.innerHeight;
+    // pre-render the color grade: corner vignette + warm sunlight from the top
+    gradeCv = document.createElement('canvas');
+    gradeCv.width = W; gradeCv.height = H;
+    const g = gradeCv.getContext('2d');
+    const vg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.42, W / 2, H / 2, Math.max(W, H) * 0.75);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(10,6,2,0.34)');
+    g.fillStyle = vg; g.fillRect(0, 0, W, H);
+    const warm = g.createLinearGradient(0, 0, 0, H);
+    warm.addColorStop(0, 'rgba(255,196,110,0.10)');
+    warm.addColorStop(0.5, 'rgba(255,180,90,0.02)');
+    warm.addColorStop(1, 'rgba(40,30,60,0.08)');
+    g.fillStyle = warm; g.fillRect(0, 0, W, H);
   }
 
   const toScreenX = wx => (wx - game.cam.x) * game.cam.zoom;
@@ -3046,6 +3104,17 @@ const RENDER = (() => {
           c.fillRect(x * st, y * st, st + 0.5, st + 0.5);
         }
       }
+    }
+    // large-scale color blotches — breaks up uniformity like a painted map
+    for (let i = 0; i < world.w * world.h / 420; i++) {
+      const bx = rng() * terrainCv.width, by = rng() * terrainCv.height;
+      const br = (8 + rng() * 18) * TILE * TS;
+      const g2 = c.createRadialGradient(bx, by, br * 0.2, bx, by, br);
+      const warm = rng() < 0.5;
+      g2.addColorStop(0, warm ? 'rgba(214,158,92,0.16)' : 'rgba(126,98,64,0.15)');
+      g2.addColorStop(1, 'rgba(0,0,0,0)');
+      c.fillStyle = g2;
+      c.beginPath(); c.arc(bx, by, br, 0, 7); c.fill();
     }
     // wind-blown dune streaks
     c.lineWidth = 1.4;
@@ -3104,6 +3173,27 @@ const RENDER = (() => {
     g.addColorStop(1, 'rgba(35,28,16,0)');
     c.fillStyle = g;
     c.beginPath(); c.arc(x * TS, y * TS, r * TS, 0, 7); c.fill();
+    c.restore();
+  }
+
+  function addWreck(x, y, ang, radius) {
+    if (!terrainCtx) return;
+    const c = terrainCtx;
+    addDecal(x, y, radius * 2.2);
+    c.save();
+    c.translate(x * TS, y * TS);
+    c.rotate(ang);
+    const w = radius * 1.7 * TS, h = radius * 1.15 * TS;
+    c.fillStyle = '#2e2a22';
+    c.fillRect(-w / 2, -h / 2, w, h);
+    c.fillStyle = '#443e32';
+    c.fillRect(-w / 2 + 1.5, -h / 2 + 1.5, w - 3, h * 0.4);
+    c.fillStyle = '#1c1913';
+    c.beginPath(); c.arc(w * 0.1, 0, h * 0.28, 0, 7); c.fill();
+    for (let i = 0; i < 4; i++) {
+      c.fillStyle = i % 2 ? '#3c362a' : '#241f18';
+      c.fillRect(U.rand(-w, w * 0.8), U.rand(-h, h * 0.8), U.rand(2, 5), U.rand(1.5, 3.5));
+    }
     c.restore();
   }
 
@@ -3262,8 +3352,10 @@ const RENDER = (() => {
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(fogCv, 0, 0, fogCv.width, fogCv.height, 0, 0, world.pw, world.ph);
 
-    // map edge vignette
     ctx.restore();
+
+    // cinematic color grade (screen space)
+    if (gradeCv) ctx.drawImage(gradeCv, 0, 0);
 
     // building placement ghost (screen-space redraw in world coords)
     if (INPUT.placing) drawPlacement();
@@ -3380,9 +3472,9 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(u.x, u.y);
 
-    // shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.28)';
-    ctx.beginPath(); ctx.ellipse(2, 3, u.radius * 1.05, u.radius * 0.6, 0, 0, 7); ctx.fill();
+    // shadow (sun to the north-west)
+    ctx.fillStyle = 'rgba(24,18,10,0.32)';
+    ctx.beginPath(); ctx.ellipse(3.5, 4.5, u.radius * 1.1, u.radius * 0.62, 0, 0, 7); ctx.fill();
 
     const ch = u.def.chassis;
     if (ch === 'inf' || ch === 'rocketinf') drawInfantry(u, c1, c2);
@@ -3685,11 +3777,32 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(x0, y0);
 
-    // foundation pad + drop shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.fillRect(4, 6, s - 2, s - 2);
-    ctx.fillStyle = ghost ? '#3a3a34' : '#77705c';
+    if (!ghost) {
+      // sun-cast shadow to the south-east (skewed footprint)
+      ctx.fillStyle = 'rgba(24,18,10,0.28)';
+      ctx.beginPath();
+      ctx.moveTo(3, 4); ctx.lineTo(s - 1, 4);
+      ctx.lineTo(s + s * 0.16, s + s * 0.2);
+      ctx.lineTo(3 + s * 0.16, s + s * 0.2);
+      ctx.closePath(); ctx.fill();
+      // soft ambient occlusion hugging the base
+      const ao = ctx.createRadialGradient(s / 2, s * 0.55, s * 0.2, s / 2, s * 0.55, s * 0.8);
+      ao.addColorStop(0, 'rgba(20,15,8,0.30)');
+      ao.addColorStop(1, 'rgba(20,15,8,0)');
+      ctx.fillStyle = ao;
+      ctx.beginPath(); ctx.ellipse(s / 2, s * 0.55, s * 0.8, s * 0.62, 0, 0, 7); ctx.fill();
+    }
+    // foundation pad with worn concrete edges
+    ctx.fillStyle = ghost ? '#3a3a34' : '#7d7660';
     ctx.fillRect(0, 0, s - 2, s - 2);
+    if (!ghost) {
+      ctx.fillStyle = 'rgba(255,245,220,0.14)';
+      ctx.fillRect(0, 0, s - 2, 2.5);
+      ctx.fillRect(0, 0, 2.5, s - 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.fillRect(0, s - 4.5, s - 2, 2.5);
+      ctx.fillRect(s - 4.5, 0, 2.5, s - 2);
+    }
     ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1.5;
     ctx.strokeRect(0.5, 0.5, s - 3, s - 3);
 
@@ -3704,6 +3817,15 @@ const RENDER = (() => {
       case 'repairbay': drawRepairBay(b, s, c1, c2); break;
       case 'market': drawMarket(b, s, c1, c2); break;
       case 'superweapon': drawSuper(b, s, c1, c2, fac); break;
+    }
+    if (!ghost) {
+      // north-west light sheen unifies every structure under one sun
+      const sheen = ctx.createLinearGradient(0, 0, s * 0.9, s * 0.9);
+      sheen.addColorStop(0, 'rgba(255,246,220,0.13)');
+      sheen.addColorStop(0.5, 'rgba(255,246,220,0)');
+      sheen.addColorStop(1, 'rgba(30,20,10,0.10)');
+      ctx.fillStyle = sheen;
+      ctx.fillRect(0, 0, s - 2, s - 2);
     }
     ctx.restore();
   }
@@ -4221,7 +4343,7 @@ const RENDER = (() => {
   }
 
   return {
-    init, buildTerrain, frame, refreshFogCanvas, addDecal, addRubble, drawMinimap, cleanGhost,
+    init, buildTerrain, frame, refreshFogCanvas, addDecal, addRubble, addWreck, drawMinimap, cleanGhost,
     toScreenX, toScreenY, toWorldX, toWorldY,
     get W() { return W; }, get H() { return H; },
   };
@@ -4361,11 +4483,14 @@ const AI = (() => {
       if (has('market') < 2 && money >= BUILDINGS.market.cost + 800) return 'market';
       if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + 800 && game.t > 240) return 'airfield';
       if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + 1200 && game.t > 330) return 'repairbay';
-      if (has('supply') < 2 && game.t > 330 && money >= BUILDINGS.supply.cost + 500) return 'supply';
+      if (has('supply') < 2 && game.t > 300 && money >= BUILDINGS.supply.cost + 500) return 'supply';
+      if (has('supply') < 3 && game.t > 540 && money >= BUILDINGS.supply.cost + 2000) return 'supply';
+      if (has('factory') < 2 && game.t > 360 && money >= BUILDINGS.factory.cost + 3000) return 'factory';
       if (diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
+      if (diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('turret') < 4 && money >= BUILDINGS.turret.cost + 2500 && game.t > 400) return 'turret';
-      if (has('market') < BUILDINGS.market.limit && money >= BUILDINGS.market.cost + 3500 && game.t > 420) return 'market';
+      if (has('market') < 12 && money >= BUILDINGS.market.cost + 3500 && game.t > 360) return 'market';
       if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
       return null;
     }
@@ -4434,7 +4559,8 @@ const AI = (() => {
         if (!sc.constructed) continue;
         const trucks = myUnits('truck');
         const queued = sc.queue.filter(q => q.key === 'truck').length;
-        const wanted = Math.min(4, 2 * myBuildings('supply').filter(b => b.constructed).length);
+        const nSup = myBuildings('supply').filter(b => b.constructed).length;
+        const wanted = Math.min(7, (p().money > 4000 ? 3 : 2) * nSup);
         if (trucks.length + queued < wanted && p().money > UNITS.truck.cost + 300) {
           sc.enqueue('truck');
         }
@@ -4446,11 +4572,14 @@ const AI = (() => {
       const fac = p().faction;
       const comp = COMPS[fac];
       const army = combatUnits();
-      if (army.length >= diff.armyCap) return;
+      // a rich AI raises its own army cap — money must become pressure, not savings
+      const capEff = Math.min(diff.armyCap * 2,
+        diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500));
+      if (army.length >= capEff) return;
       const counts = {};
       for (const u of army) counts[u.key] = (counts[u.key] || 0) + 1;
       for (const b of myBuildings()) {
-        if (!b.constructed || b.queue.length >= 2) continue;
+        if (!b.constructed || b.queue.length >= 3) continue;
         const trainable = bTrains(b.key, fac).filter(k => comp[k]);
         if (!trainable.length) continue;
         let pick = null, worst = 1e9;
@@ -4484,6 +4613,18 @@ const AI = (() => {
       switch (S.attackState) {
         case 'idle': {
           S.waveT -= dt2;
+          // stage idle units at the forward rally so the army looks and acts alive
+          S.stageT = (S.stageT || 0) - dt2;
+          if (S.stageT <= 0) {
+            S.stageT = 8;
+            const g = gatherPoint();
+            for (const u of army) {
+              if ((u.order.type === 'idle' || u.order.type === 'guard') &&
+                  U.dist(u.x, u.y, g.x, g.y) > 260) {
+                u.giveOrder({ type: 'guardarea', x: g.x + U.rand(-90, 90), y: g.y + U.rand(-90, 90) });
+              }
+            }
+          }
           if (S.waveT <= 0 && army.length >= Math.min(S.waveSize, diff.armyCap * 0.4)) {
             S.attackState = 'gathering';
             S.gatherT = 22;
@@ -5060,12 +5201,20 @@ const INPUT = (() => {
     p.money -= def.cost;
     const b = new Building(0, pl.key, pl.tx, pl.ty, false);
     game.addEnt(b);
-    // send selected dozer(s)
-    const dozers = myUnitsSelected().filter(u => u.def.builder);
+    // send a builder: prefer a selected dozer, else the nearest idle one you own
+    let dozers = myUnitsSelected().filter(u => u.def.builder);
+    if (!dozers.length) {
+      dozers = game.ents.filter(e => !e.dead && e.owner === 0 && e.kind === 'unit' && e.def.builder);
+    }
     if (dozers.length) {
-      let best = dozers[0], bd = Infinity;
-      for (const d of dozers) { const dd = U.dist2(d.x, d.y, b.x, b.y); if (dd < bd) { bd = dd; best = d; } }
-      best.giveOrder({ type: 'build', targetId: b.id }, shift);   // shift chains builds instead of replacing
+      let best = null, bd = Infinity;
+      for (const d of dozers) {
+        // prefer dozers that aren't already building (they finish their queue first otherwise)
+        const busyPenalty = (d.order.type === 'build' || d.orderQueue.length) ? 1e9 : 0;
+        const dd = U.dist2(d.x, d.y, b.x, b.y) + busyPenalty;
+        if (dd < bd) { bd = dd; best = d; }
+      }
+      best.giveOrder({ type: 'build', targetId: b.id }, shift || best.order.type === 'build');
     }
     SFX.build();
     if (!shift) { placing = null; UI.refreshCmd(); }

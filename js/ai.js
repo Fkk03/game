@@ -121,11 +121,14 @@ const AI = (() => {
       if (has('market') < 2 && money >= BUILDINGS.market.cost + 800) return 'market';
       if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + 800 && game.t > 240) return 'airfield';
       if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + 1200 && game.t > 330) return 'repairbay';
-      if (has('supply') < 2 && game.t > 330 && money >= BUILDINGS.supply.cost + 500) return 'supply';
+      if (has('supply') < 2 && game.t > 300 && money >= BUILDINGS.supply.cost + 500) return 'supply';
+      if (has('supply') < 3 && game.t > 540 && money >= BUILDINGS.supply.cost + 2000) return 'supply';
+      if (has('factory') < 2 && game.t > 360 && money >= BUILDINGS.factory.cost + 3000) return 'factory';
       if (diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
+      if (diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('turret') < 4 && money >= BUILDINGS.turret.cost + 2500 && game.t > 400) return 'turret';
-      if (has('market') < BUILDINGS.market.limit && money >= BUILDINGS.market.cost + 3500 && game.t > 420) return 'market';
+      if (has('market') < 12 && money >= BUILDINGS.market.cost + 3500 && game.t > 360) return 'market';
       if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
       return null;
     }
@@ -194,7 +197,8 @@ const AI = (() => {
         if (!sc.constructed) continue;
         const trucks = myUnits('truck');
         const queued = sc.queue.filter(q => q.key === 'truck').length;
-        const wanted = Math.min(4, 2 * myBuildings('supply').filter(b => b.constructed).length);
+        const nSup = myBuildings('supply').filter(b => b.constructed).length;
+        const wanted = Math.min(7, (p().money > 4000 ? 3 : 2) * nSup);
         if (trucks.length + queued < wanted && p().money > UNITS.truck.cost + 300) {
           sc.enqueue('truck');
         }
@@ -206,11 +210,14 @@ const AI = (() => {
       const fac = p().faction;
       const comp = COMPS[fac];
       const army = combatUnits();
-      if (army.length >= diff.armyCap) return;
+      // a rich AI raises its own army cap — money must become pressure, not savings
+      const capEff = Math.min(diff.armyCap * 2,
+        diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500));
+      if (army.length >= capEff) return;
       const counts = {};
       for (const u of army) counts[u.key] = (counts[u.key] || 0) + 1;
       for (const b of myBuildings()) {
-        if (!b.constructed || b.queue.length >= 2) continue;
+        if (!b.constructed || b.queue.length >= 3) continue;
         const trainable = bTrains(b.key, fac).filter(k => comp[k]);
         if (!trainable.length) continue;
         let pick = null, worst = 1e9;
@@ -244,6 +251,18 @@ const AI = (() => {
       switch (S.attackState) {
         case 'idle': {
           S.waveT -= dt2;
+          // stage idle units at the forward rally so the army looks and acts alive
+          S.stageT = (S.stageT || 0) - dt2;
+          if (S.stageT <= 0) {
+            S.stageT = 8;
+            const g = gatherPoint();
+            for (const u of army) {
+              if ((u.order.type === 'idle' || u.order.type === 'guard') &&
+                  U.dist(u.x, u.y, g.x, g.y) > 260) {
+                u.giveOrder({ type: 'guardarea', x: g.x + U.rand(-90, 90), y: g.y + U.rand(-90, 90) });
+              }
+            }
+          }
           if (S.waveT <= 0 && army.length >= Math.min(S.waveSize, diff.armyCap * 0.4)) {
             S.attackState = 'gathering';
             S.gatherT = 22;

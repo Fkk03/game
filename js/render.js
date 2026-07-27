@@ -10,6 +10,7 @@ const RENDER = (() => {
   const TS = 0.5;                             // terrain cache scale
   let ghosts = new Map();                     // last-seen enemy buildings
 
+  let gradeCv = null;
   function init(canvas) {
     cv = canvas; ctx = cv.getContext('2d');
     resize();
@@ -18,6 +19,19 @@ const RENDER = (() => {
   function resize() {
     W = cv.width = window.innerWidth;
     H = cv.height = window.innerHeight;
+    // pre-render the color grade: corner vignette + warm sunlight from the top
+    gradeCv = document.createElement('canvas');
+    gradeCv.width = W; gradeCv.height = H;
+    const g = gradeCv.getContext('2d');
+    const vg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.42, W / 2, H / 2, Math.max(W, H) * 0.75);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(10,6,2,0.34)');
+    g.fillStyle = vg; g.fillRect(0, 0, W, H);
+    const warm = g.createLinearGradient(0, 0, 0, H);
+    warm.addColorStop(0, 'rgba(255,196,110,0.10)');
+    warm.addColorStop(0.5, 'rgba(255,180,90,0.02)');
+    warm.addColorStop(1, 'rgba(40,30,60,0.08)');
+    g.fillStyle = warm; g.fillRect(0, 0, W, H);
   }
 
   const toScreenX = wx => (wx - game.cam.x) * game.cam.zoom;
@@ -62,6 +76,17 @@ const RENDER = (() => {
           c.fillRect(x * st, y * st, st + 0.5, st + 0.5);
         }
       }
+    }
+    // large-scale color blotches — breaks up uniformity like a painted map
+    for (let i = 0; i < world.w * world.h / 420; i++) {
+      const bx = rng() * terrainCv.width, by = rng() * terrainCv.height;
+      const br = (8 + rng() * 18) * TILE * TS;
+      const g2 = c.createRadialGradient(bx, by, br * 0.2, bx, by, br);
+      const warm = rng() < 0.5;
+      g2.addColorStop(0, warm ? 'rgba(214,158,92,0.16)' : 'rgba(126,98,64,0.15)');
+      g2.addColorStop(1, 'rgba(0,0,0,0)');
+      c.fillStyle = g2;
+      c.beginPath(); c.arc(bx, by, br, 0, 7); c.fill();
     }
     // wind-blown dune streaks
     c.lineWidth = 1.4;
@@ -120,6 +145,27 @@ const RENDER = (() => {
     g.addColorStop(1, 'rgba(35,28,16,0)');
     c.fillStyle = g;
     c.beginPath(); c.arc(x * TS, y * TS, r * TS, 0, 7); c.fill();
+    c.restore();
+  }
+
+  function addWreck(x, y, ang, radius) {
+    if (!terrainCtx) return;
+    const c = terrainCtx;
+    addDecal(x, y, radius * 2.2);
+    c.save();
+    c.translate(x * TS, y * TS);
+    c.rotate(ang);
+    const w = radius * 1.7 * TS, h = radius * 1.15 * TS;
+    c.fillStyle = '#2e2a22';
+    c.fillRect(-w / 2, -h / 2, w, h);
+    c.fillStyle = '#443e32';
+    c.fillRect(-w / 2 + 1.5, -h / 2 + 1.5, w - 3, h * 0.4);
+    c.fillStyle = '#1c1913';
+    c.beginPath(); c.arc(w * 0.1, 0, h * 0.28, 0, 7); c.fill();
+    for (let i = 0; i < 4; i++) {
+      c.fillStyle = i % 2 ? '#3c362a' : '#241f18';
+      c.fillRect(U.rand(-w, w * 0.8), U.rand(-h, h * 0.8), U.rand(2, 5), U.rand(1.5, 3.5));
+    }
     c.restore();
   }
 
@@ -278,8 +324,10 @@ const RENDER = (() => {
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(fogCv, 0, 0, fogCv.width, fogCv.height, 0, 0, world.pw, world.ph);
 
-    // map edge vignette
     ctx.restore();
+
+    // cinematic color grade (screen space)
+    if (gradeCv) ctx.drawImage(gradeCv, 0, 0);
 
     // building placement ghost (screen-space redraw in world coords)
     if (INPUT.placing) drawPlacement();
@@ -396,9 +444,9 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(u.x, u.y);
 
-    // shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.28)';
-    ctx.beginPath(); ctx.ellipse(2, 3, u.radius * 1.05, u.radius * 0.6, 0, 0, 7); ctx.fill();
+    // shadow (sun to the north-west)
+    ctx.fillStyle = 'rgba(24,18,10,0.32)';
+    ctx.beginPath(); ctx.ellipse(3.5, 4.5, u.radius * 1.1, u.radius * 0.62, 0, 0, 7); ctx.fill();
 
     const ch = u.def.chassis;
     if (ch === 'inf' || ch === 'rocketinf') drawInfantry(u, c1, c2);
@@ -701,11 +749,32 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(x0, y0);
 
-    // foundation pad + drop shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.fillRect(4, 6, s - 2, s - 2);
-    ctx.fillStyle = ghost ? '#3a3a34' : '#77705c';
+    if (!ghost) {
+      // sun-cast shadow to the south-east (skewed footprint)
+      ctx.fillStyle = 'rgba(24,18,10,0.28)';
+      ctx.beginPath();
+      ctx.moveTo(3, 4); ctx.lineTo(s - 1, 4);
+      ctx.lineTo(s + s * 0.16, s + s * 0.2);
+      ctx.lineTo(3 + s * 0.16, s + s * 0.2);
+      ctx.closePath(); ctx.fill();
+      // soft ambient occlusion hugging the base
+      const ao = ctx.createRadialGradient(s / 2, s * 0.55, s * 0.2, s / 2, s * 0.55, s * 0.8);
+      ao.addColorStop(0, 'rgba(20,15,8,0.30)');
+      ao.addColorStop(1, 'rgba(20,15,8,0)');
+      ctx.fillStyle = ao;
+      ctx.beginPath(); ctx.ellipse(s / 2, s * 0.55, s * 0.8, s * 0.62, 0, 0, 7); ctx.fill();
+    }
+    // foundation pad with worn concrete edges
+    ctx.fillStyle = ghost ? '#3a3a34' : '#7d7660';
     ctx.fillRect(0, 0, s - 2, s - 2);
+    if (!ghost) {
+      ctx.fillStyle = 'rgba(255,245,220,0.14)';
+      ctx.fillRect(0, 0, s - 2, 2.5);
+      ctx.fillRect(0, 0, 2.5, s - 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.fillRect(0, s - 4.5, s - 2, 2.5);
+      ctx.fillRect(s - 4.5, 0, 2.5, s - 2);
+    }
     ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1.5;
     ctx.strokeRect(0.5, 0.5, s - 3, s - 3);
 
@@ -720,6 +789,15 @@ const RENDER = (() => {
       case 'repairbay': drawRepairBay(b, s, c1, c2); break;
       case 'market': drawMarket(b, s, c1, c2); break;
       case 'superweapon': drawSuper(b, s, c1, c2, fac); break;
+    }
+    if (!ghost) {
+      // north-west light sheen unifies every structure under one sun
+      const sheen = ctx.createLinearGradient(0, 0, s * 0.9, s * 0.9);
+      sheen.addColorStop(0, 'rgba(255,246,220,0.13)');
+      sheen.addColorStop(0.5, 'rgba(255,246,220,0)');
+      sheen.addColorStop(1, 'rgba(30,20,10,0.10)');
+      ctx.fillStyle = sheen;
+      ctx.fillRect(0, 0, s - 2, s - 2);
     }
     ctx.restore();
   }
@@ -1237,7 +1315,7 @@ const RENDER = (() => {
   }
 
   return {
-    init, buildTerrain, frame, refreshFogCanvas, addDecal, addRubble, drawMinimap, cleanGhost,
+    init, buildTerrain, frame, refreshFogCanvas, addDecal, addRubble, addWreck, drawMinimap, cleanGhost,
     toScreenX, toScreenY, toWorldX, toWorldY,
     get W() { return W; }, get H() { return H; },
   };

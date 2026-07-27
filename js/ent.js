@@ -79,6 +79,7 @@ function killEnt(e, attacker) {
     else {
       FX.explosion(e.x, e.y, e.def.air ? 1.1 : 0.9);
       SFX.explo(e.x, e.y, 0.9);
+      if (!e.def.air) RENDER.addWreck(e.x, e.y, e.angle || 0, e.def.radius || 14);
       // cartel salvage: vehicles leave scrap if a cartel player is involved
       const cartelInvolved = (p && p.faction === 'cartel') ||
         (attacker && game.players[attacker.owner] && game.players[attacker.owner].faction === 'cartel');
@@ -326,6 +327,21 @@ class Unit {
 
     // veteran self-heal
     if (this.vetRank >= 3 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 2 * dt);
+
+    // nudge out of tiles that became blocked (building placed on top of us)
+    this.unstickT = (this.unstickT || 0) - dt;
+    if (this.unstickT <= 0) {
+      this.unstickT = 0.6;
+      if (!world.passableWorld(this.x, this.y)) {
+        // can't walk out of a blocked footprint (every step is blocked) — shove out directly
+        const open = PATH.nearestOpen(world, Math.floor(this.x / TILE), Math.floor(this.y / TILE), 8);
+        if (open) {
+          this.x = (open.tx + 0.5) * TILE + U.rand(-6, 6);
+          this.y = (open.ty + 0.5) * TILE + U.rand(-6, 6);
+          this.path = null;
+        }
+      }
+    }
 
     const o = this.order;
     switch (o.type) {
@@ -962,10 +978,11 @@ function updateProjectiles(dt) {
         const d = U.dist(p.x, p.y, p.tx, p.ty);
         if (d < 14 || p.t > 4) {
           const src = game.byId.get(p.srcId);
-          if (t && !t.dead && d < 26) applyDamage(t, p.dmg, p.dtype, src);
+          if (t && !t.dead && d < 26 && p.splash <= 24) applyDamage(t, p.dmg, p.dtype, src);
           else dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, src, true);
-          FX.explosion(p.x, p.y, 0.5);
-          SFX.explo(p.x, p.y, 0.45);
+          const fxs = 0.5 + p.splash / 90;
+          FX.explosion(p.x, p.y, fxs);
+          SFX.explo(p.x, p.y, fxs);
           p.dead = true;
         }
         break;
@@ -1008,9 +1025,11 @@ function updateProjectiles(dt) {
         p.z = 60 * (1 - k * k);
         if (k >= 1) {
           dealSplash(p.tx, p.ty, p.dmg, 'flame', p.splash, p.owner, game.byId.get(p.srcId));
-          FX.explosion(p.tx, p.ty, 1.4);
-          for (let f = 0; f < 12; f++) FX.flame(p.tx + U.rand(-40, 40), p.ty + U.rand(-40, 40), -Math.PI / 2);
-          SFX.explo(p.tx, p.ty, 1.3);
+          const fxs = 1 + p.splash / 80;
+          FX.explosion(p.tx, p.ty, fxs);
+          const nf = Math.round(p.splash / 8);
+          for (let f = 0; f < nf; f++) FX.flame(p.tx + U.rand(-p.splash * 0.8, p.splash * 0.8), p.ty + U.rand(-p.splash * 0.8, p.splash * 0.8), -Math.PI / 2);
+          SFX.explo(p.tx, p.ty, Math.min(2, fxs));
           p.dead = true;
         }
         break;

@@ -212,12 +212,7 @@ class World {
       if (this.terrain[i] === 2 || this.blocked[i] !== 0) return false;
       if (playerIdx === 0 && !this.explored[i]) return false;
     }
-    // no units standing in the footprint (except the builder itself is fine — it stands adjacent)
-    const x0 = tx * TILE, y0 = ty * TILE, x1 = (tx + size) * TILE, y1 = (ty + size) * TILE;
-    for (const e of game.ents) {
-      if (e.kind !== 'unit' || e.dead || e.def.air) continue;
-      if (e.x > x0 - 8 && e.x < x1 + 8 && e.y > y0 - 8 && e.y < y1 + 8) return false;
-    }
+    // units standing in the footprint don't block placement — they get nudged out
     return true;
   }
 

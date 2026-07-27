@@ -68,6 +68,7 @@ const FX = (() => {
     },
 
     explosion(x, y, size = 1) {
+      spawn({ x, y, vx: 0, vy: 0, t: 0, life: 0.38 + size * 0.12, r: 16 * size, kind: 'fireball' });
       const n = Math.round(14 * size);
       for (let i = 0; i < n; i++) {
         const a = U.rand(0, Math.PI * 2), sp = U.rand(30, 190 * size);
@@ -152,20 +153,11 @@ const FX = (() => {
 
     /* ---------- render (called from render.js in world space) ---------- */
     draw(ctx) {
+      // pass 1: opaque/smoky particles
       for (const p of parts) {
         const k = p.t / p.life;
         ctx.globalAlpha = 1 - k;
         switch (p.kind) {
-          case 'fire': {
-            const r = p.r * (1 + k * 0.8);
-            ctx.fillStyle = k < 0.3 ? '#fff3b0' : (k < 0.6 ? '#ffab40' : '#c9502a');
-            ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.fill();
-            break;
-          }
-          case 'flash':
-            ctx.fillStyle = '#fff7d8';
-            ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k), 0, 7); ctx.fill();
-            break;
           case 'smoke':
             ctx.globalAlpha = (1 - k) * 0.35;
             ctx.fillStyle = '#cfc8b8';
@@ -180,11 +172,6 @@ const FX = (() => {
             ctx.globalAlpha = (1 - k) * 0.25;
             ctx.fillStyle = '#cdb98a';
             ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k), 0, 7); ctx.fill();
-            break;
-          case 'spark':
-            ctx.strokeStyle = '#ffe9a0'; ctx.lineWidth = 1.4;
-            ctx.beginPath(); ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p.x - p.vx * 0.02, p.y - p.vy * 0.02); ctx.stroke();
             break;
           case 'debris':
             ctx.fillStyle = '#55503f';
@@ -207,6 +194,49 @@ const FX = (() => {
           }
         }
       }
+      ctx.globalAlpha = 1;
+
+      // pass 2: hot particles with additive blending — fire reads as light, not paint
+      ctx.globalCompositeOperation = 'lighter';
+      for (const p of parts) {
+        const k = p.t / p.life;
+        switch (p.kind) {
+          case 'fire': {
+            const r = p.r * (1 + k * 0.8);
+            ctx.globalAlpha = (1 - k) * 0.45;
+            ctx.fillStyle = '#ff7b20';
+            ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.9, 0, 7); ctx.fill();
+            ctx.globalAlpha = 1 - k;
+            ctx.fillStyle = k < 0.3 ? '#fff3b0' : (k < 0.6 ? '#ffab40' : '#c9502a');
+            ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.fill();
+            break;
+          }
+          case 'fireball': {
+            const r = p.r * (0.6 + k * 2.4);
+            const g = ctx.createRadialGradient(p.x, p.y, r * 0.1, p.x, p.y, r);
+            g.addColorStop(0, `rgba(255,250,225,${0.95 * (1 - k)})`);
+            g.addColorStop(0.35, `rgba(255,190,80,${0.8 * (1 - k)})`);
+            g.addColorStop(0.7, `rgba(230,90,30,${0.5 * (1 - k)})`);
+            g.addColorStop(1, 'rgba(120,40,15,0)');
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = g;
+            ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.fill();
+            break;
+          }
+          case 'flash':
+            ctx.globalAlpha = (1 - k) * 0.9;
+            ctx.fillStyle = '#fff7d8';
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k), 0, 7); ctx.fill();
+            break;
+          case 'spark':
+            ctx.globalAlpha = 1 - k;
+            ctx.strokeStyle = '#ffe9a0'; ctx.lineWidth = 1.4;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x - p.vx * 0.02, p.y - p.vy * 0.02); ctx.stroke();
+            break;
+        }
+      }
+      ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
 
       for (const b of beams) {
