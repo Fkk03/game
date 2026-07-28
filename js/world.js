@@ -78,7 +78,7 @@ class World {
       const dir = Math.atan2(cy - st.ty, cx - st.tx);
       const dx = U.clamp(st.tx + Math.round(Math.cos(dir) * 9), 6, w - 8);
       const dy = U.clamp(st.ty + Math.round(Math.sin(dir) * 9), 6, h - 8);
-      this.makeDock(dx, dy, 30000, rng);
+      this.makeDock(dx, dy, 45000, rng);
     }
     const nScatter = teams.length * 2 + 4;
     for (let i = 0; i < nScatter; i++) {
@@ -90,7 +90,7 @@ class World {
         for (const st of this.starts) if (U.dist(tx, ty, st.tx, st.ty) < 13) { ok = false; break; }
         if (ok) for (const d of this.docks) if (U.dist(tx, ty, d.x / TILE, d.y / TILE) < 9) { ok = false; break; }
         if (!ok) continue;
-        this.makeDock(tx, ty, 24000, rng);
+        this.makeDock(tx, ty, 36000, rng);
         placed = true;
       }
     }

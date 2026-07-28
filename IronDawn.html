@@ -515,9 +515,9 @@ const VET_HP  = [1, 1.1, 1.2, 1.35];
 const RANK_XP = [0, 400, 1000, 2000, 3400, 5200];
 
 const DIFFICULTY = {
-  easy:   { label: 'Easy',    income: 0.75, startBonus: 0,    firstAttack: 360, waveEvery: 130, harass: false, superweapon: false, powers: 1, armyCap: 14 },
-  normal: { label: 'Normal',  income: 1.0,  startBonus: 0,    firstAttack: 240, waveEvery: 95, harass: true,  superweapon: true,  powers: 2, armyCap: 24 },
-  hard:   { label: 'Hard',    income: 1.35, startBonus: 5000, firstAttack: 170, waveEvery: 70,  harass: true,  superweapon: true,  powers: 3, armyCap: 34 },
+  easy:   { label: 'Easy',    income: 0.75, startBonus: 0,    firstAttack: 360, waveEvery: 130, harass: false, superweapon: false, powers: 1, armyCap: 30 },
+  normal: { label: 'Normal',  income: 1.0,  startBonus: 0,    firstAttack: 240, waveEvery: 95, harass: true,  superweapon: true,  powers: 2, armyCap: 55 },
+  hard:   { label: 'Hard',    income: 1.35, startBonus: 5000, firstAttack: 170, waveEvery: 70,  harass: true,  superweapon: true,  powers: 3, armyCap: 80 },
 };
 
 const MAPSIZES = {
@@ -611,26 +611,26 @@ const BUILDINGS = {
     icon: '🏭', cost: 2000, hp: 2200, size: 3, buildTime: 25, power: 3, armor: 'building',
     sight: 7, desc: 'Builds vehicles.',
     trainsByFaction: {
-      coalition: ['bulwark', 'viper', 'thunder'],
-      dynasty: ['warlord', 'flak', 'salamander'],
-      cartel: ['jackal', 'guntruck', 'barrage', 'demorig'],
+      coalition: ['bulwark', 'viper', 'thunder', 'goliath', 'siege', 'detector'],
+      dynasty: ['warlord', 'flak', 'salamander', 'goliath', 'siege', 'detector'],
+      cartel: ['jackal', 'guntruck', 'barrage', 'demorig', 'goliath', 'siege', 'detector'],
     },
   },
   airfield: {
     name: { coalition: 'Airfield', dynasty: 'Airstrip', cartel: null },
     icon: '🛩️', cost: 1500, hp: 1800, size: 3, buildTime: 20, power: 3, armor: 'building',
-    sight: 8, desc: 'Builds and rearms strike jets (one jet per pad, 2 pads).',
-    trainsByFaction: { coalition: ['falcon'], dynasty: ['vulture'] },
-    pads: 2,
+    sight: 8, desc: 'Builds and rearms strike jets (one jet per pad, 4 pads).',
+    trainsByFaction: { coalition: ['falcon', 'seraph', 'spyplane'], dynasty: ['vulture', 'behemoth', 'spyplane'] },
+    pads: 4,
   },
   turret: {
     name: { coalition: 'Sentinel Battery', dynasty: 'Gatling Tower', cartel: 'Missile Nest' },
-    icon: '🗼', cost: 900, hp: 1100, size: 2, buildTime: 12, power: 2, armor: 'building',
-    sight: 10, desc: 'Base defense. Engages ground and air targets. Offline without power.',
+    icon: '🗼', cost: 900, hp: 2200, size: 1, buildTime: 12, power: 2, armor: 'building',
+    sight: 10, desc: 'Compact hardened base defense. Engages ground and air targets. Offline without power.',
     weaponByFaction: {
-      coalition: { dmg: 60, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
-      dynasty:   { dmg: 14, dtype: 'gatling', range: 250, cd: 0.09, projectile: 'bullet', aa: true, needsPower: true },
-      cartel:    { dmg: 52, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
+      coalition: { dmg: 240, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
+      dynasty:   { dmg: 56, dtype: 'gatling', range: 250, cd: 0.09, projectile: 'bullet', aa: true, needsPower: true },
+      cartel:    { dmg: 208, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
     },
   },
   repairbay: {
@@ -671,6 +671,48 @@ const UNITS = {
     icon: '🚚', cost: 600, hp: 380, speed: 92, sight: 5, radius: 15, armor: 'light',
     buildTime: 7, chassis: 'truck', desc: 'Hauls supplies from piles to your Supply Center. $300 per load.',
     harvester: true, capacity: 300, noAutoAttack: true,
+  },
+
+  /* ---- end-game & specialist units (all factions) ---- */
+  goliath: {
+    name: { coalition: 'Paragon Superheavy', dynasty: 'Emperor Tank', cartel: 'Basilisk' },
+    icon: '👑', cost: 2800, hp: 2600, speed: 52, sight: 7, radius: 23,
+    armor: 'heavy', buildTime: 22, chassis: 'heavytank',
+    desc: 'End-game superheavy tank. Triple the cost, quadruple the punch.',
+    weapon: { dmg: 300, dtype: 'cannon', range: 245, cd: 2.4, projectile: 'shell', splash: 50, aa: false, ga: true },
+  },
+  siege: {
+    name: { coalition: 'Longbow Siege Platform', dynasty: 'Great Wall Gun', cartel: 'Doomsday Cannon' },
+    icon: '☄️', cost: 2800, hp: 420, speed: 45, sight: 7, radius: 19,
+    armor: 'light', buildTime: 24, chassis: 'mlrs',
+    desc: 'Extreme-range siege artillery (range 1350 — far beyond its own sight; use spotters). Slow and fragile.',
+    weapon: { dmg: 340, dtype: 'explosive', range: 1350, minRange: 260, cd: 8, projectile: 'arty', splash: 75, aa: false, ga: true },
+  },
+  detector: {
+    name: { coalition: 'Watchman Radar', dynasty: 'Overseer Radar', cartel: 'Listening Truck' },
+    icon: '📡', cost: 900, hp: 380, speed: 85, sight: 10, radius: 15,
+    armor: 'light', buildTime: 9, chassis: 'radar', noAutoAttack: true,
+    desc: 'Satellite-detection vehicle — reveals enemy spy planes within its scan radius.',
+    detect: 380,
+  },
+  spyplane: {
+    name: { coalition: 'Specter Spy Plane', dynasty: 'Shadow Spy Plane' },
+    icon: '🛰️', cost: 1600, hp: 300, speed: 265, sight: 18, radius: 13,
+    armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 0, noAutoAttack: true,
+    stealthAir: true,
+    desc: 'Unarmed stealth recon aircraft with enormous sight. Invisible to the enemy unless a detection unit is nearby.',
+  },
+  seraph: {
+    name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,
+    armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 3,
+    desc: 'End-game strike aircraft: three annihilating missiles and heavy armor.',
+    weapon: { dmg: 5000, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 260, aa: false, ga: true },
+  },
+  behemoth: {
+    name: 'Behemoth Bomber', icon: '🐉', cost: 3600, hp: 1100, speed: 215, sight: 9, radius: 18,
+    armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 1,
+    desc: 'End-game heavy bomber: one cataclysmic napalm payload, heavily armored.',
+    weapon: { dmg: 10000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 470, aa: false, ga: true },
   },
 
   /* ---- Meridian Coalition ---- */
@@ -1087,7 +1129,7 @@ class World {
       const dir = Math.atan2(cy - st.ty, cx - st.tx);
       const dx = U.clamp(st.tx + Math.round(Math.cos(dir) * 9), 6, w - 8);
       const dy = U.clamp(st.ty + Math.round(Math.sin(dir) * 9), 6, h - 8);
-      this.makeDock(dx, dy, 30000, rng);
+      this.makeDock(dx, dy, 45000, rng);
     }
     const nScatter = teams.length * 2 + 4;
     for (let i = 0; i < nScatter; i++) {
@@ -1099,7 +1141,7 @@ class World {
         for (const st of this.starts) if (U.dist(tx, ty, st.tx, st.ty) < 13) { ok = false; break; }
         if (ok) for (const d of this.docks) if (U.dist(tx, ty, d.x / TILE, d.y / TILE) < 9) { ok = false; break; }
         if (!ok) continue;
-        this.makeDock(tx, ty, 24000, rng);
+        this.makeDock(tx, ty, 36000, rng);
         placed = true;
       }
     }
@@ -1776,6 +1818,20 @@ function isEnemy(a, b) {
   return !pa || !pb || pa.team !== pb.team;      // allies (same team) are not enemies
 }
 
+/* stealth aircraft are only visible/targetable to a team with a detector in range */
+function isDetectedBy(e, team) {
+  if (!e.def || !e.def.stealthAir) return true;
+  const p = game.players[e.owner];
+  if (p && p.team === team) return true;
+  for (const d of game.ents) {
+    if (d.dead || d.kind !== 'unit' || !d.def.detect) continue;
+    const dp = game.players[d.owner];
+    if (!dp || dp.team !== team) continue;
+    if (U.dist2(d.x, d.y, e.x, e.y) <= d.def.detect * d.def.detect) return true;
+  }
+  return false;
+}
+
 function weaponCanHit(w, target) {
   if (target.kind === 'unit' && target.def.air) return !!w.aa;
   return w.ga !== false;
@@ -2043,6 +2099,7 @@ class Unit {
     for (const e of game.ents) {
       if (e.dead || !isEnemy(this, e)) continue;
       if (w ? !weaponCanHit(w, e) : (e.kind === 'unit' && e.def.air)) continue;
+      if (e.def && e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.03) continue;
       const d = U.dist(this.x, this.y, e.x, e.y);
       if (d > range) continue;
@@ -2398,6 +2455,7 @@ class Unit {
         if (!gp) { this.jetState = 'idle'; break; }
         this.circleA += dt * 1.1;
         flyToward(gp.x + Math.cos(this.circleA) * 110, gp.y + Math.sin(this.circleA) * 110, def.speed * 0.6);
+        if (!def.weapon) break;                       // unarmed recon: just orbit and watch
         if (this.ammo <= 0) { this.jetState = 'return'; break; }
         this.scanT -= dt;
         if (this.scanT <= 0) {
@@ -2408,6 +2466,7 @@ class Unit {
             if (e.dead || !isEnemy(this, e)) continue;
             if (e.kind === 'building' && !e.constructed) continue;
             if (!weaponCanHit(def.weapon, e)) continue;
+            if (e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
             const d = U.dist2(gp.x, gp.y, e.x, e.y);
             if (d > R * R) continue;
             const score = d + (e.kind === 'building' ? 1e6 : 0);   // intruding units first
@@ -2421,9 +2480,10 @@ class Unit {
         }
         break;
       }
+      /* eslint-disable-next-line no-fallthrough */
       case 'attack': {
         const t = game.byId.get(this.order.targetId || this.persistTargetId);
-        if (!t || t.dead || !weaponCanHit(def.weapon, t)) {
+        if (!def.weapon || !t || t.dead || !weaponCanHit(def.weapon, t)) {
           this.persistTargetId = 0;
           this.jetState = pad ? 'return' : (this.guardPost ? 'guardmove' : 'idle');
           break;
@@ -2600,6 +2660,7 @@ class Building {
           for (const e of game.ents) {
             if (e.dead || !isEnemy(this, e) || e.kind !== 'unit') continue;
             if (!weaponCanHit(w, e)) continue;
+            if (e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
             const d = U.dist(this.x, this.y, e.x, e.y);
             if (d < w.range && d < bd) { bd = d; t = e; }
           }
@@ -3557,6 +3618,7 @@ const RENDER = (() => {
     if (e.owner === -1) return true;
     const p = game.players[e.owner];
     if (p && p.team === game.players[0].team) return true;   // own + allied always visible
+    if (e.def && e.def.stealthAir && !isDetectedBy(e, game.players[0].team)) return false;
     if (game.revealAll) return true;
     if (e.kind === 'building') {
       // buildings render if currently visible; ghosts handle the rest
@@ -3652,6 +3714,7 @@ const RENDER = (() => {
         case 'dozer': drawDozer(u, c1, c2); break;
         case 'truck': drawTruck(u, c1, c2); break;
         case 'demorig': drawDemoRig(u, c1, c2); break;
+        case 'radar': drawRadarTruck(u, c1, c2); break;
         default: ctx.fillStyle = c1; ctx.fillRect(-10, -8, 20, 16);
       }
     }
@@ -3843,6 +3906,30 @@ const RENDER = (() => {
     ctx.fillStyle = '#a8c8d8'; ctx.fillRect(11, -5, 3, 10);
   }
 
+  function drawRadarTruck(u, c1, c2) {
+    // buggy body with a spinning satellite dish
+    ctx.fillStyle = '#1c1a14';
+    for (const wx of [-8, 6]) for (const wy of [-8, 8]) {
+      ctx.beginPath(); ctx.ellipse(wx, wy, 4, 2.6, 0, 0, 7); ctx.fill();
+    }
+    const g = ctx.createLinearGradient(0, -8, 0, 8);
+    g.addColorStop(0, U.shade(c1, 1.2)); g.addColorStop(1, c2);
+    ctx.fillStyle = g;
+    roundRect(-11, -7, 22, 14, 4); ctx.fill();
+    ctx.strokeStyle = c2; roundRect(-11, -7, 22, 14, 4); ctx.stroke();
+    ctx.fillStyle = '#a8c8d8'; ctx.fillRect(5, -4, 4, 8);
+    // rotating dish
+    ctx.save();
+    ctx.rotate(-u.angle + game.renderT * 1.6);
+    ctx.fillStyle = '#c8d0d8';
+    ctx.beginPath(); ctx.ellipse(0, 0, 7.5, 4.5, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#788088'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(8, 0); ctx.stroke();
+    ctx.fillStyle = Math.floor(game.renderT * 3) % 2 ? '#7fd4ff' : '#4a90d8';
+    ctx.beginPath(); ctx.arc(8, 0, 1.8, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+
   function drawDemoRig(u, c1, c2) {
     ctx.fillStyle = '#1c1a14';
     for (const wx of [-6, 6]) for (const wy of [-7, 7]) {
@@ -3871,6 +3958,9 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(u.x, u.y);
     ctx.rotate(u.angle);
+    if (u.def.stealthAir) {
+      ctx.globalAlpha = 0.55 + 0.15 * Math.sin(game.renderT * 5 + u.id);   // cloak shimmer
+    }
     // bank into turns
     const turn = U.angDiff(u._prevA === undefined ? u.angle : u._prevA, u.angle);
     u._prevA = u.angle;
@@ -4471,6 +4561,13 @@ const RENDER = (() => {
       const bracketCol = e.owner === 0 ? '#9fdc7c' :
         (ep && ep.team === game.players[0].team ? '#8fd4e8' : '#dc7c7c');
       drawBrackets(e.x, e.y, r, bracketCol);
+      // detector scan ring
+      if (e.kind === 'unit' && e.def.detect) {
+        ctx.strokeStyle = 'rgba(127,212,255,0.4)'; ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 7]);
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.def.detect, 0, 7); ctx.stroke();
+        ctx.setLineDash([]);
+      }
       // repair bay range ring
       if (e.kind === 'building' && e.key === 'repairbay' && e.constructed) {
         ctx.strokeStyle = 'rgba(127,212,255,0.35)'; ctx.lineWidth = 1.5;
@@ -4688,6 +4785,7 @@ const RENDER = (() => {
       const hostile = e.owner !== -1 && p && p.team !== humanTeam;
       if (hostile && !world.isVisible(e.x, e.y) &&
           !(e.kind === 'building' && ghosts.has(e.id))) continue;
+      if (hostile && e.def && e.def.stealthAir && !isDetectedBy(e, humanTeam)) continue;
       c.fillStyle = e.owner === -1 ? '#999' : p.color;
       const s = e.kind === 'building' ? Math.max(3, e.size * sx) : 2;
       c.fillRect(e.x / TILE * sx - s / 2, e.y / TILE * sy - s / 2, s, s);
@@ -4751,9 +4849,9 @@ const AI = (() => {
   let ais = [];
 
   const COMPS = {
-    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, thunder: 2, falcon: 2 },
-    dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, salamander: 2, vulture: 2 },
-    cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, barrage: 2, demorig: 2 },
+    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, thunder: 2, falcon: 2, goliath: 2, siege: 1, seraph: 1, spyplane: 1 },
+    dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, salamander: 2, vulture: 2, goliath: 2, siege: 1, behemoth: 1, spyplane: 1 },
+    cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, barrage: 2, demorig: 2, goliath: 2, siege: 1 },
   };
   /* units that counter each enemy composition trend, per faction */
   const COUNTERS = {
@@ -4983,6 +5081,10 @@ const AI = (() => {
       // adapt: boost counter units against what the enemy actually fields
       const ep = enemyProfile();
       const comp = { ...baseComp };
+      // counter-intel: enemy spy planes in the air -> field detectors
+      const enemySpies = game.ents.some(e => !e.dead && e.kind === 'unit' && e.def.stealthAir && isEnemyEnt(e));
+      const myDetectors = myUnits('detector').length;
+      if (enemySpies && myDetectors < 2) comp.detector = 2;
       if (ep) {
         for (const [trend, frac] of [['air', ep.air], ['armor', ep.armor], ['inf', ep.inf]]) {
           if (frac < 0.18) continue;
@@ -4993,13 +5095,14 @@ const AI = (() => {
       }
       const army = combatUnits();
       // a rich AI raises its own army cap — money must become pressure, not savings
+      const lobbyScale = game.players.length > 4 ? 0.55 : 1;
       const capEff = Math.min(diff.armyCap * 2,
-        diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500));
+        diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500)) * lobbyScale;
       if (army.length >= capEff) return;
       const counts = {};
       for (const u of army) counts[u.key] = (counts[u.key] || 0) + 1;
       for (const b of myBuildings()) {
-        if (!b.constructed || b.queue.length >= 3) continue;
+        if (!b.constructed || b.queue.length >= 4) continue;
         const trainable = bTrains(b.key, fac).filter(k => comp[k]);
         if (!trainable.length) continue;
         let pick = null, worst = 1e9;
@@ -5011,7 +5114,7 @@ const AI = (() => {
           const ratio = (counts[k] || 0) / comp[k];
           if (ratio < worst) { worst = ratio; pick = k; }
         }
-        if (pick && p().money > UNITS[pick].cost + (game.t < 300 ? 600 : 250)) {
+        if (pick && p().money > UNITS[pick].cost + (game.t < 300 ? 500 : 120)) {
           b.enqueue(pick);
         }
       }
@@ -5233,6 +5336,18 @@ const AI = (() => {
     }
 
     function onUnitDone(u) {
+      if (u.def.stealthAir) {
+        // spy plane: park over the enemy's key building for standing recon
+        const t = enemyKeyBuilding();
+        if (t) u.giveOrder({ type: 'guardarea', x: t.x + U.rand(-80, 80), y: t.y + U.rand(-80, 80) });
+        return;
+      }
+      if (u.def.detect) {
+        // detector: escort the base's forward rally
+        const g = gatherPoint();
+        u.giveOrder({ type: 'guardarea', x: g.x + U.rand(-60, 60), y: g.y + U.rand(-60, 60) });
+        return;
+      }
       if (u.def.weapon && !u.def.air && S.attackState === 'attacking') {
         const target = game.byId.get(S.attackTargetId);
         if (target && !target.dead) u.giveOrder({ type: 'attackmove', x: target.x, y: target.y });
@@ -5468,6 +5583,7 @@ const INPUT = (() => {
     for (const e of game.ents) {
       if (e.dead) continue;
       if (isEnemyOfHuman(e) && !world.isVisible(e.x, e.y)) continue;
+      if (isEnemyOfHuman(e) && e.def && e.def.stealthAir && !isDetectedBy(e, game.players[0].team)) continue;
       let hit = false;
       if (e.kind === 'unit') hit = U.dist(wx, wy, e.x, e.y) < e.radius + 7;
       else hit = wx >= e.tx * TILE && wx <= (e.tx + e.size) * TILE && wy >= e.ty * TILE && wy <= (e.ty + e.size) * TILE;

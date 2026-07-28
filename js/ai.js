@@ -4,9 +4,9 @@ const AI = (() => {
   let ais = [];
 
   const COMPS = {
-    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, thunder: 2, falcon: 2 },
-    dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, salamander: 2, vulture: 2 },
-    cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, barrage: 2, demorig: 2 },
+    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, thunder: 2, falcon: 2, goliath: 2, siege: 1, seraph: 1, spyplane: 1 },
+    dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, salamander: 2, vulture: 2, goliath: 2, siege: 1, behemoth: 1, spyplane: 1 },
+    cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, barrage: 2, demorig: 2, goliath: 2, siege: 1 },
   };
   /* units that counter each enemy composition trend, per faction */
   const COUNTERS = {
@@ -236,6 +236,10 @@ const AI = (() => {
       // adapt: boost counter units against what the enemy actually fields
       const ep = enemyProfile();
       const comp = { ...baseComp };
+      // counter-intel: enemy spy planes in the air -> field detectors
+      const enemySpies = game.ents.some(e => !e.dead && e.kind === 'unit' && e.def.stealthAir && isEnemyEnt(e));
+      const myDetectors = myUnits('detector').length;
+      if (enemySpies && myDetectors < 2) comp.detector = 2;
       if (ep) {
         for (const [trend, frac] of [['air', ep.air], ['armor', ep.armor], ['inf', ep.inf]]) {
           if (frac < 0.18) continue;
@@ -246,13 +250,14 @@ const AI = (() => {
       }
       const army = combatUnits();
       // a rich AI raises its own army cap — money must become pressure, not savings
+      const lobbyScale = game.players.length > 4 ? 0.55 : 1;
       const capEff = Math.min(diff.armyCap * 2,
-        diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500));
+        diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500)) * lobbyScale;
       if (army.length >= capEff) return;
       const counts = {};
       for (const u of army) counts[u.key] = (counts[u.key] || 0) + 1;
       for (const b of myBuildings()) {
-        if (!b.constructed || b.queue.length >= 3) continue;
+        if (!b.constructed || b.queue.length >= 4) continue;
         const trainable = bTrains(b.key, fac).filter(k => comp[k]);
         if (!trainable.length) continue;
         let pick = null, worst = 1e9;
@@ -264,7 +269,7 @@ const AI = (() => {
           const ratio = (counts[k] || 0) / comp[k];
           if (ratio < worst) { worst = ratio; pick = k; }
         }
-        if (pick && p().money > UNITS[pick].cost + (game.t < 300 ? 600 : 250)) {
+        if (pick && p().money > UNITS[pick].cost + (game.t < 300 ? 500 : 120)) {
           b.enqueue(pick);
         }
       }
@@ -486,6 +491,18 @@ const AI = (() => {
     }
 
     function onUnitDone(u) {
+      if (u.def.stealthAir) {
+        // spy plane: park over the enemy's key building for standing recon
+        const t = enemyKeyBuilding();
+        if (t) u.giveOrder({ type: 'guardarea', x: t.x + U.rand(-80, 80), y: t.y + U.rand(-80, 80) });
+        return;
+      }
+      if (u.def.detect) {
+        // detector: escort the base's forward rally
+        const g = gatherPoint();
+        u.giveOrder({ type: 'guardarea', x: g.x + U.rand(-60, 60), y: g.y + U.rand(-60, 60) });
+        return;
+      }
       if (u.def.weapon && !u.def.air && S.attackState === 'attacking') {
         const target = game.byId.get(S.attackTargetId);
         if (target && !target.dead) u.giveOrder({ type: 'attackmove', x: target.x, y: target.y });

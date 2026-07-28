@@ -25,9 +25,9 @@ const VET_HP  = [1, 1.1, 1.2, 1.35];
 const RANK_XP = [0, 400, 1000, 2000, 3400, 5200];
 
 const DIFFICULTY = {
-  easy:   { label: 'Easy',    income: 0.75, startBonus: 0,    firstAttack: 360, waveEvery: 130, harass: false, superweapon: false, powers: 1, armyCap: 14 },
-  normal: { label: 'Normal',  income: 1.0,  startBonus: 0,    firstAttack: 240, waveEvery: 95, harass: true,  superweapon: true,  powers: 2, armyCap: 24 },
-  hard:   { label: 'Hard',    income: 1.35, startBonus: 5000, firstAttack: 170, waveEvery: 70,  harass: true,  superweapon: true,  powers: 3, armyCap: 34 },
+  easy:   { label: 'Easy',    income: 0.75, startBonus: 0,    firstAttack: 360, waveEvery: 130, harass: false, superweapon: false, powers: 1, armyCap: 30 },
+  normal: { label: 'Normal',  income: 1.0,  startBonus: 0,    firstAttack: 240, waveEvery: 95, harass: true,  superweapon: true,  powers: 2, armyCap: 55 },
+  hard:   { label: 'Hard',    income: 1.35, startBonus: 5000, firstAttack: 170, waveEvery: 70,  harass: true,  superweapon: true,  powers: 3, armyCap: 80 },
 };
 
 const MAPSIZES = {
@@ -121,26 +121,26 @@ const BUILDINGS = {
     icon: '🏭', cost: 2000, hp: 2200, size: 3, buildTime: 25, power: 3, armor: 'building',
     sight: 7, desc: 'Builds vehicles.',
     trainsByFaction: {
-      coalition: ['bulwark', 'viper', 'thunder'],
-      dynasty: ['warlord', 'flak', 'salamander'],
-      cartel: ['jackal', 'guntruck', 'barrage', 'demorig'],
+      coalition: ['bulwark', 'viper', 'thunder', 'goliath', 'siege', 'detector'],
+      dynasty: ['warlord', 'flak', 'salamander', 'goliath', 'siege', 'detector'],
+      cartel: ['jackal', 'guntruck', 'barrage', 'demorig', 'goliath', 'siege', 'detector'],
     },
   },
   airfield: {
     name: { coalition: 'Airfield', dynasty: 'Airstrip', cartel: null },
     icon: '🛩️', cost: 1500, hp: 1800, size: 3, buildTime: 20, power: 3, armor: 'building',
-    sight: 8, desc: 'Builds and rearms strike jets (one jet per pad, 2 pads).',
-    trainsByFaction: { coalition: ['falcon'], dynasty: ['vulture'] },
-    pads: 2,
+    sight: 8, desc: 'Builds and rearms strike jets (one jet per pad, 4 pads).',
+    trainsByFaction: { coalition: ['falcon', 'seraph', 'spyplane'], dynasty: ['vulture', 'behemoth', 'spyplane'] },
+    pads: 4,
   },
   turret: {
     name: { coalition: 'Sentinel Battery', dynasty: 'Gatling Tower', cartel: 'Missile Nest' },
-    icon: '🗼', cost: 900, hp: 1100, size: 2, buildTime: 12, power: 2, armor: 'building',
-    sight: 10, desc: 'Base defense. Engages ground and air targets. Offline without power.',
+    icon: '🗼', cost: 900, hp: 2200, size: 1, buildTime: 12, power: 2, armor: 'building',
+    sight: 10, desc: 'Compact hardened base defense. Engages ground and air targets. Offline without power.',
     weaponByFaction: {
-      coalition: { dmg: 60, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
-      dynasty:   { dmg: 14, dtype: 'gatling', range: 250, cd: 0.09, projectile: 'bullet', aa: true, needsPower: true },
-      cartel:    { dmg: 52, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
+      coalition: { dmg: 240, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
+      dynasty:   { dmg: 56, dtype: 'gatling', range: 250, cd: 0.09, projectile: 'bullet', aa: true, needsPower: true },
+      cartel:    { dmg: 208, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
     },
   },
   repairbay: {
@@ -181,6 +181,48 @@ const UNITS = {
     icon: '🚚', cost: 600, hp: 380, speed: 92, sight: 5, radius: 15, armor: 'light',
     buildTime: 7, chassis: 'truck', desc: 'Hauls supplies from piles to your Supply Center. $300 per load.',
     harvester: true, capacity: 300, noAutoAttack: true,
+  },
+
+  /* ---- end-game & specialist units (all factions) ---- */
+  goliath: {
+    name: { coalition: 'Paragon Superheavy', dynasty: 'Emperor Tank', cartel: 'Basilisk' },
+    icon: '👑', cost: 2800, hp: 2600, speed: 52, sight: 7, radius: 23,
+    armor: 'heavy', buildTime: 22, chassis: 'heavytank',
+    desc: 'End-game superheavy tank. Triple the cost, quadruple the punch.',
+    weapon: { dmg: 300, dtype: 'cannon', range: 245, cd: 2.4, projectile: 'shell', splash: 50, aa: false, ga: true },
+  },
+  siege: {
+    name: { coalition: 'Longbow Siege Platform', dynasty: 'Great Wall Gun', cartel: 'Doomsday Cannon' },
+    icon: '☄️', cost: 2800, hp: 420, speed: 45, sight: 7, radius: 19,
+    armor: 'light', buildTime: 24, chassis: 'mlrs',
+    desc: 'Extreme-range siege artillery (range 1350 — far beyond its own sight; use spotters). Slow and fragile.',
+    weapon: { dmg: 340, dtype: 'explosive', range: 1350, minRange: 260, cd: 8, projectile: 'arty', splash: 75, aa: false, ga: true },
+  },
+  detector: {
+    name: { coalition: 'Watchman Radar', dynasty: 'Overseer Radar', cartel: 'Listening Truck' },
+    icon: '📡', cost: 900, hp: 380, speed: 85, sight: 10, radius: 15,
+    armor: 'light', buildTime: 9, chassis: 'radar', noAutoAttack: true,
+    desc: 'Satellite-detection vehicle — reveals enemy spy planes within its scan radius.',
+    detect: 380,
+  },
+  spyplane: {
+    name: { coalition: 'Specter Spy Plane', dynasty: 'Shadow Spy Plane' },
+    icon: '🛰️', cost: 1600, hp: 300, speed: 265, sight: 18, radius: 13,
+    armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 0, noAutoAttack: true,
+    stealthAir: true,
+    desc: 'Unarmed stealth recon aircraft with enormous sight. Invisible to the enemy unless a detection unit is nearby.',
+  },
+  seraph: {
+    name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,
+    armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 3,
+    desc: 'End-game strike aircraft: three annihilating missiles and heavy armor.',
+    weapon: { dmg: 5000, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 260, aa: false, ga: true },
+  },
+  behemoth: {
+    name: 'Behemoth Bomber', icon: '🐉', cost: 3600, hp: 1100, speed: 215, sight: 9, radius: 18,
+    armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 1,
+    desc: 'End-game heavy bomber: one cataclysmic napalm payload, heavily armored.',
+    weapon: { dmg: 10000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 470, aa: false, ga: true },
   },
 
   /* ---- Meridian Coalition ---- */

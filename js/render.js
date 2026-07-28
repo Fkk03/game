@@ -382,6 +382,7 @@ const RENDER = (() => {
     if (e.owner === -1) return true;
     const p = game.players[e.owner];
     if (p && p.team === game.players[0].team) return true;   // own + allied always visible
+    if (e.def && e.def.stealthAir && !isDetectedBy(e, game.players[0].team)) return false;
     if (game.revealAll) return true;
     if (e.kind === 'building') {
       // buildings render if currently visible; ghosts handle the rest
@@ -477,6 +478,7 @@ const RENDER = (() => {
         case 'dozer': drawDozer(u, c1, c2); break;
         case 'truck': drawTruck(u, c1, c2); break;
         case 'demorig': drawDemoRig(u, c1, c2); break;
+        case 'radar': drawRadarTruck(u, c1, c2); break;
         default: ctx.fillStyle = c1; ctx.fillRect(-10, -8, 20, 16);
       }
     }
@@ -668,6 +670,30 @@ const RENDER = (() => {
     ctx.fillStyle = '#a8c8d8'; ctx.fillRect(11, -5, 3, 10);
   }
 
+  function drawRadarTruck(u, c1, c2) {
+    // buggy body with a spinning satellite dish
+    ctx.fillStyle = '#1c1a14';
+    for (const wx of [-8, 6]) for (const wy of [-8, 8]) {
+      ctx.beginPath(); ctx.ellipse(wx, wy, 4, 2.6, 0, 0, 7); ctx.fill();
+    }
+    const g = ctx.createLinearGradient(0, -8, 0, 8);
+    g.addColorStop(0, U.shade(c1, 1.2)); g.addColorStop(1, c2);
+    ctx.fillStyle = g;
+    roundRect(-11, -7, 22, 14, 4); ctx.fill();
+    ctx.strokeStyle = c2; roundRect(-11, -7, 22, 14, 4); ctx.stroke();
+    ctx.fillStyle = '#a8c8d8'; ctx.fillRect(5, -4, 4, 8);
+    // rotating dish
+    ctx.save();
+    ctx.rotate(-u.angle + game.renderT * 1.6);
+    ctx.fillStyle = '#c8d0d8';
+    ctx.beginPath(); ctx.ellipse(0, 0, 7.5, 4.5, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#788088'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(8, 0); ctx.stroke();
+    ctx.fillStyle = Math.floor(game.renderT * 3) % 2 ? '#7fd4ff' : '#4a90d8';
+    ctx.beginPath(); ctx.arc(8, 0, 1.8, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+
   function drawDemoRig(u, c1, c2) {
     ctx.fillStyle = '#1c1a14';
     for (const wx of [-6, 6]) for (const wy of [-7, 7]) {
@@ -696,6 +722,9 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(u.x, u.y);
     ctx.rotate(u.angle);
+    if (u.def.stealthAir) {
+      ctx.globalAlpha = 0.55 + 0.15 * Math.sin(game.renderT * 5 + u.id);   // cloak shimmer
+    }
     // bank into turns
     const turn = U.angDiff(u._prevA === undefined ? u.angle : u._prevA, u.angle);
     u._prevA = u.angle;
@@ -1296,6 +1325,13 @@ const RENDER = (() => {
       const bracketCol = e.owner === 0 ? '#9fdc7c' :
         (ep && ep.team === game.players[0].team ? '#8fd4e8' : '#dc7c7c');
       drawBrackets(e.x, e.y, r, bracketCol);
+      // detector scan ring
+      if (e.kind === 'unit' && e.def.detect) {
+        ctx.strokeStyle = 'rgba(127,212,255,0.4)'; ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 7]);
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.def.detect, 0, 7); ctx.stroke();
+        ctx.setLineDash([]);
+      }
       // repair bay range ring
       if (e.kind === 'building' && e.key === 'repairbay' && e.constructed) {
         ctx.strokeStyle = 'rgba(127,212,255,0.35)'; ctx.lineWidth = 1.5;
@@ -1513,6 +1549,7 @@ const RENDER = (() => {
       const hostile = e.owner !== -1 && p && p.team !== humanTeam;
       if (hostile && !world.isVisible(e.x, e.y) &&
           !(e.kind === 'building' && ghosts.has(e.id))) continue;
+      if (hostile && e.def && e.def.stealthAir && !isDetectedBy(e, humanTeam)) continue;
       c.fillStyle = e.owner === -1 ? '#999' : p.color;
       const s = e.kind === 'building' ? Math.max(3, e.size * sx) : 2;
       c.fillRect(e.x / TILE * sx - s / 2, e.y / TILE * sy - s / 2, s, s);

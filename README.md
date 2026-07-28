@@ -41,6 +41,10 @@ python3 -m http.server 8080
 - **Supply economy** — rich supply piles scattered all across the map; Supply Trucks haul them
   to your Supply Center, Markets pay a fat $32/s trickle
 - **Repair Center** — automatically fixes your tanks and aircraft in a radius around it
+- **End-game arsenal** — superheavy tanks (3× cost, 4× power), elite strike aircraft,
+  extreme-range siege artillery (range 1,350 — bring spotters), compact hardened turrets
+- **Spy war** — unarmed stealth spy planes with enormous sight, invisible to the enemy
+  unless a satellite-detection radar truck is in scan range
 - **Power grid** — run out of power and production crawls while defenses go offline
 - **General's promotions** — combat XP earns ranks; spend points on 5 powers per faction:
   recon sweeps, airstrikes, artillery barrages, paradrops, emergency supply drops, war frenzy,

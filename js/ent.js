@@ -21,6 +21,20 @@ function isEnemy(a, b) {
   return !pa || !pb || pa.team !== pb.team;      // allies (same team) are not enemies
 }
 
+/* stealth aircraft are only visible/targetable to a team with a detector in range */
+function isDetectedBy(e, team) {
+  if (!e.def || !e.def.stealthAir) return true;
+  const p = game.players[e.owner];
+  if (p && p.team === team) return true;
+  for (const d of game.ents) {
+    if (d.dead || d.kind !== 'unit' || !d.def.detect) continue;
+    const dp = game.players[d.owner];
+    if (!dp || dp.team !== team) continue;
+    if (U.dist2(d.x, d.y, e.x, e.y) <= d.def.detect * d.def.detect) return true;
+  }
+  return false;
+}
+
 function weaponCanHit(w, target) {
   if (target.kind === 'unit' && target.def.air) return !!w.aa;
   return w.ga !== false;
@@ -288,6 +302,7 @@ class Unit {
     for (const e of game.ents) {
       if (e.dead || !isEnemy(this, e)) continue;
       if (w ? !weaponCanHit(w, e) : (e.kind === 'unit' && e.def.air)) continue;
+      if (e.def && e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.03) continue;
       const d = U.dist(this.x, this.y, e.x, e.y);
       if (d > range) continue;
@@ -643,6 +658,7 @@ class Unit {
         if (!gp) { this.jetState = 'idle'; break; }
         this.circleA += dt * 1.1;
         flyToward(gp.x + Math.cos(this.circleA) * 110, gp.y + Math.sin(this.circleA) * 110, def.speed * 0.6);
+        if (!def.weapon) break;                       // unarmed recon: just orbit and watch
         if (this.ammo <= 0) { this.jetState = 'return'; break; }
         this.scanT -= dt;
         if (this.scanT <= 0) {
@@ -653,6 +669,7 @@ class Unit {
             if (e.dead || !isEnemy(this, e)) continue;
             if (e.kind === 'building' && !e.constructed) continue;
             if (!weaponCanHit(def.weapon, e)) continue;
+            if (e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
             const d = U.dist2(gp.x, gp.y, e.x, e.y);
             if (d > R * R) continue;
             const score = d + (e.kind === 'building' ? 1e6 : 0);   // intruding units first
@@ -666,9 +683,10 @@ class Unit {
         }
         break;
       }
+      /* eslint-disable-next-line no-fallthrough */
       case 'attack': {
         const t = game.byId.get(this.order.targetId || this.persistTargetId);
-        if (!t || t.dead || !weaponCanHit(def.weapon, t)) {
+        if (!def.weapon || !t || t.dead || !weaponCanHit(def.weapon, t)) {
           this.persistTargetId = 0;
           this.jetState = pad ? 'return' : (this.guardPost ? 'guardmove' : 'idle');
           break;
@@ -845,6 +863,7 @@ class Building {
           for (const e of game.ents) {
             if (e.dead || !isEnemy(this, e) || e.kind !== 'unit') continue;
             if (!weaponCanHit(w, e)) continue;
+            if (e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
             const d = U.dist(this.x, this.y, e.x, e.y);
             if (d < w.range && d < bd) { bd = d; t = e; }
           }
