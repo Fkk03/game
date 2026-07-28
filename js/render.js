@@ -148,6 +148,19 @@ const RENDER = (() => {
     c.restore();
   }
 
+  function addTrack(x, y, ang, width) {
+    if (!terrainCtx) return;
+    const c = terrainCtx;
+    c.save();
+    c.translate(x * TS, y * TS);
+    c.rotate(ang);
+    c.fillStyle = 'rgba(52,38,22,0.07)';
+    const L = 10 * TS, o = width * TS * 0.55;
+    c.fillRect(-L / 2, -o - 1.6 * TS, L, 1.6 * TS);
+    c.fillRect(-L / 2, o, L, 1.6 * TS);
+    c.restore();
+  }
+
   function addWreck(x, y, ang, radius) {
     if (!terrainCtx) return;
     const c = terrainCtx;
@@ -484,6 +497,14 @@ const RENDER = (() => {
       ctx.moveTo(2, 2); ctx.lineTo(2 - Math.sin(t + u.id) * 3, 7);
       ctx.stroke();
     }
+    // arms swing opposite the legs
+    if (u.moving) {
+      ctx.strokeStyle = '#3a352a'; ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(-3, -1); ctx.lineTo(-4 - Math.sin(t + u.id) * 2.4, 3);
+      ctx.moveTo(3, -1); ctx.lineTo(4 + Math.sin(t + u.id) * 2.4, 3);
+      ctx.stroke();
+    }
     // body
     ctx.fillStyle = c2;
     ctx.beginPath(); ctx.arc(0, 0, 4.6, 0, 7); ctx.fill();
@@ -507,11 +528,18 @@ const RENDER = (() => {
     ctx.fillStyle = '#26231c';
     ctx.fillRect(-w / 2, -h / 2, w, 5);
     ctx.fillRect(-w / 2, h / 2 - 5, w, 5);
-    // tread marks (animated)
+    // rolling tread links
     ctx.fillStyle = '#3c382c';
     const off = (u.treadOff = ((u.treadOff || 0) + (u.moving ? 1 : 0))) % 6;
     for (let x = -w / 2 + off % 6; x < w / 2; x += 6) {
       ctx.fillRect(x, -h / 2, 2, 5); ctx.fillRect(x, h / 2 - 5, 2, 5);
+    }
+    // road wheels
+    ctx.fillStyle = '#171510';
+    for (let i = 0; i < (heavy ? 4 : 3); i++) {
+      const wx = -w / 2 + 5 + i * (w - 10) / (heavy ? 3 : 2);
+      ctx.beginPath(); ctx.arc(wx, -h / 2 + 2.5, 1.7, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(wx, h / 2 - 2.5, 1.7, 0, 7); ctx.fill();
     }
     // hull
     const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
@@ -519,6 +547,11 @@ const RENDER = (() => {
     ctx.fillStyle = g;
     roundRect(-w / 2 + 2, -h / 2 + 3, w - 4, h - 6, 3); ctx.fill();
     ctx.strokeStyle = c2; ctx.lineWidth = 1; roundRect(-w / 2 + 2, -h / 2 + 3, w - 4, h - 6, 3); ctx.stroke();
+    // hull panel line + engine deck
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-w * 0.32, -h / 2 + 4); ctx.lineTo(-w * 0.32, h / 2 - 4); ctx.stroke();
+    ctx.fillStyle = 'rgba(0,0,0,0.14)';
+    ctx.fillRect(-w / 2 + 3, -h / 2 + 4.5, w * 0.16, h - 9);
     // turret
     ctx.save();
     ctx.rotate(U.angDiff(u.angle, u.tAngle));
@@ -526,6 +559,11 @@ const RENDER = (() => {
     ctx.fillStyle = U.shade(c1, 1.25);
     ctx.beginPath(); ctx.arc(0, 0, heavy ? 9 : 7, 0, 7); ctx.fill();
     ctx.strokeStyle = c2; ctx.stroke();
+    // turret highlight + antenna
+    ctx.fillStyle = 'rgba(255,246,220,0.25)';
+    ctx.beginPath(); ctx.arc(-2, -2, heavy ? 4 : 3, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#1c1a14'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(-4, 3); ctx.lineTo(-10, 8); ctx.stroke();
     ctx.fillStyle = '#22201a';
     if (heavy) {
       ctx.fillRect(2 - rec * 4, -3.4, 20, 2.6);
@@ -655,6 +693,11 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(u.x, u.y);
     ctx.rotate(u.angle);
+    // bank into turns
+    const turn = U.angDiff(u._prevA === undefined ? u.angle : u._prevA, u.angle);
+    u._prevA = u.angle;
+    u._bank = U.lerp(u._bank || 0, U.clamp(turn * 22, -0.5, 0.5), 0.15);
+    ctx.scale(1, 1 - Math.abs(u._bank));
     // afterburner
     if (u.jetState === 'attack' || u.jetState === 'moveto' || u.jetState === 'return') {
       ctx.fillStyle = `rgba(255,180,80,${0.5 + 0.4 * Math.sin(game.renderT * 40)})`;
@@ -685,6 +728,35 @@ const RENDER = (() => {
   function drawBuilding(b) {
     if (!b.constructed) { drawConstructionSite(b); return; }
     drawBuildingSprite(b, false);
+    // anchored fires: a wounded structure visibly burns
+    if (b.hp < b.maxHp * 0.55) {
+      const s2 = b.size * TILE;
+      const nFires = b.hp < b.maxHp * 0.25 ? 3 : b.hp < b.maxHp * 0.4 ? 2 : 1;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < nFires; i++) {
+        const seed = (b.id * 37 + i * 53) % 97;
+        const fx2 = b.tx * TILE + s2 * (0.2 + (seed % 7) / 10);
+        const fy2 = b.ty * TILE + s2 * (0.2 + ((seed / 7) % 6) / 10);
+        const flick = 0.8 + 0.35 * Math.sin(game.renderT * 13 + i * 2.4 + b.id);
+        const fr = s2 * 0.09 * flick;
+        const fg = ctx.createRadialGradient(fx2, fy2, fr * 0.1, fx2, fy2, fr * 2.2);
+        fg.addColorStop(0, 'rgba(255,240,180,0.9)');
+        fg.addColorStop(0.4, 'rgba(255,150,50,0.55)');
+        fg.addColorStop(1, 'rgba(200,60,20,0)');
+        ctx.fillStyle = fg;
+        ctx.beginPath(); ctx.arc(fx2, fy2, fr * 2.2, 0, 7); ctx.fill();
+        // flame tongue
+        ctx.fillStyle = `rgba(255,190,70,${0.75 * flick})`;
+        ctx.beginPath();
+        ctx.moveTo(fx2 - fr * 0.6, fy2);
+        ctx.quadraticCurveTo(fx2 - fr * 0.3, fy2 - fr * (1.4 + 0.6 * Math.sin(game.renderT * 17 + i)), fx2, fy2 - fr * 2);
+        ctx.quadraticCurveTo(fx2 + fr * 0.4, fy2 - fr * 1.1, fx2 + fr * 0.6, fy2);
+        ctx.closePath(); ctx.fill();
+        if (Math.random() < 0.06) FX.smokePuff(fx2, fy2 - 8, 1, true);
+      }
+      ctx.restore();
+    }
     // sabotaged indicator
     if (b.disabledUntil && game.t < b.disabledUntil) {
       ctx.globalAlpha = 0.6 + 0.4 * Math.sin(game.renderT * 8);
@@ -721,7 +793,7 @@ const RENDER = (() => {
     if (k > 0.05) {
       ctx.save();
       ctx.beginPath();
-      ctx.rect(x0, y0 + s * (1 - k), s, s * k);
+      ctx.rect(x0 - 24, y0 - 26 + (s + 26) * (1 - k), s + 48, (s + 26) * k + 2);
       ctx.clip();
       ctx.globalAlpha = 0.5 + k * 0.5;
       drawBuildingSprite(b, false);
@@ -802,12 +874,57 @@ const RENDER = (() => {
     ctx.restore();
   }
 
-  function box3d(x, y, w, h, c1, c2, top) {
-    ctx.fillStyle = c2; ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = top || U.shade(c1, 1.15);
-    ctx.fillRect(x, y, w, h * 0.45);
+  /* extruded volume: roof lifted `ht` px, visible south wall + skewed east face.
+     This is what makes structures read as 3D instead of painted-on. */
+  function prism(x, y, w, h, ht, topCol, wallCol) {
+    wallCol = wallCol || U.shade(topCol, 0.55);
+    const skx = ht * 0.32;
+    // east face (parallelogram catching side light)
+    ctx.fillStyle = U.shade(topCol, 0.72);
+    ctx.beginPath();
+    ctx.moveTo(x + w, y - ht);
+    ctx.lineTo(x + w + skx, y - ht + skx * 0.55);
+    ctx.lineTo(x + w + skx, y + h - ht + skx * 0.55);
+    ctx.lineTo(x + w, y + h - ht);
+    ctx.closePath(); ctx.fill();
+    // south wall with vertical falloff
+    const wg = ctx.createLinearGradient(0, y + h - ht, 0, y + h);
+    wg.addColorStop(0, wallCol);
+    wg.addColorStop(1, U.shade(wallCol, 0.72));
+    ctx.fillStyle = wg;
+    ctx.fillRect(x, y + h - ht, w, ht);
+    // roof lit from the north-west
+    const rg = ctx.createLinearGradient(x, y - ht, x + w * 0.8, y + h - ht);
+    rg.addColorStop(0, U.shade(topCol, 1.18));
+    rg.addColorStop(1, U.shade(topCol, 0.94));
+    ctx.fillStyle = rg;
+    ctx.fillRect(x, y - ht, w, h);
     ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1;
-    ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    ctx.strokeRect(x + 0.5, y - ht + 0.5, w - 1, h - 1);
+    // roof lip highlight
+    ctx.fillStyle = 'rgba(255,246,220,0.20)';
+    ctx.fillRect(x, y - ht, w, 1.6);
+  }
+
+  /* vertical cylinder (stacks, silos, tanks) */
+  function cyl(cx, cy, r, ht, col) {
+    const bg = ctx.createLinearGradient(cx - r, 0, cx + r, 0);
+    bg.addColorStop(0, U.shade(col, 1.2));
+    bg.addColorStop(0.45, col);
+    bg.addColorStop(1, U.shade(col, 0.6));
+    ctx.fillStyle = bg;
+    ctx.fillRect(cx - r, cy - ht, r * 2, ht);
+    ctx.fillStyle = U.shade(col, 1.24);
+    ctx.beginPath(); ctx.ellipse(cx, cy - ht, r, r * 0.45, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(cx, cy - ht, r, r * 0.45, 0, 0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.45, 0, Math.PI, 0, true);
+  }
+
+  /* legacy signature — now draws a real prism so every structure gains depth */
+  function box3d(x, y, w, h, c1, c2, top) {
+    const ht = U.clamp(Math.min(w, h) * 0.42, 7, 20);
+    prism(x, y, w, h, ht, top || U.shade(c1, 1.05), c2);
   }
 
   function drawCC(b, s, c1, c2, fac) {
@@ -854,15 +971,27 @@ const RENDER = (() => {
       ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.2, 0, 7); ctx.stroke();
       ctx.fillStyle = `rgba(160,240,255,${gl * 0.5})`;
       ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.13, 0, 7); ctx.fill();
+      // crackling arc
+      if (Math.sin(game.renderT * 9 + b.id) > 0.82) {
+        const a0 = game.renderT * 11 + b.id;
+        ctx.strokeStyle = 'rgba(200,245,255,0.9)'; ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        let ax = s * 0.5 + Math.cos(a0) * s * 0.2, ay = s * 0.5 + Math.sin(a0) * s * 0.2;
+        ctx.moveTo(ax, ay);
+        for (let i = 0; i < 4; i++) {
+          ax += U.rand(-s * 0.07, s * 0.07); ay += U.rand(-s * 0.07, s * 0.07);
+          ctx.lineTo(ax, ay);
+        }
+        ctx.stroke();
+      }
     } else {
       box3d(s * 0.08, s * 0.35, s * 0.84, s * 0.5, '#8a8272', '#5c5648');
-      // twin stacks
+      // twin smokestack cylinders
       for (const sx of [s * 0.3, s * 0.66]) {
-        ctx.fillStyle = '#4c463a';
-        ctx.beginPath(); ctx.arc(sx, s * 0.32, s * 0.13, 0, 7); ctx.fill();
-        ctx.fillStyle = '#332f26';
-        ctx.beginPath(); ctx.arc(sx, s * 0.32, s * 0.08, 0, 7); ctx.fill();
-        if (Math.random() < 0.06) FX.smokePuff(b.tx * TILE + sx, b.ty * TILE + s * 0.3, 1);
+        cyl(sx, s * 0.46, s * 0.1, s * 0.34, '#5c564a');
+        ctx.fillStyle = '#241f18';
+        ctx.beginPath(); ctx.ellipse(sx, s * 0.12, s * 0.06, s * 0.028, 0, 0, 7); ctx.fill();
+        if (Math.random() < 0.06) FX.smokePuff(b.tx * TILE + sx, b.ty * TILE + s * 0.1, 1);
       }
     }
     ctx.fillStyle = c1; ctx.fillRect(s * 0.1, s * 0.78, s * 0.8, s * 0.07);
@@ -889,13 +1018,24 @@ const RENDER = (() => {
     // door
     ctx.fillStyle = '#2c2a22';
     ctx.fillRect(s * 0.38, s * 0.62, s * 0.24, s * 0.21);
-    // flag
+    // flag pole + rippling flag
     ctx.strokeStyle = '#3c382c'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(s * 0.14, s * 0.15); ctx.lineTo(s * 0.14, s * -0.06); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s * 0.14, s * 0.15); ctx.lineTo(s * 0.14, s * -0.1); ctx.stroke();
+    const wv = game.renderT * 7;
     ctx.fillStyle = c1;
     ctx.beginPath();
-    ctx.moveTo(s * 0.14, s * -0.06); ctx.lineTo(s * 0.32, s * -0.01); ctx.lineTo(s * 0.14, s * 0.05);
+    ctx.moveTo(s * 0.14, s * -0.1);
+    for (let i = 0; i <= 6; i++) {
+      const fx2 = s * 0.14 + (i / 6) * s * 0.2;
+      ctx.lineTo(fx2, s * -0.1 + Math.sin(wv + i * 0.9) * s * 0.012 * i);
+    }
+    for (let i = 6; i >= 0; i--) {
+      const fx2 = s * 0.14 + (i / 6) * s * 0.2;
+      ctx.lineTo(fx2, s * -0.015 + Math.sin(wv + i * 0.9) * s * 0.012 * i);
+    }
     ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(s * 0.14, s * -0.1, s * 0.03, s * 0.085);
   }
 
   function drawFactory(b, s, c1, c2) {
@@ -914,7 +1054,19 @@ const RENDER = (() => {
     ctx.beginPath(); ctx.moveTo(s * 0.42, s * -0.08); ctx.lineTo(s * 0.42, s * 0.05); ctx.stroke();
     // roof vents
     ctx.fillStyle = U.shade(c1, 0.8);
-    for (let i = 0; i < 3; i++) ctx.fillRect(s * 0.16 + i * s * 0.24, s * 0.18, s * 0.12, s * 0.1);
+    for (let i = 0; i < 2; i++) ctx.fillRect(s * 0.16 + i * s * 0.24, s * 0.18, s * 0.12, s * 0.1);
+    // spinning ventilation fan
+    ctx.save();
+    ctx.translate(s * 0.78, s * 0.2);
+    ctx.fillStyle = '#3c382c';
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.075, 0, 7); ctx.fill();
+    ctx.rotate(game.renderT * 5);
+    ctx.strokeStyle = '#8a8578'; ctx.lineWidth = 2.4;
+    for (let i = 0; i < 3; i++) {
+      ctx.rotate(Math.PI * 2 / 3);
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(s * 0.06, 0); ctx.stroke();
+    }
+    ctx.restore();
   }
 
   function drawAirfield(b, s, c1, c2) {
@@ -930,6 +1082,13 @@ const RENDER = (() => {
       ctx.beginPath(); ctx.arc(s * 0.72, py, s * 0.12, 0, 7); ctx.fill();
       ctx.strokeStyle = c1; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(s * 0.72, py, s * 0.09, 0, 7); ctx.stroke();
+    }
+    // chasing runway lights
+    const lit = Math.floor(game.renderT * 7) % 6;
+    for (let i = 0; i < 6; i++) {
+      ctx.fillStyle = i === lit ? '#ffe9a0' : 'rgba(255,233,160,0.22)';
+      ctx.beginPath(); ctx.arc(s * 0.12 + i * s * 0.15, s * 0.56, 1.8, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(s * 0.12 + i * s * 0.15, s * 0.44, 1.8, 0, 7); ctx.fill();
     }
     // tower
     box3d(s * 0.06, s * 0.06, s * 0.2, s * 0.3, '#8a92a0', '#5a626e');
@@ -1013,9 +1172,10 @@ const RENDER = (() => {
       ctx.fillStyle = i % 2 ? '#c9a227' : U.shade(c1, 1.0);
       ctx.fillRect(s * 0.1 + i * s * 0.16, s * 0.2, s * 0.16, s * 0.12);
     }
-    ctx.fillStyle = '#ffe9a0'; ctx.font = `bold ${Math.round(s * 0.25)}px sans-serif`;
+    const pulse = 0.75 + 0.25 * Math.sin(game.renderT * 4 + b.id);
+    ctx.fillStyle = `rgba(255,233,160,${pulse})`; ctx.font = `bold ${Math.round(s * 0.25)}px sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText('$', s * 0.5, s * 0.62);
+    ctx.fillText('$', s * 0.5, s * 0.55);
     ctx.textAlign = 'left';
   }
 
@@ -1326,7 +1486,7 @@ const RENDER = (() => {
   }
 
   return {
-    init, buildTerrain, frame, refreshFogCanvas, addDecal, addRubble, addWreck, drawMinimap, cleanGhost,
+    init, buildTerrain, frame, refreshFogCanvas, addDecal, addRubble, addWreck, addTrack, drawMinimap, cleanGhost,
     toScreenX, toScreenY, toWorldX, toWorldY,
     get W() { return W; }, get H() { return H; },
   };

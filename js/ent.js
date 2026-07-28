@@ -69,6 +69,7 @@ function killEnt(e, attacker) {
   if (e.kind === 'building') {
     world.blockRect(e.tx, e.ty, e.size, false);
     FX.explosion(e.x, e.y, 1.3 + e.size * 0.35);
+    FX.stagedCollapse(e.x, e.y, e.size);
     SFX.explo(e.x, e.y, 1.6);
     RENDER.addRubble(e.x, e.y, e.size);
     RENDER.cleanGhost(e.id);
@@ -257,7 +258,15 @@ class Unit {
       else this.stuckT += dt * 2;
     }
     this.moving = true;
-    if (Math.random() < dt * 6 && this.def.chassis !== 'inf') FX.dust(this.x - Math.cos(this.angle) * 12, this.y - Math.sin(this.angle) * 12);
+    const ch = this.def.chassis;
+    if (ch !== 'inf' && ch !== 'rocketinf') {
+      this.trackAcc = (this.trackAcc || 0) + sp * slow * dt;
+      if (this.trackAcc > 15) {
+        this.trackAcc = 0;
+        RENDER.addTrack(this.x, this.y, this.angle, this.radius);
+      }
+      if (Math.random() < dt * 6) FX.dust(this.x - Math.cos(this.angle) * 12, this.y - Math.sin(this.angle) * 12);
+    }
 
     // stuck detection → repath
     this.stuckT += dt;
@@ -597,6 +606,13 @@ class Unit {
       this.y += Math.sin(this.angle) * sp * dt;
       this.x = U.clamp(this.x, 20, world.pw - 20);
       this.y = U.clamp(this.y, 20, world.ph - 20);
+      if (sp > def.speed * 0.7 && Math.random() < dt * 22) {
+        const wa = this.angle + Math.PI / 2;
+        FX.contrail(this.x + Math.cos(wa) * 11 - Math.cos(this.angle) * 10,
+                    this.y + Math.sin(wa) * 11 - Math.sin(this.angle) * 10);
+        FX.contrail(this.x - Math.cos(wa) * 11 - Math.cos(this.angle) * 10,
+                    this.y - Math.sin(wa) * 11 - Math.sin(this.angle) * 10);
+      }
       return U.dist(this.x, this.y, tx, ty);
     };
 

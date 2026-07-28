@@ -6,6 +6,7 @@ const FX = (() => {
   let rings = [];        // shockwave rings
   let flashes = [];      // screen flash {color, a}
   let beams = [];        // lingering beams {x0,y0,x1,y1,w,color,life,t}
+  let pendingBooms = []; // delayed secondary explosions {x,y,t,size}
 
   function spawn(p) {
     // draw code emits ambient smoke every frame; while paused nothing expires, so don't spawn
@@ -17,9 +18,18 @@ const FX = (() => {
   const api = {
     parts, // exposed for render
 
-    clear() { parts.length = 0; texts.length = 0; rings.length = 0; flashes.length = 0; beams.length = 0; },
+    clear() { parts.length = 0; texts.length = 0; rings.length = 0; flashes.length = 0; beams.length = 0; pendingBooms.length = 0; },
 
     update(dt) {
+      for (let i = pendingBooms.length - 1; i >= 0; i--) {
+        const b = pendingBooms[i];
+        b.t -= dt;
+        if (b.t <= 0) {
+          pendingBooms.splice(i, 1);
+          api.explosion(b.x, b.y, b.size);
+          SFX.explo(b.x, b.y, b.size);
+        }
+      }
       for (let i = parts.length - 1; i >= 0; i--) {
         const p = parts[i];
         p.t += dt;
@@ -89,6 +99,28 @@ const FX = (() => {
       rings.push({ x, y, t: 0, life: 0.35, maxR: 45 * size });
       spawn({ x, y, vx: 0, vy: 0, t: 0, life: 0.1, r: 22 * size, kind: 'flash' });
       RENDER.addDecal(x, y, 14 * size);
+    },
+
+    /* building death: a chain of secondary blasts + rising dust column */
+    stagedCollapse(x, y, size) {
+      for (let i = 0; i < 2 + Math.round(size); i++) {
+        pendingBooms.push({
+          x: x + U.rand(-size * 16, size * 16),
+          y: y + U.rand(-size * 16, size * 16),
+          t: 0.12 + i * U.rand(0.14, 0.3),
+          size: U.rand(0.5, 0.9),
+        });
+      }
+      for (let i = 0; i < 14; i++) {
+        spawn({ x: x + U.rand(-size * 18, size * 18), y: y + U.rand(-size * 18, size * 18),
+          vx: U.rand(-12, 12), vy: -U.rand(20, 70), t: 0, life: U.rand(1.8, 3.6),
+          r: U.rand(8, 18), kind: 'dust', drag: 0.6 });
+      }
+    },
+
+    contrail(x, y) {
+      spawn({ x, y, vx: U.rand(-3, 3), vy: U.rand(-3, 3), t: 0, life: 1.1,
+        r: U.rand(1.6, 2.6), kind: 'contrail' });
     },
 
     nukeExplosion(x, y) {
@@ -172,6 +204,11 @@ const FX = (() => {
             ctx.globalAlpha = (1 - k) * 0.25;
             ctx.fillStyle = '#cdb98a';
             ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k), 0, 7); ctx.fill();
+            break;
+          case 'contrail':
+            ctx.globalAlpha = (1 - k) * 0.3;
+            ctx.fillStyle = '#eef2f4';
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + k * 2.2), 0, 7); ctx.fill();
             break;
           case 'debris':
             ctx.fillStyle = '#55503f';
