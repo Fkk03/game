@@ -53,11 +53,13 @@ function effDamage(w, attacker) {
   return d;
 }
 
-/* central damage entry point */
-function applyDamage(target, rawDmg, dtype, attacker) {
+/* central damage entry point. fromAir: delivered by an aircraft —
+   air power hits units at 70% and structures at only 30% */
+function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   if (!target || target.dead) return;
   const mod = (DMG_MOD[dtype] && DMG_MOD[dtype][target.armor] !== undefined) ? DMG_MOD[dtype][target.armor] : 1;
   let dmg = rawDmg * mod;
+  if (fromAir) dmg *= target.kind === 'building' ? 0.3 : 0.7;
   if (dmg <= 0) return;
   target.hp -= dmg;
 
@@ -151,7 +153,7 @@ function addPlayerXp(pi, amt) {
   }
 }
 
-function dealSplash(x, y, dmg, dtype, radius, ownerIdx, srcEnt, hitAir) {
+function dealSplash(x, y, dmg, dtype, radius, ownerIdx, srcEnt, hitAir, fromAir) {
   const victims = entsInRadius(x, y, radius, e => !e.dead && (hitAir || !(e.kind === 'unit' && e.def.air)));
   for (const v of victims) {
     if (v.owner === -1) continue;
@@ -159,7 +161,7 @@ function dealSplash(x, y, dmg, dtype, radius, ownerIdx, srcEnt, hitAir) {
     let fall = U.clamp(1 - (d / (radius + 18)) * 0.75, 0.3, 1);
     let amount = dmg * fall;
     if (v.owner === ownerIdx) amount *= 0.25;      // reduced friendly fire
-    applyDamage(v, amount, dtype, srcEnt && !srcEnt.dead ? srcEnt : null);
+    applyDamage(v, amount, dtype, srcEnt && !srcEnt.dead ? srcEnt : null, fromAir);
   }
 }
 
@@ -346,6 +348,12 @@ class Unit {
   /* --------- per-frame update --------- */
   update(dt) {
     if (this.cool > 0) this.cool -= dt;
+
+    // veterans patch themselves up in the field — faster with every star.
+    // Runs BEFORE the aircraft branch so veteran pilots heal too.
+    const regen = VET_REGEN[this.vetRank];
+    if (regen && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
+
     if (this.def.air) { this.updateJet(dt); return; }
 
     // horde bonus cache (1 Hz)
@@ -361,11 +369,6 @@ class Unit {
         this.hordeOn = n >= 4;
       }
     }
-
-    // veteran self-heal
-    // veterans patch themselves up in the field — faster with every star
-    const regen = VET_REGEN[this.vetRank];
-    if (regen && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
 
     // nudge out of tiles that became blocked (building placed on top of us)
     this.unstickT = (this.unstickT || 0) - dt;
@@ -698,18 +701,81 @@ class Unit {
       }
       /* eslint-disable-next-line no-fallthrough */
       case 'attack': {
-        const t = game.byId.get(this.order.targetId || this.persistTargetId);
-        if (!def.weapon || !t || t.dead || !weaponCanHit(def.weapon, t)) {
+        const w = def.weapon;
+        let t = game.byId.get(this.order.targetId || this.persistTargetId);
+
+        /* burst-fire jets (multirole): pick another target near the strike area.
+           Anchored on the current target's position, NOT the jet — a fast mover
+           overshoots hundreds of px between shots and would lose the fight zone. */
+        const reacquire = exclude => {
+          const ax = t ? t.x : this.x, ay = t ? t.y : this.y;
+          let best = null, bd = Infinity;
+          const myTeam = game.players[this.owner].team;
+          for (const e of game.ents) {
+            if (e.dead || !isEnemy(this, e) || (exclude && e.id === exclude)) continue;
+            if (e.kind === 'building' && !e.constructed) continue;
+            if (e.kind === 'unit' && e.def.stealthAir && !isDetectedBy(e, myTeam)) continue;
+            if (!weaponCanHit(w, e)) continue;
+            const dd = U.dist2(ax, ay, e.x, e.y);
+            if (dd < 520 * 520 && dd < bd) { bd = dd; best = e; }
+          }
+          return best;
+        };
+        /* is this target already dead-in-the-air from missiles we launched at it?
+           Per-target ledger; goes stale (and resets) 6 s after the last shot. */
+        const doomed = tt => {
+          const fresh = this._shots && game.t - (this._shotsT || 0) <= 6;
+          const n = fresh ? (this._shots[tt.id] || 0) : 0;
+          if (!n) return false;
+          const mod = (DMG_MOD[w.dtype] && DMG_MOD[w.dtype][tt.armor]) ?? 1;
+          const perShot = effDamage(w, this) * mod * (tt.kind === 'building' ? 0.3 : 0.7);
+          return n * perShot >= tt.hp;
+        };
+
+        if (def.burst && t && !t.dead && doomed(t)) {
+          const nt = reacquire(t.id);
+          if (nt) {
+            this.order = { type: 'attack', targetId: nt.id };
+            this.persistTargetId = nt.id;
+            t = nt;
+          } else {
+            // nothing else worth a missile — bank the rest of the ammo
+            this.persistTargetId = 0;
+            this.jetState = this.guardPost ? 'guardmove' : (pad ? 'return' : 'idle');
+            break;
+          }
+        }
+
+        if (!w || !t || t.dead || !weaponCanHit(w, t)) {
+          // a multirole with ammo keeps hunting nearby targets before heading home
+          const nt = def.burst && this.ammo > 0 ? reacquire(0) : null;
+          if (nt) {
+            this.order = { type: 'attack', targetId: nt.id };
+            this.persistTargetId = nt.id;
+            break;
+          }
           this.persistTargetId = 0;
           this.jetState = pad ? 'return' : (this.guardPost ? 'guardmove' : 'idle');
           break;
         }
         if (this.ammo <= 0) { this.jetState = 'return'; break; }
         const d = flyToward(t.x, t.y, def.speed);
-        if (d < def.weapon.range && this.cool <= 0) {
-          this.cool = def.weapon.cd;
-          fireWeapon(this, def.weapon, t);
+        if (d < w.range && this.cool <= 0) {
+          this.cool = w.cd;
+          fireWeapon(this, w, t);
           this.ammo--;
+          if (!this._shots || game.t - (this._shotsT || 0) > 6) this._shots = {};
+          this._shots[t.id] = (this._shots[t.id] || 0) + 1;
+          this._shotsT = game.t;
+          // end of a controlled burst: re-evaluate targets instead of dumping the rack
+          if (def.burst && this._shots[t.id] % def.burst === 0) {
+            this.cool = Math.max(this.cool, w.cd * 2.2);
+            const nt = reacquire(doomed(t) ? t.id : 0);
+            if (nt && nt.id !== t.id && (doomed(t) || U.dist2(this.x, this.y, nt.x, nt.y) < U.dist2(this.x, this.y, t.x, t.y))) {
+              this.order = { type: 'attack', targetId: nt.id };
+              this.persistTargetId = nt.id;
+            }
+          }
           if (this.ammo <= 0) this.jetState = 'return';
         }
         break;
@@ -973,6 +1039,7 @@ function fireWeapon(src, w, target) {
   const muzX = src.x + Math.cos(src.tAngle !== undefined ? src.tAngle : ang) * (src.kind === 'building' ? src.size * 12 : (src.def.radius + 6));
   const muzY = src.y + Math.sin(src.tAngle !== undefined ? src.tAngle : ang) * (src.kind === 'building' ? src.size * 12 : (src.def.radius + 6));
   const dmg = effDamage(w, src);
+  const srcAir = src.kind === 'unit' && !!src.def.air;   // air-delivered: units 70%, buildings 30%
 
   switch (w.projectile) {
     case 'tracer':
@@ -980,21 +1047,21 @@ function fireWeapon(src, w, target) {
       FX.muzzle(muzX, muzY, ang, false);
       FX.addBeam(muzX, muzY, target.x + U.rand(-4, 4), target.y + U.rand(-4, 4), 1.2, '#ffe9a0', 0.08);
       if (w.dtype === 'gatling') SFX.gatling(src.x, src.y); else SFX.shot(src.x, src.y);
-      applyDamage(target, dmg, w.dtype, src);
+      applyDamage(target, dmg, w.dtype, src, srcAir);
       if (target.kind === 'unit' && target.def.chassis === 'inf') {} else FX.sparks(target.x, target.y, 2);
       break;
     }
     case 'flame': {
       FX.flame(muzX, muzY, ang);
       SFX.flame(src.x, src.y);
-      dealSplash(target.x, target.y, dmg, 'flame', w.splash || 18, src.owner, src);
+      dealSplash(target.x, target.y, dmg, 'flame', w.splash || 18, src.owner, src, false, srcAir);
       break;
     }
     case 'shell': {
       FX.muzzle(muzX, muzY, ang, true);
       SFX.cannon(src.x, src.y);
       game.projs.push({ kind: 'shell', x: muzX, y: muzY, tx: target.x, ty: target.y,
-        speed: 460, dmg, dtype: w.dtype, splash: w.splash || 24, owner: src.owner, srcId: src.id, dead: false });
+        speed: 460, dmg, dtype: w.dtype, splash: w.splash || 24, owner: src.owner, srcId: src.id, srcAir, dead: false });
       if (src.kind === 'unit') src.recoil = 1;
       break;
     }
@@ -1002,6 +1069,7 @@ function fireWeapon(src, w, target) {
       SFX.rocket(src.x, src.y);
       game.projs.push({ kind: 'missile', x: muzX, y: muzY, targetId: target.id, tx: target.x, ty: target.y,
         speed: 210, maxSpeed: 420, dmg, dtype: w.dtype, splash: w.splash || 20, owner: src.owner, srcId: src.id,
+        srcAir, aaShot: srcAir && target.kind === 'unit' && !!target.def.air,
         ang: ang + U.rand(-0.6, 0.6), dead: false, t: 0 });
       break;
     }
@@ -1013,7 +1081,7 @@ function fireWeapon(src, w, target) {
       const spread = 26;
       game.projs.push({ kind: 'arty', x: muzX, y: muzY, sx: muzX, sy: muzY,
         tx: target.x + U.rand(-spread, spread), ty: target.y + U.rand(-spread, spread),
-        fly, t: 0, dmg, dtype: w.dtype, splash: w.splash || 40, owner: src.owner, srcId: src.id, dead: false });
+        fly, t: 0, dmg, dtype: w.dtype, splash: w.splash || 40, owner: src.owner, srcId: src.id, srcAir, dead: false });
       break;
     }
     case 'flakburst': {
@@ -1025,7 +1093,7 @@ function fireWeapon(src, w, target) {
     }
     case 'napalm': {
       game.projs.push({ kind: 'napalm', x: src.x, y: src.y, tx: target.x, ty: target.y, z: 60, t: 0, fly: 0.7,
-        sx: src.x, sy: src.y, dmg, dtype: 'flame', splash: w.splash || 60, owner: src.owner, srcId: src.id, dead: false });
+        sx: src.x, sy: src.y, dmg, dtype: 'flame', splash: w.splash || 60, owner: src.owner, srcId: src.id, srcAir, dead: false });
       SFX.rocket(src.x, src.y);
       break;
     }
@@ -1041,7 +1109,7 @@ function updateProjectiles(dt) {
         const d = U.dist(p.x, p.y, p.tx, p.ty);
         const step = p.speed * dt;
         if (d <= step) {
-          dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, game.byId.get(p.srcId));
+          dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, game.byId.get(p.srcId), false, p.srcAir);
           FX.explosion(p.tx, p.ty, 0.55);
           SFX.explo(p.tx, p.ty, 0.5);
           p.dead = true;
@@ -1064,9 +1132,10 @@ function updateProjectiles(dt) {
         const d = U.dist(p.x, p.y, p.tx, p.ty);
         if (d < 14 || p.t > 4) {
           const src = game.byId.get(p.srcId);
-          // big ground-strike blasts must not swat aircraft (jet wings would kill each other)
-          if (t && !t.dead && d < 26 && p.splash <= 24) applyDamage(t, p.dmg, p.dtype, src);
-          else dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, src, p.splash <= 24);
+          // big ground-strike blasts must not swat aircraft (jet wings would kill each other);
+          // an air-to-air shot always damages its aircraft target directly
+          if (t && !t.dead && d < 26 && (p.splash <= 24 || p.aaShot)) applyDamage(t, p.dmg, p.dtype, src, p.srcAir);
+          else dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, src, p.splash <= 24, p.srcAir);
           const fxs = Math.min(3, 0.5 + p.splash / 90);
           FX.explosion(p.x, p.y, fxs);
           SFX.explo(p.x, p.y, fxs);
@@ -1097,7 +1166,7 @@ function updateProjectiles(dt) {
         p.z = Math.sin(k * Math.PI) * 90;
         if (Math.random() < dt * 20) FX.smokePuff(p.x, p.y - p.z, 1);
         if (k >= 1) {
-          dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, game.byId.get(p.srcId));
+          dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, game.byId.get(p.srcId), false, p.srcAir);
           FX.explosion(p.tx, p.ty, 0.9);
           SFX.explo(p.tx, p.ty, 0.9);
           p.dead = true;
@@ -1111,7 +1180,7 @@ function updateProjectiles(dt) {
         p.y = U.lerp(p.sy, p.ty, k);
         p.z = 60 * (1 - k * k);
         if (k >= 1) {
-          dealSplash(p.tx, p.ty, p.dmg, 'flame', p.splash, p.owner, game.byId.get(p.srcId));
+          dealSplash(p.tx, p.ty, p.dmg, 'flame', p.splash, p.owner, game.byId.get(p.srcId), false, p.srcAir);
           const fxs = Math.min(3.5, 1 + p.splash / 80);
           FX.explosion(p.tx, p.ty, fxs);
           const nf = Math.min(30, Math.round(p.splash / 8));

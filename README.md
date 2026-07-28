@@ -54,6 +54,11 @@ python3 -m http.server 8080
   dozer/worker so nobody stands around doing nothing
 - **End-game arsenal** — superheavy tanks (3× cost, 4× power), elite strike aircraft,
   extreme-range siege artillery (range 1,350 — bring spotters), compact hardened turrets
+- **Balanced air power** — aircraft deal 70% damage to units and only 30% to structures;
+  jets are for battlefield strikes, not free base-deletion
+- **Kestrel/Hornet Multirole** — dogfighter + ground-attack in one airframe: 8 light
+  missiles fired in controlled 2-missile bursts, automatically switching targets instead
+  of wasting the rack on something already doomed
 - **Spy war** — unarmed stealth spy planes with enormous sight, invisible to the enemy
   unless a satellite-detection radar truck is in scan range
 - **Power grid** — run out of power and production crawls while defenses go offline

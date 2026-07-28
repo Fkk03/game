@@ -1113,6 +1113,39 @@ const RENDER = (() => {
         ctx.beginPath(); ctx.ellipse(8, 0, 2.8, 1.7, 0, 0, 7); ctx.fill();
         break;
       }
+      case 'kestrel': {   // multirole: swing-wings mid-sweep, chin intake, visible missile racks
+        if (burning) {
+          ctx.fillStyle = flame(0.95);
+          ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(-20, -2.2); ctx.lineTo(-20, 2.2); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = g;
+        }
+        // swing wings, half-swept trapezoids
+        ctx.beginPath();
+        ctx.moveTo(6, -2.4); ctx.lineTo(-1, -12.5); ctx.lineTo(-7, -11.5); ctx.lineTo(-6, -2.6);
+        ctx.lineTo(-6, 2.6); ctx.lineTo(-7, 11.5); ctx.lineTo(-1, 12.5); ctx.lineTo(6, 2.4);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // under-wing missile racks — pips drain as ammo is spent
+        ctx.fillStyle = '#d8d4c8';
+        const pips = Math.min(4, Math.ceil((u.ammo || 0) / 2));
+        for (let i = 0; i < pips; i++) {
+          const px = 1 - i * 3;
+          ctx.fillRect(px, -11.5 + i * 1.4, 4, 1.3);
+          ctx.fillRect(px, 10.2 - i * 1.4, 4, 1.3);
+        }
+        // slab fuselage with chin intake + single tall tail
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(16, 0); ctx.lineTo(10, -2.6); ctx.lineTo(-8, -2.8);
+        ctx.lineTo(-12, -8.5); ctx.lineTo(-14.5, -8.5); ctx.lineTo(-12.5, -1.4);
+        ctx.lineTo(-12.5, 1.4); ctx.lineTo(-14.5, 8.5); ctx.lineTo(-12, 8.5); ctx.lineTo(-8, 2.8);
+        ctx.lineTo(10, 2.6);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = 'rgba(0,0,0,0.28)';
+        ctx.fillRect(8, -1.6, 4, 3.2);        // chin intake
+        ctx.fillStyle = '#b8d8e8';
+        ctx.beginPath(); ctx.ellipse(9, 0, 3.6, 1.8, 0, 0, 7); ctx.fill();
+        break;
+      }
       case 'spyplane': {  // stealth recon: long slender body, extreme-span thin straight wings
         // glider wings — very wide, very thin
         ctx.fillStyle = U.shade(c1, 0.75);

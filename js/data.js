@@ -140,7 +140,7 @@ const BUILDINGS = {
     name: { coalition: 'Airfield', dynasty: 'Airstrip', cartel: null },
     icon: '🛩️', cost: 1500, hp: 1800, size: 3, buildTime: 20, power: 3, armor: 'building',
     sight: 8, desc: 'Builds and rearms strike jets (one jet per pad, 4 pads).',
-    trainsByFaction: { coalition: ['falcon', 'seraph', 'spyplane'], dynasty: ['vulture', 'behemoth', 'spyplane'] },
+    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
     pads: 4,
   },
   turret: {
@@ -226,13 +226,13 @@ const UNITS = {
     name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,
     armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 3,
     desc: 'End-game strike aircraft: three annihilating missiles and heavy armor.',
-    weapon: { dmg: 5000, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 260, aa: false, ga: true },
+    weapon: { dmg: 5000, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 182, aa: false, ga: true },
   },
   behemoth: {
     name: 'Behemoth Bomber', icon: '🐉', cost: 3600, hp: 1100, speed: 215, sight: 9, radius: 18,
     armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 1,
     desc: 'End-game heavy bomber: one cataclysmic napalm payload, heavily armored.',
-    weapon: { dmg: 10000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 470, aa: false, ga: true },
+    weapon: { dmg: 10000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 329, aa: false, ga: true },
   },
 
   /* ---- Meridian Coalition ---- */
@@ -265,7 +265,14 @@ const UNITS = {
     name: 'Falcon Strike Jet', icon: '✈️', cost: 1300, hp: 260, speed: 235, sight: 8, radius: 14,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 2,
     desc: 'Strike fighter. Two annihilating missiles, then returns to the Airfield to rearm.',
-    weapon: { dmg: 2400, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 220, aa: false, ga: true },
+    weapon: { dmg: 2400, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 154, aa: false, ga: true },
+  },
+  kestrel: {
+    name: { coalition: 'Kestrel Multirole', dynasty: 'Hornet Multirole' },
+    icon: '🐦', cost: 1500, hp: 320, speed: 245, sight: 9, radius: 14,
+    armor: 'air', buildTime: 15, chassis: 'jet', air: true, ammo: 8, burst: 2,
+    desc: 'Multirole fighter — engages aircraft AND ground targets. Eight light missiles fired in two-missile bursts; switches targets instead of wasting ammo on a doomed one.',
+    weapon: { dmg: 1200, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 42, aa: true, ga: true },
   },
 
   /* ---- Crimson Dynasty ---- */
@@ -298,7 +305,7 @@ const UNITS = {
     name: 'Vulture Bomber', icon: '🦅', cost: 1200, hp: 300, speed: 205, sight: 8, radius: 15,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 1,
     desc: 'Drops one apocalyptic napalm bomb, then rearms at the Airstrip.',
-    weapon: { dmg: 4800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 420, aa: false, ga: true },
+    weapon: { dmg: 4800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 294, aa: false, ga: true },
   },
 
   /* ---- Scorpion Cartel ---- */
