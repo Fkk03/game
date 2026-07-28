@@ -659,7 +659,7 @@ const BUILDINGS = {
     name: { coalition: 'Airfield', dynasty: 'Airstrip', cartel: null },
     icon: '🛩️', cost: 1500, hp: 1800, size: 3, buildTime: 20, power: 3, armor: 'building',
     sight: 8, desc: 'Builds and rearms strike jets (one jet per pad, 4 pads).',
-    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
+    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'umbra', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
     pads: 4,
   },
   turret: {
@@ -747,6 +747,13 @@ const UNITS = {
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 0, noAutoAttack: true,
     stealthAir: true,
     desc: 'Unarmed stealth recon aircraft with enormous sight. Invisible to the enemy unless a detection unit is nearby.',
+  },
+  umbra: {
+    name: 'Umbra Ghost Strike', icon: '🌑', cost: 11700, hp: 950, speed: 250, sight: 12, radius: 16,
+    armor: 'air', buildTime: 32, chassis: 'jet', air: true, ammo: 3,
+    stealthAir: true, decloakOnFire: 5,
+    desc: 'Coalition-exclusive stealth strike jet. Cloaked in flight (colors dim) — only satellite-detection units can see it. Firing drops the cloak for ~5 s (colors brighten), then it fades back out. Seraph-grade firepower at triple the price.',
+    weapon: { dmg: 5000, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 182, aa: false, ga: true },
   },
   seraph: {
     name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,
@@ -1878,6 +1885,11 @@ function isEnemy(a, b) {
   return !pa || !pb || pa.team !== pb.team;      // allies (same team) are not enemies
 }
 
+/* is this aircraft's cloak active right now? Firing a weapon drops it briefly */
+function isStealthed(e) {
+  return !!(e.def && e.def.stealthAir) && !(e.decloakUntil > game.t);
+}
+
 /* stealth aircraft are only visible/targetable to a team with a detector in range */
 function isDetectedBy(e, team) {
   if (!e.def || !e.def.stealthAir) return true;
@@ -2172,7 +2184,7 @@ class Unit {
     for (const e of game.ents) {
       if (e.dead || !isEnemy(this, e)) continue;
       if (w ? !weaponCanHit(w, e) : (e.kind === 'unit' && e.def.air)) continue;
-      if (e.def && e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
+      if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.03) continue;
       const d = U.dist(this.x, this.y, e.x, e.y);
       if (d > range) continue;
@@ -2542,7 +2554,7 @@ class Unit {
             if (e.dead || !isEnemy(this, e)) continue;
             if (e.kind === 'building' && !e.constructed) continue;
             if (!weaponCanHit(def.weapon, e)) continue;
-            if (e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
+            if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
             const d = U.dist2(gp.x, gp.y, e.x, e.y);
             if (d > R * R) continue;
             const score = d + (e.kind === 'building' ? 1e6 : 0);   // intruding units first
@@ -2571,7 +2583,7 @@ class Unit {
           for (const e of game.ents) {
             if (e.dead || !isEnemy(this, e) || (exclude && e.id === exclude)) continue;
             if (e.kind === 'building' && !e.constructed) continue;
-            if (e.kind === 'unit' && e.def.stealthAir && !isDetectedBy(e, myTeam)) continue;
+            if (e.kind === 'unit' && isStealthed(e) && !isDetectedBy(e, myTeam)) continue;
             if (!weaponCanHit(w, e)) continue;
             const dd = U.dist2(ax, ay, e.x, e.y);
             if (dd < 520 * 520 && dd < bd) { bd = dd; best = e; }
@@ -2621,6 +2633,7 @@ class Unit {
           this.cool = w.cd;
           fireWeapon(this, w, t);
           this.ammo--;
+          if (def.decloakOnFire) this.decloakUntil = game.t + def.decloakOnFire;
           if (!this._shots || game.t - (this._shotsT || 0) > 6) this._shots = {};
           this._shots[t.id] = (this._shots[t.id] || 0) + 1;
           this._shotsT = game.t;
@@ -2800,7 +2813,7 @@ class Building {
           for (const e of game.ents) {
             if (e.dead || !isEnemy(this, e) || e.kind !== 'unit') continue;
             if (!weaponCanHit(w, e)) continue;
-            if (e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
+            if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
             const d = U.dist(this.x, this.y, e.x, e.y);
             if (d < w.range && d < bd) { bd = d; t = e; }
           }
@@ -3763,7 +3776,7 @@ const RENDER = (() => {
     if (e.owner === -1) return true;
     const p = game.players[e.owner];
     if (p && p.team === game.players[0].team) return true;   // own + allied always visible
-    if (e.def && e.def.stealthAir && !isDetectedBy(e, game.players[0].team)) return false;
+    if (isStealthed(e) && !isDetectedBy(e, game.players[0].team)) return false;
     if (game.revealAll) return true;
     if (e.kind === 'building') {
       // buildings render if currently visible; ghosts handle the rest
@@ -4433,7 +4446,15 @@ const RENDER = (() => {
     ctx.translate(u.x, u.y);
     ctx.rotate(u.angle);
     if (u.def.stealthAir) {
-      ctx.globalAlpha = 0.55 + 0.15 * Math.sin(game.renderT * 5 + u.id);   // cloak shimmer
+      // cloak state readout: dim while stealthed, fully bright while decloaked
+      if (isStealthed(u)) ctx.globalAlpha = 0.38 + 0.09 * Math.sin(game.renderT * 5 + u.id);
+      else {
+        ctx.globalAlpha = 1;
+        // hot decloak ring so the state flip is unmistakable
+        ctx.strokeStyle = `rgba(255,200,90,${0.5 + 0.3 * Math.sin(game.renderT * 10)})`;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.arc(0, 0, 22, 0, 7); ctx.stroke();
+      }
     }
     // bank into turns
     const turn = U.angDiff(u._prevA === undefined ? u.angle : u._prevA, u.angle);
@@ -4565,6 +4586,35 @@ const RENDER = (() => {
         ctx.fillRect(8, -1.6, 4, 3.2);        // chin intake
         ctx.fillStyle = '#b8d8e8';
         ctx.beginPath(); ctx.ellipse(9, 0, 3.6, 1.8, 0, 0, 7); ctx.fill();
+        break;
+      }
+      case 'umbra': {     // stealth strike: faceted arrowhead flying-wing, sawtooth trailing edge
+        if (burning) {
+          ctx.fillStyle = `rgba(150,120,255,${0.4 + 0.3 * Math.sin(game.renderT * 40)})`;
+          ctx.beginPath(); ctx.moveTo(-10, -3.5); ctx.lineTo(-17, -2.2); ctx.lineTo(-17, -4.8); ctx.closePath(); ctx.fill();
+          ctx.beginPath(); ctx.moveTo(-10, 3.5); ctx.lineTo(-17, 2.2); ctx.lineTo(-17, 4.8); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = g;
+        }
+        // single faceted arrowhead — no separate fuselage, all wing
+        ctx.fillStyle = U.shade(c2, 0.85);
+        ctx.beginPath();
+        ctx.moveTo(17, 0);
+        ctx.lineTo(-4, -15); ctx.lineTo(-11, -15); ctx.lineTo(-8, -8);
+        ctx.lineTo(-12, -4); ctx.lineTo(-9, 0);                        // sawtooth
+        ctx.lineTo(-12, 4); ctx.lineTo(-8, 8);
+        ctx.lineTo(-11, 15); ctx.lineTo(-4, 15);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = U.shade(c1, 1.1); ctx.lineWidth = 1; ctx.stroke();
+        // facet ridge lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.16)'; ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(17, 0); ctx.lineTo(-9, 0);
+        ctx.moveTo(11, -2.4); ctx.lineTo(-6, -11);
+        ctx.moveTo(11, 2.4); ctx.lineTo(-6, 11);
+        ctx.stroke();
+        // slit cockpit glow
+        ctx.fillStyle = 'rgba(140,220,255,0.8)';
+        ctx.fillRect(6, -1.1, 6, 2.2);
         break;
       }
       case 'spyplane': {  // stealth recon: long slender body, extreme-span thin straight wings
@@ -5445,7 +5495,7 @@ const RENDER = (() => {
       const hostile = e.owner !== -1 && p && p.team !== humanTeam;
       if (hostile && !world.isVisible(e.x, e.y) &&
           !(e.kind === 'building' && ghosts.has(e.id))) continue;
-      if (hostile && e.def && e.def.stealthAir && !isDetectedBy(e, humanTeam)) continue;
+      if (hostile && isStealthed(e) && !isDetectedBy(e, humanTeam)) continue;
       c.fillStyle = e.owner === -1 ? '#999' : p.color;
       const s = e.kind === 'building' ? Math.max(3, e.size * sx) : 2;
       c.fillRect(e.x / TILE * sx - s / 2, e.y / TILE * sy - s / 2, s, s);
@@ -5524,7 +5574,7 @@ const AI = (() => {
   }
 
   const COMPS = {
-    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, spyplane: 1 },
+    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, umbra: 1, spyplane: 1 },
     dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1, behemoth: 1, spyplane: 1 },
     cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1 },
   };
@@ -6080,7 +6130,7 @@ const AI = (() => {
     }
 
     function onUnitDone(u) {
-      if (u.def.stealthAir) {
+      if (u.def.stealthAir && !u.def.weapon) {
         // spy plane: park over the enemy's key building for standing recon
         const t = enemyKeyBuilding();
         if (t) u.giveOrder({ type: 'guardarea', x: t.x + U.rand(-80, 80), y: t.y + U.rand(-80, 80) });
@@ -6334,7 +6384,7 @@ const INPUT = (() => {
     for (const e of game.ents) {
       if (e.dead) continue;
       if (isEnemyOfHuman(e) && !world.isVisible(e.x, e.y)) continue;
-      if (isEnemyOfHuman(e) && e.def && e.def.stealthAir && !isDetectedBy(e, game.players[0].team)) continue;
+      if (isEnemyOfHuman(e) && isStealthed(e) && !isDetectedBy(e, game.players[0].team)) continue;
       let hit = false;
       if (e.kind === 'unit') hit = U.dist(wx, wy, e.x, e.y) < e.radius + 7;
       else hit = wx >= e.tx * TILE && wx <= (e.tx + e.size) * TILE && wy >= e.ty * TILE && wy <= (e.ty + e.size) * TILE;

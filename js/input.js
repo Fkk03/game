@@ -201,7 +201,7 @@ const INPUT = (() => {
     for (const e of game.ents) {
       if (e.dead) continue;
       if (isEnemyOfHuman(e) && !world.isVisible(e.x, e.y)) continue;
-      if (isEnemyOfHuman(e) && e.def && e.def.stealthAir && !isDetectedBy(e, game.players[0].team)) continue;
+      if (isEnemyOfHuman(e) && isStealthed(e) && !isDetectedBy(e, game.players[0].team)) continue;
       let hit = false;
       if (e.kind === 'unit') hit = U.dist(wx, wy, e.x, e.y) < e.radius + 7;
       else hit = wx >= e.tx * TILE && wx <= (e.tx + e.size) * TILE && wy >= e.ty * TILE && wy <= (e.ty + e.size) * TILE;

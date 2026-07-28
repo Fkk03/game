@@ -140,7 +140,7 @@ const BUILDINGS = {
     name: { coalition: 'Airfield', dynasty: 'Airstrip', cartel: null },
     icon: '🛩️', cost: 1500, hp: 1800, size: 3, buildTime: 20, power: 3, armor: 'building',
     sight: 8, desc: 'Builds and rearms strike jets (one jet per pad, 4 pads).',
-    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
+    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'umbra', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
     pads: 4,
   },
   turret: {
@@ -228,6 +228,13 @@ const UNITS = {
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 0, noAutoAttack: true,
     stealthAir: true,
     desc: 'Unarmed stealth recon aircraft with enormous sight. Invisible to the enemy unless a detection unit is nearby.',
+  },
+  umbra: {
+    name: 'Umbra Ghost Strike', icon: '🌑', cost: 11700, hp: 950, speed: 250, sight: 12, radius: 16,
+    armor: 'air', buildTime: 32, chassis: 'jet', air: true, ammo: 3,
+    stealthAir: true, decloakOnFire: 5,
+    desc: 'Coalition-exclusive stealth strike jet. Cloaked in flight (colors dim) — only satellite-detection units can see it. Firing drops the cloak for ~5 s (colors brighten), then it fades back out. Seraph-grade firepower at triple the price.',
+    weapon: { dmg: 5000, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 182, aa: false, ga: true },
   },
   seraph: {
     name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,

@@ -382,7 +382,7 @@ const RENDER = (() => {
     if (e.owner === -1) return true;
     const p = game.players[e.owner];
     if (p && p.team === game.players[0].team) return true;   // own + allied always visible
-    if (e.def && e.def.stealthAir && !isDetectedBy(e, game.players[0].team)) return false;
+    if (isStealthed(e) && !isDetectedBy(e, game.players[0].team)) return false;
     if (game.revealAll) return true;
     if (e.kind === 'building') {
       // buildings render if currently visible; ghosts handle the rest
@@ -1052,7 +1052,15 @@ const RENDER = (() => {
     ctx.translate(u.x, u.y);
     ctx.rotate(u.angle);
     if (u.def.stealthAir) {
-      ctx.globalAlpha = 0.55 + 0.15 * Math.sin(game.renderT * 5 + u.id);   // cloak shimmer
+      // cloak state readout: dim while stealthed, fully bright while decloaked
+      if (isStealthed(u)) ctx.globalAlpha = 0.38 + 0.09 * Math.sin(game.renderT * 5 + u.id);
+      else {
+        ctx.globalAlpha = 1;
+        // hot decloak ring so the state flip is unmistakable
+        ctx.strokeStyle = `rgba(255,200,90,${0.5 + 0.3 * Math.sin(game.renderT * 10)})`;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.arc(0, 0, 22, 0, 7); ctx.stroke();
+      }
     }
     // bank into turns
     const turn = U.angDiff(u._prevA === undefined ? u.angle : u._prevA, u.angle);
@@ -1184,6 +1192,35 @@ const RENDER = (() => {
         ctx.fillRect(8, -1.6, 4, 3.2);        // chin intake
         ctx.fillStyle = '#b8d8e8';
         ctx.beginPath(); ctx.ellipse(9, 0, 3.6, 1.8, 0, 0, 7); ctx.fill();
+        break;
+      }
+      case 'umbra': {     // stealth strike: faceted arrowhead flying-wing, sawtooth trailing edge
+        if (burning) {
+          ctx.fillStyle = `rgba(150,120,255,${0.4 + 0.3 * Math.sin(game.renderT * 40)})`;
+          ctx.beginPath(); ctx.moveTo(-10, -3.5); ctx.lineTo(-17, -2.2); ctx.lineTo(-17, -4.8); ctx.closePath(); ctx.fill();
+          ctx.beginPath(); ctx.moveTo(-10, 3.5); ctx.lineTo(-17, 2.2); ctx.lineTo(-17, 4.8); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = g;
+        }
+        // single faceted arrowhead — no separate fuselage, all wing
+        ctx.fillStyle = U.shade(c2, 0.85);
+        ctx.beginPath();
+        ctx.moveTo(17, 0);
+        ctx.lineTo(-4, -15); ctx.lineTo(-11, -15); ctx.lineTo(-8, -8);
+        ctx.lineTo(-12, -4); ctx.lineTo(-9, 0);                        // sawtooth
+        ctx.lineTo(-12, 4); ctx.lineTo(-8, 8);
+        ctx.lineTo(-11, 15); ctx.lineTo(-4, 15);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = U.shade(c1, 1.1); ctx.lineWidth = 1; ctx.stroke();
+        // facet ridge lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.16)'; ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(17, 0); ctx.lineTo(-9, 0);
+        ctx.moveTo(11, -2.4); ctx.lineTo(-6, -11);
+        ctx.moveTo(11, 2.4); ctx.lineTo(-6, 11);
+        ctx.stroke();
+        // slit cockpit glow
+        ctx.fillStyle = 'rgba(140,220,255,0.8)';
+        ctx.fillRect(6, -1.1, 6, 2.2);
         break;
       }
       case 'spyplane': {  // stealth recon: long slender body, extreme-span thin straight wings
@@ -2064,7 +2101,7 @@ const RENDER = (() => {
       const hostile = e.owner !== -1 && p && p.team !== humanTeam;
       if (hostile && !world.isVisible(e.x, e.y) &&
           !(e.kind === 'building' && ghosts.has(e.id))) continue;
-      if (hostile && e.def && e.def.stealthAir && !isDetectedBy(e, humanTeam)) continue;
+      if (hostile && isStealthed(e) && !isDetectedBy(e, humanTeam)) continue;
       c.fillStyle = e.owner === -1 ? '#999' : p.color;
       const s = e.kind === 'building' ? Math.max(3, e.size * sx) : 2;
       c.fillRect(e.x / TILE * sx - s / 2, e.y / TILE * sy - s / 2, s, s);

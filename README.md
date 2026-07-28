@@ -64,6 +64,10 @@ python3 -m http.server 8080
   before they can line up a second pass
 - **Spy war** — unarmed stealth spy planes with enormous sight, invisible to the enemy
   unless a satellite-detection radar truck is in scan range
+- **Umbra Ghost Strike** (Coalition only) — a cloaked strike jet with Seraph-grade
+  missiles at triple the price. Dimmed colors = cloaked (only detectors see it);
+  firing drops the cloak for ~5 s (colors flare bright + decloak ring) before it
+  fades back out
 - **Power grid** — run out of power and production crawls while defenses go offline
 - **General's promotions** — combat XP earns ranks; spend points on 5 powers per faction:
   recon sweeps, airstrikes, artillery barrages, paradrops, emergency supply drops, war frenzy,

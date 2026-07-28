@@ -18,7 +18,7 @@ const AI = (() => {
   }
 
   const COMPS = {
-    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, spyplane: 1 },
+    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, umbra: 1, spyplane: 1 },
     dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1, behemoth: 1, spyplane: 1 },
     cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1 },
   };
@@ -574,7 +574,7 @@ const AI = (() => {
     }
 
     function onUnitDone(u) {
-      if (u.def.stealthAir) {
+      if (u.def.stealthAir && !u.def.weapon) {
         // spy plane: park over the enemy's key building for standing recon
         const t = enemyKeyBuilding();
         if (t) u.giveOrder({ type: 'guardarea', x: t.x + U.rand(-80, 80), y: t.y + U.rand(-80, 80) });

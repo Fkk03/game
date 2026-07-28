@@ -21,6 +21,11 @@ function isEnemy(a, b) {
   return !pa || !pb || pa.team !== pb.team;      // allies (same team) are not enemies
 }
 
+/* is this aircraft's cloak active right now? Firing a weapon drops it briefly */
+function isStealthed(e) {
+  return !!(e.def && e.def.stealthAir) && !(e.decloakUntil > game.t);
+}
+
 /* stealth aircraft are only visible/targetable to a team with a detector in range */
 function isDetectedBy(e, team) {
   if (!e.def || !e.def.stealthAir) return true;
@@ -315,7 +320,7 @@ class Unit {
     for (const e of game.ents) {
       if (e.dead || !isEnemy(this, e)) continue;
       if (w ? !weaponCanHit(w, e) : (e.kind === 'unit' && e.def.air)) continue;
-      if (e.def && e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
+      if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.03) continue;
       const d = U.dist(this.x, this.y, e.x, e.y);
       if (d > range) continue;
@@ -685,7 +690,7 @@ class Unit {
             if (e.dead || !isEnemy(this, e)) continue;
             if (e.kind === 'building' && !e.constructed) continue;
             if (!weaponCanHit(def.weapon, e)) continue;
-            if (e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
+            if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
             const d = U.dist2(gp.x, gp.y, e.x, e.y);
             if (d > R * R) continue;
             const score = d + (e.kind === 'building' ? 1e6 : 0);   // intruding units first
@@ -714,7 +719,7 @@ class Unit {
           for (const e of game.ents) {
             if (e.dead || !isEnemy(this, e) || (exclude && e.id === exclude)) continue;
             if (e.kind === 'building' && !e.constructed) continue;
-            if (e.kind === 'unit' && e.def.stealthAir && !isDetectedBy(e, myTeam)) continue;
+            if (e.kind === 'unit' && isStealthed(e) && !isDetectedBy(e, myTeam)) continue;
             if (!weaponCanHit(w, e)) continue;
             const dd = U.dist2(ax, ay, e.x, e.y);
             if (dd < 520 * 520 && dd < bd) { bd = dd; best = e; }
@@ -764,6 +769,7 @@ class Unit {
           this.cool = w.cd;
           fireWeapon(this, w, t);
           this.ammo--;
+          if (def.decloakOnFire) this.decloakUntil = game.t + def.decloakOnFire;
           if (!this._shots || game.t - (this._shotsT || 0) > 6) this._shots = {};
           this._shots[t.id] = (this._shots[t.id] || 0) + 1;
           this._shotsT = game.t;
@@ -943,7 +949,7 @@ class Building {
           for (const e of game.ents) {
             if (e.dead || !isEnemy(this, e) || e.kind !== 'unit') continue;
             if (!weaponCanHit(w, e)) continue;
-            if (e.def.stealthAir && !isDetectedBy(e, game.players[this.owner].team)) continue;
+            if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
             const d = U.dist(this.x, this.y, e.x, e.y);
             if (d < w.range && d < bd) { bd = d; t = e; }
           }
