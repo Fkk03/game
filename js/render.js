@@ -1152,6 +1152,17 @@ const RENDER = (() => {
         ctx.beginPath(); ctx.moveTo(e.rallyX, e.rallyY - 11); ctx.lineTo(e.rallyX, e.rallyY + 11);
         ctx.moveTo(e.rallyX - 11, e.rallyY); ctx.lineTo(e.rallyX + 11, e.rallyY); ctx.stroke();
       }
+      // air patrol post marker
+      if (e.kind === 'unit' && e.owner === 0 && e.def.air && e.guardPost) {
+        ctx.strokeStyle = 'rgba(143,212,232,0.55)'; ctx.lineWidth = 1.5;
+        ctx.setLineDash([7, 7]);
+        ctx.beginPath(); ctx.arc(e.guardPost.x, e.guardPost.y, 110, 0, 7); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(143,212,232,0.8)';
+        ctx.fillText('🛡', e.guardPost.x, e.guardPost.y + 4);
+        ctx.textAlign = 'left';
+      }
       // move order line
       if (e.kind === 'unit' && e.owner === 0 && e.path && e.pathI < e.path.length) {
         const last = e.path[e.path.length - 1];

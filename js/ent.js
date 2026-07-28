@@ -188,6 +188,7 @@ class Unit {
       this.ammo = this.def.ammo; this.padId = null; this.jetState = 'idle';
       this.rearmT = 0; this.persistTargetId = 0; this.circleA = U.rand(0, 6);
       this.vx = 0; this.vy = 0;
+      this.guardPost = null;      // air patrol anchor {x,y}
     }
     this.buildT = 0;
     this.repairT = 0;
@@ -200,8 +201,9 @@ class Unit {
     this.path = null;
     if (o.type === 'move' || o.type === 'attackmove' || o.type === 'guardarea') { this.guardX = o.x; this.guardY = o.y; }
     if (this.def.air) {
-      if (o.type === 'attack') { this.jetState = 'attack'; this.persistTargetId = o.targetId; }
-      else if (o.type === 'move' || o.type === 'attackmove' || o.type === 'guardarea') { this.jetState = 'moveto'; this.persistTargetId = 0; }
+      if (o.type === 'attack') { this.jetState = 'attack'; this.persistTargetId = o.targetId; this.guardPost = null; }
+      else if (o.type === 'guardarea') { this.jetState = 'guardmove'; this.persistTargetId = 0; this.guardPost = { x: o.x, y: o.y }; }
+      else if (o.type === 'move' || o.type === 'attackmove') { this.jetState = 'moveto'; this.persistTargetId = 0; this.guardPost = null; }
     }
   }
 
@@ -616,10 +618,45 @@ class Unit {
         if (flyToward(o.x, o.y, def.speed) < 40) { this.jetState = 'idle'; this.guardX = this.x; this.guardY = this.y; this.order = { type: 'guard' }; }
         break;
       }
+      case 'guardmove': {
+        if (!this.guardPost) { this.jetState = 'idle'; break; }
+        if (flyToward(this.guardPost.x, this.guardPost.y, def.speed) < 70) this.jetState = 'guardair';
+        break;
+      }
+      case 'guardair': {
+        const gp = this.guardPost;
+        if (!gp) { this.jetState = 'idle'; break; }
+        this.circleA += dt * 1.1;
+        flyToward(gp.x + Math.cos(this.circleA) * 110, gp.y + Math.sin(this.circleA) * 110, def.speed * 0.6);
+        if (this.ammo <= 0) { this.jetState = 'return'; break; }
+        this.scanT -= dt;
+        if (this.scanT <= 0) {
+          this.scanT = 0.5;
+          let best = null, bd = Infinity;
+          const R = 460;
+          for (const e of game.ents) {
+            if (e.dead || !isEnemy(this, e)) continue;
+            if (e.kind === 'building' && !e.constructed) continue;
+            if (!weaponCanHit(def.weapon, e)) continue;
+            const d = U.dist2(gp.x, gp.y, e.x, e.y);
+            if (d > R * R) continue;
+            const score = d + (e.kind === 'building' ? 1e6 : 0);   // intruding units first
+            if (score < bd) { bd = score; best = e; }
+          }
+          if (best) {
+            this.order = { type: 'attack', targetId: best.id };
+            this.jetState = 'attack';
+            this.persistTargetId = best.id;
+          }
+        }
+        break;
+      }
       case 'attack': {
         const t = game.byId.get(this.order.targetId || this.persistTargetId);
         if (!t || t.dead || !weaponCanHit(def.weapon, t)) {
-          this.jetState = pad ? 'return' : 'idle'; this.persistTargetId = 0; break;
+          this.persistTargetId = 0;
+          this.jetState = pad ? 'return' : (this.guardPost ? 'guardmove' : 'idle');
+          break;
         }
         if (this.ammo <= 0) { this.jetState = 'return'; break; }
         const d = flyToward(t.x, t.y, def.speed);
@@ -632,19 +669,21 @@ class Unit {
         break;
       }
       case 'return': {
-        if (!pad) { this.jetState = 'idle'; break; }
+        if (!pad) { this.jetState = this.guardPost && this.ammo > 0 ? 'guardmove' : 'idle'; break; }
         const d = flyToward(pad.x, pad.y, def.speed);
         if (d < 40) { this.jetState = 'rearm'; this.rearmT = 0; }
         break;
       }
       case 'rearm': {
-        if (!pad) { this.jetState = 'idle'; break; }
+        if (!pad) { this.jetState = this.guardPost ? 'guardmove' : 'idle'; break; }
         this.x = U.lerp(this.x, pad.x, dt * 4); this.y = U.lerp(this.y, pad.y, dt * 4);
         this.rearmT += dt;
         if (this.rearmT > 4) {
           this.ammo = def.ammo;
           if (this.persistTargetId && game.byId.get(this.persistTargetId) && !game.byId.get(this.persistTargetId).dead) {
             this.jetState = 'attack'; this.order = { type: 'attack', targetId: this.persistTargetId };
+          } else if (this.guardPost) {
+            this.jetState = 'guardmove'; this.persistTargetId = 0;   // rearmed — back to the patrol post
           } else { this.jetState = 'idle'; this.persistTargetId = 0; }
         }
         break;
@@ -978,9 +1017,10 @@ function updateProjectiles(dt) {
         const d = U.dist(p.x, p.y, p.tx, p.ty);
         if (d < 14 || p.t > 4) {
           const src = game.byId.get(p.srcId);
+          // big ground-strike blasts must not swat aircraft (jet wings would kill each other)
           if (t && !t.dead && d < 26 && p.splash <= 24) applyDamage(t, p.dmg, p.dtype, src);
-          else dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, src, true);
-          const fxs = 0.5 + p.splash / 90;
+          else dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, src, p.splash <= 24);
+          const fxs = Math.min(3, 0.5 + p.splash / 90);
           FX.explosion(p.x, p.y, fxs);
           SFX.explo(p.x, p.y, fxs);
           p.dead = true;
@@ -1025,9 +1065,9 @@ function updateProjectiles(dt) {
         p.z = 60 * (1 - k * k);
         if (k >= 1) {
           dealSplash(p.tx, p.ty, p.dmg, 'flame', p.splash, p.owner, game.byId.get(p.srcId));
-          const fxs = 1 + p.splash / 80;
+          const fxs = Math.min(3.5, 1 + p.splash / 80);
           FX.explosion(p.tx, p.ty, fxs);
-          const nf = Math.round(p.splash / 8);
+          const nf = Math.min(30, Math.round(p.splash / 8));
           for (let f = 0; f < nf; f++) FX.flame(p.tx + U.rand(-p.splash * 0.8, p.splash * 0.8), p.ty + U.rand(-p.splash * 0.8, p.splash * 0.8), -Math.PI / 2);
           SFX.explo(p.tx, p.ty, Math.min(2, fxs));
           p.dead = true;

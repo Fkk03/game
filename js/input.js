@@ -349,7 +349,7 @@ const INPUT = (() => {
       u.order = { type: 'guard' };
       u.guardX = u.x; u.guardY = u.y;
       u.path = null;
-      if (u.def.air) { u.jetState = u.padId ? 'return' : 'idle'; u.persistTargetId = 0; }
+      if (u.def.air) { u.jetState = u.padId ? 'return' : 'idle'; u.persistTargetId = 0; u.guardPost = null; }
     }
     SFX.click();
   }

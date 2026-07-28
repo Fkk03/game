@@ -204,8 +204,8 @@ const UNITS = {
   falcon: {
     name: 'Falcon Strike Jet', icon: '✈️', cost: 1300, hp: 260, speed: 235, sight: 8, radius: 14,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 2,
-    desc: 'Strike fighter. Two devastating missiles, then returns to the Airfield to rearm.',
-    weapon: { dmg: 400, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 70, aa: false, ga: true },
+    desc: 'Strike fighter. Two annihilating missiles, then returns to the Airfield to rearm.',
+    weapon: { dmg: 4800, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 220, aa: false, ga: true },
   },
 
   /* ---- Crimson Dynasty ---- */
@@ -237,8 +237,8 @@ const UNITS = {
   vulture: {
     name: 'Vulture Bomber', icon: '🦅', cost: 1200, hp: 300, speed: 205, sight: 8, radius: 15,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 1,
-    desc: 'Drops one massive napalm bomb, then rearms at the Airstrip.',
-    weapon: { dmg: 800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 160, aa: false, ga: true },
+    desc: 'Drops one apocalyptic napalm bomb, then rearms at the Airstrip.',
+    weapon: { dmg: 9600, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 420, aa: false, ga: true },
   },
 
   /* ---- Scorpion Cartel ---- */
