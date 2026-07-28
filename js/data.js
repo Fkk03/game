@@ -131,9 +131,9 @@ const BUILDINGS = {
     icon: '🏭', cost: 2000, hp: 2200, size: 3, buildTime: 25, power: 3, armor: 'building',
     sight: 7, desc: 'Builds vehicles.',
     trainsByFaction: {
-      coalition: ['bulwark', 'viper', 'thunder', 'goliath', 'siege', 'detector'],
-      dynasty: ['warlord', 'flak', 'salamander', 'goliath', 'siege', 'detector'],
-      cartel: ['jackal', 'guntruck', 'barrage', 'demorig', 'goliath', 'siege', 'detector'],
+      coalition: ['bulwark', 'viper', 'aegis', 'thunder', 'goliath', 'siege', 'detector'],
+      dynasty: ['warlord', 'flak', 'aegis', 'salamander', 'goliath', 'siege', 'detector'],
+      cartel: ['jackal', 'guntruck', 'aegis', 'barrage', 'demorig', 'goliath', 'siege', 'detector'],
     },
   },
   airfield: {
@@ -207,6 +207,13 @@ const UNITS = {
     armor: 'light', buildTime: 24, chassis: 'mlrs',
     desc: 'Extreme-range siege artillery (range 1350 — far beyond its own sight; use spotters). Slow and fragile.',
     weapon: { dmg: 340, dtype: 'explosive', range: 1350, minRange: 260, cd: 8, projectile: 'arty', splash: 75, aa: false, ga: true },
+  },
+  aegis: {
+    name: { coalition: 'Aegis Storm Tank', dynasty: 'Dragonhail Tank', cartel: 'Sky Reaper' },
+    icon: '🌪️', cost: 2100, hp: 1150, speed: 80, sight: 8, radius: 18,
+    armor: 'heavy', buildTime: 16, chassis: 'aatank',
+    desc: 'Elite anti-aircraft tank: quad autocannons with tracking radar. 3× the cost of a standard AA vehicle, ~4× the punch — far more damage, range and armor.',
+    weapon: { dmg: 52, dtype: 'flak', range: 340, cd: 0.28, projectile: 'flakburst', splash: 30, aa: true, ga: true },
   },
   detector: {
     name: { coalition: 'Watchman Radar', dynasty: 'Overseer Radar', cartel: 'Listening Truck' },

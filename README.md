@@ -59,6 +59,9 @@ python3 -m http.server 8080
 - **Kestrel/Hornet Multirole** — dogfighter + ground-attack in one airframe: 8 light
   missiles fired in controlled 2-missile bursts, automatically switching targets instead
   of wasting the rack on something already doomed
+- **Aegis Storm / Dragonhail / Sky Reaper** — elite quad-autocannon AA tank (all factions):
+  3× the cost of standard AA, ~4× the punch — 340 range, heavy armor, shreds strike jets
+  before they can line up a second pass
 - **Spy war** — unarmed stealth spy planes with enormous sight, invisible to the enemy
   unless a satellite-detection radar truck is in scan range
 - **Power grid** — run out of power and production crawls while defenses go offline

@@ -18,13 +18,13 @@ const AI = (() => {
   }
 
   const COMPS = {
-    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, spyplane: 1 },
-    dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1, behemoth: 1, spyplane: 1 },
-    cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, barrage: 2, demorig: 2, goliath: 2, siege: 1 },
+    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, spyplane: 1 },
+    dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1, behemoth: 1, spyplane: 1 },
+    cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1 },
   };
   /* units that counter each enemy composition trend, per faction */
   const COUNTERS = {
-    air:   { coalition: ['viper', 'rocketeer', 'kestrel'], dynasty: ['flak', 'rpg', 'kestrel'], cartel: ['guntruck', 'rocketraider'] },
+    air:   { coalition: ['viper', 'rocketeer', 'kestrel', 'aegis'], dynasty: ['flak', 'rpg', 'kestrel', 'aegis'], cartel: ['guntruck', 'rocketraider', 'aegis'] },
     armor: { coalition: ['rocketeer', 'thunder', 'bulwark'], dynasty: ['rpg', 'warlord'], cartel: ['rocketraider', 'barrage', 'demorig'] },
     inf:   { coalition: ['viper', 'ranger'], dynasty: ['salamander', 'flak'], cartel: ['guntruck', 'raider'] },
   };

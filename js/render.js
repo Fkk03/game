@@ -476,6 +476,7 @@ const RENDER = (() => {
         case 'warlord': drawWarlord(u, c1, c2); break;
         case 'goliath': drawGoliath(u, c1, c2); break;
         case 'viper': drawViper(u, c1, c2); break;
+        case 'aegis': drawAegis(u, c1, c2); break;
         case 'flak': drawFlakTruck(u, c1, c2); break;
         case 'guntruck': drawGunTruck(u, c1, c2); break;
         case 'barrage': drawBarrageBuggy(u, c1, c2); break;
@@ -798,6 +799,45 @@ const RENDER = (() => {
     // twin antennas
     ctx.strokeStyle = '#1c1a14'; ctx.lineWidth = 0.9;
     ctx.beginPath(); ctx.moveTo(-8, -6); ctx.lineTo(-15, -12); ctx.moveTo(-9, -4); ctx.lineTo(-17, -7); ctx.stroke();
+    ctx.restore();
+  }
+
+  /* Aegis — elite AA tank: wide tracked hull, quad autocannon turret, tracking dish */
+  function drawAegis(u, c1, c2) {
+    tankTreads(u, 28, 21, 4);
+    hullPlate(28, 21, c1, c2, 3);
+    // hull intake grills
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(8, -6, 4, 4.4); ctx.fillRect(8, 1.6, 4, 4.4);
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    // wide flat turret
+    ctx.fillStyle = U.shade(c1, 1.25); ctx.strokeStyle = c2; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(7, -4); ctx.lineTo(3, -7.5); ctx.lineTo(-7, -7.5); ctx.lineTo(-10, -4);
+    ctx.lineTo(-10, 4); ctx.lineTo(-7, 7.5); ctx.lineTo(3, 7.5); ctx.lineTo(7, 4); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,246,220,0.22)';
+    ctx.beginPath(); ctx.arc(-2, -3, 2.8, 0, 7); ctx.fill();
+    // quad AA autocannons — two pairs, slightly splayed skyward
+    ctx.fillStyle = '#1e1c16';
+    for (const by of [-5.4, -2.6, 2.6, 5.4]) ctx.fillRect(4, by - 0.9, 16, 1.8);
+    ctx.fillStyle = '#3a362c';
+    for (const by of [-5.4, -2.6, 2.6, 5.4]) ctx.fillRect(18, by - 1.2, 2.4, 2.4);   // muzzle brakes
+    // spinning tracking dish on the turret rear
+    ctx.save();
+    ctx.translate(-6.5, 0);
+    ctx.rotate(-(U.angDiff(u.angle, u.tAngle)) - u.angle + game.renderT * 3.4);
+    ctx.fillStyle = '#c8d0d8';
+    ctx.beginPath(); ctx.ellipse(0, 0, 4.4, 2.6, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#788088'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(4.6, 0); ctx.stroke();
+    ctx.restore();
+    // blinking track light
+    if (Math.floor(game.renderT * 4) % 2) {
+      ctx.fillStyle = '#7fd4ff';
+      ctx.beginPath(); ctx.arc(-6.5, 0, 1.3, 0, 7); ctx.fill();
+    }
     ctx.restore();
   }
 
