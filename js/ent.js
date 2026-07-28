@@ -123,7 +123,7 @@ function killEnt(e, attacker) {
     const val = e.def.cost || 500;
     if (attacker.kind === 'unit' && attacker.def.weapon) {
       attacker.vetXp += val / 8;
-      while (attacker.vetRank < 3 && attacker.vetXp >= VET_XP[attacker.vetRank + 1]) {
+      while (attacker.vetRank < 5 && attacker.vetXp >= VET_XP[attacker.vetRank + 1]) {
         attacker.vetRank++;
         attacker.maxHp = Math.round(attacker.def.hp * VET_HP[attacker.vetRank]);
         attacker.hp = Math.min(attacker.maxHp, attacker.hp + attacker.def.hp * 0.3);
@@ -363,7 +363,9 @@ class Unit {
     }
 
     // veteran self-heal
-    if (this.vetRank >= 3 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 2 * dt);
+    // veterans patch themselves up in the field — faster with every star
+    const regen = VET_REGEN[this.vetRank];
+    if (regen && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
 
     // nudge out of tiles that became blocked (building placed on top of us)
     this.unstickT = (this.unstickT || 0) - dt;
@@ -401,7 +403,7 @@ class Unit {
         const c = world.crates[i];
         if (U.dist2(this.x, this.y, c.x, c.y) < 26 * 26) {
           world.crates.splice(i, 1);
-          if (this.vetRank < 3) {
+          if (this.vetRank < 5) {
             this.vetRank++;
             this.maxHp = Math.round(this.def.hp * VET_HP[this.vetRank]);
             this.hp = Math.min(this.maxHp, this.hp + this.def.hp * 0.35);
@@ -814,7 +816,8 @@ class Building {
         if (!ep || ep.team !== p.team) continue;
         if (e.def.chassis === 'inf' || e.def.chassis === 'rocketinf') continue;
         if (U.dist2(this.x, this.y, e.x, e.y) > R * R) continue;
-        e.hp = Math.min(e.maxHp, e.hp + rate * dt);
+        // veteran crews work with the mechanics — repairs speed up per star
+        e.hp = Math.min(e.maxHp, e.hp + rate * (1 + e.vetRank * 0.25) * dt);
         if (Math.random() < dt * 1.5) FX.sparks(e.x + U.rand(-9, 9), e.y + U.rand(-9, 9), 2);
       }
     }

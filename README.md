@@ -62,7 +62,10 @@ python3 -m http.server 8080
   sabotage, ambushes, carpet bombing, thermobaric bombs…
 - **Superweapons** — Solaris Beam / Nuclear Missile / Rocket Storm, on a 5-minute countdown
   that both players can see
-- **Unit veterancy** (★★★), **fog of war**, **minimap**, control groups, attack-move,
+- **Unit veterancy up to ★★★★★** — every star adds damage and max health (up to +80%);
+  from 2 stars units self-repair in the field, faster with each rank, and the Repair
+  Center services veteran crews +25% faster per star
+- **Fog of war**, **minimap**, control groups, attack-move,
   waypoint queues, rally points, a skirmish AI with 3 difficulties, procedural desert maps
 - **Win** by destroying every enemy structure
 

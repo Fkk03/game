@@ -16,10 +16,11 @@ const DMG_MOD = {
   beam:    { inf: 1.20, light: 1.10, heavy: 1.00, building: 1.00, air: 1.00 },
 };
 
-/* veterancy: xp thresholds per rank, bonuses applied in ent.js */
-const VET_XP = [0, 200, 500, 1100];
-const VET_DMG = [1, 1.1, 1.2, 1.35];
-const VET_HP  = [1, 1.1, 1.2, 1.35];
+/* veterancy: xp thresholds per rank (5 stars max), bonuses applied in ent.js */
+const VET_XP = [0, 200, 500, 1100, 2000, 3400];
+const VET_DMG = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
+const VET_HP  = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
+const VET_REGEN = [0, 0, 1, 2, 3.5, 6];   // hp/s self-repair, from 2 stars up
 
 /* player promotion ranks (general's XP) → each rank grants 1 power point */
 const RANK_XP = [0, 400, 1000, 2000, 3400, 5200];
