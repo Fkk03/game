@@ -1390,7 +1390,7 @@ const FX = (() => {
   function spawn(p) {
     // draw code emits ambient smoke every frame; while paused nothing expires, so don't spawn
     if (typeof game !== 'undefined' && game.paused) return;
-    if (parts.length > 1400) parts.splice(0, 200);
+    if (parts.length > 1000) parts.splice(0, 200);
     parts.push(p);
   }
 
@@ -1458,13 +1458,13 @@ const FX = (() => {
 
     explosion(x, y, size = 1) {
       spawn({ x, y, vx: 0, vy: 0, t: 0, life: 0.38 + size * 0.12, r: 16 * size, kind: 'fireball' });
-      const n = Math.round(14 * size);
+      const n = Math.round(10 * size);
       for (let i = 0; i < n; i++) {
         const a = U.rand(0, Math.PI * 2), sp = U.rand(30, 190 * size);
         spawn({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, t: 0, life: U.rand(0.2, 0.55 * size),
           r: U.rand(3, 8 * size), kind: 'fire', drag: 3.2 });
       }
-      for (let i = 0; i < Math.round(9 * size); i++) {
+      for (let i = 0; i < Math.round(7 * size); i++) {
         const a = U.rand(0, Math.PI * 2), sp = U.rand(10, 70 * size);
         spawn({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30, t: 0, life: U.rand(0.8, 2.2),
           r: U.rand(5, 12 * size), kind: 'darksmoke', drag: 1.4 });
@@ -1619,9 +1619,11 @@ const FX = (() => {
         switch (p.kind) {
           case 'fire': {
             const r = p.r * (1 + k * 0.8);
-            ctx.globalAlpha = (1 - k) * 0.45;
-            ctx.fillStyle = '#ff7b20';
-            ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.9, 0, 7); ctx.fill();
+            if (r > 4 && game.cam.zoom > 0.85) {
+              ctx.globalAlpha = (1 - k) * 0.45;
+              ctx.fillStyle = '#ff7b20';
+              ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.9, 0, 7); ctx.fill();
+            }
             ctx.globalAlpha = 1 - k;
             ctx.fillStyle = k < 0.3 ? '#fff3b0' : (k < 0.6 ? '#ffab40' : '#c9502a');
             ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 7); ctx.fill();
@@ -3275,7 +3277,7 @@ const RENDER = (() => {
     c.save();
     c.translate(x * TS, y * TS);
     c.rotate(ang);
-    c.fillStyle = 'rgba(52,38,22,0.07)';
+    c.fillStyle = 'rgba(52,38,22,0.12)';
     const L = 10 * TS, o = width * TS * 0.55;
     c.fillRect(-L / 2, -o - 1.6 * TS, L, 1.6 * TS);
     c.fillRect(-L / 2, o, L, 1.6 * TS);
@@ -4039,7 +4041,6 @@ const RENDER = (() => {
     ctx.beginPath(); ctx.ellipse(cx, cy - ht, r, r * 0.45, 0, 0, 7); ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.ellipse(cx, cy - ht, r, r * 0.45, 0, 0, 7); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.45, 0, Math.PI, 0, true);
   }
 
   /* legacy signature — now draws a real prism so every structure gains depth */

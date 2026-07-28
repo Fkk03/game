@@ -154,7 +154,7 @@ const RENDER = (() => {
     c.save();
     c.translate(x * TS, y * TS);
     c.rotate(ang);
-    c.fillStyle = 'rgba(52,38,22,0.07)';
+    c.fillStyle = 'rgba(52,38,22,0.12)';
     const L = 10 * TS, o = width * TS * 0.55;
     c.fillRect(-L / 2, -o - 1.6 * TS, L, 1.6 * TS);
     c.fillRect(-L / 2, o, L, 1.6 * TS);
@@ -918,7 +918,6 @@ const RENDER = (() => {
     ctx.beginPath(); ctx.ellipse(cx, cy - ht, r, r * 0.45, 0, 0, 7); ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.ellipse(cx, cy - ht, r, r * 0.45, 0, 0, 7); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.45, 0, Math.PI, 0, true);
   }
 
   /* legacy signature — now draws a real prism so every structure gains depth */
