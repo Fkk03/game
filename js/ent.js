@@ -21,14 +21,19 @@ function isEnemy(a, b) {
   return !pa || !pb || pa.team !== pb.team;      // allies (same team) are not enemies
 }
 
+/* does this aircraft carry a cloak — built in, or retrofitted per-unit? */
+function hasCloak(e) {
+  return !!(e.def && e.def.stealthAir) || !!e.stealthUpgrade;
+}
+
 /* is this aircraft's cloak active right now? Firing a weapon drops it briefly */
 function isStealthed(e) {
-  return !!(e.def && e.def.stealthAir) && !(e.decloakUntil > game.t);
+  return hasCloak(e) && !(e.decloakUntil > game.t);
 }
 
 /* stealth aircraft are only visible/targetable to a team with a detector in range */
 function isDetectedBy(e, team) {
-  if (!e.def || !e.def.stealthAir) return true;
+  if (!hasCloak(e)) return true;
   const p = game.players[e.owner];
   if (p && p.team === team) return true;
   for (const d of game.ents) {
@@ -769,7 +774,7 @@ class Unit {
           this.cool = w.cd;
           fireWeapon(this, w, t);
           this.ammo--;
-          if (def.decloakOnFire) this.decloakUntil = game.t + def.decloakOnFire;
+          if (def.decloakOnFire || this.stealthUpgrade) this.decloakUntil = game.t + (def.decloakOnFire || 5);
           if (!this._shots || game.t - (this._shotsT || 0) > 6) this._shots = {};
           this._shots[t.id] = (this._shots[t.id] || 0) + 1;
           this._shotsT = game.t;

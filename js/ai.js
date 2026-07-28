@@ -188,8 +188,8 @@ const AI = (() => {
       if (has('supply') < 2 && game.t > 150 && money >= BUILDINGS.supply.cost + buf(500)) return 'supply';
       if (has('supply') < 3 && game.t > 340 && money >= BUILDINGS.supply.cost + buf(1500)) return 'supply';
       if (has('factory') < 2 && game.t > 300 && money >= BUILDINGS.factory.cost + buf(3000)) return 'factory';
-      if (diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
-      if (diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
+      if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
+      if (game.swAllowed !== false && diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('factory') < 3 && game.t > 600 && money >= BUILDINGS.factory.cost + buf(6000)) return 'factory';
       if (has('turret') < 4 && money >= BUILDINGS.turret.cost + buf(2500) && game.t > 400) return 'turret';
@@ -319,7 +319,7 @@ const AI = (() => {
       const ep = enemyProfile();
       const comp = { ...baseComp };
       // counter-intel: enemy spy planes in the air -> field detectors
-      const enemySpies = game.ents.some(e => !e.dead && e.kind === 'unit' && e.def.stealthAir && isEnemyEnt(e));
+      const enemySpies = game.ents.some(e => !e.dead && e.kind === 'unit' && hasCloak(e) && isEnemyEnt(e));
       const myDetectors = myUnits('detector').length;
       if (enemySpies && myDetectors < 2) comp.detector = 2;
       if (ep) {

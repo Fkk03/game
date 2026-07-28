@@ -325,6 +325,10 @@ ul.howto b { color:#ffe9a0; }
           <div class="menu-label">GAME MODE</div>
           <div id="mode-pick" class="pills"></div>
         </div>
+        <div class="menu-section">
+          <div class="menu-label">SUPERWEAPONS</div>
+          <div id="sw-pick" class="pills"></div>
+        </div>
       </div>
       <div class="menu-row">
         <div class="menu-section">
@@ -1885,14 +1889,19 @@ function isEnemy(a, b) {
   return !pa || !pb || pa.team !== pb.team;      // allies (same team) are not enemies
 }
 
+/* does this aircraft carry a cloak — built in, or retrofitted per-unit? */
+function hasCloak(e) {
+  return !!(e.def && e.def.stealthAir) || !!e.stealthUpgrade;
+}
+
 /* is this aircraft's cloak active right now? Firing a weapon drops it briefly */
 function isStealthed(e) {
-  return !!(e.def && e.def.stealthAir) && !(e.decloakUntil > game.t);
+  return hasCloak(e) && !(e.decloakUntil > game.t);
 }
 
 /* stealth aircraft are only visible/targetable to a team with a detector in range */
 function isDetectedBy(e, team) {
-  if (!e.def || !e.def.stealthAir) return true;
+  if (!hasCloak(e)) return true;
   const p = game.players[e.owner];
   if (p && p.team === team) return true;
   for (const d of game.ents) {
@@ -2633,7 +2642,7 @@ class Unit {
           this.cool = w.cd;
           fireWeapon(this, w, t);
           this.ammo--;
-          if (def.decloakOnFire) this.decloakUntil = game.t + def.decloakOnFire;
+          if (def.decloakOnFire || this.stealthUpgrade) this.decloakUntil = game.t + (def.decloakOnFire || 5);
           if (!this._shots || game.t - (this._shotsT || 0) > 6) this._shots = {};
           this._shots[t.id] = (this._shots[t.id] || 0) + 1;
           this._shotsT = game.t;
@@ -4445,7 +4454,7 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(u.x, u.y);
     ctx.rotate(u.angle);
-    if (u.def.stealthAir) {
+    if (hasCloak(u)) {
       // cloak state readout: dim while stealthed, fully bright while decloaked
       if (isStealthed(u)) ctx.globalAlpha = 0.38 + 0.09 * Math.sin(game.renderT * 5 + u.id);
       else {
@@ -5744,8 +5753,8 @@ const AI = (() => {
       if (has('supply') < 2 && game.t > 150 && money >= BUILDINGS.supply.cost + buf(500)) return 'supply';
       if (has('supply') < 3 && game.t > 340 && money >= BUILDINGS.supply.cost + buf(1500)) return 'supply';
       if (has('factory') < 2 && game.t > 300 && money >= BUILDINGS.factory.cost + buf(3000)) return 'factory';
-      if (diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
-      if (diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
+      if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
+      if (game.swAllowed !== false && diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('factory') < 3 && game.t > 600 && money >= BUILDINGS.factory.cost + buf(6000)) return 'factory';
       if (has('turret') < 4 && money >= BUILDINGS.turret.cost + buf(2500) && game.t > 400) return 'turret';
@@ -5875,7 +5884,7 @@ const AI = (() => {
       const ep = enemyProfile();
       const comp = { ...baseComp };
       // counter-intel: enemy spy planes in the air -> field detectors
-      const enemySpies = game.ents.some(e => !e.dead && e.kind === 'unit' && e.def.stealthAir && isEnemyEnt(e));
+      const enemySpies = game.ents.some(e => !e.dead && e.kind === 'unit' && hasCloak(e) && isEnemyEnt(e));
       const myDetectors = myUnits('detector').length;
       if (enemySpies && myDetectors < 2) comp.detector = 2;
       if (ep) {
@@ -6677,7 +6686,7 @@ const UI = (() => {
 
   /* menu config state */
   const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000,
-    allies: 0, enemies: 1, mode: 'domination' };
+    allies: 0, enemies: 1, mode: 'domination', superweapons: 'on' };
 
   function init() {
     mmCanvas = $('minimap');
@@ -6699,6 +6708,7 @@ const UI = (() => {
       v => cfg.enemy = v, 'random');
     buildPills('mode-pick', [['domination', '⚑ Domination (first team to 1,000 pts)'], ['annihilation', '💀 Annihilation only']],
       v => cfg.mode = v, 'domination');
+    buildPills('sw-pick', [['on', 'Allowed'], ['off', 'Disabled']], v => cfg.superweapons = v, 'on');
     buildPills('allies-pick', [[0, 'None'], [1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5']], v => cfg.allies = +v, 0);
     buildPills('enemies-pick', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7'], [8, '8']],
       v => cfg.enemies = +v, 1);
@@ -7100,7 +7110,7 @@ const UI = (() => {
 
     if (dozer) {
       title.textContent = FACTIONS[p.faction].dozerName + ' — construction';
-      const keys = FACTIONS[p.faction].buildings.filter(k => k !== 'cc' || true);
+      const keys = FACTIONS[p.faction].buildings.filter(k => k !== 'superweapon' || game.swAllowed !== false);
       keys.forEach((bk, i) => {
         if (i >= 12) return;
         curCmds[i] = { type: 'place', key: bk };
@@ -7110,6 +7120,11 @@ const UI = (() => {
       curCmds[4] = { type: 'attackmove' };   // A
       curCmds[5] = { type: 'stop' };         // S
       curCmds[6] = { type: 'guardbtn' };     // D
+      // coalition veteran aircraft can be retrofitted with a cloak
+      if (p.faction === 'coalition') {
+        const eligible = units.filter(u => u.def.air && u.vetRank >= 1 && !u.def.stealthAir && !u.stealthUpgrade);
+        if (eligible.length) curCmds[3] = { type: 'stealthup', units: eligible };   // R
+      }
     } else if (building) {
       title.textContent = bName(building.key, p.faction);
       if (!building.constructed) {
@@ -7156,6 +7171,10 @@ const UI = (() => {
           ${cnt ? `<span class="count">${cnt}</span>` : ''}
           <div class="prog" style="width:${c.building.queue[0] && c.building.queue[0].key === c.key ? Math.round(c.building.queue[0].prog * 100) : 0}%"></div>`;
         if (p.money < def.cost) b.classList.add('disabled');
+      } else if (c.type === 'stealthup') {
+        const n = c.units.length;
+        b.innerHTML = `${hk}<span class="icon">🌑</span><span>Stealth</span><span class="cost">$2,000${n > 1 ? '×' + n : ''}</span>`;
+        if (p.money < 2000) b.classList.add('disabled');
       } else if (c.type === 'attackmove') {
         b.innerHTML = `${hk}<span class="icon">⚔️</span><span>Attack-Move</span>`;
       } else if (c.type === 'stop') {
@@ -7204,6 +7223,21 @@ const UI = (() => {
         }
         if (ok) SFX.click();
         refreshCmd();
+        break;
+      }
+      case 'stealthup': {
+        let fitted = 0;
+        for (const u of c.units) {
+          if (u.dead || p.money < 2000) break;
+          p.spend(2000);
+          u.stealthUpgrade = true;
+          u.decloakUntil = 0;
+          FX.text(u.x, u.y - 24, '🌑 CLOAK FITTED', '#b9a5ff');
+          fitted++;
+        }
+        if (fitted) { SFX.cash(); feed(`Stealth retrofit fitted on ${fitted} aircraft`, 'gold'); }
+        else { feed('Insufficient funds', 'bad'); SFX.error(); }
+        refreshSel(); refreshCmd();
         break;
       }
       case 'attackmove': INPUT.awaitAttackMove = true; SFX.click(); break;
@@ -7274,6 +7308,10 @@ const UI = (() => {
       tooltipHtml(el, `<h4>${def.icon} ${uName(c.key, p.faction)}</h4>
         <div class="tt-cost">$${def.cost} · ${def.buildTime}s</div>
         <div class="tt-desc">${def.desc}</div>`);
+    } else if (c.type === 'stealthup') {
+      tooltipHtml(el, `<h4>🌑 Stealth Retrofit</h4>
+        <div class="tt-cost">$2,000 per aircraft · requires ★ veterancy · Coalition only</div>
+        <div class="tt-desc">Fit a cloak to this veteran aircraft. It stays invisible in flight (only satellite-detection units can see it), decloaks for ~5 s when it fires, then fades back out. Colors dim while cloaked, brighten while visible.</div>`);
     } else if (c.type === 'attackmove') {
       tooltipHtml(el, `<h4>⚔️ Attack-Move</h4><div class="tt-desc">Move while engaging every enemy on the way. Hotkey A, then click the map.</div>`);
     } else if (c.type === 'stop') {
@@ -7470,6 +7508,7 @@ function startGame(cfg) {
   game.shake = 0;
   game.revealAll = false;
   game.mode = cfg.mode || 'domination';
+  game.swAllowed = cfg.superweapons !== 'off';
   game.zones = [];
   game.domScore = { 0: 0, 1: 0 };
   game.econTeam = -1;

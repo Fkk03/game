@@ -68,6 +68,11 @@ python3 -m http.server 8080
   missiles at triple the price. Dimmed colors = cloaked (only detectors see it);
   firing drops the cloak for ~5 s (colors flare bright + decloak ring) before it
   fades back out
+- **Stealth Retrofit** (Coalition only) — any aircraft with ★ veterancy can be
+  fitted with a cloak for $2,000 (select the plane → 🌑 button / hotkey R). Same
+  rules as the Umbra: invisible in flight, ~5 s visible after firing
+- **Superweapons toggle** — a lobby switch to allow or disable superweapons for the
+  whole match (you and every AI)
 - **Power grid** — run out of power and production crawls while defenses go offline
 - **General's promotions** — combat XP earns ranks; spend points on 5 powers per faction:
   recon sweeps, airstrikes, artillery barrages, paradrops, emergency supply drops, war frenzy,

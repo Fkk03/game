@@ -1051,7 +1051,7 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(u.x, u.y);
     ctx.rotate(u.angle);
-    if (u.def.stealthAir) {
+    if (hasCloak(u)) {
       // cloak state readout: dim while stealthed, fully bright while decloaked
       if (isStealthed(u)) ctx.globalAlpha = 0.38 + 0.09 * Math.sin(game.renderT * 5 + u.id);
       else {

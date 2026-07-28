@@ -61,6 +61,7 @@ function startGame(cfg) {
   game.shake = 0;
   game.revealAll = false;
   game.mode = cfg.mode || 'domination';
+  game.swAllowed = cfg.superweapons !== 'off';
   game.zones = [];
   game.domScore = { 0: 0, 1: 0 };
   game.econTeam = -1;

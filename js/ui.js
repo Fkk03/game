@@ -12,7 +12,7 @@ const UI = (() => {
 
   /* menu config state */
   const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000,
-    allies: 0, enemies: 1, mode: 'domination' };
+    allies: 0, enemies: 1, mode: 'domination', superweapons: 'on' };
 
   function init() {
     mmCanvas = $('minimap');
@@ -34,6 +34,7 @@ const UI = (() => {
       v => cfg.enemy = v, 'random');
     buildPills('mode-pick', [['domination', '⚑ Domination (first team to 1,000 pts)'], ['annihilation', '💀 Annihilation only']],
       v => cfg.mode = v, 'domination');
+    buildPills('sw-pick', [['on', 'Allowed'], ['off', 'Disabled']], v => cfg.superweapons = v, 'on');
     buildPills('allies-pick', [[0, 'None'], [1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5']], v => cfg.allies = +v, 0);
     buildPills('enemies-pick', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7'], [8, '8']],
       v => cfg.enemies = +v, 1);
@@ -435,7 +436,7 @@ const UI = (() => {
 
     if (dozer) {
       title.textContent = FACTIONS[p.faction].dozerName + ' — construction';
-      const keys = FACTIONS[p.faction].buildings.filter(k => k !== 'cc' || true);
+      const keys = FACTIONS[p.faction].buildings.filter(k => k !== 'superweapon' || game.swAllowed !== false);
       keys.forEach((bk, i) => {
         if (i >= 12) return;
         curCmds[i] = { type: 'place', key: bk };
@@ -445,6 +446,11 @@ const UI = (() => {
       curCmds[4] = { type: 'attackmove' };   // A
       curCmds[5] = { type: 'stop' };         // S
       curCmds[6] = { type: 'guardbtn' };     // D
+      // coalition veteran aircraft can be retrofitted with a cloak
+      if (p.faction === 'coalition') {
+        const eligible = units.filter(u => u.def.air && u.vetRank >= 1 && !u.def.stealthAir && !u.stealthUpgrade);
+        if (eligible.length) curCmds[3] = { type: 'stealthup', units: eligible };   // R
+      }
     } else if (building) {
       title.textContent = bName(building.key, p.faction);
       if (!building.constructed) {
@@ -491,6 +497,10 @@ const UI = (() => {
           ${cnt ? `<span class="count">${cnt}</span>` : ''}
           <div class="prog" style="width:${c.building.queue[0] && c.building.queue[0].key === c.key ? Math.round(c.building.queue[0].prog * 100) : 0}%"></div>`;
         if (p.money < def.cost) b.classList.add('disabled');
+      } else if (c.type === 'stealthup') {
+        const n = c.units.length;
+        b.innerHTML = `${hk}<span class="icon">🌑</span><span>Stealth</span><span class="cost">$2,000${n > 1 ? '×' + n : ''}</span>`;
+        if (p.money < 2000) b.classList.add('disabled');
       } else if (c.type === 'attackmove') {
         b.innerHTML = `${hk}<span class="icon">⚔️</span><span>Attack-Move</span>`;
       } else if (c.type === 'stop') {
@@ -539,6 +549,21 @@ const UI = (() => {
         }
         if (ok) SFX.click();
         refreshCmd();
+        break;
+      }
+      case 'stealthup': {
+        let fitted = 0;
+        for (const u of c.units) {
+          if (u.dead || p.money < 2000) break;
+          p.spend(2000);
+          u.stealthUpgrade = true;
+          u.decloakUntil = 0;
+          FX.text(u.x, u.y - 24, '🌑 CLOAK FITTED', '#b9a5ff');
+          fitted++;
+        }
+        if (fitted) { SFX.cash(); feed(`Stealth retrofit fitted on ${fitted} aircraft`, 'gold'); }
+        else { feed('Insufficient funds', 'bad'); SFX.error(); }
+        refreshSel(); refreshCmd();
         break;
       }
       case 'attackmove': INPUT.awaitAttackMove = true; SFX.click(); break;
@@ -609,6 +634,10 @@ const UI = (() => {
       tooltipHtml(el, `<h4>${def.icon} ${uName(c.key, p.faction)}</h4>
         <div class="tt-cost">$${def.cost} · ${def.buildTime}s</div>
         <div class="tt-desc">${def.desc}</div>`);
+    } else if (c.type === 'stealthup') {
+      tooltipHtml(el, `<h4>🌑 Stealth Retrofit</h4>
+        <div class="tt-cost">$2,000 per aircraft · requires ★ veterancy · Coalition only</div>
+        <div class="tt-desc">Fit a cloak to this veteran aircraft. It stays invisible in flight (only satellite-detection units can see it), decloaks for ~5 s when it fires, then fades back out. Colors dim while cloaked, brighten while visible.</div>`);
     } else if (c.type === 'attackmove') {
       tooltipHtml(el, `<h4>⚔️ Attack-Move</h4><div class="tt-desc">Move while engaging every enemy on the way. Hotkey A, then click the map.</div>`);
     } else if (c.type === 'stop') {
