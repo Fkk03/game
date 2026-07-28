@@ -31,8 +31,12 @@ python3 -m http.server 8080
   controlling team +30% income. Classic annihilation-only mode still selectable.
 - **Live battle stats** — Tab toggles a scoreboard with kills and army value for every
   general (allies and enemies); the top bar shows your income and spending per minute
-- **Up to 8 players** — choose 0–3 allied AI generals and 1–7 enemies; the map auto-scales
-  (up to the new Huge size), allies share your radar and fight beside you
+- **Up to 14 players** — choose 0–5 allied AI generals and 1–8 enemies; the map auto-scales
+  (up to the Colossal size), allies share your radar and fight beside you
+- **Rubber-band AI** — every AI constantly compares its total strength (army + base + cash)
+  with the leading general; falling behind makes it build harder, expand faster and attack
+  more often. Full armies never sit at home, mined-out AIs immediately expand to fresh
+  supplies, and stuck construction is recycled instead of freezing the base
 - **3 asymmetric factions**
   - 🦅 **Meridian Coalition** — expensive high-tech elite units, strike jets, precision firepower
   - 🐲 **Crimson Dynasty** — cheap infantry hordes (Horde bonus!), heavy Warlord tanks, flame weapons, nukes

@@ -63,7 +63,9 @@ class World {
     for (const t in byTeam) {
       const members = byTeam[t];
       const k = members.length;
-      const spacing = k > 1 ? Math.min(0.55, 1.7 / (k - 1)) : 0;
+      // big teams fan out over a wider arc so bases don't crowd each other
+      const spread = k > 5 ? 2.4 : 1.7;
+      const spacing = k > 1 ? Math.min(0.55, spread / (k - 1)) : 0;
       members.forEach((pi, i) => {
         const a = (baseAng[t] !== undefined ? baseAng[t] : U.rand(0, 6.28)) + (i - (k - 1) / 2) * spacing;
         const tx = U.clamp(Math.round(cx + Math.cos(a) * R), 8, w - 9);

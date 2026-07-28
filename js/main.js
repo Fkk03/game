@@ -68,10 +68,10 @@ function startGame(cfg) {
   INPUT.resetMatch();
   UI.resetMatch();
 
-  // roster: you + allies (team 0) vs enemies (team 1), max 8 players
+  // roster: you + up to 5 allies (team 0) vs up to 8 enemies (team 1) — 14 players max
   const diff = DIFFICULTY[cfg.diff];
-  const nAllies = U.clamp(cfg.allies || 0, 0, 3);
-  const nEnemies = U.clamp(Math.min(cfg.enemies || 1, 7 - nAllies), 1, 7);
+  const nAllies = U.clamp(cfg.allies || 0, 0, 5);
+  const nEnemies = U.clamp(cfg.enemies || 1, 1, 8);
   const facs = Object.keys(FACTIONS);
   game.players = [makePlayer(0, cfg.faction, false, 0)];
   for (let i = 0; i < nAllies; i++) game.players.push(makePlayer(game.players.length, U.pick(facs), true, 0));
@@ -86,9 +86,9 @@ function startGame(cfg) {
 
   // map auto-grows with player count so everyone fits
   const total = game.players.length;
-  const sizeOrder = ['small', 'medium', 'large', 'huge'];
+  const sizeOrder = ['small', 'medium', 'large', 'huge', 'colossal'];
   let mapKey = cfg.map;
-  const minIdx = total >= 7 ? 3 : total >= 5 ? 2 : total >= 4 ? 1 : 0;
+  const minIdx = total >= 10 ? 4 : total >= 7 ? 3 : total >= 5 ? 2 : total >= 4 ? 1 : 0;
   if (sizeOrder.indexOf(mapKey) < minIdx) mapKey = sizeOrder[minIdx];
   const ms = MAPSIZES[mapKey];
   world = new World(ms.w, ms.h, (Math.random() * 1e9) | 0, game.players.map(p => p.team));

@@ -34,8 +34,8 @@ const UI = (() => {
       v => cfg.enemy = v, 'random');
     buildPills('mode-pick', [['domination', '⚑ Domination (first team to 1,000 pts)'], ['annihilation', '💀 Annihilation only']],
       v => cfg.mode = v, 'domination');
-    buildPills('allies-pick', [[0, 'None'], [1, '1'], [2, '2'], [3, '3']], v => cfg.allies = +v, 0);
-    buildPills('enemies-pick', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7']],
+    buildPills('allies-pick', [[0, 'None'], [1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5']], v => cfg.allies = +v, 0);
+    buildPills('enemies-pick', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7'], [8, '8']],
       v => cfg.enemies = +v, 1);
     buildPills('diff-pick', Object.keys(DIFFICULTY).map(k => [k, DIFFICULTY[k].label]), v => cfg.diff = v, 'normal');
     buildPills('map-pick', Object.keys(MAPSIZES).map(k => [k, MAPSIZES[k].label]), v => cfg.map = v, 'medium');

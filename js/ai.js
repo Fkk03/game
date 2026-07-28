@@ -3,6 +3,20 @@
 const AI = (() => {
   let ais = [];
 
+  /* ---- standings: total value per player (army + structures + cash), one ent pass, cached ---- */
+  let standT = -99, standCache = null;
+  function standings() {
+    if (standCache && game.t - standT < 15) return standCache;
+    standT = game.t;
+    const v = game.players.map(pl => pl.defeated ? 0 : pl.money * 0.25);
+    for (const e of game.ents) {
+      if (e.dead || e.owner < 0 || !game.players[e.owner]) continue;
+      v[e.owner] += e.kind === 'unit' ? e.def.cost : e.def.cost * 0.6;
+    }
+    standCache = v;
+    return v;
+  }
+
   const COMPS = {
     coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, thunder: 2, falcon: 2, goliath: 2, siege: 1, seraph: 1, spyplane: 1 },
     dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, salamander: 2, vulture: 2, goliath: 2, siege: 1, behemoth: 1, spyplane: 1 },
@@ -33,6 +47,30 @@ const AI = (() => {
 
     const p = () => game.players[pi];
     const myTeam = () => p().team;
+
+    /* posture: how do I stack up against the strongest general on the map?
+       Falling behind → build harder, expand faster, attack more often. */
+    function posture() {
+      const v = standings();
+      const mine = v[pi];
+      let lead = 0;
+      for (let i = 0; i < v.length; i++) if (i !== pi && v[i] > lead) lead = v[i];
+      if (lead <= 0) return 'steady';
+      const r = mine / lead;
+      if (r < 0.5) return 'desperate';
+      if (r < 0.8) return 'pushing';
+      if (r > 1.25) return 'leading';
+      return 'steady';
+    }
+    /* money buffers shrink as the AI falls behind — a trailing general spends everything */
+    function buf(m) {
+      const po = posture();
+      return po === 'desperate' ? 0 : po === 'pushing' ? Math.round(m * 0.4) : m;
+    }
+    function waveEvery() {
+      const po = posture();
+      return diff.waveEvery * (po === 'desperate' ? 0.5 : po === 'pushing' ? 0.7 : po === 'leading' ? 0.85 : 1);
+    }
 
     function myEnts() { return game.ents.filter(e => !e.dead && e.owner === pi); }
     function myBuildings(key) {
@@ -113,33 +151,49 @@ const AI = (() => {
       u.giveOrder({ type: 'attackmove', x: target.x + U.rand(-60, 60), y: target.y + U.rand(-60, 60) });
     }
 
+    /* does any of my supply centers still have a live dock nearby? */
+    function supplyHasWork() {
+      const R = 15 * TILE;
+      for (const sc of myBuildings('supply')) {
+        if (!sc.constructed) continue;
+        for (const d of world.docks) {
+          if (d.amount > 0 && U.dist(sc.x, sc.y, d.x, d.y) < R) return true;
+        }
+      }
+      return false;
+    }
+
     /* ------------- construction ------------- */
     function wantedStructure() {
       const fac = p().faction, F = FACTIONS[fac];
       const has = k => myBuildings(k).length;
       const money = p().money;
 
+      // income is the lifeblood — a mined-out or supply-less AI expands before anything else
+      if (!has('supply') && money >= BUILDINGS.supply.cost) return 'supply';
+      if (has('supply') && !supplyHasWork() && money >= BUILDINGS.supply.cost &&
+          nearestDockWithSupplies(world.pw / 2, world.ph / 2)) return 'supply';
       if (F.usesPower && p().powerUse + 4 > p().powerCap) {
         // rich late-game AIs build one big nuclear reactor instead of stacking fusion plants
         if (F.buildings.includes('nuclear') && has('power') >= 2 && !has('nuclear') &&
             money >= BUILDINGS.nuclear.cost + 1500 && game.t > 420) return 'nuclear';
         if (money >= BUILDINGS.power.cost) return 'power';
       }
-      if (!has('supply') && money >= BUILDINGS.supply.cost) return 'supply';
       if (!has('barracks') && money >= BUILDINGS.barracks.cost) return 'barracks';
-      if (!has('factory') && money >= BUILDINGS.factory.cost + 300) return 'factory';
-      if (has('turret') < 2 && money >= BUILDINGS.turret.cost + 600 && game.t > 150) return 'turret';
-      if (has('market') < 2 && money >= BUILDINGS.market.cost + 300) return 'market';
-      if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + 800 && game.t > 240) return 'airfield';
-      if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + 1200 && game.t > 330) return 'repairbay';
-      if (has('supply') < 2 && game.t > 180 && money >= BUILDINGS.supply.cost + 500) return 'supply';
-      if (has('supply') < 3 && game.t > 400 && money >= BUILDINGS.supply.cost + 1500) return 'supply';
-      if (has('factory') < 2 && game.t > 360 && money >= BUILDINGS.factory.cost + 3000) return 'factory';
+      if (!has('factory') && money >= BUILDINGS.factory.cost + buf(300)) return 'factory';
+      if (has('turret') < 2 && money >= BUILDINGS.turret.cost + buf(600) && game.t > 150) return 'turret';
+      if (has('market') < 2 && money >= BUILDINGS.market.cost + buf(300)) return 'market';
+      if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + buf(800) && game.t > 240) return 'airfield';
+      if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + buf(1200) && game.t > 330) return 'repairbay';
+      if (has('supply') < 2 && game.t > 150 && money >= BUILDINGS.supply.cost + buf(500)) return 'supply';
+      if (has('supply') < 3 && game.t > 340 && money >= BUILDINGS.supply.cost + buf(1500)) return 'supply';
+      if (has('factory') < 2 && game.t > 300 && money >= BUILDINGS.factory.cost + buf(3000)) return 'factory';
       if (diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
       if (diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
-      if (has('turret') < 4 && money >= BUILDINGS.turret.cost + 2500 && game.t > 400) return 'turret';
-      if (has('market') < 12 && money >= BUILDINGS.market.cost + 2500 && game.t > 300) return 'market';
+      if (has('factory') < 3 && game.t > 600 && money >= BUILDINGS.factory.cost + buf(6000)) return 'factory';
+      if (has('turret') < 4 && money >= BUILDINGS.turret.cost + buf(2500) && game.t > 400) return 'turret';
+      if (has('market') < 12 && money >= BUILDINGS.market.cost + buf(2500) && game.t > 240) return 'market';
       if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
       return null;
     }
@@ -172,11 +226,24 @@ const AI = (() => {
     function manageDozers() {
       const dozers = myUnits('dozer');
       const cc = myBuildings('cc')[0];
-      if (dozers.length < 2 && cc && cc.constructed && p().money > UNITS.dozer.cost + 400) {
+      // a builder-less AI is a dead AI: rebuild dozers with zero hesitation
+      const wantDozers = p().money > 5000 ? 3 : 2;
+      if (dozers.length < wantDozers && cc && cc.constructed &&
+          p().money > UNITS.dozer.cost + (dozers.length ? 400 : 0)) {
         const queued = cc.queue.filter(q => q.key === 'dozer').length;
-        if (dozers.length + queued < 2) cc.enqueue('dozer');
+        if (dozers.length + queued < wantDozers) cc.enqueue('dozer');
       }
-      const sites = myBuildings().filter(b => !b.constructed);
+      let sites = myBuildings().filter(b => !b.constructed);
+      // a site nobody can reach would freeze construction forever — refund and clear it
+      for (const site of sites) {
+        if (site._aiProg !== site.buildProgress) { site._aiProg = site.buildProgress; site._aiProgT = game.t; }
+        else if (game.t - (site._aiProgT ?? game.t) > 75) {
+          p().addMoney(Math.floor(site.def.cost * 0.75));
+          site.dead = true;
+          world.blockRect(site.tx, site.ty, site.size, false);
+        }
+      }
+      sites = sites.filter(s => !s.dead);
       const busy = new Set();
       for (const d of dozers) {
         if (d.order.type === 'build') busy.add(d.order.targetId);
@@ -192,7 +259,8 @@ const AI = (() => {
         if (idle) idle.giveOrder({ type: 'repair', targetId: hurt.id });
       }
       const want = wantedStructure();
-      if (want && sites.length < 2 && dozers.length) {
+      const maxSites = dozers.length >= 3 ? 3 : 2;   // extra dozers = parallel construction
+      if (want && sites.length < maxSites && dozers.length) {
         const spot = findPlacement(want);
         if (spot && p().money >= BUILDINGS[want].cost) {
           p().spend(BUILDINGS[want].cost);
@@ -209,11 +277,20 @@ const AI = (() => {
         const trucks = myUnits('truck');
         const queued = sc.queue.filter(q => q.key === 'truck').length;
         const nSup = myBuildings('supply').filter(b => b.constructed).length;
-        const wanted = Math.min(8, 3 * nSup);
+        const wanted = Math.min(9, 3 * nSup + (posture() === 'steady' || posture() === 'leading' ? 0 : 1));
         if (trucks.length + queued < wanted && p().money > UNITS.truck.cost + 300) {
           sc.enqueue('truck');
         }
       }
+    }
+
+    /* a rich AI raises its own army cap — money must become pressure, not savings */
+    function armyCapEff() {
+      const lobbyScale = game.players.length > 8 ? 0.42 : game.players.length > 4 ? 0.55 : 1;
+      const po = posture();
+      const postureCap = po === 'desperate' ? 1.5 : po === 'pushing' ? 1.25 : po === 'leading' ? 1.05 : 1;
+      return Math.min(diff.armyCap * 2,
+        diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500)) * lobbyScale * postureCap;
     }
 
     /* ------------- army production ------------- */
@@ -254,15 +331,13 @@ const AI = (() => {
         }
       }
       const army = combatUnits();
-      // a rich AI raises its own army cap — money must become pressure, not savings
-      const lobbyScale = game.players.length > 4 ? 0.55 : 1;
-      const capEff = Math.min(diff.armyCap * 2,
-        diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500)) * lobbyScale;
-      if (army.length >= capEff) return;
+      if (army.length >= armyCapEff()) return;
       const counts = {};
       for (const u of army) counts[u.key] = (counts[u.key] || 0) + 1;
+      const po = posture();
+      const qDepth = po === 'desperate' || po === 'pushing' ? 5 : 4;
       for (const b of myBuildings()) {
-        if (!b.constructed || b.queue.length >= 4) continue;
+        if (!b.constructed || b.queue.length >= qDepth) continue;
         const trainable = bTrains(b.key, fac).filter(k => comp[k]);
         if (!trainable.length) continue;
         let pick = null, worst = 1e9;
@@ -274,7 +349,7 @@ const AI = (() => {
           const ratio = (counts[k] || 0) / comp[k];
           if (ratio < worst) { worst = ratio; pick = k; }
         }
-        if (pick && p().money > UNITS[pick].cost + (game.t < 300 ? 500 : 120)) {
+        if (pick && p().money > UNITS[pick].cost + buf(game.t < 300 ? 500 : 120)) {
           b.enqueue(pick);
         }
       }
@@ -308,7 +383,10 @@ const AI = (() => {
               }
             }
           }
-          if (S.waveT <= 0 && army.length >= Math.min(S.waveSize, diff.armyCap * 0.4)) {
+          // a full army never sits at home — parade-ground generals lose wars
+          if (army.length >= armyCapEff() * 0.88) S.waveT = Math.min(S.waveT, 12);
+          const needed = Math.min(S.waveSize, diff.armyCap * (posture() === 'desperate' ? 0.28 : 0.4));
+          if (S.waveT <= 0 && army.length >= needed) {
             S.attackState = 'gathering';
             S.gatherT = 22;
             const g = gatherPoint();
@@ -322,7 +400,7 @@ const AI = (() => {
             const anchor = baseAnchor();
             const target = enemyKeyBuilding() ||
               (anchor ? nearestEnemyEntTo(anchor.x, anchor.y) : null);
-            if (!target) { S.attackState = 'idle'; S.waveT = diff.waveEvery; break; }
+            if (!target) { S.attackState = 'idle'; S.waveT = waveEvery(); break; }
             S.attackState = 'attacking';
             S.attackTargetId = target.id;
             S.attackT = 0;
@@ -361,7 +439,7 @@ const AI = (() => {
               for (const u of army) {
                 if (u.order.type === 'idle' || u.order.type === 'guard') orderAssault(u, next);
               }
-            } else { S.attackState = 'idle'; S.waveT = diff.waveEvery; }
+            } else { S.attackState = 'idle'; S.waveT = waveEvery(); }
           } else if (target.kind === 'building' && !target.constructed) {
             for (const u of army) {
               if (u.order.type === 'idle' || u.order.type === 'guard')
@@ -375,17 +453,17 @@ const AI = (() => {
             const anchor = baseAnchor();
             if (anchor) for (const u of army) u.giveOrder({ type: 'move', x: anchor.x + U.rand(-90, 90), y: anchor.y + U.rand(-90, 90) });
             S.attackState = 'idle';
-            S.waveT = diff.waveEvery;
+            S.waveT = waveEvery();
             S.waveSize = Math.min(diff.armyCap, S.waveSize + 3);
           }
           break;
         }
       }
 
-      // early harass: fast units hit the enemy economy
+      // early harass: fast units hit the enemy economy (trailing AIs raid more often)
       S.harassT -= dt2;
       if (S.harassT <= 0) {
-        S.harassT = 240;
+        S.harassT = posture() === 'desperate' ? 130 : posture() === 'pushing' ? 180 : 240;
         const fastKeys = { coalition: 'viper', dynasty: 'flak', cartel: 'guntruck' };
         const raiders = myUnits(fastKeys[p().faction]).slice(0, 2);
         const truck = game.ents.find(e => !e.dead && e.kind === 'unit' && e.def.harvester && isEnemyEnt(e));
@@ -514,7 +592,7 @@ const AI = (() => {
       }
     }
 
-    return { pi, tick, notifyAttack, spend, onUnitDone, S };
+    return { pi, tick, notifyAttack, spend, onUnitDone, S, posture };
   }
 
   /* ---------------- module API (routes to instances) ---------------- */
@@ -541,5 +619,6 @@ const AI = (() => {
 
   return { initGame, tick, notifyAttack, spendPowerPoints, onUnitDone, onBuildingDone,
     _debug: () => ais.map(a => ({ pi: a.pi, state: a.S.attackState, waveT: Math.round(a.S.waveT),
-      attackT: Math.round(a.S.attackT || 0), waveSize: a.S.waveSize, targetId: a.S.attackTargetId })) };
+      attackT: Math.round(a.S.attackT || 0), waveSize: a.S.waveSize, targetId: a.S.attackTargetId,
+      posture: a.posture(), standing: Math.round(standings()[a.pi]) })) };
 })();

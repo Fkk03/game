@@ -35,6 +35,7 @@ const MAPSIZES = {
   medium: { label: 'Medium', w: 96,  h: 96 },
   large:  { label: 'Large',  w: 120, h: 120 },
   huge:   { label: 'Huge',   w: 150, h: 150 },
+  colossal: { label: 'Colossal', w: 190, h: 190 },
 };
 
 /* domination mode */
@@ -45,8 +46,9 @@ const DOM_ZONE_R = 120;        // world px
 const ECON_ZONE_R = 110;
 const ECON_BONUS = 1.3;        // +30% income for the team holding the trade point
 
-/* per-player-slot colors (faction identity comes from units, color from slot) */
-const PLAYER_COLORS = ['#3d7edb', '#d43a2f', '#e8c33c', '#3fae5a', '#8e5bd6', '#e07b2f', '#38b8b8', '#c95b74'];
+/* per-player-slot colors (faction identity comes from units, color from slot) — 14 slots */
+const PLAYER_COLORS = ['#3d7edb', '#d43a2f', '#e8c33c', '#3fae5a', '#8e5bd6', '#e07b2f', '#38b8b8',
+  '#c95b74', '#e2e2da', '#e87bb8', '#9a6b3c', '#8fd435', '#7a8fa8', '#553191'];
 
 /* =====================================================================
    FACTIONS — three original armies:
