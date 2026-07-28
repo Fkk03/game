@@ -119,7 +119,12 @@ const AI = (() => {
       const has = k => myBuildings(k).length;
       const money = p().money;
 
-      if (F.usesPower && p().powerUse + 4 > p().powerCap && money >= BUILDINGS.power.cost) return 'power';
+      if (F.usesPower && p().powerUse + 4 > p().powerCap) {
+        // rich late-game AIs build one big nuclear reactor instead of stacking fusion plants
+        if (F.buildings.includes('nuclear') && has('power') >= 2 && !has('nuclear') &&
+            money >= BUILDINGS.nuclear.cost + 1500 && game.t > 420) return 'nuclear';
+        if (money >= BUILDINGS.power.cost) return 'power';
+      }
       if (!has('supply') && money >= BUILDINGS.supply.cost) return 'supply';
       if (!has('barracks') && money >= BUILDINGS.barracks.cost) return 'barracks';
       if (!has('factory') && money >= BUILDINGS.factory.cost + 300) return 'factory';

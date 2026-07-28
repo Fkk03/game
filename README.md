@@ -41,6 +41,13 @@ python3 -m http.server 8080
 - **Supply economy** — rich supply piles scattered all across the map; Supply Trucks haul them
   to your Supply Center, Markets pay a fat $32/s trickle
 - **Repair Center** — automatically fixes your tanks and aircraft in a radius around it
+- **Nuclear Reactor** — 5× the power of a standard plant… but if it's destroyed, the
+  meltdown devastates everything nearby, yours and theirs alike. High risk, high reward.
+- **Global production (B / T / J)** — order units without clicking each building: the
+  panel commands ALL your barracks / war factories / airfields at once and auto-splits
+  orders across the least-busy queues (airfield pad limits respected). Shift-click = ×5.
+- **Idle-worker button (I)** — one click (bottom-left 🚜) cycles through every idle
+  dozer/worker so nobody stands around doing nothing
 - **End-game arsenal** — superheavy tanks (3× cost, 4× power), elite strike aircraft,
   extreme-range siege artillery (range 1,350 — bring spotters), compact hardened turrets
 - **Spy war** — unarmed stealth spy planes with enormous sight, invisible to the enemy
@@ -65,6 +72,8 @@ python3 -m http.server 8080
 | Shift + right click | Queue waypoints |
 | Q W E R / A S D F / Z X C V | Command-grid hotkeys (shown on buttons) |
 | A / S / D | Attack-move · Stop · Guard area (with units selected) |
+| I | Cycle idle workers |
+| B / T / J | Global production panel: all barracks / factories / airfields (Shift-click = ×5) |
 | Ctrl + 1–9 → 1–9 | Control groups (tap twice to center) |
 | Mouse wheel | Zoom · Middle-drag / arrows / screen edge — pan |
 | Space | Jump to last event · Backspace — jump to base |

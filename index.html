@@ -52,6 +52,13 @@
     </div>
   </div>
 
+  <div id="idleworker" class="hud hidden dim" title="Cycle idle workers (I)">🚜<span id="iw-count">0</span></div>
+  <div id="prodtabs" class="hud hidden">
+    <div class="prodtab" data-kind="barracks" title="Train infantry at ALL barracks — orders auto-split (B)"><span class="pt-icon">🎖️</span><span class="pt-count">0</span><span class="pt-hk">B</span></div>
+    <div class="prodtab" data-kind="factory" title="Build vehicles at ALL war factories — orders auto-split (T)"><span class="pt-icon">🏭</span><span class="pt-count">0</span><span class="pt-hk">T</span></div>
+    <div class="prodtab" data-kind="airfield" title="Build aircraft at ALL airfields — orders auto-split (J)"><span class="pt-icon">🛩️</span><span class="pt-count">0</span><span class="pt-hk">J</span></div>
+  </div>
+
   <div id="feed" class="hud hidden"></div>
   <div id="scoreboard" class="hud hidden">
     <div id="sb-head">BATTLE STATS <span class="sb-hint">(Tab)</span></div>
@@ -155,6 +162,8 @@
           <h3>Keys</h3>
           <table class="keys">
             <tr><td>Q W E R / A S D F / Z X C V</td><td>Command grid hotkeys</td></tr>
+            <tr><td>I</td><td>Cycle idle workers</td></tr>
+            <tr><td>B / T / J</td><td>Global production: all barracks / factories / airfields (orders auto-split; Shift-click = ×5)</td></tr>
             <tr><td>Ctrl + 1–9</td><td>Assign control group</td></tr>
             <tr><td>1–9</td><td>Select group (tap ×2 to center)</td></tr>
             <tr><td>Space</td><td>Jump to last event</td></tr>

@@ -3,6 +3,7 @@
 const UI = (() => {
   const $ = id => document.getElementById(id);
   let mmCanvas, cmdButtons = [], curCmds = [];
+  let globalProd = null;         // 'barracks' | 'factory' | 'airfield' — auto-distributed production panel
   const pings = [];
   let lastEvent = null;          // {x,y} for Space key
   let lastAttackFeedT = -99;
@@ -41,6 +42,10 @@ const UI = (() => {
     buildPills('money-pick', [[5000, '$5,000'], [10000, '$10,000'], [20000, '$20,000']],
       v => cfg.money = +v, 10000);
 
+    $('idleworker').onclick = () => { SFX.init(); INPUT.cycleIdleWorker(); };
+    for (const el of document.querySelectorAll('.prodtab')) {
+      el.onclick = () => { SFX.init(); SFX.click(); setGlobalProd(el.dataset.kind, true); };
+    }
     $('btn-start').onclick = () => { SFX.init(); SFX.click(); startGame(cfg); };
     $('btn-help').onclick = () => { SFX.click(); showHelp(); };
     $('btn-help2').onclick = () => { SFX.click(); showHelp(); };
@@ -105,9 +110,12 @@ const UI = (() => {
 
   /* =================== game lifecycle UI =================== */
   function showGameHud() {
+    globalProd = null;
     $('menu').classList.add('hidden');
     $('topbar').classList.remove('hidden');
     $('bottombar').classList.remove('hidden');
+    $('idleworker').classList.remove('hidden');
+    $('prodtabs').classList.remove('hidden');
     $('scoreboard').classList.toggle('hidden', !sbVisible);
     $('feed').classList.remove('hidden');
     $('endscreen').classList.add('hidden');
@@ -118,6 +126,9 @@ const UI = (() => {
 
   function quitToMenu() {
     game.started = false; game.paused = false;
+    globalProd = null;
+    $('idleworker').classList.add('hidden');
+    $('prodtabs').classList.add('hidden');
     $('scoreboard').classList.add('hidden');
     $('pausemenu').classList.add('hidden');
     $('endscreen').classList.add('hidden');
@@ -174,9 +185,30 @@ const UI = (() => {
     return { inc: Math.max(0, Math.round(inc)), out: Math.max(0, Math.round(out)) };
   }
 
+  function updateProdTabs() {
+    const p = game.players[0];
+    if (!p) return;
+    for (const el of document.querySelectorAll('.prodtab')) {
+      const kind = el.dataset.kind;
+      if (!FACTIONS[p.faction].buildings.includes(kind)) { el.style.display = 'none'; continue; }
+      el.style.display = '';
+      const n = prodBuildings(kind).length;
+      el.querySelector('.pt-count').textContent = n;
+      el.classList.toggle('dim', n === 0);
+      el.classList.toggle('sel', globalProd === kind);
+    }
+  }
+
   function refreshTop() {
     const p = game.players[0];
     const rates = moneyRates(p);
+
+    // idle workers + production tab counts
+    const iw = INPUT.idleWorkers().length;
+    const iwEl = $('idleworker');
+    $('iw-count').textContent = iw;
+    iwEl.classList.toggle('dim', iw === 0);
+    updateProdTabs();
     $('money').innerHTML = `${U.fmtMoney(p.money)} <span id="moneyrates"><span id="rate-in">▲ $${rates.inc.toLocaleString('en-US')}/min</span><span id="rate-out">▼ $${rates.out.toLocaleString('en-US')}/min</span></span>`;
     $('clock').textContent = U.fmtTime(game.t);
 
@@ -329,6 +361,51 @@ const UI = (() => {
   }
 
   /* =================== command grid =================== */
+  /* ---- global production: order without selecting a building, auto-split across all of them ---- */
+  function prodBuildings(kind) {
+    return game.ents.filter(e => !e.dead && e.owner === 0 && e.kind === 'building' &&
+      e.key === kind && e.constructed);
+  }
+  function airfieldLoad(af) {
+    // jets parked/assigned to this airfield plus queued aircraft — capped by pads
+    let n = af.queue.filter(q => UNITS[q.key].air).length;
+    for (const e of game.ents) {
+      if (!e.dead && e.kind === 'unit' && e.def.air && e.owner === af.owner && e.padId === af.id) n++;
+    }
+    return n;
+  }
+  function setGlobalProd(kind, toggle) {
+    const p = game.players[0];
+    if (!game.started || game.over) return;
+    if (kind && !FACTIONS[p.faction].buildings.includes(kind)) return;
+    globalProd = (toggle && globalProd === kind) ? null : kind;
+    if (globalProd) { INPUT.selection = []; refreshSel(); }
+    refreshCmd();
+  }
+  function globalEnqueue(kind, key) {
+    const p = game.players[0];
+    const list = prodBuildings(kind);
+    if (!list.length) { feed('No ' + bName(kind, p.faction) + ' built yet', 'bad'); SFX.error(); return false; }
+    // pick the least-loaded building (for airfields, respect the pad limit)
+    let best = null, bestScore = Infinity;
+    for (const b of list) {
+      if (b.queue.length >= 7) continue;
+      let score = b.queue.length;
+      if (UNITS[key].air) {
+        const load = airfieldLoad(b);
+        if (load >= (b.def.pads || 4)) continue;
+        score += load * 0.1;
+      }
+      if (score < bestScore) { bestScore = score; best = b; }
+    }
+    if (!best) {
+      feed(UNITS[key].air ? 'All airfield pads are full — build more airfields' : 'All production queues are full', 'bad');
+      SFX.error(); return false;
+    }
+    if (!best.enqueue(key)) { feed('Insufficient funds', 'bad'); SFX.error(); SFX.say('Insufficient funds'); return false; }
+    return true;
+  }
+
   function refreshCmd() {
     const sel = INPUT.selection.filter(e => e.owner === 0 && !e.dead);
     curCmds = new Array(12).fill(null);
@@ -337,6 +414,18 @@ const UI = (() => {
 
     for (const b of cmdButtons) { b.className = 'cmd-btn disabled';
       b.innerHTML = `<span class="hk">${['Q','W','E','R','A','S','D','F','Z','X','C','V'][b.dataset.idx]}</span>`; }
+
+    if (sel.length && globalProd) globalProd = null;   // picking something closes the global panel
+    updateProdTabs();
+
+    if (globalProd) {
+      const kind = globalProd;
+      const list = prodBuildings(kind);
+      title.textContent = `ALL ${bName(kind, p.faction)}s (${list.length}) — orders auto-split · Shift-click ×5`;
+      bTrains(kind, p.faction).forEach((uk, i) => { if (i < 8) curCmds[i] = { type: 'gtrain', key: uk, bkind: kind }; });
+      paintCmds(p);
+      return;
+    }
 
     if (!sel.length) { title.textContent = ''; return; }
 
@@ -367,13 +456,26 @@ const UI = (() => {
       }
     }
 
-    // paint
+    paintCmds(p);
+  }
+
+  function paintCmds(p) {
     curCmds.forEach((c, i) => {
       if (!c) return;
       const b = cmdButtons[i];
       b.classList.remove('disabled');
       const hk = b.querySelector('.hk')?.outerHTML || '';
-      if (c.type === 'place') {
+      if (c.type === 'gtrain') {
+        const def = UNITS[c.key];
+        const list = prodBuildings(c.bkind);
+        const cnt = list.reduce((n, bl) => n + bl.queue.filter(q => q.key === c.key).length, 0);
+        let prog = 0;
+        for (const bl of list) if (bl.queue[0] && bl.queue[0].key === c.key) prog = Math.max(prog, bl.queue[0].prog);
+        b.innerHTML = `${hk}<span class="icon">${def.icon}</span><span>${uName(c.key, p.faction).split(' ')[0]}</span><span class="cost">$${def.cost}</span>
+          ${cnt ? `<span class="count">${cnt}</span>` : ''}
+          <div class="prog" style="width:${Math.round(prog * 100)}%"></div>`;
+        if (p.money < def.cost) b.classList.add('disabled');
+      } else if (c.type === 'place') {
         const def = BUILDINGS[c.key];
         const afford = p.money >= def.cost;
         b.innerHTML = `${hk}<span class="icon">${def.icon}</span><span>${bName(c.key, p.faction).split(' ')[0]}</span><span class="cost">$${def.cost}</span>`;
@@ -415,8 +517,27 @@ const UI = (() => {
         break;
       }
       case 'train': {
-        if (!c.building.enqueue(c.key)) { feed('Insufficient funds', 'bad'); SFX.error(); SFX.say('Insufficient funds'); }
-        else SFX.click();
+        const reps = INPUT.keys['shift'] ? 5 : 1;
+        let ok = false;
+        for (let n = 0; n < reps; n++) {
+          if (!c.building.enqueue(c.key)) {
+            if (!ok) { feed('Insufficient funds', 'bad'); SFX.error(); SFX.say('Insufficient funds'); }
+            break;
+          }
+          ok = true;
+        }
+        if (ok) SFX.click();
+        refreshCmd();
+        break;
+      }
+      case 'gtrain': {
+        const reps = INPUT.keys['shift'] ? 5 : 1;
+        let ok = false;
+        for (let n = 0; n < reps; n++) {
+          if (!globalEnqueue(c.bkind, c.key)) break;
+          ok = true;
+        }
+        if (ok) SFX.click();
         refreshCmd();
         break;
       }
@@ -445,14 +566,28 @@ const UI = (() => {
   /* production progress repaint (cheap, every 0.25 s) */
   function refreshCmdProgress() {
     curCmds.forEach((c, i) => {
-      if (!c || c.type !== 'train') return;
-      const prog = cmdButtons[i].querySelector('.prog');
-      if (prog) prog.style.width = (c.building.queue[0] && c.building.queue[0].key === c.key ?
-        Math.round(c.building.queue[0].prog * 100) : 0) + '%';
-      const cnt = cmdButtons[i].querySelector('.count');
-      const n = c.building.queue.filter(q => q.key === c.key).length;
-      if (cnt) cnt.textContent = n || '';
-      else if (n) refreshCmd();
+      if (!c) return;
+      if (c.type === 'train') {
+        const prog = cmdButtons[i].querySelector('.prog');
+        if (prog) prog.style.width = (c.building.queue[0] && c.building.queue[0].key === c.key ?
+          Math.round(c.building.queue[0].prog * 100) : 0) + '%';
+        const cnt = cmdButtons[i].querySelector('.count');
+        const n = c.building.queue.filter(q => q.key === c.key).length;
+        if (cnt) cnt.textContent = n || '';
+        else if (n) refreshCmd();
+      } else if (c.type === 'gtrain') {
+        const list = prodBuildings(c.bkind);
+        let pv = 0, n = 0;
+        for (const bl of list) {
+          n += bl.queue.filter(q => q.key === c.key).length;
+          if (bl.queue[0] && bl.queue[0].key === c.key) pv = Math.max(pv, bl.queue[0].prog);
+        }
+        const prog = cmdButtons[i].querySelector('.prog');
+        if (prog) prog.style.width = Math.round(pv * 100) + '%';
+        const cnt = cmdButtons[i].querySelector('.count');
+        if (cnt) cnt.textContent = n || '';
+        else if (n) refreshCmd();
+      }
     });
   }
 
@@ -597,7 +732,8 @@ const UI = (() => {
     toggleScoreboard, refreshScoreboard,
     refreshTop, refreshPowers, refreshSel, refreshCmd, refreshCmdProgress, triggerHotkey,
     feed, announce, ping, underAttack, jumpToLastEvent, flashOrder, update, drawMinimap,
-    hideTooltip,
+    hideTooltip, setGlobalProd,
+    get globalProd() { return globalProd; },
     get pings() { return pings; },
     get cfg() { return cfg; },
     get orderFlashes() { return orderFlashes; },

@@ -89,6 +89,17 @@ function killEnt(e, attacker) {
     RENDER.cleanGhost(e.id);
     if (p) { p.stats.buildingsLost++; recomputePower(e.owner); }
     if (e.owner === 0) { UI.feed(bName(e.key, p.faction) + ' destroyed', 'bad'); SFX.say('Structure lost'); }
+    // reactor meltdown — full damage to everyone, friend and foe alike
+    if (e.def.meltdown) {
+      FX.nukeExplosion(e.x, e.y);
+      FX.flash('160,255,120', 0.5, 0.8);
+      SFX.explo(e.x, e.y, 2.4);
+      RENDER.addDecal(e.x, e.y, 150);
+      UI.feed('☢ NUCLEAR MELTDOWN', 'bad');
+      UI.ping(e.x, e.y, '#8aff5a');
+      UI.announce('☢ MELTDOWN ☢');
+      dealSplash(e.x, e.y, e.def.meltdown.dmg, 'explosive', e.def.meltdown.splash, -1, null, true);
+    }
   } else {
     if (e.def.chassis === 'inf') { FX.blood(e.x, e.y); }
     else {

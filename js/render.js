@@ -469,17 +469,29 @@ const RENDER = (() => {
     if (ch === 'inf' || ch === 'rocketinf') drawInfantry(u, c1, c2);
     else {
       ctx.rotate(u.angle);
-      switch (ch) {
-        case 'tank': drawTank(u, c1, c2, false); break;
-        case 'heavytank': drawTank(u, c1, c2, true); break;
-        case 'buggy': drawBuggy(u, c1, c2); break;
-        case 'mlrs': drawMLRS(u, c1, c2); break;
-        case 'flametank': drawFlameTank(u, c1, c2); break;
-        case 'dozer': drawDozer(u, c1, c2); break;
-        case 'truck': drawTruck(u, c1, c2); break;
-        case 'demorig': drawDemoRig(u, c1, c2); break;
-        case 'radar': drawRadarTruck(u, c1, c2); break;
-        default: ctx.fillStyle = c1; ctx.fillRect(-10, -8, 20, 16);
+      // every vehicle model gets its own silhouette; chassis is only the fallback
+      switch (u.key) {
+        case 'bulwark': drawBulwark(u, c1, c2); break;
+        case 'jackal': drawJackal(u, c1, c2); break;
+        case 'warlord': drawWarlord(u, c1, c2); break;
+        case 'goliath': drawGoliath(u, c1, c2); break;
+        case 'viper': drawViper(u, c1, c2); break;
+        case 'flak': drawFlakTruck(u, c1, c2); break;
+        case 'guntruck': drawGunTruck(u, c1, c2); break;
+        case 'barrage': drawBarrageBuggy(u, c1, c2); break;
+        case 'siege': drawSiegeGun(u, c1, c2); break;
+        default: switch (ch) {
+          case 'tank': drawTank(u, c1, c2, false); break;
+          case 'heavytank': drawTank(u, c1, c2, true); break;
+          case 'buggy': drawBuggy(u, c1, c2); break;
+          case 'mlrs': drawMLRS(u, c1, c2); break;
+          case 'flametank': drawFlameTank(u, c1, c2); break;
+          case 'dozer': drawDozer(u, c1, c2); break;
+          case 'truck': drawTruck(u, c1, c2); break;
+          case 'demorig': drawDemoRig(u, c1, c2); break;
+          case 'radar': drawRadarTruck(u, c1, c2); break;
+          default: ctx.fillStyle = c1; ctx.fillRect(-10, -8, 20, 16);
+        }
       }
     }
     ctx.restore();
@@ -632,6 +644,283 @@ const RENDER = (() => {
     ctx.beginPath(); ctx.ellipse(-8, 6, 4, 2.6, 0, 0, 7); ctx.fill();
   }
 
+  /* shared tracked-vehicle base: treads, rolling links, road wheels */
+  function tankTreads(u, w, h, wheels, tw = 5) {
+    ctx.fillStyle = '#26231c';
+    ctx.fillRect(-w / 2, -h / 2, w, tw);
+    ctx.fillRect(-w / 2, h / 2 - tw, w, tw);
+    ctx.fillStyle = '#3c382c';
+    const off = (u.treadOff = ((u.treadOff || 0) + (u.moving ? 1 : 0))) % 6;
+    for (let x = -w / 2 + off % 6; x < w / 2; x += 6) {
+      ctx.fillRect(x, -h / 2, 2, tw); ctx.fillRect(x, h / 2 - tw, 2, tw);
+    }
+    ctx.fillStyle = '#171510';
+    for (let i = 0; i < wheels; i++) {
+      const wx = -w / 2 + 5 + i * (w - 10) / (wheels - 1);
+      ctx.beginPath(); ctx.arc(wx, -h / 2 + tw / 2, 1.7, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(wx, h / 2 - tw / 2, 1.7, 0, 7); ctx.fill();
+    }
+  }
+  function hullPlate(w, h, c1, c2, r = 3) {
+    const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+    g.addColorStop(0, U.shade(c1, 1.15)); g.addColorStop(0.5, c1); g.addColorStop(1, c2);
+    ctx.fillStyle = g;
+    roundRect(-w / 2 + 2, -h / 2 + 3, w - 4, h - 6, r); ctx.fill();
+    ctx.strokeStyle = c2; ctx.lineWidth = 1;
+    roundRect(-w / 2 + 2, -h / 2 + 3, w - 4, h - 6, r); ctx.stroke();
+  }
+
+  /* Bulwark — modern MBT: angular wedge hull, hexagonal turret, one long gun w/ muzzle brake */
+  function drawBulwark(u, c1, c2) {
+    tankTreads(u, 25, 18, 3);
+    hullPlate(25, 18, c1, c2, 2);
+    // wedge glacis
+    ctx.fillStyle = 'rgba(255,246,220,0.20)';
+    ctx.beginPath(); ctx.moveTo(6, -5.5); ctx.lineTo(11.5, -2); ctx.lineTo(11.5, 2); ctx.lineTo(6, 5.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.16)'; ctx.fillRect(-10.5, -5.5, 4, 11);   // engine deck
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    const rec = (u.recoil = Math.max(0, (u.recoil || 0) - 0.08));
+    // hexagonal low-profile turret
+    ctx.fillStyle = U.shade(c1, 1.25); ctx.strokeStyle = c2; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(6.5, 0); ctx.lineTo(3, -5.5); ctx.lineTo(-4.5, -5.5); ctx.lineTo(-7, 0);
+    ctx.lineTo(-4.5, 5.5); ctx.lineTo(3, 5.5); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,246,220,0.25)';
+    ctx.beginPath(); ctx.moveTo(3.5, -1.8); ctx.lineTo(1, -4); ctx.lineTo(-3.5, -4); ctx.lineTo(-3.5, -1.8); ctx.closePath(); ctx.fill();
+    // long gun + muzzle brake
+    ctx.fillStyle = '#22201a';
+    ctx.fillRect(4 - rec * 4, -1.3, 18, 2.6);
+    ctx.fillRect(20 - rec * 4, -2, 3.2, 4);
+    // commander hatch + antenna
+    ctx.fillStyle = U.shade(c1, 0.8);
+    ctx.beginPath(); ctx.arc(-2.5, 2.5, 1.8, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#1c1a14'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(-4, -3); ctx.lineTo(-10, -8); ctx.stroke();
+    ctx.restore();
+  }
+
+  /* Jackal — scrappy light tank: rounded welded turret set back, stubby gun, stowage */
+  function drawJackal(u, c1, c2) {
+    tankTreads(u, 22, 15, 3, 4);
+    hullPlate(22, 15, c1, c2, 4);
+    // welded patch + spare wheel on the front hull
+    ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(5, -4, 5, 3.4);
+    ctx.strokeStyle = 'rgba(60,50,30,0.8)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(8, 3, 2.6, 0, 7); ctx.stroke();
+    // strapped crates hanging off the back
+    ctx.fillStyle = '#7a6a44'; ctx.fillRect(-12.5, -3, 3.4, 6);
+    ctx.strokeStyle = '#3a3222'; ctx.strokeRect(-12.5, -3, 3.4, 6);
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    const rec = (u.recoil = Math.max(0, (u.recoil || 0) - 0.08));
+    // small round turret sits aft
+    ctx.fillStyle = U.shade(c1, 1.22);
+    ctx.beginPath(); ctx.arc(-2, 0, 5.2, 0, 7); ctx.fill();
+    ctx.strokeStyle = c2; ctx.stroke();
+    // weld-bead ring + bolts
+    ctx.fillStyle = '#1c1a14';
+    for (let i = 0; i < 5; i++) {
+      const a = i * Math.PI * 2 / 5 + 0.5;
+      ctx.beginPath(); ctx.arc(-2 + Math.cos(a) * 3.6, Math.sin(a) * 3.6, 0.7, 0, 7); ctx.fill();
+    }
+    // stubby gun
+    ctx.fillStyle = '#22201a';
+    ctx.fillRect(2 - rec * 3, -1.5, 12, 3);
+    ctx.restore();
+  }
+
+  /* Warlord — brutal twin-cannon heavy: wide hull, dozer plow, exhaust stacks */
+  function drawWarlord(u, c1, c2) {
+    tankTreads(u, 30, 23, 4);
+    hullPlate(30, 23, c1, c2, 3);
+    // front dozer plow
+    ctx.fillStyle = '#5c564a';
+    ctx.beginPath(); ctx.moveTo(14, -10); ctx.lineTo(18, -7); ctx.lineTo(18, 7); ctx.lineTo(14, 10); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(16.5, -7, 1.5, 14);
+    // twin exhaust stacks puffing when moving
+    ctx.fillStyle = '#2c2a22';
+    ctx.fillRect(-13, -8, 2.6, 4); ctx.fillRect(-13, 4, 2.6, 4);
+    if (u.moving && Math.random() < 0.12) FX.smokePuff(u.x - Math.cos(u.angle) * 14, u.y - Math.sin(u.angle) * 14, 0.8, true);
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    const rec = (u.recoil = Math.max(0, (u.recoil || 0) - 0.08));
+    // broad octagonal turret
+    ctx.fillStyle = U.shade(c1, 1.25); ctx.strokeStyle = c2; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(8, -3.6); ctx.lineTo(4, -8); ctx.lineTo(-5, -8); ctx.lineTo(-9, -3.6);
+    ctx.lineTo(-9, 3.6); ctx.lineTo(-5, 8); ctx.lineTo(4, 8); ctx.lineTo(8, 3.6); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,246,220,0.22)';
+    ctx.beginPath(); ctx.arc(-2, -2.5, 3.2, 0, 7); ctx.fill();
+    // twin cannons
+    ctx.fillStyle = '#22201a';
+    ctx.fillRect(6 - rec * 4, -4.2, 21, 2.8);
+    ctx.fillRect(6 - rec * 4, 1.4, 21, 2.8);
+    ctx.fillRect(24 - rec * 4, -4.6, 2.6, 3.4); ctx.fillRect(24 - rec * 4, 1.2, 2.6, 3.4);
+    ctx.restore();
+  }
+
+  /* Goliath — end-game superheavy: quad treads, huge turret, monster gun, rear vents */
+  function drawGoliath(u, c1, c2) {
+    // outer + inner tread pairs
+    tankTreads(u, 38, 30, 5, 6);
+    ctx.fillStyle = '#2e2b22';
+    ctx.fillRect(-19, -9, 38, 4.4); ctx.fillRect(-19, 4.6, 38, 4.4);
+    hullPlate(38, 26, c1, c2, 3);
+    // glowing engine vents at the rear
+    const vg = 0.5 + 0.4 * Math.sin(game.renderT * 6 + u.id);
+    ctx.fillStyle = `rgba(255,150,60,${vg})`;
+    ctx.fillRect(-17.5, -6, 2.2, 3.4); ctx.fillRect(-17.5, 2.6, 2.2, 3.4);
+    // armored skirt line
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-14, -9.5); ctx.lineTo(14, -9.5); ctx.moveTo(-14, 9.5); ctx.lineTo(14, 9.5); ctx.stroke();
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    const rec = (u.recoil = Math.max(0, (u.recoil || 0) - 0.08));
+    // massive angular turret
+    ctx.fillStyle = U.shade(c1, 1.28); ctx.strokeStyle = c2; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(10, -4.5); ctx.lineTo(5, -9.5); ctx.lineTo(-7, -9.5); ctx.lineTo(-11, -4.5);
+    ctx.lineTo(-11, 4.5); ctx.lineTo(-7, 9.5); ctx.lineTo(5, 9.5); ctx.lineTo(10, 4.5); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,246,220,0.22)';
+    ctx.beginPath(); ctx.moveTo(4, -3); ctx.lineTo(1, -6.5); ctx.lineTo(-5, -6.5); ctx.lineTo(-5, -3); ctx.closePath(); ctx.fill();
+    // monster cannon with double baffle
+    ctx.fillStyle = '#1e1c16';
+    ctx.fillRect(8 - rec * 5, -2, 26, 4);
+    ctx.fillRect(26 - rec * 5, -2.8, 3, 5.6);
+    ctx.fillRect(31 - rec * 5, -2.8, 3, 5.6);
+    // secondary mini-turret
+    ctx.fillStyle = U.shade(c1, 0.9);
+    ctx.beginPath(); ctx.arc(-6.5, 5, 2.6, 0, 7); ctx.fill();
+    ctx.fillStyle = '#22201a'; ctx.fillRect(-6.5, 4.2, 7, 1.6);
+    // twin antennas
+    ctx.strokeStyle = '#1c1a14'; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(-8, -6); ctx.lineTo(-15, -12); ctx.moveTo(-9, -4); ctx.lineTo(-17, -7); ctx.stroke();
+    ctx.restore();
+  }
+
+  /* Viper — coalition AA: buggy with twin gatling pods + small spinning sensor */
+  function drawViper(u, c1, c2) {
+    drawBuggy(u, c1, c2);
+    ctx.save();
+    ctx.rotate(-u.angle + game.renderT * 2.4);
+    ctx.fillStyle = '#c8d0d8';
+    ctx.beginPath(); ctx.ellipse(-7, -5, 3, 1.6, 0, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+
+  /* Quad Flak — dynasty AA: boxy halftrack, 2×2 short flak barrels on a rotating mount */
+  function drawFlakTruck(u, c1, c2) {
+    ctx.fillStyle = '#1c1a14';
+    for (const wx of [8]) for (const wy of [-8, 8]) {
+      ctx.beginPath(); ctx.ellipse(wx, wy, 3.6, 2.6, 0, 0, 7); ctx.fill();
+    }
+    // rear half-tracks
+    ctx.fillStyle = '#26231c';
+    ctx.fillRect(-12, -9.5, 14, 4); ctx.fillRect(-12, 5.5, 14, 4);
+    const g = ctx.createLinearGradient(0, -8, 0, 8);
+    g.addColorStop(0, U.shade(c1, 1.18)); g.addColorStop(1, c2);
+    ctx.fillStyle = g;
+    roundRect(-12, -7, 24, 14, 3); ctx.fill();
+    ctx.strokeStyle = c2; roundRect(-12, -7, 24, 14, 3); ctx.stroke();
+    ctx.fillStyle = '#a8c8d8'; ctx.fillRect(7, -4, 3.4, 8);   // cab glass
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    // quad mount: 2×2 short fat barrels
+    ctx.fillStyle = U.shade(c1, 1.3);
+    ctx.beginPath(); ctx.arc(-2, 0, 4.6, 0, 7); ctx.fill();
+    ctx.strokeStyle = c2; ctx.stroke();
+    ctx.fillStyle = '#22201a';
+    for (const by of [-3.4, -1.1, 1.1, 3.4]) ctx.fillRect(1, by - 0.8, 9, 1.6);
+    // gunner seat
+    ctx.fillStyle = '#2c2a22'; ctx.fillRect(-7, -2, 3, 4);
+    ctx.restore();
+  }
+
+  /* Gun Truck — cartel pickup: cab forward, open bed, roll-bar MG */
+  function drawGunTruck(u, c1, c2) {
+    ctx.fillStyle = '#1c1a14';
+    for (const wx of [-8, 7]) for (const wy of [-7.5, 7.5]) {
+      ctx.beginPath(); ctx.ellipse(wx, wy, 3.6, 2.5, 0, 0, 7); ctx.fill();
+    }
+    // open cargo bed (dark) with side rails
+    ctx.fillStyle = '#4a4438';
+    roundRect(-13, -6.5, 13, 13, 2); ctx.fill();
+    ctx.strokeStyle = '#2c2a22'; ctx.lineWidth = 1.4;
+    roundRect(-13, -6.5, 13, 13, 2); ctx.stroke();
+    // cab + hood up front, battered paint
+    const g = ctx.createLinearGradient(0, -7, 0, 7);
+    g.addColorStop(0, U.shade(c1, 1.25)); g.addColorStop(1, c2);
+    ctx.fillStyle = g;
+    roundRect(0, -7, 14, 14, 3); ctx.fill();
+    ctx.strokeStyle = c2; roundRect(0, -7, 14, 14, 3); ctx.stroke();
+    ctx.fillStyle = '#a8c8d8'; ctx.fillRect(2.5, -5, 3.4, 10);
+    ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(9, -5, 4, 10); // hood vents
+    // roll bar
+    ctx.strokeStyle = '#2c2a22'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(-1, -6.5); ctx.lineTo(-1, 6.5); ctx.stroke();
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    // pintle MG with ammo box
+    ctx.fillStyle = '#2c2a22';
+    ctx.beginPath(); ctx.arc(-5, 0, 3, 0, 7); ctx.fill();
+    ctx.fillRect(-4, -1.1, 13, 2.2);
+    ctx.fillStyle = '#6e5710'; ctx.fillRect(-8, -3.4, 3, 3);
+    ctx.restore();
+  }
+
+  /* Barrage Buggy — light frame, three angled rocket rails */
+  function drawBarrageBuggy(u, c1, c2) {
+    ctx.fillStyle = '#1c1a14';
+    for (const wx of [-9, 8]) for (const wy of [-7.5, 7.5]) {
+      ctx.beginPath(); ctx.ellipse(wx, wy, 3.8, 2.6, 0, 0, 7); ctx.fill();
+    }
+    const g = ctx.createLinearGradient(0, -7, 0, 7);
+    g.addColorStop(0, U.shade(c1, 1.15)); g.addColorStop(1, c2);
+    ctx.fillStyle = g;
+    roundRect(-12, -6.5, 24, 13, 3); ctx.fill();
+    ctx.strokeStyle = c2; roundRect(-12, -6.5, 24, 13, 3); ctx.stroke();
+    ctx.fillStyle = '#a8c8d8'; ctx.fillRect(7, -3.5, 3.4, 7);
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    // three exposed rocket rails angled upward (drawn as splayed tubes)
+    for (const [ry, rl] of [[-4.4, 12], [0, 14], [4.4, 12]]) {
+      ctx.fillStyle = '#3c382c'; ctx.fillRect(-8, ry - 1.4, rl, 2.8);
+      ctx.fillStyle = '#c94b2f';                        // rocket tips
+      ctx.beginPath(); ctx.moveTo(-8 + rl, ry - 1.4); ctx.lineTo(-8 + rl + 3, ry); ctx.lineTo(-8 + rl, ry + 1.4); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /* Siege platform — huge tracked gun: wide chassis, enormous barrel, rear recoil spades */
+  function drawSiegeGun(u, c1, c2) {
+    tankTreads(u, 32, 24, 4, 6);
+    hullPlate(32, 22, c1, c2, 2);
+    // rear stabilizer spades
+    ctx.fillStyle = '#5c564a';
+    ctx.beginPath(); ctx.moveTo(-16, -8); ctx.lineTo(-21, -10); ctx.lineTo(-21, -5); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-16, 8); ctx.lineTo(-21, 10); ctx.lineTo(-21, 5); ctx.closePath(); ctx.fill();
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    const rec = (u.recoil = Math.max(0, (u.recoil || 0) - 0.05));
+    // gun cradle
+    ctx.fillStyle = U.shade(c1, 1.2); ctx.strokeStyle = c2; ctx.lineWidth = 1;
+    roundRect(-9, -5.5, 15, 11, 2); ctx.fill();
+    roundRect(-9, -5.5, 15, 11, 2); ctx.stroke();
+    // colossal barrel — longest gun in the game
+    ctx.fillStyle = '#1e1c16';
+    ctx.fillRect(4 - rec * 7, -2.2, 30, 4.4);
+    ctx.fillStyle = '#3a362c';
+    ctx.fillRect(4 - rec * 7, -2.2, 6, 4.4);            // reinforced breech collar
+    ctx.fillRect(30 - rec * 7, -3.2, 4.5, 6.4);         // huge muzzle brake
+    // elevation pistons
+    ctx.strokeStyle = '#2c2a22'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(-4, -4.5); ctx.lineTo(6, -2.6); ctx.moveTo(-4, 4.5); ctx.lineTo(6, 2.6); ctx.stroke();
+    ctx.restore();
+  }
+
   function drawDozer(u, c1, c2) {
     ctx.fillStyle = '#26231c';
     ctx.fillRect(-11, -9, 22, 5); ctx.fillRect(-11, 4, 22, 5);
@@ -730,28 +1019,150 @@ const RENDER = (() => {
     u._prevA = u.angle;
     u._bank = U.lerp(u._bank || 0, U.clamp(turn * 22, -0.5, 0.5), 0.15);
     ctx.scale(1, 1 - Math.abs(u._bank));
-    // afterburner
-    if (u.jetState === 'attack' || u.jetState === 'moveto' || u.jetState === 'return') {
-      ctx.fillStyle = `rgba(255,180,80,${0.5 + 0.4 * Math.sin(game.renderT * 40)})`;
-      ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(-22, -2.5); ctx.lineTo(-22, 2.5); ctx.closePath(); ctx.fill();
-    }
+    const burning = u.jetState === 'attack' || u.jetState === 'moveto' || u.jetState === 'return';
     const g = ctx.createLinearGradient(0, -10, 0, 10);
     g.addColorStop(0, U.shade(c1, 1.3)); g.addColorStop(1, c2);
     ctx.fillStyle = g;
-    // fuselage + swept wings
-    ctx.beginPath();
-    ctx.moveTo(16, 0); ctx.lineTo(4, -3);
-    ctx.lineTo(-2, -13); ctx.lineTo(-8, -13); ctx.lineTo(-6, -3);
-    ctx.lineTo(-13, -2); ctx.lineTo(-15, -6); ctx.lineTo(-17, -6);   // tail
-    ctx.lineTo(-14, 0);
-    ctx.lineTo(-17, 6); ctx.lineTo(-15, 6); ctx.lineTo(-13, 2);
-    ctx.lineTo(-6, 3); ctx.lineTo(-8, 13); ctx.lineTo(-2, 13);
-    ctx.lineTo(4, 3);
-    ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = c2; ctx.lineWidth = 1; ctx.stroke();
-    // canopy
-    ctx.fillStyle = '#b8d8e8';
-    ctx.beginPath(); ctx.ellipse(7, 0, 4.5, 2, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = c2; ctx.lineWidth = 1;
+    const flame = a => `rgba(255,180,80,${a * (0.5 + 0.4 * Math.sin(game.renderT * 40))})`;
+
+    switch (u.key) {
+      case 'vulture': {   // heavy attack plane: straight wide wings, blunt nose, engine pods, belly bomb
+        if (burning) {
+          ctx.fillStyle = flame(0.9);
+          ctx.beginPath(); ctx.moveTo(-6, -9); ctx.lineTo(-13, -7.6); ctx.lineTo(-13, -10.4); ctx.closePath(); ctx.fill();
+          ctx.beginPath(); ctx.moveTo(-6, 9); ctx.lineTo(-13, 7.6); ctx.lineTo(-13, 10.4); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = g;
+        }
+        // straight wings
+        ctx.beginPath();
+        ctx.moveTo(6, -2.6); ctx.lineTo(2, -16); ctx.lineTo(-4, -16); ctx.lineTo(-4, -2.6);
+        ctx.lineTo(-4, 2.6); ctx.lineTo(-4, 16); ctx.lineTo(2, 16); ctx.lineTo(6, 2.6);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // wing engine pods
+        ctx.fillStyle = U.shade(c2, 1.15);
+        roundRect(-6, -10.6, 9, 3.6, 1.6); ctx.fill();
+        roundRect(-6, 7, 9, 3.6, 1.6); ctx.fill();
+        // fat fuselage, blunt rounded nose, single tall tail
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(13, -3); ctx.quadraticCurveTo(17, 0, 13, 3);
+        ctx.lineTo(-12, 2.6); ctx.lineTo(-16, 5.5); ctx.lineTo(-17.5, 5.5); ctx.lineTo(-15, 0);
+        ctx.lineTo(-17.5, -5.5); ctx.lineTo(-16, -5.5); ctx.lineTo(-12, -2.6);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // slung bomb
+        if (u.ammo > 0) { ctx.fillStyle = '#4a2a1a'; ctx.beginPath(); ctx.ellipse(0, 0, 5, 2.2, 0, 0, 7); ctx.fill(); }
+        ctx.fillStyle = '#b8d8e8';
+        ctx.beginPath(); ctx.ellipse(10, 0, 3.4, 2, 0, 0, 7); ctx.fill();
+        break;
+      }
+      case 'seraph': {    // end-game gunship: forward-swept wings, canards, twin glowing engines
+        if (burning) {
+          ctx.fillStyle = `rgba(140,220,255,${0.55 + 0.4 * Math.sin(game.renderT * 40)})`;
+          ctx.beginPath(); ctx.moveTo(-13, -4); ctx.lineTo(-22, -2.6); ctx.lineTo(-22, -5.4); ctx.closePath(); ctx.fill();
+          ctx.beginPath(); ctx.moveTo(-13, 4); ctx.lineTo(-22, 2.6); ctx.lineTo(-22, 5.4); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = g;
+        }
+        // forward-swept wings (tips ahead of the root)
+        ctx.beginPath();
+        ctx.moveTo(2, -3); ctx.lineTo(4, -14); ctx.lineTo(-2, -15); ctx.lineTo(-8, -3.4);
+        ctx.lineTo(-8, 3.4); ctx.lineTo(-2, 15); ctx.lineTo(4, 14); ctx.lineTo(2, 3);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // canards
+        ctx.beginPath();
+        ctx.moveTo(11, -2); ctx.lineTo(13, -7); ctx.lineTo(9.5, -7); ctx.lineTo(7.5, -2);
+        ctx.lineTo(7.5, 2); ctx.lineTo(9.5, 7); ctx.lineTo(13, 7); ctx.lineTo(11, 2);
+        ctx.closePath(); ctx.fill();
+        // sleek fuselage + twin canted tails
+        ctx.beginPath();
+        ctx.moveTo(19, 0); ctx.lineTo(9, -2.8); ctx.lineTo(-10, -3.2);
+        ctx.lineTo(-15, -8); ctx.lineTo(-17.5, -8); ctx.lineTo(-14, -1.5);
+        ctx.lineTo(-14, 1.5); ctx.lineTo(-17.5, 8); ctx.lineTo(-15, 8); ctx.lineTo(-10, 3.2);
+        ctx.lineTo(9, 2.8);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // twin engine glow
+        const eg = 0.5 + 0.4 * Math.sin(game.renderT * 9 + u.id);
+        ctx.fillStyle = `rgba(120,220,255,${eg})`;
+        ctx.beginPath(); ctx.arc(-12.5, -2.2, 1.6, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.arc(-12.5, 2.2, 1.6, 0, 7); ctx.fill();
+        ctx.fillStyle = '#c8ecff';
+        ctx.beginPath(); ctx.ellipse(11, 0, 4.2, 1.8, 0, 0, 7); ctx.fill();
+        break;
+      }
+      case 'behemoth': {  // end-game heavy bomber: giant flying wing, four engines
+        if (burning) {
+          ctx.fillStyle = flame(0.8);
+          for (const ey of [-11, -5, 5, 11]) {
+            ctx.beginPath(); ctx.moveTo(-8, ey); ctx.lineTo(-15, ey - 1.3); ctx.lineTo(-15, ey + 1.3); ctx.closePath(); ctx.fill();
+          }
+          ctx.fillStyle = g;
+        }
+        // one huge swept wing spanning the whole craft
+        ctx.beginPath();
+        ctx.moveTo(12, 0); ctx.lineTo(2, -6); ctx.lineTo(-6, -20); ctx.lineTo(-12, -20);
+        ctx.lineTo(-9, -5); ctx.lineTo(-11, 0); ctx.lineTo(-9, 5);
+        ctx.lineTo(-12, 20); ctx.lineTo(-6, 20); ctx.lineTo(2, 6);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // four embedded engine nacelles
+        ctx.fillStyle = U.shade(c2, 1.2);
+        for (const ey of [-11, -5, 5, 11]) roundRect(-8.5, ey - 1.7, 8, 3.4, 1.4), ctx.fill();
+        // center pod cockpit
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.ellipse(4, 0, 8, 3.4, 0, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#b8d8e8';
+        ctx.beginPath(); ctx.ellipse(8, 0, 2.8, 1.7, 0, 0, 7); ctx.fill();
+        break;
+      }
+      case 'spyplane': {  // stealth recon: long slender body, extreme-span thin straight wings
+        // glider wings — very wide, very thin
+        ctx.fillStyle = U.shade(c1, 0.75);
+        ctx.beginPath();
+        ctx.moveTo(3, -1.6); ctx.lineTo(-1, -22); ctx.lineTo(-4, -22) ; ctx.lineTo(-4, -1.6);
+        ctx.lineTo(-4, 1.6); ctx.lineTo(-4, 22); ctx.lineTo(-1, 22); ctx.lineTo(3, 1.6);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // needle fuselage
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(17, 0); ctx.lineTo(12, -1.8); ctx.lineTo(-13, -1.8);
+        ctx.lineTo(-16, -5); ctx.lineTo(-17.5, -5); ctx.lineTo(-16.5, 0);
+        ctx.lineTo(-17.5, 5); ctx.lineTo(-16, 5); ctx.lineTo(-13, 1.8);
+        ctx.lineTo(12, 1.8);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // sensor blister glow
+        const sg = 0.4 + 0.4 * Math.sin(game.renderT * 4 + u.id);
+        ctx.fillStyle = `rgba(140,255,190,${sg})`;
+        ctx.beginPath(); ctx.ellipse(2, 0, 3, 1.6, 0, 0, 7); ctx.fill();
+        ctx.fillStyle = '#b8d8e8';
+        ctx.beginPath(); ctx.ellipse(10, 0, 2.6, 1.4, 0, 0, 7); ctx.fill();
+        break;
+      }
+      default: {          // falcon — sleek delta-wing strike fighter, twin canted tails
+        if (burning) {
+          ctx.fillStyle = flame(1);
+          ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(-22, -2.5); ctx.lineTo(-22, 2.5); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = g;
+        }
+        // cropped delta wings set far back
+        ctx.beginPath();
+        ctx.moveTo(8, -2.4); ctx.lineTo(-5, -13.5); ctx.lineTo(-11, -13.5); ctx.lineTo(-8, -2.6);
+        ctx.lineTo(-8, 2.6); ctx.lineTo(-11, 13.5); ctx.lineTo(-5, 13.5); ctx.lineTo(8, 2.4);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // dart fuselage
+        ctx.beginPath();
+        ctx.moveTo(18, 0); ctx.lineTo(9, -2.6); ctx.lineTo(-9, -3);
+        ctx.lineTo(-12, -7.5); ctx.lineTo(-14.5, -7.5); ctx.lineTo(-13, -1.4);
+        ctx.lineTo(-13, 1.4); ctx.lineTo(-14.5, 7.5); ctx.lineTo(-12, 7.5); ctx.lineTo(-9, 3);
+        ctx.lineTo(9, 2.6);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // wingtip missiles while armed
+        if (u.ammo > 0) {
+          ctx.fillStyle = '#d8d4c8';
+          ctx.fillRect(-9, -13, 6, 1.6); ctx.fillRect(-9, 11.4, 6, 1.6);
+        }
+        ctx.fillStyle = '#b8d8e8';
+        ctx.beginPath(); ctx.ellipse(9, 0, 4, 1.9, 0, 0, 7); ctx.fill();
+      }
+    }
     ctx.restore();
     drawHpBar(u);
   }
@@ -885,6 +1296,7 @@ const RENDER = (() => {
     switch (b.key) {
       case 'cc': drawCC(b, s, c1, c2, fac); break;
       case 'power': drawPower(b, s, c1, c2, fac); break;
+      case 'nuclear': drawNuclear(b, s, c1, c2); break;
       case 'supply': drawSupply(b, s, c1, c2); break;
       case 'barracks': drawBarracks(b, s, c1, c2); break;
       case 'factory': drawFactory(b, s, c1, c2); break;
@@ -1026,6 +1438,36 @@ const RENDER = (() => {
       }
     }
     ctx.fillStyle = c1; ctx.fillRect(s * 0.1, s * 0.78, s * 0.8, s * 0.07);
+  }
+
+  function drawNuclear(b, s, c1, c2) {
+    // containment hall
+    box3d(s * 0.06, s * 0.42, s * 0.5, s * 0.44, '#8e94a2', '#5c626e');
+    // hazard chevrons on the hall roof
+    ctx.fillStyle = '#d8c33c';
+    for (let i = 0; i < 3; i++) ctx.fillRect(s * 0.1 + i * s * 0.15, s * 0.35, s * 0.08, s * 0.05);
+    // big cooling tower (hyperboloid suggested by stacked cylinders)
+    cyl(s * 0.68, s * 0.62, s * 0.21, s * 0.42, '#9aa0aa');
+    cyl(s * 0.68, s * 0.28, s * 0.155, s * 0.1, '#aab0ba');
+    ctx.fillStyle = '#2c3038';
+    ctx.beginPath(); ctx.ellipse(s * 0.68, s * 0.18, s * 0.115, s * 0.05, 0, 0, 7); ctx.fill();
+    // rising steam column
+    if (Math.random() < 0.14) FX.smokePuff(b.tx * TILE + s * 0.68, b.ty * TILE + s * 0.16, 1.6);
+    // reactor core dome with pulsing radioactive glow
+    const gl = 0.5 + 0.4 * Math.sin(game.renderT * 2.6 + b.id);
+    ctx.fillStyle = '#6e747e';
+    ctx.beginPath(); ctx.arc(s * 0.3, s * 0.6, s * 0.13, 0, 7); ctx.fill();
+    ctx.fillStyle = `rgba(130,255,90,${gl})`;
+    ctx.beginPath(); ctx.arc(s * 0.3, s * 0.6, s * 0.085, 0, 7); ctx.fill();
+    ctx.strokeStyle = `rgba(180,255,140,${gl * 0.8})`; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(s * 0.3, s * 0.6, s * 0.13, 0, 7); ctx.stroke();
+    // trefoil-style warning marks (three dots around the core)
+    ctx.fillStyle = '#1c1e14';
+    for (let i = 0; i < 3; i++) {
+      const a = i * Math.PI * 2 / 3 - Math.PI / 2;
+      ctx.beginPath(); ctx.arc(s * 0.3 + Math.cos(a) * s * 0.055, s * 0.6 + Math.sin(a) * s * 0.055, s * 0.02, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = c1; ctx.fillRect(s * 0.06, s * 0.9, s * 0.5, s * 0.05);
   }
 
   function drawSupply(b, s, c1, c2) {

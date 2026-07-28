@@ -108,6 +108,7 @@ const INPUT = (() => {
         else if (targeting) { targeting = null; UI.refreshPowers(); }
         else if (awaitAttackMove) awaitAttackMove = false;
         else if (awaitGuard) awaitGuard = false;
+        else if (UI.globalProd) UI.setGlobalProd(null);
         else UI.togglePause();
         e.preventDefault(); return;
       }
@@ -119,6 +120,10 @@ const INPUT = (() => {
       if (k === 'backspace') { e.preventDefault(); centerOnBase(); return; }
       if (k === 'f1') { e.preventDefault(); UI.showHelp(); return; }
       if (k === 'tab') { e.preventDefault(); UI.toggleScoreboard(); return; }
+      if (k === 'i') { e.preventDefault(); cycleIdleWorker(); return; }
+      if (k === 'b') { e.preventDefault(); UI.setGlobalProd('barracks', true); return; }
+      if (k === 't') { e.preventDefault(); UI.setGlobalProd('factory', true); return; }
+      if (k === 'j') { e.preventDefault(); UI.setGlobalProd('airfield', true); return; }
 
       // control groups
       if (/^[1-9]$/.test(k)) {
@@ -412,6 +417,23 @@ const INPUT = (() => {
   }
 
   /* cursor mode for renderer */
+  /* ---------------- idle workers ---------------- */
+  function idleWorkers() {
+    return game.ents.filter(e => !e.dead && e.kind === 'unit' && e.owner === 0 && e.def.builder &&
+      (e.order.type === 'idle' || e.order.type === 'guard') && !e.orderQueue.length);
+  }
+  let idleCursor = 0;
+  function cycleIdleWorker() {
+    const list = idleWorkers();
+    if (!list.length) { UI.feed('No idle workers'); return; }
+    idleCursor = (idleCursor + 1) % list.length;
+    const w = list[idleCursor];
+    selection = [w];
+    UI.refreshSel(); UI.refreshCmd();
+    centerOn(w);
+    SFX.click();
+  }
+
   function cursorMode() {
     if (targeting || awaitAttackMove || awaitGuard) return 'target';
     if (placing) return 'default';
@@ -437,6 +459,8 @@ const INPUT = (() => {
   return {
     init, updateCamera, prune, centerOn, centerOnBase, resetMatch,
     beginPlace, beginTargeting, stopSelected, issueAttackMove,
+    idleWorkers, cycleIdleWorker,
+    get keys() { return keys; },
     get mouse() { return mouse; },
     get selection() { return selection; },
     set selection(s) { selection = s; },
