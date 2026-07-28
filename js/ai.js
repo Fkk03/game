@@ -8,6 +8,12 @@ const AI = (() => {
     dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, salamander: 2, vulture: 2 },
     cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, barrage: 2, demorig: 2 },
   };
+  /* units that counter each enemy composition trend, per faction */
+  const COUNTERS = {
+    air:   { coalition: ['viper', 'rocketeer'], dynasty: ['flak', 'rpg'], cartel: ['guntruck', 'rocketraider'] },
+    armor: { coalition: ['rocketeer', 'thunder', 'bulwark'], dynasty: ['rpg', 'warlord'], cartel: ['rocketraider', 'barrage', 'demorig'] },
+    inf:   { coalition: ['viper', 'ranger'], dynasty: ['salamander', 'flak'], cartel: ['guntruck', 'raider'] },
+  };
 
   /* ---------------- one AI player brain ---------------- */
   function makeAI(pi, diffKey) {
@@ -118,17 +124,17 @@ const AI = (() => {
       if (!has('barracks') && money >= BUILDINGS.barracks.cost) return 'barracks';
       if (!has('factory') && money >= BUILDINGS.factory.cost + 300) return 'factory';
       if (has('turret') < 2 && money >= BUILDINGS.turret.cost + 600 && game.t > 150) return 'turret';
-      if (has('market') < 2 && money >= BUILDINGS.market.cost + 800) return 'market';
+      if (has('market') < 2 && money >= BUILDINGS.market.cost + 300) return 'market';
       if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + 800 && game.t > 240) return 'airfield';
       if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + 1200 && game.t > 330) return 'repairbay';
-      if (has('supply') < 2 && game.t > 300 && money >= BUILDINGS.supply.cost + 500) return 'supply';
-      if (has('supply') < 3 && game.t > 540 && money >= BUILDINGS.supply.cost + 2000) return 'supply';
+      if (has('supply') < 2 && game.t > 180 && money >= BUILDINGS.supply.cost + 500) return 'supply';
+      if (has('supply') < 3 && game.t > 400 && money >= BUILDINGS.supply.cost + 1500) return 'supply';
       if (has('factory') < 2 && game.t > 360 && money >= BUILDINGS.factory.cost + 3000) return 'factory';
       if (diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
       if (diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('turret') < 4 && money >= BUILDINGS.turret.cost + 2500 && game.t > 400) return 'turret';
-      if (has('market') < 12 && money >= BUILDINGS.market.cost + 3500 && game.t > 360) return 'market';
+      if (has('market') < 12 && money >= BUILDINGS.market.cost + 2500 && game.t > 300) return 'market';
       if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
       return null;
     }
@@ -184,7 +190,7 @@ const AI = (() => {
       if (want && sites.length < 2 && dozers.length) {
         const spot = findPlacement(want);
         if (spot && p().money >= BUILDINGS[want].cost) {
-          p().money -= BUILDINGS[want].cost;
+          p().spend(BUILDINGS[want].cost);
           const b = new Building(pi, want, spot.tx, spot.ty, false);
           game.addEnt(b);
         }
@@ -198,7 +204,7 @@ const AI = (() => {
         const trucks = myUnits('truck');
         const queued = sc.queue.filter(q => q.key === 'truck').length;
         const nSup = myBuildings('supply').filter(b => b.constructed).length;
-        const wanted = Math.min(7, (p().money > 4000 ? 3 : 2) * nSup);
+        const wanted = Math.min(8, 3 * nSup);
         if (trucks.length + queued < wanted && p().money > UNITS.truck.cost + 300) {
           sc.enqueue('truck');
         }
@@ -206,9 +212,38 @@ const AI = (() => {
     }
 
     /* ------------- army production ------------- */
+    let profT = 0, prof = null;
+    function enemyProfile() {
+      // sample what the enemy team fields and remember it for 25 s
+      if (game.t - profT < 25) return prof;
+      profT = game.t;
+      let air = 0, armor = 0, inf = 0, total = 0;
+      for (const e of game.ents) {
+        if (e.dead || e.kind !== 'unit' || !e.def.weapon || !isEnemyEnt(e)) continue;
+        const v = e.def.cost;
+        total += v;
+        if (e.def.air) air += v;
+        else if (e.armor === 'heavy') armor += v;
+        else if (e.armor === 'inf') inf += v;
+      }
+      prof = total > 800 ? { air: air / total, armor: armor / total, inf: inf / total } : null;
+      return prof;
+    }
+
     function manageArmy() {
       const fac = p().faction;
-      const comp = COMPS[fac];
+      const baseComp = COMPS[fac];
+      // adapt: boost counter units against what the enemy actually fields
+      const ep = enemyProfile();
+      const comp = { ...baseComp };
+      if (ep) {
+        for (const [trend, frac] of [['air', ep.air], ['armor', ep.armor], ['inf', ep.inf]]) {
+          if (frac < 0.18) continue;
+          for (const k of (COUNTERS[trend][fac] || [])) {
+            if (comp[k]) comp[k] = comp[k] * (1 + frac * 2.2);
+          }
+        }
+      }
       const army = combatUnits();
       // a rich AI raises its own army cap — money must become pressure, not savings
       const capEff = Math.min(diff.armyCap * 2,
@@ -258,7 +293,7 @@ const AI = (() => {
             const g = gatherPoint();
             for (const u of army) {
               if ((u.order.type === 'idle' || u.order.type === 'guard') &&
-                  U.dist(u.x, u.y, g.x, g.y) > 260) {
+                  U.dist(u.x, u.y, g.x, g.y) > 260 && !nearZone(u)) {
                 u.giveOrder({ type: 'guardarea', x: g.x + U.rand(-90, 90), y: g.y + U.rand(-90, 90) });
               }
             }
@@ -413,10 +448,35 @@ const AI = (() => {
       for (const d of defenders) d.giveOrder({ type: 'attackmove', x: attacker.x, y: attacker.y });
     }
 
+    /* fight for the control points */
+    function zoneDuty() {
+      if (!game.zones.length) return;
+      for (const z of game.zones) {
+        const enemyThere = z.present.some(t => t !== myTeam());
+        const needHold = z.owner !== myTeam() || enemyThere || z.contested;
+        const want = z.kind === 'dom' ? (needHold ? 6 : 3) : (needHold ? 3 : 2);
+        const near = combatUnits().filter(u => !u.def.air && U.dist(u.x, u.y, z.x, z.y) < z.r + 160);
+        if (near.length >= want) continue;
+        const takers = combatUnits()
+          .filter(u => !u.def.air && (u.order.type === 'idle' || u.order.type === 'guard') &&
+            U.dist(u.x, u.y, z.x, z.y) >= z.r + 160)
+          .sort((a, b) => U.dist2(a.x, a.y, z.x, z.y) - U.dist2(b.x, b.y, z.x, z.y))
+          .slice(0, want - near.length);
+        for (const u of takers) {
+          u.giveOrder({ type: 'guardarea', x: z.x + U.rand(-z.r * 0.5, z.r * 0.5), y: z.y + U.rand(-z.r * 0.5, z.r * 0.5) });
+        }
+      }
+    }
+
+    function nearZone(u) {
+      return game.zones.some(z => U.dist(u.x, u.y, z.x, z.y) < z.r + 160);
+    }
+
     function tick(dt2) {
       if (game.over || p().defeated) return;
       if (S.defendT > 0) S.defendT -= dt2;
       if (!myEnts().length) return;
+      zoneDuty();
       manageDozers();
       manageEconomy();
       manageArmy();

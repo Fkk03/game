@@ -37,6 +37,14 @@ const MAPSIZES = {
   huge:   { label: 'Huge',   w: 150, h: 150 },
 };
 
+/* domination mode */
+const DOM_WIN = 1000;          // team score to win
+const DOM_RATE = 0.5;          // points per second while holding the point uncontested
+const DOM_CAPTURE_TIME = 8;    // seconds standing alone in the zone to flip it
+const DOM_ZONE_R = 120;        // world px
+const ECON_ZONE_R = 110;
+const ECON_BONUS = 1.3;        // +30% income for the team holding the trade point
+
 /* per-player-slot colors (faction identity comes from units, color from slot) */
 const PLAYER_COLORS = ['#3d7edb', '#d43a2f', '#e8c33c', '#3fae5a', '#8e5bd6', '#e07b2f', '#38b8b8', '#c95b74'];
 

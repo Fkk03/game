@@ -26,6 +26,11 @@ python3 -m http.server 8080
 
 ## 🎮 The game
 
+- **Domination mode** — hold the central ⚑ control point uncontested to earn ~30 pts/min;
+  first team to 1,000 wins (annihilation also wins). A second 💰 Trade Point gives the
+  controlling team +30% income. Classic annihilation-only mode still selectable.
+- **Live battle stats** — Tab toggles a scoreboard with kills and army value for every
+  general (allies and enemies); the top bar shows your income and spending per minute
 - **Up to 8 players** — choose 0–3 allied AI generals and 1–7 enemies; the map auto-scales
   (up to the new Huge size), allies share your radar and fight beside you
 - **3 asymmetric factions**
@@ -70,7 +75,8 @@ python3 -m http.server 8080
 - Fog of war on a tile grid, cached-canvas terrain, all sprites drawn with Canvas 2D paths
 - All audio synthesized live (WebAudio); optional EVA-style voice via the browser's speech synthesis
 - The skirmish AI plays by (almost) all the same rules — it sees the map (no fog for AI)
-  and gets an income multiplier on Hard
+  and gets an income multiplier on Hard; it fights for the control points and adapts its
+  army composition to counter what you field (AA vs air, anti-tank vs armor, flame vs infantry)
 
 ## 📁 Files
 

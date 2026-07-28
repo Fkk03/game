@@ -10,6 +10,10 @@ let game = {
   cam: { x: 0, y: 0, zoom: 1 },
   shake: 0,
   revealAll: false,
+  mode: 'domination',
+  zones: [],              // control points {kind:'dom'|'econ', x, y, r, owner(team|-1), capT, capTeam, contested, present}
+  domScore: { 0: 0, 1: 0 },
+  econTeam: -1,
 };
 let world = null;
 
@@ -25,9 +29,20 @@ function makePlayer(idx, faction, isAI, team) {
     incomeMult: 1,
     frenzyUntil: 0,
     defeated: false,
-    stats: { unitsBuilt: 0, unitsLost: 0, kills: 0, buildingsLost: 0, moneyEarned: 0 },
+    stats: { unitsBuilt: 0, unitsLost: 0, kills: 0, buildingsLost: 0, moneyEarned: 0, moneySpent: 0 },
+    statHist: [],          // {t, earned, spent} samples for rate displays
     addMoney(amt, isIncome) {
-      this.money += amt * (isIncome ? this.incomeMult : 1);
+      let f = 1;
+      if (isIncome) {
+        f = this.incomeMult;
+        if (game.econTeam === this.team) f *= ECON_BONUS;   // trade point held by my team
+      }
+      this.money += amt * f;
+      if (isIncome) this.stats.moneyEarned += amt * f;
+    },
+    spend(amt) {
+      this.money -= amt;
+      this.stats.moneySpent += amt;
     },
   };
 }
@@ -45,6 +60,10 @@ function startGame(cfg) {
   game.projs = []; game.nukes = []; game.beamStrikes = [];
   game.shake = 0;
   game.revealAll = false;
+  game.mode = cfg.mode || 'domination';
+  game.zones = [];
+  game.domScore = { 0: 0, 1: 0 };
+  game.econTeam = -1;
   FX.clear();
   INPUT.resetMatch();
   UI.resetMatch();
@@ -86,6 +105,22 @@ function startGame(cfg) {
     recomputePower(pi);
   }
 
+  // control points (domination mode): dom at map center, trade point off-axis but fair
+  if (game.mode === 'domination') {
+    const zx = world.pw / 2, zy = world.ph / 2;
+    const ex = world.pw * 0.32, ey = world.ph * 0.32;
+    game.zones = [
+      { kind: 'dom', x: zx, y: zy, r: DOM_ZONE_R, owner: -1, capT: 0, capTeam: -1, contested: false, present: [] },
+      { kind: 'econ', x: ex, y: ey, r: ECON_ZONE_R, owner: -1, capT: 0, capTeam: -1, contested: false, present: [] },
+    ];
+    for (const z of game.zones) {
+      world.clearArea(Math.floor(z.x / TILE), Math.floor(z.y / TILE), Math.ceil(z.r / TILE) + 2);
+      world.ensureReachable(
+        { tx: world.starts[0].tx, ty: world.starts[0].ty },
+        { tx: Math.floor(z.x / TILE), ty: Math.floor(z.y / TILE) });
+    }
+  }
+
   AI.initGame(cfg.diff);
   RENDER.buildTerrain();
   world.recomputeFog();
@@ -99,6 +134,45 @@ function startGame(cfg) {
   UI.feed('Welcome, General. Build your base — your Dozer awaits orders.');
   UI.announce(FACTIONS[cfg.faction].name.toUpperCase());
   SFX.say('Battle control online');
+}
+
+/* ---------------- control point logic (1 Hz) ---------------- */
+function updateZones() {
+  for (const z of game.zones) {
+    const present = new Set();
+    for (const e of game.ents) {
+      if (e.dead || e.kind !== 'unit' || e.owner < 0) continue;
+      if (!e.def.weapon && !e.def.suicide) continue;    // only combat units hold ground
+      if (e.def.air) continue;
+      if (U.dist2(e.x, e.y, z.x, z.y) > z.r * z.r) continue;
+      const p = game.players[e.owner];
+      if (p && !p.defeated) present.add(p.team);
+    }
+    z.present = [...present];
+    z.contested = present.size > 1;
+
+    if (present.size === 1) {
+      const t = z.present[0];
+      if (z.owner === t) { z.capT = 0; z.capTeam = -1; }
+      else {
+        if (z.capTeam !== t) { z.capTeam = t; z.capT = 0; }
+        z.capT += 1;
+        if (z.capT >= DOM_CAPTURE_TIME) {
+          z.owner = t; z.capT = 0; z.capTeam = -1;
+          if (z.kind === 'econ') game.econTeam = t;
+          const mine = t === game.players[0].team;
+          const nm = z.kind === 'dom' ? 'Domination Point' : 'Trade Point';
+          UI.feed(mine ? `⚑ Your team captured the ${nm}!` : `⚠ Enemy team captured the ${nm}!`, mine ? 'gold' : 'bad');
+          UI.ping(z.x, z.y, mine ? '#9fdc7c' : '#ff5540');
+          if (mine) { SFX.ready(); SFX.say(nm + ' captured'); }
+          else { SFX.alarm(); SFX.say('We lost the ' + nm, true); }
+        }
+      }
+    } else {
+      z.capTeam = -1;
+      z.capT = Math.max(0, z.capT - 1);
+    }
+  }
 }
 
 /* ---------------- victory check (team-based) ---------------- */
@@ -125,8 +199,13 @@ function checkVictory() {
   }
 
   const humanTeam = game.players[0].team;
-  const lost = game.players[0].defeated;
-  const won = !lost && game.players.every(p => p.team === humanTeam || p.defeated);
+  let lost = game.players[0].defeated;
+  let won = !lost && game.players.every(p => p.team === humanTeam || p.defeated);
+  // domination victory
+  if (game.mode === 'domination' && !lost && !won) {
+    if ((game.domScore[humanTeam] || 0) >= DOM_WIN) won = true;
+    else if ((game.domScore[humanTeam === 0 ? 1 : 0] || 0) >= DOM_WIN) lost = true;
+  }
   if (lost || won) {
     game.over = true;
     game.revealAll = true;
@@ -158,6 +237,34 @@ function simStep(dt) {
   if (game.frame % 6 === 0) {
     world.recomputeFog();
     RENDER.refreshFogCanvas();
+  }
+
+  // control points at 1 Hz
+  if (game.frame % 30 === 15 && game.zones.length) updateZones();
+
+  // domination scoring (per sim step so it's smooth)
+  if (game.mode === 'domination' && !game.over) {
+    const z = game.zones[0];
+    if (z && z.owner >= 0 && !z.contested) {
+      game.domScore[z.owner] = (game.domScore[z.owner] || 0) + DOM_RATE * dt;
+      const sc = game.domScore[z.owner];
+      const enemyOfHuman = z.owner !== game.players[0].team;
+      for (const th of [500, 800, 950]) {
+        if (sc >= th && (z.warned || 0) < th) {
+          z.warned = th;
+          UI.feed(enemyOfHuman ? `⚠ Enemy team at ${th} domination points!` : `Your team reached ${th} domination points`, enemyOfHuman ? 'bad' : 'gold');
+          if (enemyOfHuman && th >= 800) { SFX.klaxon(); SFX.say('Warning. Enemy approaching domination victory', true); }
+        }
+      }
+    }
+  }
+
+  // sample earn/spend history every 5 s for the rate displays
+  if (game.frame % 150 === 0) {
+    for (const p of game.players) {
+      p.statHist.push({ t: game.t, earned: p.stats.moneyEarned, spent: p.stats.moneySpent });
+      if (p.statHist.length > 60) p.statHist.shift();
+    }
   }
 
   // prune dead entities
@@ -212,6 +319,8 @@ function loop(ts) {
   if (game.frame % 15 === 3 && !game.paused) UI.refreshSel();
   // powers row cooldown refresh at 1 Hz
   if (game.frame % 30 === 7 && !game.paused) UI.refreshPowers();
+  // scoreboard refresh at 1 Hz
+  if (game.frame % 30 === 12 && !game.paused) UI.refreshScoreboard();
 }
 
 /* ---------------- boot ---------------- */

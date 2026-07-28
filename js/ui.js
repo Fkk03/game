@@ -11,7 +11,7 @@ const UI = (() => {
 
   /* menu config state */
   const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000,
-    allies: 0, enemies: 1 };
+    allies: 0, enemies: 1, mode: 'domination' };
 
   function init() {
     mmCanvas = $('minimap');
@@ -31,6 +31,8 @@ const UI = (() => {
     }
     buildPills('enemy-pick', [['random', 'Random'], ...Object.keys(FACTIONS).map(k => [k, FACTIONS[k].name])],
       v => cfg.enemy = v, 'random');
+    buildPills('mode-pick', [['domination', '⚑ Domination (first team to 1,000 pts)'], ['annihilation', '💀 Annihilation only']],
+      v => cfg.mode = v, 'domination');
     buildPills('allies-pick', [[0, 'None'], [1, '1'], [2, '2'], [3, '3']], v => cfg.allies = +v, 0);
     buildPills('enemies-pick', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7']],
       v => cfg.enemies = +v, 1);
@@ -106,6 +108,7 @@ const UI = (() => {
     $('menu').classList.add('hidden');
     $('topbar').classList.remove('hidden');
     $('bottombar').classList.remove('hidden');
+    $('scoreboard').classList.toggle('hidden', !sbVisible);
     $('feed').classList.remove('hidden');
     $('endscreen').classList.add('hidden');
     $('pausemenu').classList.add('hidden');
@@ -115,6 +118,7 @@ const UI = (() => {
 
   function quitToMenu() {
     game.started = false; game.paused = false;
+    $('scoreboard').classList.add('hidden');
     $('pausemenu').classList.add('hidden');
     $('endscreen').classList.add('hidden');
     $('topbar').classList.add('hidden');
@@ -154,10 +158,41 @@ const UI = (() => {
   }
 
   /* =================== top bar =================== */
+  function moneyRates(p) {
+    // income over the last ~60 s, spending over the last ~150 s
+    const h = p.statHist;
+    if (!h || h.length < 2) return { inc: 0, out: 0 };
+    const now = game.t;
+    const at = age => {
+      let best = h[0];
+      for (const s of h) if (now - s.t >= age) best = s; else break;
+      return best;
+    };
+    const si = at(60), so = at(150);
+    const inc = (now - si.t) > 10 ? (p.stats.moneyEarned - si.earned) / (now - si.t) * 60 : 0;
+    const out = (now - so.t) > 10 ? (p.stats.moneySpent - so.spent) / (now - so.t) * 60 : 0;
+    return { inc: Math.max(0, Math.round(inc)), out: Math.max(0, Math.round(out)) };
+  }
+
   function refreshTop() {
     const p = game.players[0];
-    $('money').textContent = U.fmtMoney(p.money);
+    const rates = moneyRates(p);
+    $('money').innerHTML = `${U.fmtMoney(p.money)} <span id="moneyrates"><span id="rate-in">▲ $${rates.inc.toLocaleString('en-US')}/min</span><span id="rate-out">▼ $${rates.out.toLocaleString('en-US')}/min</span></span>`;
     $('clock').textContent = U.fmtTime(game.t);
+
+    // domination score
+    const ds = $('domscore');
+    if (game.mode === 'domination' && game.zones.length) {
+      const ht = game.players[0].team, et = ht === 0 ? 1 : 0;
+      const my = Math.floor(game.domScore[ht] || 0), foe = Math.floor(game.domScore[et] || 0);
+      const z = game.zones[0];
+      const holder = z.owner < 0 ? '' : (z.owner === ht ? ' ▶' : ' ◀');
+      ds.innerHTML = `<span title="Your team's domination points">⚑</span>
+        <span class="dom-chip mine">${my}</span>
+        <div class="dom-bar"><div class="dom-fill" style="width:${Math.min(100, my / DOM_WIN * 100)}%;background:#6ee06e"></div></div>
+        <div class="dom-bar"><div class="dom-fill" style="width:${Math.min(100, foe / DOM_WIN * 100)}%;background:#ff6a50"></div></div>
+        <span class="dom-chip foe">${foe}</span><span style="color:#8f8a70;font-size:11px">/${DOM_WIN}${holder}</span>`;
+    } else ds.innerHTML = '';
 
     const F = FACTIONS[p.faction];
     if (F.usesPower) {
@@ -501,6 +536,39 @@ const UI = (() => {
     orderFlashes.push({ x, y, kind, t: 0 });
   }
 
+  /* ---------------- live battle scoreboard ---------------- */
+  let sbVisible = true;
+  function toggleScoreboard() {
+    sbVisible = !sbVisible;
+    $('scoreboard').classList.toggle('hidden', !sbVisible || !game.started);
+  }
+
+  function refreshScoreboard() {
+    if (!sbVisible || !game.started) return;
+    const rows = $('sb-rows');
+    // army value per player (combat units only)
+    const armies = game.players.map(() => 0);
+    for (const e of game.ents) {
+      if (e.dead || e.kind !== 'unit' || e.owner < 0) continue;
+      if (!e.def.weapon && !e.def.suicide) continue;
+      armies[e.owner] += e.def.cost;
+    }
+    const humanTeam = game.players[0].team;
+    const sorted = [...game.players].sort((a, b) =>
+      (a.team === humanTeam ? 0 : 1) - (b.team === humanTeam ? 0 : 1) || a.idx - b.idx);
+    let html = `<div class="sb-cols"><span>GENERAL</span><span>KILLS</span><span>ARMY $</span></div>`;
+    for (const p of sorted) {
+      const tag = p.idx === 0 ? 'You' : (p.team === humanTeam ? 'Ally' : 'Enemy');
+      html += `<div class="sb-row${p.idx === 0 ? ' me' : ''}${p.defeated ? ' sb-dead' : ''}">
+        <span class="sb-chip" style="background:${p.color}"></span>
+        <span class="sb-name">${FACTIONS[p.faction].flag} ${FACTIONS[p.faction].name.split(' ')[1] || FACTIONS[p.faction].name} <span class="sb-tag">· ${tag}</span></span>
+        <span class="sb-kills">${p.stats.kills}</span>
+        <span class="sb-army">$${armies[p.idx].toLocaleString('en-US')}</span>
+      </div>`;
+    }
+    rows.innerHTML = html;
+  }
+
   /* reset per-match state so alarms/pings from the previous game don't leak in */
   function resetMatch() {
     pings.length = 0;
@@ -526,6 +594,7 @@ const UI = (() => {
 
   return {
     init, showGameHud, quitToMenu, togglePause, toggleSound, showHelp, showEnd, resetMatch,
+    toggleScoreboard, refreshScoreboard,
     refreshTop, refreshPowers, refreshSel, refreshCmd, refreshCmdProgress, triggerHotkey,
     feed, announce, ping, underAttack, jumpToLastEvent, flashOrder, update, drawMinimap,
     hideTooltip,

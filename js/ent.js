@@ -510,7 +510,6 @@ class Unit {
       const d = U.dist(this.x, this.y, dep.x, dep.y);
       if (d < dep.size * TILE * 0.62 + 26) {
         p.addMoney(this.carrying, true);
-        p.stats.moneyEarned += this.carrying;
         if (this.owner === 0) { FX.text(this.x, this.y - 18, '+$' + this.carrying, '#ffd76a'); SFX.cash(); }
         this.carrying = 0;
         o.forceDeliver = false;
@@ -582,7 +581,7 @@ class Unit {
     const p = game.players[this.owner];
     const rate = 55;
     if (p.money >= rate * dt * 0.2) {
-      p.money -= rate * dt * 0.2;
+      p.spend(rate * dt * 0.2);
       b.hp = Math.min(b.maxHp, b.hp + rate * dt);
       if (Math.random() < dt * 6) FX.sparks(b.x + U.rand(-b.size * 12, b.size * 12), b.y + U.rand(-b.size * 12, b.size * 12), 2);
     }
@@ -816,7 +815,6 @@ class Building {
       this.incomeAcc += this.def.income * dt * (this.powered ? 1 : 0.5);
       if (this.incomeAcc >= 20) {
         p.addMoney(this.incomeAcc, true);
-        p.stats.moneyEarned += this.incomeAcc;
         if (this.owner === 0) FX.text(this.x, this.y - this.size * 14, '+$20', '#c9e8a0');
         this.incomeAcc = 0;
       }
@@ -869,7 +867,7 @@ class Building {
     const cost = UNITS[key].cost;
     if (p.money < cost) return false;
     if (this.queue.length >= 7) return false;
-    p.money -= cost;
+    p.spend(cost);
     this.queue.push({ key, prog: 0, cost });
     return true;
   }

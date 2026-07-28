@@ -192,6 +192,39 @@ ul.howto b { color:#ffe9a0; }
 ::-webkit-scrollbar-track { background:#15140e; }
 ::-webkit-scrollbar-thumb { background:#4a4836; border-radius:4px; }
 
+/* ---------------- domination score ---------------- */
+#domscore { display:flex; align-items:center; gap:6px; font-size:13px; }
+.dom-chip { padding:2px 8px; border-radius:4px; font-variant-numeric:tabular-nums;
+  font-weight:800; border:1px solid #555; }
+.dom-chip.mine { color:#b0ffb0; background:#1a331acc; border-color:#5a5; }
+.dom-chip.foe { color:#ffb0a0; background:#331a1acc; border-color:#a55; }
+.dom-bar { width:60px; height:7px; background:#111; border:1px solid #444; border-radius:3px; overflow:hidden; }
+.dom-fill { height:100%; }
+
+/* ---------------- money rates ---------------- */
+#moneyrates { font-size:10.5px; line-height:1.15; color:#9a9; display:flex; flex-direction:column; }
+#rate-in { color:#9fdc7c; }
+#rate-out { color:#e0a080; }
+
+/* ---------------- scoreboard ---------------- */
+#scoreboard { right:10px; top:52px; width:264px; background:#14140fe6;
+  border:1px solid #57543f; border-radius:6px; padding:7px 9px; z-index:11; }
+#sb-head { font-size:11px; letter-spacing:2px; color:#b0a988; margin-bottom:5px; }
+.sb-hint { color:#6d6a58; letter-spacing:0; }
+.sb-row { display:flex; align-items:center; gap:6px; font-size:12px; padding:2.5px 0;
+  border-top:1px solid #24231a; }
+.sb-row.me { background:#22301d55; }
+.sb-chip { width:10px; height:10px; border-radius:2px; flex:none; }
+.sb-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#d8d2ba; }
+.sb-name .sb-tag { color:#8f8a70; font-size:10px; }
+.sb-kills { width:44px; text-align:right; color:#ffd76a; font-variant-numeric:tabular-nums; }
+.sb-army { width:64px; text-align:right; color:#8fd4e8; font-variant-numeric:tabular-nums; }
+.sb-dead { opacity:.4; text-decoration:line-through; }
+.sb-cols { display:flex; font-size:9.5px; color:#6d6a58; letter-spacing:1px; }
+.sb-cols span:first-child { flex:1; }
+.sb-cols span:nth-child(2) { width:44px; text-align:right; }
+.sb-cols span:nth-child(3) { width:64px; text-align:right; }
+
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
 </head>
@@ -215,6 +248,7 @@ ul.howto b { color:#ffe9a0; }
       <span id="ptsleft" title="Promotion points available"></span>
     </div>
     <div class="tb-group" id="powersrow"></div>
+    <div class="tb-group" id="domscore"></div>
     <div class="tb-group" id="swtimers"></div>
     <div class="tb-spacer"></div>
     <div class="tb-group">
@@ -240,6 +274,10 @@ ul.howto b { color:#ffe9a0; }
   </div>
 
   <div id="feed" class="hud hidden"></div>
+  <div id="scoreboard" class="hud hidden">
+    <div id="sb-head">BATTLE STATS <span class="sb-hint">(Tab)</span></div>
+    <div id="sb-rows"></div>
+  </div>
   <div id="announce" class="hidden"></div>
   <div id="tooltip" class="hidden"></div>
 
@@ -254,6 +292,12 @@ ul.howto b { color:#ffe9a0; }
         <div id="faction-pick" class="cards"></div>
       </div>
 
+      <div class="menu-row">
+        <div class="menu-section">
+          <div class="menu-label">GAME MODE</div>
+          <div id="mode-pick" class="pills"></div>
+        </div>
+      </div>
       <div class="menu-row">
         <div class="menu-section">
           <div class="menu-label">ALLIES ON YOUR TEAM</div>
@@ -348,7 +392,9 @@ ul.howto b { color:#ffe9a0; }
             <li><b>Army</b>: Barracks trains infantry, War Factory builds vehicles, Airfield builds strike jets (jets rearm at the airfield).</li>
             <li><b>Promotions</b>: combat earns ★ ranks — spend points on General's Powers (top bar): airstrikes, ambushes, carpet bombs…</li>
             <li><b>Superweapon</b>: each faction has one. Long countdown, devastating result. The enemy sees your timer — and you see theirs.</li>
-            <li><b>Win</b> by destroying every enemy structure.</li>
+            <li><b>Domination mode</b>: hold the central ⚑ point uncontested to earn ~30 pts/min — first team to 1,000 wins. The 💰 Trade Point gives your whole team +30% income. Annihilation also wins.</li>
+            <li><b>Tab</b> toggles the live battle scoreboard (kills &amp; army value for every general).</li>
+            <li><b>Win</b> by reaching 1,000 domination points or destroying every enemy structure.</li>
           </ul>
         </div>
       </div>
@@ -480,6 +526,14 @@ const MAPSIZES = {
   large:  { label: 'Large',  w: 120, h: 120 },
   huge:   { label: 'Huge',   w: 150, h: 150 },
 };
+
+/* domination mode */
+const DOM_WIN = 1000;          // team score to win
+const DOM_RATE = 0.5;          // points per second while holding the point uncontested
+const DOM_CAPTURE_TIME = 8;    // seconds standing alone in the zone to flip it
+const DOM_ZONE_R = 120;        // world px
+const ECON_ZONE_R = 110;
+const ECON_BONUS = 1.3;        // +30% income for the team holding the trade point
 
 /* per-player-slot colors (faction identity comes from units, color from slot) */
 const PLAYER_COLORS = ['#3d7edb', '#d43a2f', '#e8c33c', '#3fae5a', '#8e5bd6', '#e07b2f', '#38b8b8', '#c95b74'];
@@ -2211,7 +2265,6 @@ class Unit {
       const d = U.dist(this.x, this.y, dep.x, dep.y);
       if (d < dep.size * TILE * 0.62 + 26) {
         p.addMoney(this.carrying, true);
-        p.stats.moneyEarned += this.carrying;
         if (this.owner === 0) { FX.text(this.x, this.y - 18, '+$' + this.carrying, '#ffd76a'); SFX.cash(); }
         this.carrying = 0;
         o.forceDeliver = false;
@@ -2283,7 +2336,7 @@ class Unit {
     const p = game.players[this.owner];
     const rate = 55;
     if (p.money >= rate * dt * 0.2) {
-      p.money -= rate * dt * 0.2;
+      p.spend(rate * dt * 0.2);
       b.hp = Math.min(b.maxHp, b.hp + rate * dt);
       if (Math.random() < dt * 6) FX.sparks(b.x + U.rand(-b.size * 12, b.size * 12), b.y + U.rand(-b.size * 12, b.size * 12), 2);
     }
@@ -2517,7 +2570,6 @@ class Building {
       this.incomeAcc += this.def.income * dt * (this.powered ? 1 : 0.5);
       if (this.incomeAcc >= 20) {
         p.addMoney(this.incomeAcc, true);
-        p.stats.moneyEarned += this.incomeAcc;
         if (this.owner === 0) FX.text(this.x, this.y - this.size * 14, '+$20', '#c9e8a0');
         this.incomeAcc = 0;
       }
@@ -2570,7 +2622,7 @@ class Building {
     const cost = UNITS[key].cost;
     if (p.money < cost) return false;
     if (this.queue.length >= 7) return false;
-    p.money -= cost;
+    p.spend(cost);
     this.queue.push({ key, prog: 0, cost });
     return true;
   }
@@ -3459,6 +3511,9 @@ const RENDER = (() => {
     // fog of war
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(fogCv, 0, 0, fogCv.width, fogCv.height, 0, 0, world.pw, world.ph);
+
+    // control points render above fog — objectives are always visible
+    for (const z of game.zones) drawZone(z);
 
     ctx.restore();
 
@@ -4454,6 +4509,56 @@ const RENDER = (() => {
     }
   }
 
+  function drawZone(z) {
+    const humanTeam = game.players[0].team;
+    const col = z.owner < 0 ? '#c8c2ac' : (z.owner === humanTeam ? '#6ee06e' : '#ff6a50');
+    const pulse = z.contested ? 0.5 + 0.4 * Math.sin(game.renderT * 8) : 0.75;
+
+    // zone ring
+    ctx.save();
+    ctx.globalAlpha = pulse;
+    ctx.strokeStyle = col; ctx.lineWidth = 2.5;
+    ctx.setLineDash([12, 9]);
+    ctx.lineDashOffset = -game.renderT * 18;
+    ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, 7); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 0.10 * (z.contested ? 2 : 1);
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // banner pole with waving team flag
+    ctx.strokeStyle = '#3a352a'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(z.x, z.y + 12); ctx.lineTo(z.x, z.y - 34); ctx.stroke();
+    const wv = game.renderT * 6;
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(z.x, z.y - 34);
+    for (let i = 0; i <= 5; i++) ctx.lineTo(z.x + i * 5, z.y - 34 + Math.sin(wv + i) * 1.8);
+    for (let i = 5; i >= 0; i--) ctx.lineTo(z.x + i * 5, z.y - 20 + Math.sin(wv + i) * 1.8);
+    ctx.closePath(); ctx.fill();
+
+    // label + capture progress
+    ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#000000aa';
+    ctx.fillText(z.kind === 'dom' ? '⚑ DOMINATION' : '💰 TRADE +30%', z.x + 1, z.y + z.r + 17);
+    ctx.fillStyle = col;
+    ctx.fillText(z.kind === 'dom' ? '⚑ DOMINATION' : '💰 TRADE +30%', z.x, z.y + z.r + 16);
+    if (z.capT > 0 && z.capTeam >= 0) {
+      const capCol = z.capTeam === humanTeam ? '#6ee06e' : '#ff6a50';
+      ctx.strokeStyle = capCol; ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(z.x, z.y, 24, -Math.PI / 2, -Math.PI / 2 + (z.capT / DOM_CAPTURE_TIME) * Math.PI * 2);
+      ctx.stroke();
+    }
+    if (z.contested) {
+      ctx.fillStyle = '#ffd76a';
+      ctx.fillText('CONTESTED', z.x, z.y + z.r + 32);
+    }
+    ctx.textAlign = 'left';
+    ctx.restore();
+  }
+
   function drawBrackets(x, y, r, color) {
     ctx.strokeStyle = color; ctx.lineWidth = 2;
     const l = Math.max(5, r * 0.4);
@@ -4591,6 +4696,21 @@ const RENDER = (() => {
     c.globalAlpha = 1;
     c.drawImage(fogCv, 0, 0, fogCv.width, fogCv.height, 0, 0, w, h);
 
+    // control point markers
+    const humanTeam2 = game.players[0].team;
+    for (const z of game.zones) {
+      const col = z.owner < 0 ? '#ddd' : (z.owner === humanTeam2 ? '#6ee06e' : '#ff6a50');
+      c.fillStyle = col;
+      c.strokeStyle = '#000';
+      c.lineWidth = 1;
+      const mx = z.x / TILE * sx, my = z.y / TILE * sy;
+      c.beginPath(); c.arc(mx, my, 4.5, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = '#000';
+      c.font = 'bold 7px sans-serif'; c.textAlign = 'center';
+      c.fillText(z.kind === 'dom' ? '⚑' : '$', mx, my + 2.6);
+      c.textAlign = 'left';
+    }
+
     // pings
     for (const ping of UI.pings) {
       const k = (game.t - ping.t0) % 1;
@@ -4634,6 +4754,12 @@ const AI = (() => {
     coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, thunder: 2, falcon: 2 },
     dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, salamander: 2, vulture: 2 },
     cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, barrage: 2, demorig: 2 },
+  };
+  /* units that counter each enemy composition trend, per faction */
+  const COUNTERS = {
+    air:   { coalition: ['viper', 'rocketeer'], dynasty: ['flak', 'rpg'], cartel: ['guntruck', 'rocketraider'] },
+    armor: { coalition: ['rocketeer', 'thunder', 'bulwark'], dynasty: ['rpg', 'warlord'], cartel: ['rocketraider', 'barrage', 'demorig'] },
+    inf:   { coalition: ['viper', 'ranger'], dynasty: ['salamander', 'flak'], cartel: ['guntruck', 'raider'] },
   };
 
   /* ---------------- one AI player brain ---------------- */
@@ -4745,17 +4871,17 @@ const AI = (() => {
       if (!has('barracks') && money >= BUILDINGS.barracks.cost) return 'barracks';
       if (!has('factory') && money >= BUILDINGS.factory.cost + 300) return 'factory';
       if (has('turret') < 2 && money >= BUILDINGS.turret.cost + 600 && game.t > 150) return 'turret';
-      if (has('market') < 2 && money >= BUILDINGS.market.cost + 800) return 'market';
+      if (has('market') < 2 && money >= BUILDINGS.market.cost + 300) return 'market';
       if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + 800 && game.t > 240) return 'airfield';
       if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + 1200 && game.t > 330) return 'repairbay';
-      if (has('supply') < 2 && game.t > 300 && money >= BUILDINGS.supply.cost + 500) return 'supply';
-      if (has('supply') < 3 && game.t > 540 && money >= BUILDINGS.supply.cost + 2000) return 'supply';
+      if (has('supply') < 2 && game.t > 180 && money >= BUILDINGS.supply.cost + 500) return 'supply';
+      if (has('supply') < 3 && game.t > 400 && money >= BUILDINGS.supply.cost + 1500) return 'supply';
       if (has('factory') < 2 && game.t > 360 && money >= BUILDINGS.factory.cost + 3000) return 'factory';
       if (diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
       if (diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('turret') < 4 && money >= BUILDINGS.turret.cost + 2500 && game.t > 400) return 'turret';
-      if (has('market') < 12 && money >= BUILDINGS.market.cost + 3500 && game.t > 360) return 'market';
+      if (has('market') < 12 && money >= BUILDINGS.market.cost + 2500 && game.t > 300) return 'market';
       if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
       return null;
     }
@@ -4811,7 +4937,7 @@ const AI = (() => {
       if (want && sites.length < 2 && dozers.length) {
         const spot = findPlacement(want);
         if (spot && p().money >= BUILDINGS[want].cost) {
-          p().money -= BUILDINGS[want].cost;
+          p().spend(BUILDINGS[want].cost);
           const b = new Building(pi, want, spot.tx, spot.ty, false);
           game.addEnt(b);
         }
@@ -4825,7 +4951,7 @@ const AI = (() => {
         const trucks = myUnits('truck');
         const queued = sc.queue.filter(q => q.key === 'truck').length;
         const nSup = myBuildings('supply').filter(b => b.constructed).length;
-        const wanted = Math.min(7, (p().money > 4000 ? 3 : 2) * nSup);
+        const wanted = Math.min(8, 3 * nSup);
         if (trucks.length + queued < wanted && p().money > UNITS.truck.cost + 300) {
           sc.enqueue('truck');
         }
@@ -4833,9 +4959,38 @@ const AI = (() => {
     }
 
     /* ------------- army production ------------- */
+    let profT = 0, prof = null;
+    function enemyProfile() {
+      // sample what the enemy team fields and remember it for 25 s
+      if (game.t - profT < 25) return prof;
+      profT = game.t;
+      let air = 0, armor = 0, inf = 0, total = 0;
+      for (const e of game.ents) {
+        if (e.dead || e.kind !== 'unit' || !e.def.weapon || !isEnemyEnt(e)) continue;
+        const v = e.def.cost;
+        total += v;
+        if (e.def.air) air += v;
+        else if (e.armor === 'heavy') armor += v;
+        else if (e.armor === 'inf') inf += v;
+      }
+      prof = total > 800 ? { air: air / total, armor: armor / total, inf: inf / total } : null;
+      return prof;
+    }
+
     function manageArmy() {
       const fac = p().faction;
-      const comp = COMPS[fac];
+      const baseComp = COMPS[fac];
+      // adapt: boost counter units against what the enemy actually fields
+      const ep = enemyProfile();
+      const comp = { ...baseComp };
+      if (ep) {
+        for (const [trend, frac] of [['air', ep.air], ['armor', ep.armor], ['inf', ep.inf]]) {
+          if (frac < 0.18) continue;
+          for (const k of (COUNTERS[trend][fac] || [])) {
+            if (comp[k]) comp[k] = comp[k] * (1 + frac * 2.2);
+          }
+        }
+      }
       const army = combatUnits();
       // a rich AI raises its own army cap — money must become pressure, not savings
       const capEff = Math.min(diff.armyCap * 2,
@@ -4885,7 +5040,7 @@ const AI = (() => {
             const g = gatherPoint();
             for (const u of army) {
               if ((u.order.type === 'idle' || u.order.type === 'guard') &&
-                  U.dist(u.x, u.y, g.x, g.y) > 260) {
+                  U.dist(u.x, u.y, g.x, g.y) > 260 && !nearZone(u)) {
                 u.giveOrder({ type: 'guardarea', x: g.x + U.rand(-90, 90), y: g.y + U.rand(-90, 90) });
               }
             }
@@ -5040,10 +5195,35 @@ const AI = (() => {
       for (const d of defenders) d.giveOrder({ type: 'attackmove', x: attacker.x, y: attacker.y });
     }
 
+    /* fight for the control points */
+    function zoneDuty() {
+      if (!game.zones.length) return;
+      for (const z of game.zones) {
+        const enemyThere = z.present.some(t => t !== myTeam());
+        const needHold = z.owner !== myTeam() || enemyThere || z.contested;
+        const want = z.kind === 'dom' ? (needHold ? 6 : 3) : (needHold ? 3 : 2);
+        const near = combatUnits().filter(u => !u.def.air && U.dist(u.x, u.y, z.x, z.y) < z.r + 160);
+        if (near.length >= want) continue;
+        const takers = combatUnits()
+          .filter(u => !u.def.air && (u.order.type === 'idle' || u.order.type === 'guard') &&
+            U.dist(u.x, u.y, z.x, z.y) >= z.r + 160)
+          .sort((a, b) => U.dist2(a.x, a.y, z.x, z.y) - U.dist2(b.x, b.y, z.x, z.y))
+          .slice(0, want - near.length);
+        for (const u of takers) {
+          u.giveOrder({ type: 'guardarea', x: z.x + U.rand(-z.r * 0.5, z.r * 0.5), y: z.y + U.rand(-z.r * 0.5, z.r * 0.5) });
+        }
+      }
+    }
+
+    function nearZone(u) {
+      return game.zones.some(z => U.dist(u.x, u.y, z.x, z.y) < z.r + 160);
+    }
+
     function tick(dt2) {
       if (game.over || p().defeated) return;
       if (S.defendT > 0) S.defendT -= dt2;
       if (!myEnts().length) return;
+      zoneDuty();
       manageDozers();
       manageEconomy();
       manageArmy();
@@ -5210,6 +5390,7 @@ const INPUT = (() => {
       if (k === ' ') { e.preventDefault(); UI.jumpToLastEvent(); return; }
       if (k === 'backspace') { e.preventDefault(); centerOnBase(); return; }
       if (k === 'f1') { e.preventDefault(); UI.showHelp(); return; }
+      if (k === 'tab') { e.preventDefault(); UI.toggleScoreboard(); return; }
 
       // control groups
       if (/^[1-9]$/.test(k)) {
@@ -5463,7 +5644,7 @@ const INPUT = (() => {
       const n = game.ents.filter(e => !e.dead && e.owner === 0 && e.kind === 'building' && e.key === pl.key).length;
       if (n >= def.limit) { UI.feed('Limit reached', 'bad'); SFX.error(); placing = null; return; }
     }
-    p.money -= def.cost;
+    p.spend(def.cost);
     const b = new Building(0, pl.key, pl.tx, pl.ty, false);
     game.addEnt(b);
     // send a builder: prefer a selected dozer, else the nearest idle one you own
@@ -5558,7 +5739,7 @@ const UI = (() => {
 
   /* menu config state */
   const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000,
-    allies: 0, enemies: 1 };
+    allies: 0, enemies: 1, mode: 'domination' };
 
   function init() {
     mmCanvas = $('minimap');
@@ -5578,6 +5759,8 @@ const UI = (() => {
     }
     buildPills('enemy-pick', [['random', 'Random'], ...Object.keys(FACTIONS).map(k => [k, FACTIONS[k].name])],
       v => cfg.enemy = v, 'random');
+    buildPills('mode-pick', [['domination', '⚑ Domination (first team to 1,000 pts)'], ['annihilation', '💀 Annihilation only']],
+      v => cfg.mode = v, 'domination');
     buildPills('allies-pick', [[0, 'None'], [1, '1'], [2, '2'], [3, '3']], v => cfg.allies = +v, 0);
     buildPills('enemies-pick', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7']],
       v => cfg.enemies = +v, 1);
@@ -5653,6 +5836,7 @@ const UI = (() => {
     $('menu').classList.add('hidden');
     $('topbar').classList.remove('hidden');
     $('bottombar').classList.remove('hidden');
+    $('scoreboard').classList.toggle('hidden', !sbVisible);
     $('feed').classList.remove('hidden');
     $('endscreen').classList.add('hidden');
     $('pausemenu').classList.add('hidden');
@@ -5662,6 +5846,7 @@ const UI = (() => {
 
   function quitToMenu() {
     game.started = false; game.paused = false;
+    $('scoreboard').classList.add('hidden');
     $('pausemenu').classList.add('hidden');
     $('endscreen').classList.add('hidden');
     $('topbar').classList.add('hidden');
@@ -5701,10 +5886,41 @@ const UI = (() => {
   }
 
   /* =================== top bar =================== */
+  function moneyRates(p) {
+    // income over the last ~60 s, spending over the last ~150 s
+    const h = p.statHist;
+    if (!h || h.length < 2) return { inc: 0, out: 0 };
+    const now = game.t;
+    const at = age => {
+      let best = h[0];
+      for (const s of h) if (now - s.t >= age) best = s; else break;
+      return best;
+    };
+    const si = at(60), so = at(150);
+    const inc = (now - si.t) > 10 ? (p.stats.moneyEarned - si.earned) / (now - si.t) * 60 : 0;
+    const out = (now - so.t) > 10 ? (p.stats.moneySpent - so.spent) / (now - so.t) * 60 : 0;
+    return { inc: Math.max(0, Math.round(inc)), out: Math.max(0, Math.round(out)) };
+  }
+
   function refreshTop() {
     const p = game.players[0];
-    $('money').textContent = U.fmtMoney(p.money);
+    const rates = moneyRates(p);
+    $('money').innerHTML = `${U.fmtMoney(p.money)} <span id="moneyrates"><span id="rate-in">▲ $${rates.inc.toLocaleString('en-US')}/min</span><span id="rate-out">▼ $${rates.out.toLocaleString('en-US')}/min</span></span>`;
     $('clock').textContent = U.fmtTime(game.t);
+
+    // domination score
+    const ds = $('domscore');
+    if (game.mode === 'domination' && game.zones.length) {
+      const ht = game.players[0].team, et = ht === 0 ? 1 : 0;
+      const my = Math.floor(game.domScore[ht] || 0), foe = Math.floor(game.domScore[et] || 0);
+      const z = game.zones[0];
+      const holder = z.owner < 0 ? '' : (z.owner === ht ? ' ▶' : ' ◀');
+      ds.innerHTML = `<span title="Your team's domination points">⚑</span>
+        <span class="dom-chip mine">${my}</span>
+        <div class="dom-bar"><div class="dom-fill" style="width:${Math.min(100, my / DOM_WIN * 100)}%;background:#6ee06e"></div></div>
+        <div class="dom-bar"><div class="dom-fill" style="width:${Math.min(100, foe / DOM_WIN * 100)}%;background:#ff6a50"></div></div>
+        <span class="dom-chip foe">${foe}</span><span style="color:#8f8a70;font-size:11px">/${DOM_WIN}${holder}</span>`;
+    } else ds.innerHTML = '';
 
     const F = FACTIONS[p.faction];
     if (F.usesPower) {
@@ -6048,6 +6264,39 @@ const UI = (() => {
     orderFlashes.push({ x, y, kind, t: 0 });
   }
 
+  /* ---------------- live battle scoreboard ---------------- */
+  let sbVisible = true;
+  function toggleScoreboard() {
+    sbVisible = !sbVisible;
+    $('scoreboard').classList.toggle('hidden', !sbVisible || !game.started);
+  }
+
+  function refreshScoreboard() {
+    if (!sbVisible || !game.started) return;
+    const rows = $('sb-rows');
+    // army value per player (combat units only)
+    const armies = game.players.map(() => 0);
+    for (const e of game.ents) {
+      if (e.dead || e.kind !== 'unit' || e.owner < 0) continue;
+      if (!e.def.weapon && !e.def.suicide) continue;
+      armies[e.owner] += e.def.cost;
+    }
+    const humanTeam = game.players[0].team;
+    const sorted = [...game.players].sort((a, b) =>
+      (a.team === humanTeam ? 0 : 1) - (b.team === humanTeam ? 0 : 1) || a.idx - b.idx);
+    let html = `<div class="sb-cols"><span>GENERAL</span><span>KILLS</span><span>ARMY $</span></div>`;
+    for (const p of sorted) {
+      const tag = p.idx === 0 ? 'You' : (p.team === humanTeam ? 'Ally' : 'Enemy');
+      html += `<div class="sb-row${p.idx === 0 ? ' me' : ''}${p.defeated ? ' sb-dead' : ''}">
+        <span class="sb-chip" style="background:${p.color}"></span>
+        <span class="sb-name">${FACTIONS[p.faction].flag} ${FACTIONS[p.faction].name.split(' ')[1] || FACTIONS[p.faction].name} <span class="sb-tag">· ${tag}</span></span>
+        <span class="sb-kills">${p.stats.kills}</span>
+        <span class="sb-army">$${armies[p.idx].toLocaleString('en-US')}</span>
+      </div>`;
+    }
+    rows.innerHTML = html;
+  }
+
   /* reset per-match state so alarms/pings from the previous game don't leak in */
   function resetMatch() {
     pings.length = 0;
@@ -6073,6 +6322,7 @@ const UI = (() => {
 
   return {
     init, showGameHud, quitToMenu, togglePause, toggleSound, showHelp, showEnd, resetMatch,
+    toggleScoreboard, refreshScoreboard,
     refreshTop, refreshPowers, refreshSel, refreshCmd, refreshCmdProgress, triggerHotkey,
     feed, announce, ping, underAttack, jumpToLastEvent, flashOrder, update, drawMinimap,
     hideTooltip,
@@ -6095,6 +6345,10 @@ let game = {
   cam: { x: 0, y: 0, zoom: 1 },
   shake: 0,
   revealAll: false,
+  mode: 'domination',
+  zones: [],              // control points {kind:'dom'|'econ', x, y, r, owner(team|-1), capT, capTeam, contested, present}
+  domScore: { 0: 0, 1: 0 },
+  econTeam: -1,
 };
 let world = null;
 
@@ -6110,9 +6364,20 @@ function makePlayer(idx, faction, isAI, team) {
     incomeMult: 1,
     frenzyUntil: 0,
     defeated: false,
-    stats: { unitsBuilt: 0, unitsLost: 0, kills: 0, buildingsLost: 0, moneyEarned: 0 },
+    stats: { unitsBuilt: 0, unitsLost: 0, kills: 0, buildingsLost: 0, moneyEarned: 0, moneySpent: 0 },
+    statHist: [],          // {t, earned, spent} samples for rate displays
     addMoney(amt, isIncome) {
-      this.money += amt * (isIncome ? this.incomeMult : 1);
+      let f = 1;
+      if (isIncome) {
+        f = this.incomeMult;
+        if (game.econTeam === this.team) f *= ECON_BONUS;   // trade point held by my team
+      }
+      this.money += amt * f;
+      if (isIncome) this.stats.moneyEarned += amt * f;
+    },
+    spend(amt) {
+      this.money -= amt;
+      this.stats.moneySpent += amt;
     },
   };
 }
@@ -6130,6 +6395,10 @@ function startGame(cfg) {
   game.projs = []; game.nukes = []; game.beamStrikes = [];
   game.shake = 0;
   game.revealAll = false;
+  game.mode = cfg.mode || 'domination';
+  game.zones = [];
+  game.domScore = { 0: 0, 1: 0 };
+  game.econTeam = -1;
   FX.clear();
   INPUT.resetMatch();
   UI.resetMatch();
@@ -6171,6 +6440,22 @@ function startGame(cfg) {
     recomputePower(pi);
   }
 
+  // control points (domination mode): dom at map center, trade point off-axis but fair
+  if (game.mode === 'domination') {
+    const zx = world.pw / 2, zy = world.ph / 2;
+    const ex = world.pw * 0.32, ey = world.ph * 0.32;
+    game.zones = [
+      { kind: 'dom', x: zx, y: zy, r: DOM_ZONE_R, owner: -1, capT: 0, capTeam: -1, contested: false, present: [] },
+      { kind: 'econ', x: ex, y: ey, r: ECON_ZONE_R, owner: -1, capT: 0, capTeam: -1, contested: false, present: [] },
+    ];
+    for (const z of game.zones) {
+      world.clearArea(Math.floor(z.x / TILE), Math.floor(z.y / TILE), Math.ceil(z.r / TILE) + 2);
+      world.ensureReachable(
+        { tx: world.starts[0].tx, ty: world.starts[0].ty },
+        { tx: Math.floor(z.x / TILE), ty: Math.floor(z.y / TILE) });
+    }
+  }
+
   AI.initGame(cfg.diff);
   RENDER.buildTerrain();
   world.recomputeFog();
@@ -6184,6 +6469,45 @@ function startGame(cfg) {
   UI.feed('Welcome, General. Build your base — your Dozer awaits orders.');
   UI.announce(FACTIONS[cfg.faction].name.toUpperCase());
   SFX.say('Battle control online');
+}
+
+/* ---------------- control point logic (1 Hz) ---------------- */
+function updateZones() {
+  for (const z of game.zones) {
+    const present = new Set();
+    for (const e of game.ents) {
+      if (e.dead || e.kind !== 'unit' || e.owner < 0) continue;
+      if (!e.def.weapon && !e.def.suicide) continue;    // only combat units hold ground
+      if (e.def.air) continue;
+      if (U.dist2(e.x, e.y, z.x, z.y) > z.r * z.r) continue;
+      const p = game.players[e.owner];
+      if (p && !p.defeated) present.add(p.team);
+    }
+    z.present = [...present];
+    z.contested = present.size > 1;
+
+    if (present.size === 1) {
+      const t = z.present[0];
+      if (z.owner === t) { z.capT = 0; z.capTeam = -1; }
+      else {
+        if (z.capTeam !== t) { z.capTeam = t; z.capT = 0; }
+        z.capT += 1;
+        if (z.capT >= DOM_CAPTURE_TIME) {
+          z.owner = t; z.capT = 0; z.capTeam = -1;
+          if (z.kind === 'econ') game.econTeam = t;
+          const mine = t === game.players[0].team;
+          const nm = z.kind === 'dom' ? 'Domination Point' : 'Trade Point';
+          UI.feed(mine ? `⚑ Your team captured the ${nm}!` : `⚠ Enemy team captured the ${nm}!`, mine ? 'gold' : 'bad');
+          UI.ping(z.x, z.y, mine ? '#9fdc7c' : '#ff5540');
+          if (mine) { SFX.ready(); SFX.say(nm + ' captured'); }
+          else { SFX.alarm(); SFX.say('We lost the ' + nm, true); }
+        }
+      }
+    } else {
+      z.capTeam = -1;
+      z.capT = Math.max(0, z.capT - 1);
+    }
+  }
 }
 
 /* ---------------- victory check (team-based) ---------------- */
@@ -6210,8 +6534,13 @@ function checkVictory() {
   }
 
   const humanTeam = game.players[0].team;
-  const lost = game.players[0].defeated;
-  const won = !lost && game.players.every(p => p.team === humanTeam || p.defeated);
+  let lost = game.players[0].defeated;
+  let won = !lost && game.players.every(p => p.team === humanTeam || p.defeated);
+  // domination victory
+  if (game.mode === 'domination' && !lost && !won) {
+    if ((game.domScore[humanTeam] || 0) >= DOM_WIN) won = true;
+    else if ((game.domScore[humanTeam === 0 ? 1 : 0] || 0) >= DOM_WIN) lost = true;
+  }
   if (lost || won) {
     game.over = true;
     game.revealAll = true;
@@ -6243,6 +6572,34 @@ function simStep(dt) {
   if (game.frame % 6 === 0) {
     world.recomputeFog();
     RENDER.refreshFogCanvas();
+  }
+
+  // control points at 1 Hz
+  if (game.frame % 30 === 15 && game.zones.length) updateZones();
+
+  // domination scoring (per sim step so it's smooth)
+  if (game.mode === 'domination' && !game.over) {
+    const z = game.zones[0];
+    if (z && z.owner >= 0 && !z.contested) {
+      game.domScore[z.owner] = (game.domScore[z.owner] || 0) + DOM_RATE * dt;
+      const sc = game.domScore[z.owner];
+      const enemyOfHuman = z.owner !== game.players[0].team;
+      for (const th of [500, 800, 950]) {
+        if (sc >= th && (z.warned || 0) < th) {
+          z.warned = th;
+          UI.feed(enemyOfHuman ? `⚠ Enemy team at ${th} domination points!` : `Your team reached ${th} domination points`, enemyOfHuman ? 'bad' : 'gold');
+          if (enemyOfHuman && th >= 800) { SFX.klaxon(); SFX.say('Warning. Enemy approaching domination victory', true); }
+        }
+      }
+    }
+  }
+
+  // sample earn/spend history every 5 s for the rate displays
+  if (game.frame % 150 === 0) {
+    for (const p of game.players) {
+      p.statHist.push({ t: game.t, earned: p.stats.moneyEarned, spent: p.stats.moneySpent });
+      if (p.statHist.length > 60) p.statHist.shift();
+    }
   }
 
   // prune dead entities
@@ -6297,6 +6654,8 @@ function loop(ts) {
   if (game.frame % 15 === 3 && !game.paused) UI.refreshSel();
   // powers row cooldown refresh at 1 Hz
   if (game.frame % 30 === 7 && !game.paused) UI.refreshPowers();
+  // scoreboard refresh at 1 Hz
+  if (game.frame % 30 === 12 && !game.paused) UI.refreshScoreboard();
 }
 
 /* ---------------- boot ---------------- */

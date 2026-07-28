@@ -337,6 +337,9 @@ const RENDER = (() => {
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(fogCv, 0, 0, fogCv.width, fogCv.height, 0, 0, world.pw, world.ph);
 
+    // control points render above fog — objectives are always visible
+    for (const z of game.zones) drawZone(z);
+
     ctx.restore();
 
     // cinematic color grade (screen space)
@@ -1331,6 +1334,56 @@ const RENDER = (() => {
     }
   }
 
+  function drawZone(z) {
+    const humanTeam = game.players[0].team;
+    const col = z.owner < 0 ? '#c8c2ac' : (z.owner === humanTeam ? '#6ee06e' : '#ff6a50');
+    const pulse = z.contested ? 0.5 + 0.4 * Math.sin(game.renderT * 8) : 0.75;
+
+    // zone ring
+    ctx.save();
+    ctx.globalAlpha = pulse;
+    ctx.strokeStyle = col; ctx.lineWidth = 2.5;
+    ctx.setLineDash([12, 9]);
+    ctx.lineDashOffset = -game.renderT * 18;
+    ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, 7); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 0.10 * (z.contested ? 2 : 1);
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // banner pole with waving team flag
+    ctx.strokeStyle = '#3a352a'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(z.x, z.y + 12); ctx.lineTo(z.x, z.y - 34); ctx.stroke();
+    const wv = game.renderT * 6;
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(z.x, z.y - 34);
+    for (let i = 0; i <= 5; i++) ctx.lineTo(z.x + i * 5, z.y - 34 + Math.sin(wv + i) * 1.8);
+    for (let i = 5; i >= 0; i--) ctx.lineTo(z.x + i * 5, z.y - 20 + Math.sin(wv + i) * 1.8);
+    ctx.closePath(); ctx.fill();
+
+    // label + capture progress
+    ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#000000aa';
+    ctx.fillText(z.kind === 'dom' ? '⚑ DOMINATION' : '💰 TRADE +30%', z.x + 1, z.y + z.r + 17);
+    ctx.fillStyle = col;
+    ctx.fillText(z.kind === 'dom' ? '⚑ DOMINATION' : '💰 TRADE +30%', z.x, z.y + z.r + 16);
+    if (z.capT > 0 && z.capTeam >= 0) {
+      const capCol = z.capTeam === humanTeam ? '#6ee06e' : '#ff6a50';
+      ctx.strokeStyle = capCol; ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(z.x, z.y, 24, -Math.PI / 2, -Math.PI / 2 + (z.capT / DOM_CAPTURE_TIME) * Math.PI * 2);
+      ctx.stroke();
+    }
+    if (z.contested) {
+      ctx.fillStyle = '#ffd76a';
+      ctx.fillText('CONTESTED', z.x, z.y + z.r + 32);
+    }
+    ctx.textAlign = 'left';
+    ctx.restore();
+  }
+
   function drawBrackets(x, y, r, color) {
     ctx.strokeStyle = color; ctx.lineWidth = 2;
     const l = Math.max(5, r * 0.4);
@@ -1467,6 +1520,21 @@ const RENDER = (() => {
     // fog overlay
     c.globalAlpha = 1;
     c.drawImage(fogCv, 0, 0, fogCv.width, fogCv.height, 0, 0, w, h);
+
+    // control point markers
+    const humanTeam2 = game.players[0].team;
+    for (const z of game.zones) {
+      const col = z.owner < 0 ? '#ddd' : (z.owner === humanTeam2 ? '#6ee06e' : '#ff6a50');
+      c.fillStyle = col;
+      c.strokeStyle = '#000';
+      c.lineWidth = 1;
+      const mx = z.x / TILE * sx, my = z.y / TILE * sy;
+      c.beginPath(); c.arc(mx, my, 4.5, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = '#000';
+      c.font = 'bold 7px sans-serif'; c.textAlign = 'center';
+      c.fillText(z.kind === 'dom' ? '⚑' : '$', mx, my + 2.6);
+      c.textAlign = 'left';
+    }
 
     // pings
     for (const ping of UI.pings) {

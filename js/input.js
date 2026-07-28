@@ -118,6 +118,7 @@ const INPUT = (() => {
       if (k === ' ') { e.preventDefault(); UI.jumpToLastEvent(); return; }
       if (k === 'backspace') { e.preventDefault(); centerOnBase(); return; }
       if (k === 'f1') { e.preventDefault(); UI.showHelp(); return; }
+      if (k === 'tab') { e.preventDefault(); UI.toggleScoreboard(); return; }
 
       // control groups
       if (/^[1-9]$/.test(k)) {
@@ -371,7 +372,7 @@ const INPUT = (() => {
       const n = game.ents.filter(e => !e.dead && e.owner === 0 && e.kind === 'building' && e.key === pl.key).length;
       if (n >= def.limit) { UI.feed('Limit reached', 'bad'); SFX.error(); placing = null; return; }
     }
-    p.money -= def.cost;
+    p.spend(def.cost);
     const b = new Building(0, pl.key, pl.tx, pl.ty, false);
     game.addEnt(b);
     // send a builder: prefer a selected dozer, else the nearest idle one you own

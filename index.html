@@ -27,6 +27,7 @@
       <span id="ptsleft" title="Promotion points available"></span>
     </div>
     <div class="tb-group" id="powersrow"></div>
+    <div class="tb-group" id="domscore"></div>
     <div class="tb-group" id="swtimers"></div>
     <div class="tb-spacer"></div>
     <div class="tb-group">
@@ -52,6 +53,10 @@
   </div>
 
   <div id="feed" class="hud hidden"></div>
+  <div id="scoreboard" class="hud hidden">
+    <div id="sb-head">BATTLE STATS <span class="sb-hint">(Tab)</span></div>
+    <div id="sb-rows"></div>
+  </div>
   <div id="announce" class="hidden"></div>
   <div id="tooltip" class="hidden"></div>
 
@@ -66,6 +71,12 @@
         <div id="faction-pick" class="cards"></div>
       </div>
 
+      <div class="menu-row">
+        <div class="menu-section">
+          <div class="menu-label">GAME MODE</div>
+          <div id="mode-pick" class="pills"></div>
+        </div>
+      </div>
       <div class="menu-row">
         <div class="menu-section">
           <div class="menu-label">ALLIES ON YOUR TEAM</div>
@@ -160,7 +171,9 @@
             <li><b>Army</b>: Barracks trains infantry, War Factory builds vehicles, Airfield builds strike jets (jets rearm at the airfield).</li>
             <li><b>Promotions</b>: combat earns ★ ranks — spend points on General's Powers (top bar): airstrikes, ambushes, carpet bombs…</li>
             <li><b>Superweapon</b>: each faction has one. Long countdown, devastating result. The enemy sees your timer — and you see theirs.</li>
-            <li><b>Win</b> by destroying every enemy structure.</li>
+            <li><b>Domination mode</b>: hold the central ⚑ point uncontested to earn ~30 pts/min — first team to 1,000 wins. The 💰 Trade Point gives your whole team +30% income. Annihilation also wins.</li>
+            <li><b>Tab</b> toggles the live battle scoreboard (kills &amp; army value for every general).</li>
+            <li><b>Win</b> by reaching 1,000 domination points or destroying every enemy structure.</li>
           </ul>
         </div>
       </div>
