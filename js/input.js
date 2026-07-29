@@ -364,7 +364,8 @@ const INPUT = (() => {
   function issueGuard(wx, wy, shift) {
     const units = myUnitsSelected();
     for (const u of units) {
-      if (u.def.weapon && !u.def.noAutoAttack) u.giveOrder({ type: 'guardarea', x: wx, y: wy }, shift);
+      // every aircraft can hold a post — unarmed recon planes hover and watch
+      if (u.def.air || (u.def.weapon && !u.def.noAutoAttack)) u.giveOrder({ type: 'guardarea', x: wx, y: wy }, shift);
       else u.giveOrder({ type: 'move', x: wx, y: wy }, shift);
     }
     if (units.length) { SFX.ack(); UI.flashOrder(wx, wy, 'move'); }

@@ -188,7 +188,7 @@ const AI = (() => {
       if (has('supply') < 2 && game.t > 150 && money >= BUILDINGS.supply.cost + buf(500)) return 'supply';
       if (has('supply') < 3 && game.t > 340 && money >= BUILDINGS.supply.cost + buf(1500)) return 'supply';
       if (has('factory') < 2 && game.t > 300 && money >= BUILDINGS.factory.cost + buf(3000)) return 'factory';
-      if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
+      if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 420 && money >= BUILDINGS.superweapon.cost + buf(1000)) return 'superweapon';
       if (game.swAllowed !== false && diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('factory') < 3 && game.t > 600 && money >= BUILDINGS.factory.cost + buf(6000)) return 'factory';
@@ -522,8 +522,12 @@ const AI = (() => {
     function useSuperweapon() {
       const silo = myBuildings('superweapon').find(b => b.constructed && b.swReady);
       if (!silo) return;
+      // strike the densest enemy army if it is worth it, otherwise their key structure
+      const cl = enemyCluster();
       const t = enemyKeyBuilding();
-      if (t) POWERS_SYS.fireSuperweapon(pi, silo, t.x, t.y);
+      if (cl && cl.val > 4000) POWERS_SYS.fireSuperweapon(pi, silo, cl.x, cl.y);
+      else if (t) POWERS_SYS.fireSuperweapon(pi, silo, t.x, t.y);
+      else if (cl) POWERS_SYS.fireSuperweapon(pi, silo, cl.x, cl.y);
     }
 
     /* ------------- defense reaction ------------- */

@@ -82,6 +82,7 @@ function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   let dmg = rawDmg * mod;
   if (fromAir) dmg *= target.kind === 'building' ? 0.3 : 0.7;
   if (target.def && target.def.resist && target.def.resist[dtype]) dmg *= target.def.resist[dtype];
+  if (target.kind === 'building' && target.upgrades && target.upgrades.plating) dmg *= 0.75;
   // an active cloak scatters targeting locks: stealthed aircraft take 75% less from everything
   if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.25;
   if (dmg <= 0) return;
@@ -270,8 +271,11 @@ class Unit {
     if (o.type === 'move' || o.type === 'attackmove' || o.type === 'guardarea') { this.guardX = o.x; this.guardY = o.y; }
     if (this.def.air) {
       if (o.type === 'attack') { this.jetState = 'attack'; this.persistTargetId = o.targetId; this.guardPost = null; }
-      else if (o.type === 'guardarea') { this.jetState = 'guardmove'; this.persistTargetId = 0; this.guardPost = { x: o.x, y: o.y }; }
-      else if (o.type === 'move' || o.type === 'attackmove') { this.jetState = 'moveto'; this.persistTargetId = 0; this.guardPost = null; }
+      else if (o.type === 'guardarea' || o.type === 'attackmove') {
+        // attack-move for aircraft = fight your way there and hold the area
+        this.jetState = 'guardmove'; this.persistTargetId = 0; this.guardPost = { x: o.x, y: o.y };
+      }
+      else if (o.type === 'move') { this.jetState = 'moveto'; this.persistTargetId = 0; this.guardPost = null; }
     }
   }
 
@@ -628,6 +632,7 @@ class Unit {
   /* infantry walking to a transport to climb aboard */
   doBoard(dt, o) {
     const tr = game.byId.get(o.targetId);
+    if (!['inf', 'rocketinf', 'commando'].includes(this.def.chassis)) { this.nextOrder(); return; }   // soldiers only
     if (!tr || tr.dead || !tr.cargo || tr.cargo.length >= tr.def.capacity) { this.nextOrder(); return; }
     const d = U.dist(this.x, this.y, tr.x, tr.y);
     if (d > 55) {
@@ -702,12 +707,52 @@ class Unit {
       } else this.moving = false;
       return d;
     };
+    /* pick the right tool: chin gun for infantry, rockets for everything else */
+    const heliCombat = () => {
+      if (!def.weapon) return false;
+      this.scanT -= dt;
+      if (this.heliTargetId) {
+        const t0 = game.byId.get(this.heliTargetId);
+        if (!t0 || t0.dead || !weaponCanHit(def.weapon, t0) || U.dist(this.x, this.y, t0.x, t0.y) > 380 ||
+            (isStealthed(t0) && !isDetectedBy(t0, game.players[this.owner].team))) this.heliTargetId = 0;
+      }
+      if (!this.heliTargetId && this.scanT <= 0) {
+        this.scanT = 0.4;
+        const t0 = this.findTarget(330);
+        if (t0) this.heliTargetId = t0.id;
+      }
+      const t = this.heliTargetId ? game.byId.get(this.heliTargetId) : null;
+      if (!t) return false;
+      const w = (t.kind === 'unit' && t.def.armor === 'inf') ? (def.gunWeapon || def.weapon) : def.weapon;
+      const d = U.dist(this.x, this.y, t.x, t.y);
+      const range = w.range + (t.kind === 'building' ? t.size * TILE * 0.4 : 0);
+      if (d <= range) {
+        this.angle = U.turnToward(this.angle, U.angTo(this.x, this.y, t.x, t.y), 5 * dt);
+        if (this.cool <= 0) { this.cool = w.cd; fireWeapon(this, w, t); }
+        return true;
+      }
+      return false;
+    };
+
     switch (o.type) {
       case 'move':
-      case 'attackmove':
-      case 'guardarea':
         if (fly(o.x, o.y, def.speed) < 14) this.nextOrder();
         break;
+      case 'attackmove':
+      case 'guardarea': {
+        // fight anything in reach; otherwise push on to the post and hold it there
+        if (heliCombat()) { this.moving = false; break; }
+        fly(o.x, o.y, def.speed);
+        break;
+      }
+      case 'attack': {
+        const t = game.byId.get(o.targetId);
+        if (!t || t.dead) { this.heliTargetId = 0; this.nextOrder(); break; }
+        this.heliTargetId = t.id;
+        if (!heliCombat()) fly(t.x, t.y, def.speed);
+        else this.moving = false;
+        break;
+      }
       case 'load': {   // hover over a friendly soldier and winch them up
         const t = game.byId.get(o.targetId);
         if (!t || t.dead || t.embarked || this.cargo.length >= def.capacity) { this.nextOrder(); break; }
@@ -724,6 +769,7 @@ class Unit {
         this.nextOrder();
         break;
       default:
+        heliCombat();
         this.moving = false;
         break;
     }
@@ -780,7 +826,9 @@ class Unit {
 
     switch (this.jetState) {
       case 'idle': {
-        const cx = pad ? pad.x : this.guardX, cy = pad ? pad.y : this.guardY;
+        // armed jets loiter near their pad (quick rearm); unarmed recon hovers where it was sent
+        const usePad = pad && def.weapon;
+        const cx = usePad ? pad.x : this.guardX, cy = usePad ? pad.y : this.guardY;
         this.circleA += dt * 0.9;
         flyToward(cx + Math.cos(this.circleA) * 95, cy + Math.sin(this.circleA) * 95, def.speed * 0.55);
         // auto re-engage persist target
@@ -1062,6 +1110,19 @@ class Building {
         else u.giveOrder({ type: 'attackmove', x: this.rallyX, y: this.rallyY });
         if (this.owner === 0) { SFX.ready(); UI.refreshCmd(); }
         if (game.players[this.owner] && game.players[this.owner].isAI) AI.onUnitDone(u);
+      }
+    }
+
+    // field-service upgrade: factory mechanics fix nearby friendly vehicles/aircraft
+    if (this.key === 'factory' && this.upgrades.vehiclerepair) {
+      for (const e of game.ents) {
+        if (e.dead || e.kind !== 'unit' || e.hp >= e.maxHp) continue;
+        const ep = game.players[e.owner];
+        if (!ep || ep.team !== p.team) continue;
+        if (e.def.chassis === 'inf' || e.def.chassis === 'rocketinf' || e.def.chassis === 'commando') continue;
+        if (U.dist2(this.x, this.y, e.x, e.y) > 200 * 200) continue;
+        e.hp = Math.min(e.maxHp, e.hp + 14 * dt * (this.powered ? 1 : 0.5));
+        if (Math.random() < dt * 1.2) FX.sparks(e.x + U.rand(-9, 9), e.y + U.rand(-9, 9), 2);
       }
     }
 

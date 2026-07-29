@@ -380,6 +380,7 @@ const UI = (() => {
         bits.push(`range ${w.range}`);
         if (w.splash) bits.push(`blast ${w.splash}`);
       }
+      if (d.gunWeapon) bits.push(`🔫 ${d.gunWeapon.dmg} ${d.gunWeapon.dtype} vs infantry`);
       if (d.suicide) bits.push(`💣 ${d.suicide.dmg} · blast ${d.suicide.splash}`);
       bits.push(`speed ${d.speed}`);
       bits.push(`armor ${d.armor}`);

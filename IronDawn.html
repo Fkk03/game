@@ -677,7 +677,7 @@ const BUILDINGS = {
   },
   turret: {
     name: { coalition: 'Sentinel Battery', dynasty: 'Gatling Tower', cartel: 'Missile Nest' },
-    icon: '🗼', cost: 1350, hp: 26400, size: 1, buildTime: 16, power: 3, armor: 'building',
+    icon: '🗼', cost: 1350, hp: 15840, size: 1, buildTime: 16, power: 3, armor: 'building',
     sight: 10, desc: 'Hardened fortress turret. Engages ground and air targets. Offline without power.',
     weaponByFaction: {
       coalition: { dmg: 720, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
@@ -755,10 +755,12 @@ const UNITS = {
     detect: 380,
   },
   albatross: {
-    name: 'Albatross Transport', icon: '🚁', cost: 1400, hp: 950, speed: 175, sight: 8, radius: 19,
-    armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true, noAutoAttack: true,
+    name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 950, speed: 175, sight: 8, radius: 19,
+    armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true,
     capacity: 20,
-    desc: 'Coalition troop transport helicopter. Carries up to 20 soldiers (infantry only). Right-click it with troops selected to board; use Unload to deploy.',
+    desc: 'Coalition gunship-transport. Carries up to 20 soldiers, guns down infantry with its chin turret and fires rockets at armor — punches like a mid-tier tank. Unload (F) deploys the troops.',
+    weapon: { dmg: 110, dtype: 'rocket', range: 240, cd: 2.0, projectile: 'missile', splash: 26, aa: false, ga: true },
+    gunWeapon: { dmg: 11, dtype: 'gatling', range: 220, cd: 0.1, projectile: 'bullet', aa: false, ga: true },
   },
   spyplane: {
     name: { coalition: 'Specter Spy Plane', dynasty: 'Shadow Spy Plane' },
@@ -791,12 +793,12 @@ const UNITS = {
   ranger: {
     name: 'Ranger', icon: '🪖', cost: 240, hp: 140, speed: 62, sight: 6, radius: 7,
     armor: 'inf', buildTime: 5, chassis: 'inf', desc: 'Elite rifle infantry.',
-    weapon: { dmg: 11, dtype: 'bullet', range: 175, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
+    weapon: { dmg: 22, dtype: 'bullet', range: 175, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   rocketeer: {
     name: 'Javelin Trooper', icon: '🚀', cost: 320, hp: 120, speed: 56, sight: 7, radius: 7,
     armor: 'inf', buildTime: 6, chassis: 'rocketinf', desc: 'Anti-tank / anti-air missile infantry.',
-    weapon: { dmg: 42, dtype: 'rocket', range: 210, cd: 1.9, projectile: 'missile', aa: true, ga: true },
+    weapon: { dmg: 84, dtype: 'rocket', range: 210, cd: 1.9, projectile: 'missile', aa: true, ga: true },
   },
   commando: {
     name: 'Praetorian Commando', icon: '🎖️', cost: 1200, hp: 700, speed: 78, sight: 9, radius: 8,
@@ -804,7 +806,7 @@ const UNITS = {
     stealthAir: true, decloakOnFire: 2, detect: 200, fieldRegen: 5,
     resist: { explosive: 0.5, flame: 0.5 },
     desc: 'Elite special forces (max 12). Cloaked while not firing (+50% damage striking from stealth), reveals nearby stealth, shrugs off blasts and flame, self-heals out of combat. 5× the soldier for 5× the price.',
-    weapon: { dmg: 60, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
+    weapon: { dmg: 120, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   bulwark: {
     name: 'Bulwark Tank', icon: '🛡️', cost: 900, hp: 620, speed: 74, sight: 6, radius: 17,
@@ -839,12 +841,12 @@ const UNITS = {
   rifleman: {
     name: 'Rifleman', icon: '🪖', cost: 140, hp: 110, speed: 58, sight: 5, radius: 7,
     armor: 'inf', buildTime: 3.5, chassis: 'inf', desc: 'Cheap conscript infantry. Strength in numbers (Horde bonus).',
-    weapon: { dmg: 9, dtype: 'bullet', range: 165, cd: 0.55, projectile: 'tracer', aa: false, ga: true }, horde: true,
+    weapon: { dmg: 18, dtype: 'bullet', range: 165, cd: 0.55, projectile: 'tracer', aa: false, ga: true }, horde: true,
   },
   rpg: {
     name: 'RPG Squad', icon: '🚀', cost: 280, hp: 120, speed: 54, sight: 6, radius: 7,
     armor: 'inf', buildTime: 5.5, chassis: 'rocketinf', desc: 'Anti-tank / anti-air rockets. Horde bonus.',
-    weapon: { dmg: 40, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true }, horde: true,
+    weapon: { dmg: 80, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true }, horde: true,
   },
   warlord: {
     name: 'Warlord Tank', icon: '💪', cost: 1400, hp: 1150, speed: 52, sight: 6, radius: 21,
@@ -872,12 +874,12 @@ const UNITS = {
   raider: {
     name: 'Raider', icon: '🔫', cost: 130, hp: 100, speed: 72, sight: 6, radius: 7,
     armor: 'inf', buildTime: 3, chassis: 'inf', desc: 'Fast, cheap SMG fighter.',
-    weapon: { dmg: 8, dtype: 'bullet', range: 150, cd: 0.35, projectile: 'tracer', aa: false, ga: true },
+    weapon: { dmg: 16, dtype: 'bullet', range: 150, cd: 0.35, projectile: 'tracer', aa: false, ga: true },
   },
   rocketraider: {
     name: 'Rocket Raider', icon: '🚀', cost: 260, hp: 110, speed: 62, sight: 6, radius: 7,
     armor: 'inf', buildTime: 5, chassis: 'rocketinf', desc: 'Anti-tank / anti-air rockets.',
-    weapon: { dmg: 38, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true },
+    weapon: { dmg: 76, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true },
   },
   jackal: {
     name: 'Jackal Tank', icon: '🐺', cost: 620, hp: 430, speed: 92, sight: 6, radius: 16,
@@ -967,6 +969,10 @@ const UPGRADES = {
       desc: 'The structure repairs itself (3% every 3 s) after 10 s without taking damage.' },
     { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.0, hpMul: 1.5,
       desc: 'Maximum health +50%.' },
+    { key: 'vehiclerepair', name: 'Field Service', icon: '🔧', costMul: 0.75,
+      desc: 'Factory mechanics repair nearby friendly vehicles and aircraft (14 hp/s, like a small Repair Center).' },
+    { key: 'plating', name: 'Armor Plating', icon: '🛡️', costMul: 1.0,
+      desc: 'Hardened walls — all damage taken by this factory is reduced by 25%.' },
   ],
   barracks: [
     { key: 'fastprod', name: 'Rapid Drills', icon: '⚙️', costMul: 0.6,
@@ -2043,6 +2049,7 @@ function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   let dmg = rawDmg * mod;
   if (fromAir) dmg *= target.kind === 'building' ? 0.3 : 0.7;
   if (target.def && target.def.resist && target.def.resist[dtype]) dmg *= target.def.resist[dtype];
+  if (target.kind === 'building' && target.upgrades && target.upgrades.plating) dmg *= 0.75;
   // an active cloak scatters targeting locks: stealthed aircraft take 75% less from everything
   if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.25;
   if (dmg <= 0) return;
@@ -2231,8 +2238,11 @@ class Unit {
     if (o.type === 'move' || o.type === 'attackmove' || o.type === 'guardarea') { this.guardX = o.x; this.guardY = o.y; }
     if (this.def.air) {
       if (o.type === 'attack') { this.jetState = 'attack'; this.persistTargetId = o.targetId; this.guardPost = null; }
-      else if (o.type === 'guardarea') { this.jetState = 'guardmove'; this.persistTargetId = 0; this.guardPost = { x: o.x, y: o.y }; }
-      else if (o.type === 'move' || o.type === 'attackmove') { this.jetState = 'moveto'; this.persistTargetId = 0; this.guardPost = null; }
+      else if (o.type === 'guardarea' || o.type === 'attackmove') {
+        // attack-move for aircraft = fight your way there and hold the area
+        this.jetState = 'guardmove'; this.persistTargetId = 0; this.guardPost = { x: o.x, y: o.y };
+      }
+      else if (o.type === 'move') { this.jetState = 'moveto'; this.persistTargetId = 0; this.guardPost = null; }
     }
   }
 
@@ -2589,6 +2599,7 @@ class Unit {
   /* infantry walking to a transport to climb aboard */
   doBoard(dt, o) {
     const tr = game.byId.get(o.targetId);
+    if (!['inf', 'rocketinf', 'commando'].includes(this.def.chassis)) { this.nextOrder(); return; }   // soldiers only
     if (!tr || tr.dead || !tr.cargo || tr.cargo.length >= tr.def.capacity) { this.nextOrder(); return; }
     const d = U.dist(this.x, this.y, tr.x, tr.y);
     if (d > 55) {
@@ -2663,12 +2674,52 @@ class Unit {
       } else this.moving = false;
       return d;
     };
+    /* pick the right tool: chin gun for infantry, rockets for everything else */
+    const heliCombat = () => {
+      if (!def.weapon) return false;
+      this.scanT -= dt;
+      if (this.heliTargetId) {
+        const t0 = game.byId.get(this.heliTargetId);
+        if (!t0 || t0.dead || !weaponCanHit(def.weapon, t0) || U.dist(this.x, this.y, t0.x, t0.y) > 380 ||
+            (isStealthed(t0) && !isDetectedBy(t0, game.players[this.owner].team))) this.heliTargetId = 0;
+      }
+      if (!this.heliTargetId && this.scanT <= 0) {
+        this.scanT = 0.4;
+        const t0 = this.findTarget(330);
+        if (t0) this.heliTargetId = t0.id;
+      }
+      const t = this.heliTargetId ? game.byId.get(this.heliTargetId) : null;
+      if (!t) return false;
+      const w = (t.kind === 'unit' && t.def.armor === 'inf') ? (def.gunWeapon || def.weapon) : def.weapon;
+      const d = U.dist(this.x, this.y, t.x, t.y);
+      const range = w.range + (t.kind === 'building' ? t.size * TILE * 0.4 : 0);
+      if (d <= range) {
+        this.angle = U.turnToward(this.angle, U.angTo(this.x, this.y, t.x, t.y), 5 * dt);
+        if (this.cool <= 0) { this.cool = w.cd; fireWeapon(this, w, t); }
+        return true;
+      }
+      return false;
+    };
+
     switch (o.type) {
       case 'move':
-      case 'attackmove':
-      case 'guardarea':
         if (fly(o.x, o.y, def.speed) < 14) this.nextOrder();
         break;
+      case 'attackmove':
+      case 'guardarea': {
+        // fight anything in reach; otherwise push on to the post and hold it there
+        if (heliCombat()) { this.moving = false; break; }
+        fly(o.x, o.y, def.speed);
+        break;
+      }
+      case 'attack': {
+        const t = game.byId.get(o.targetId);
+        if (!t || t.dead) { this.heliTargetId = 0; this.nextOrder(); break; }
+        this.heliTargetId = t.id;
+        if (!heliCombat()) fly(t.x, t.y, def.speed);
+        else this.moving = false;
+        break;
+      }
       case 'load': {   // hover over a friendly soldier and winch them up
         const t = game.byId.get(o.targetId);
         if (!t || t.dead || t.embarked || this.cargo.length >= def.capacity) { this.nextOrder(); break; }
@@ -2685,6 +2736,7 @@ class Unit {
         this.nextOrder();
         break;
       default:
+        heliCombat();
         this.moving = false;
         break;
     }
@@ -2741,7 +2793,9 @@ class Unit {
 
     switch (this.jetState) {
       case 'idle': {
-        const cx = pad ? pad.x : this.guardX, cy = pad ? pad.y : this.guardY;
+        // armed jets loiter near their pad (quick rearm); unarmed recon hovers where it was sent
+        const usePad = pad && def.weapon;
+        const cx = usePad ? pad.x : this.guardX, cy = usePad ? pad.y : this.guardY;
         this.circleA += dt * 0.9;
         flyToward(cx + Math.cos(this.circleA) * 95, cy + Math.sin(this.circleA) * 95, def.speed * 0.55);
         // auto re-engage persist target
@@ -3023,6 +3077,19 @@ class Building {
         else u.giveOrder({ type: 'attackmove', x: this.rallyX, y: this.rallyY });
         if (this.owner === 0) { SFX.ready(); UI.refreshCmd(); }
         if (game.players[this.owner] && game.players[this.owner].isAI) AI.onUnitDone(u);
+      }
+    }
+
+    // field-service upgrade: factory mechanics fix nearby friendly vehicles/aircraft
+    if (this.key === 'factory' && this.upgrades.vehiclerepair) {
+      for (const e of game.ents) {
+        if (e.dead || e.kind !== 'unit' || e.hp >= e.maxHp) continue;
+        const ep = game.players[e.owner];
+        if (!ep || ep.team !== p.team) continue;
+        if (e.def.chassis === 'inf' || e.def.chassis === 'rocketinf' || e.def.chassis === 'commando') continue;
+        if (U.dist2(this.x, this.y, e.x, e.y) > 200 * 200) continue;
+        e.hp = Math.min(e.maxHp, e.hp + 14 * dt * (this.powered ? 1 : 0.5));
+        if (Math.random() < dt * 1.2) FX.sparks(e.x + U.rand(-9, 9), e.y + U.rand(-9, 9), 2);
       }
     }
 
@@ -3605,7 +3672,7 @@ const POWERS_SYS = (() => {
           const off = (i - 6.5) * 34;
           const px = x + Math.cos(ang) * off, py = y + Math.sin(ang) * off;
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 2.5 + i * 0.32,
-            dmg: 420, dtype: 'beam', splash: 65, owner: pi, dead: false, x: px, y: py, fxSize: 1.35, beam: true });
+            dmg: 1260, dtype: 'beam', splash: 65, owner: pi, dead: false, x: px, y: py, fxSize: 1.35, beam: true });
         }
         game.beamStrikes.push({ x, y, ang, t: 0, dur: 14 * 0.32 + 2.5 });
         SFX.beam(x, y);
@@ -3615,7 +3682,7 @@ const POWERS_SYS = (() => {
         for (let i = 0; i < 24; i++) {
           const px = x + U.rand(-160, 160), py = y + U.rand(-160, 160);
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 1.5 + i * 0.33,
-            dmg: 300, dtype: 'explosive', splash: 70, owner: pi, dead: false, x: px, y: py, fxSize: 1.2 });
+            dmg: 900, dtype: 'explosive', splash: 70, owner: pi, dead: false, x: px, y: py, fxSize: 1.2 });
         }
         break;
       }
@@ -3630,7 +3697,7 @@ const POWERS_SYS = (() => {
       if (n.t >= n.fly) {
         FX.nukeExplosion(n.x, n.y);
         SFX.bigExplo(n.x, n.y);
-        dealSplash(n.x, n.y, 3200, 'explosive', 230, n.owner, null);
+        dealSplash(n.x, n.y, 9600, 'explosive', 230, n.owner, null);
         game.nukes.splice(i, 1);
       }
     }
@@ -6156,7 +6223,7 @@ const AI = (() => {
       if (has('supply') < 2 && game.t > 150 && money >= BUILDINGS.supply.cost + buf(500)) return 'supply';
       if (has('supply') < 3 && game.t > 340 && money >= BUILDINGS.supply.cost + buf(1500)) return 'supply';
       if (has('factory') < 2 && game.t > 300 && money >= BUILDINGS.factory.cost + buf(3000)) return 'factory';
-      if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 480 && money >= BUILDINGS.superweapon.cost + 1000) return 'superweapon';
+      if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 420 && money >= BUILDINGS.superweapon.cost + buf(1000)) return 'superweapon';
       if (game.swAllowed !== false && diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('factory') < 3 && game.t > 600 && money >= BUILDINGS.factory.cost + buf(6000)) return 'factory';
@@ -6490,8 +6557,12 @@ const AI = (() => {
     function useSuperweapon() {
       const silo = myBuildings('superweapon').find(b => b.constructed && b.swReady);
       if (!silo) return;
+      // strike the densest enemy army if it is worth it, otherwise their key structure
+      const cl = enemyCluster();
       const t = enemyKeyBuilding();
-      if (t) POWERS_SYS.fireSuperweapon(pi, silo, t.x, t.y);
+      if (cl && cl.val > 4000) POWERS_SYS.fireSuperweapon(pi, silo, cl.x, cl.y);
+      else if (t) POWERS_SYS.fireSuperweapon(pi, silo, t.x, t.y);
+      else if (cl) POWERS_SYS.fireSuperweapon(pi, silo, cl.x, cl.y);
     }
 
     /* ------------- defense reaction ------------- */
@@ -6960,7 +7031,8 @@ const INPUT = (() => {
   function issueGuard(wx, wy, shift) {
     const units = myUnitsSelected();
     for (const u of units) {
-      if (u.def.weapon && !u.def.noAutoAttack) u.giveOrder({ type: 'guardarea', x: wx, y: wy }, shift);
+      // every aircraft can hold a post — unarmed recon planes hover and watch
+      if (u.def.air || (u.def.weapon && !u.def.noAutoAttack)) u.giveOrder({ type: 'guardarea', x: wx, y: wy }, shift);
       else u.giveOrder({ type: 'move', x: wx, y: wy }, shift);
     }
     if (units.length) { SFX.ack(); UI.flashOrder(wx, wy, 'move'); }
@@ -7478,6 +7550,7 @@ const UI = (() => {
         bits.push(`range ${w.range}`);
         if (w.splash) bits.push(`blast ${w.splash}`);
       }
+      if (d.gunWeapon) bits.push(`🔫 ${d.gunWeapon.dmg} ${d.gunWeapon.dtype} vs infantry`);
       if (d.suicide) bits.push(`💣 ${d.suicide.dmg} · blast ${d.suicide.splash}`);
       bits.push(`speed ${d.speed}`);
       bits.push(`armor ${d.armor}`);

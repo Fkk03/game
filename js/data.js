@@ -145,7 +145,7 @@ const BUILDINGS = {
   },
   turret: {
     name: { coalition: 'Sentinel Battery', dynasty: 'Gatling Tower', cartel: 'Missile Nest' },
-    icon: '🗼', cost: 1350, hp: 26400, size: 1, buildTime: 16, power: 3, armor: 'building',
+    icon: '🗼', cost: 1350, hp: 15840, size: 1, buildTime: 16, power: 3, armor: 'building',
     sight: 10, desc: 'Hardened fortress turret. Engages ground and air targets. Offline without power.',
     weaponByFaction: {
       coalition: { dmg: 720, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
@@ -223,10 +223,12 @@ const UNITS = {
     detect: 380,
   },
   albatross: {
-    name: 'Albatross Transport', icon: '🚁', cost: 1400, hp: 950, speed: 175, sight: 8, radius: 19,
-    armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true, noAutoAttack: true,
+    name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 950, speed: 175, sight: 8, radius: 19,
+    armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true,
     capacity: 20,
-    desc: 'Coalition troop transport helicopter. Carries up to 20 soldiers (infantry only). Right-click it with troops selected to board; use Unload to deploy.',
+    desc: 'Coalition gunship-transport. Carries up to 20 soldiers, guns down infantry with its chin turret and fires rockets at armor — punches like a mid-tier tank. Unload (F) deploys the troops.',
+    weapon: { dmg: 110, dtype: 'rocket', range: 240, cd: 2.0, projectile: 'missile', splash: 26, aa: false, ga: true },
+    gunWeapon: { dmg: 11, dtype: 'gatling', range: 220, cd: 0.1, projectile: 'bullet', aa: false, ga: true },
   },
   spyplane: {
     name: { coalition: 'Specter Spy Plane', dynasty: 'Shadow Spy Plane' },
@@ -259,12 +261,12 @@ const UNITS = {
   ranger: {
     name: 'Ranger', icon: '🪖', cost: 240, hp: 140, speed: 62, sight: 6, radius: 7,
     armor: 'inf', buildTime: 5, chassis: 'inf', desc: 'Elite rifle infantry.',
-    weapon: { dmg: 11, dtype: 'bullet', range: 175, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
+    weapon: { dmg: 22, dtype: 'bullet', range: 175, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   rocketeer: {
     name: 'Javelin Trooper', icon: '🚀', cost: 320, hp: 120, speed: 56, sight: 7, radius: 7,
     armor: 'inf', buildTime: 6, chassis: 'rocketinf', desc: 'Anti-tank / anti-air missile infantry.',
-    weapon: { dmg: 42, dtype: 'rocket', range: 210, cd: 1.9, projectile: 'missile', aa: true, ga: true },
+    weapon: { dmg: 84, dtype: 'rocket', range: 210, cd: 1.9, projectile: 'missile', aa: true, ga: true },
   },
   commando: {
     name: 'Praetorian Commando', icon: '🎖️', cost: 1200, hp: 700, speed: 78, sight: 9, radius: 8,
@@ -272,7 +274,7 @@ const UNITS = {
     stealthAir: true, decloakOnFire: 2, detect: 200, fieldRegen: 5,
     resist: { explosive: 0.5, flame: 0.5 },
     desc: 'Elite special forces (max 12). Cloaked while not firing (+50% damage striking from stealth), reveals nearby stealth, shrugs off blasts and flame, self-heals out of combat. 5× the soldier for 5× the price.',
-    weapon: { dmg: 60, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
+    weapon: { dmg: 120, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   bulwark: {
     name: 'Bulwark Tank', icon: '🛡️', cost: 900, hp: 620, speed: 74, sight: 6, radius: 17,
@@ -307,12 +309,12 @@ const UNITS = {
   rifleman: {
     name: 'Rifleman', icon: '🪖', cost: 140, hp: 110, speed: 58, sight: 5, radius: 7,
     armor: 'inf', buildTime: 3.5, chassis: 'inf', desc: 'Cheap conscript infantry. Strength in numbers (Horde bonus).',
-    weapon: { dmg: 9, dtype: 'bullet', range: 165, cd: 0.55, projectile: 'tracer', aa: false, ga: true }, horde: true,
+    weapon: { dmg: 18, dtype: 'bullet', range: 165, cd: 0.55, projectile: 'tracer', aa: false, ga: true }, horde: true,
   },
   rpg: {
     name: 'RPG Squad', icon: '🚀', cost: 280, hp: 120, speed: 54, sight: 6, radius: 7,
     armor: 'inf', buildTime: 5.5, chassis: 'rocketinf', desc: 'Anti-tank / anti-air rockets. Horde bonus.',
-    weapon: { dmg: 40, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true }, horde: true,
+    weapon: { dmg: 80, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true }, horde: true,
   },
   warlord: {
     name: 'Warlord Tank', icon: '💪', cost: 1400, hp: 1150, speed: 52, sight: 6, radius: 21,
@@ -340,12 +342,12 @@ const UNITS = {
   raider: {
     name: 'Raider', icon: '🔫', cost: 130, hp: 100, speed: 72, sight: 6, radius: 7,
     armor: 'inf', buildTime: 3, chassis: 'inf', desc: 'Fast, cheap SMG fighter.',
-    weapon: { dmg: 8, dtype: 'bullet', range: 150, cd: 0.35, projectile: 'tracer', aa: false, ga: true },
+    weapon: { dmg: 16, dtype: 'bullet', range: 150, cd: 0.35, projectile: 'tracer', aa: false, ga: true },
   },
   rocketraider: {
     name: 'Rocket Raider', icon: '🚀', cost: 260, hp: 110, speed: 62, sight: 6, radius: 7,
     armor: 'inf', buildTime: 5, chassis: 'rocketinf', desc: 'Anti-tank / anti-air rockets.',
-    weapon: { dmg: 38, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true },
+    weapon: { dmg: 76, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true },
   },
   jackal: {
     name: 'Jackal Tank', icon: '🐺', cost: 620, hp: 430, speed: 92, sight: 6, radius: 16,
@@ -435,6 +437,10 @@ const UPGRADES = {
       desc: 'The structure repairs itself (3% every 3 s) after 10 s without taking damage.' },
     { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.0, hpMul: 1.5,
       desc: 'Maximum health +50%.' },
+    { key: 'vehiclerepair', name: 'Field Service', icon: '🔧', costMul: 0.75,
+      desc: 'Factory mechanics repair nearby friendly vehicles and aircraft (14 hp/s, like a small Repair Center).' },
+    { key: 'plating', name: 'Armor Plating', icon: '🛡️', costMul: 1.0,
+      desc: 'Hardened walls — all damage taken by this factory is reduced by 25%.' },
   ],
   barracks: [
     { key: 'fastprod', name: 'Rapid Drills', icon: '⚙️', costMul: 0.6,

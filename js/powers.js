@@ -226,7 +226,7 @@ const POWERS_SYS = (() => {
           const off = (i - 6.5) * 34;
           const px = x + Math.cos(ang) * off, py = y + Math.sin(ang) * off;
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 2.5 + i * 0.32,
-            dmg: 420, dtype: 'beam', splash: 65, owner: pi, dead: false, x: px, y: py, fxSize: 1.35, beam: true });
+            dmg: 1260, dtype: 'beam', splash: 65, owner: pi, dead: false, x: px, y: py, fxSize: 1.35, beam: true });
         }
         game.beamStrikes.push({ x, y, ang, t: 0, dur: 14 * 0.32 + 2.5 });
         SFX.beam(x, y);
@@ -236,7 +236,7 @@ const POWERS_SYS = (() => {
         for (let i = 0; i < 24; i++) {
           const px = x + U.rand(-160, 160), py = y + U.rand(-160, 160);
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 1.5 + i * 0.33,
-            dmg: 300, dtype: 'explosive', splash: 70, owner: pi, dead: false, x: px, y: py, fxSize: 1.2 });
+            dmg: 900, dtype: 'explosive', splash: 70, owner: pi, dead: false, x: px, y: py, fxSize: 1.2 });
         }
         break;
       }
@@ -251,7 +251,7 @@ const POWERS_SYS = (() => {
       if (n.t >= n.fly) {
         FX.nukeExplosion(n.x, n.y);
         SFX.bigExplo(n.x, n.y);
-        dealSplash(n.x, n.y, 3200, 'explosive', 230, n.owner, null);
+        dealSplash(n.x, n.y, 9600, 'explosive', 230, n.owner, null);
         game.nukes.splice(i, 1);
       }
     }

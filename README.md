@@ -48,19 +48,20 @@ python3 -m http.server 8080
   (now a compact 2-tile pad)
 - **Building upgrades** — select a Barracks, War Factory or Airfield and buy one-time
   upgrades: Rapid Assembly (−30% production time), Auto-Repair (3%/3 s after 10 s of
-  peace), Reinforced Structure (+50–100% health), and for Airfields also Fast Rearm
-  (−30% turnaround) and Full Restoration (landing aircraft repaired to ≥50%)
+  peace), Reinforced Structure (+50–100% health); Airfields add Fast Rearm (−30%
+  turnaround) and Full Restoration (landing aircraft repaired to ≥50%); War Factories
+  add Field Service (repairs nearby vehicles 14 hp/s) and Armor Plating (−25% damage taken)
 - **Praetorian Commando** (Coalition, max 12) — cloaked special forces: +50% damage
   striking from stealth, reveals nearby stealth units, resists blasts and flame,
   self-heals out of combat. 5× the soldier for 5× the price
 - **Cartel war economy** — Scorpion Cartel infantry costs 40% less and ground combat
   vehicles 30% less, everywhere prices appear
 - **Cheap steel** — tanks cost 50% less for every faction EXCEPT the Meridian Coalition
-- **Albatross Transport** (Coalition) — a troop helicopter carrying up to 20 soldiers
-  (infantry only). Select troops → right-click the helicopter to board; fly it anywhere
-  and hit Unload (F) to deploy. If it's shot down, everyone aboard goes with it
-- **Fortress turrets** — 3× damage, 4× health, +50% cost, slower to build and hungrier
-  for power
+- **Albatross Gunship** (Coalition) — a combat transport helicopter: carries 20 soldiers,
+  guns down infantry with its chin turret and fires rockets at armor (mid-tank punch).
+  Select troops → right-click to board; Unload (F) deploys. Shot down = everyone dies
+- **Fortress turrets** — 3× damage, tough (but siege-able) health, +50% cost, slower to
+  build and hungrier for power
 - **Hardened bases** — every structure has 3× health; razing a base is a siege, not a drive-by
 - **Regenerating supplies** — exhausted supply piles refill after 20 minutes to
   75%, then 50%, then 25% (repeating at 25%); an on-map ⏳ timer shows the countdown
