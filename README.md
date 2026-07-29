@@ -27,8 +27,8 @@ python3 -m http.server 8080
 ## 🎮 The game
 
 - **Domination mode** — hold the central ⚑ control point uncontested to earn ~30 pts/min;
-  first team to 1,000 wins (annihilation also wins). A second 💰 Trade Point gives the
-  controlling team +30% income. Classic annihilation-only mode still selectable.
+  first team to 1,000 wins (annihilation also wins). A second 💰 Trade Point DOUBLES the
+  controlling team's income. Classic annihilation-only mode still selectable.
 - **Live battle stats** — Tab toggles a scoreboard with kills and army value for every
   general (allies and enemies); the top bar shows your income and spending per minute
 - **Up to 14 players** — choose 0–5 allied AI generals and 1–8 enemies; the map auto-scales
@@ -55,6 +55,10 @@ python3 -m http.server 8080
   self-heals out of combat. 5× the soldier for 5× the price
 - **Cartel war economy** — Scorpion Cartel infantry costs 40% less and ground combat
   vehicles 30% less, everywhere prices appear
+- **Cheap steel** — tanks cost 50% less for every faction EXCEPT the Meridian Coalition
+- **Albatross Transport** (Coalition) — a troop helicopter carrying up to 20 soldiers
+  (infantry only). Select troops → right-click the helicopter to board; fly it anywhere
+  and hit Unload (F) to deploy. If it's shot down, everyone aboard goes with it
 - **Fortress turrets** — 3× damage, 4× health, +50% cost, slower to build and hungrier
   for power
 - **Regenerating supplies** — exhausted supply piles refill after 20 minutes to
