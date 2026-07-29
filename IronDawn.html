@@ -680,9 +680,9 @@ const BUILDINGS = {
     icon: '🗼', cost: 1350, hp: 15840, size: 1, buildTime: 16, power: 3, armor: 'building',
     sight: 10, desc: 'Hardened fortress turret. Engages ground and air targets. Offline without power.',
     weaponByFaction: {
-      coalition: { dmg: 2880, dtype: 'rocket', range: 1160, cd: 1.5, projectile: 'missile', splash: 60, aa: true, needsPower: true },
-      dynasty:   { dmg: 1344, dtype: 'gatling', range: 1000, cd: 0.18, projectile: 'flakburst', splash: 45, aa: true, needsPower: true },
-      cartel:    { dmg: 2496, dtype: 'rocket', range: 1080, cd: 1.6, projectile: 'missile', splash: 60, aa: true, needsPower: false },
+      coalition: { dmg: 864, dtype: 'rocket', range: 1160, cd: 1.5, projectile: 'missile', splash: 60, aa: true, needsPower: true },
+      dynasty:   { dmg: 403, dtype: 'gatling', range: 1000, cd: 0.18, projectile: 'flakburst', splash: 45, aa: true, needsPower: true },
+      cartel:    { dmg: 749, dtype: 'rocket', range: 1080, cd: 1.6, projectile: 'missile', splash: 60, aa: true, needsPower: false },
     },
   },
   repairbay: {
@@ -755,12 +755,12 @@ const UNITS = {
     detect: 380,
   },
   albatross: {
-    name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 950, speed: 175, sight: 8, radius: 19,
+    name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 2850, speed: 525, sight: 8, radius: 19,
     armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true,
     capacity: 20,
-    desc: 'Coalition gunship-transport. Carries up to 20 soldiers, guns down infantry with its chin turret and fires rockets at armor — punches like a mid-tier tank. Unload (F) deploys the troops.',
-    weapon: { dmg: 110, dtype: 'rocket', range: 240, cd: 2.0, projectile: 'missile', splash: 26, aa: false, ga: true },
-    gunWeapon: { dmg: 11, dtype: 'gatling', range: 220, cd: 0.1, projectile: 'bullet', aa: false, ga: true },
+    desc: 'Coalition gunship-transport. Carries up to 20 soldiers, guns down infantry with its chin turret and fires rockets at armor — triple-strength airframe: 3× the health, damage and speed. Unload (F) deploys the troops.',
+    weapon: { dmg: 330, dtype: 'rocket', range: 240, cd: 2.0, projectile: 'missile', splash: 26, aa: false, ga: true },
+    gunWeapon: { dmg: 33, dtype: 'gatling', range: 220, cd: 0.1, projectile: 'bullet', aa: false, ga: true },
   },
   spyplane: {
     name: { coalition: 'Specter Spy Plane', dynasty: 'Shadow Spy Plane' },
@@ -802,10 +802,10 @@ const UNITS = {
   },
   commando: {
     name: 'Praetorian Commando', icon: '🎖️', cost: 1200, hp: 1400, speed: 78, sight: 9, radius: 8,
-    armor: 'inf', buildTime: 15, chassis: 'commando', limitPer: 12,
+    armor: 'inf', buildTime: 15, chassis: 'commando',
     stealthAir: true, decloakOnFire: 2, detect: 200, fieldRegen: 5,
     resist: { explosive: 0.5, flame: 0.5 },
-    desc: 'Elite special forces (max 12). Cloaked while not firing (+50% damage striking from stealth), reveals nearby stealth, shrugs off blasts and flame, self-heals out of combat. 5× the soldier for 5× the price.',
+    desc: 'Elite special forces — build as many as you can afford. Cloaked while not firing (+50% damage striking from stealth), reveals nearby stealth, shrugs off blasts and flame, self-heals out of combat. 5× the soldier for 5× the price.',
     weapon: { dmg: 120, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   bulwark: {

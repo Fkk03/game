@@ -51,17 +51,19 @@ python3 -m http.server 8080
   peace), Reinforced Structure (+50–100% health); Airfields add Fast Rearm (−30%
   turnaround) and Full Restoration (landing aircraft repaired to ≥50%); War Factories
   add Field Service (repairs nearby vehicles 14 hp/s) and Armor Plating (−25% damage taken)
-- **Praetorian Commando** (Coalition, max 12) — cloaked special forces: +50% damage
+- **Praetorian Commando** (Coalition, no build limit) — cloaked special forces: +50% damage
   striking from stealth, reveals nearby stealth units, resists blasts and flame,
-  self-heals out of combat. 5× the soldier for 5× the price
+  self-heals out of combat. 5× the soldier for 5× the price — field a whole legion
+  if your wallet can take it
 - **Cartel war economy** — Scorpion Cartel infantry costs 40% less and ground combat
   vehicles 30% less, everywhere prices appear
 - **Cheap steel** — tanks cost 50% less for every faction EXCEPT the Meridian Coalition
-- **Albatross Gunship** (Coalition) — a combat transport helicopter: carries 20 soldiers,
-  guns down infantry with its chin turret and fires rockets at armor (mid-tank punch).
+- **Albatross Gunship** (Coalition) — a triple-strength combat transport helicopter
+  (3× health, damage and speed): carries 20 soldiers, guns down infantry with its chin
+  turret and fires rockets at armor — hits like a heavy tank and outruns every jet.
   Select troops → right-click to board; Unload (F) deploys. Shot down = everyone dies
-- **Fortress turrets** — massive damage with real blast areas and ~1,000+ range;
-  expensive, slow to build and power-hungry — a handful locks down a whole approach
+- **Fortress turrets** — extreme ~1,000+ range with real blast areas; expensive, slow
+  to build and power-hungry — steady area denial that locks down a whole approach
 - **Hardened bases** — every structure has 3× health; razing a base is a siege, not a drive-by
 - **Regenerating supplies** — exhausted supply piles refill after 20 minutes to
   75%, then 50%, then 25% (repeating at 25%); an on-map ⏳ timer shows the countdown
