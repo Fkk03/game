@@ -60,8 +60,8 @@ python3 -m http.server 8080
 - **Albatross Gunship** (Coalition) — a combat transport helicopter: carries 20 soldiers,
   guns down infantry with its chin turret and fires rockets at armor (mid-tank punch).
   Select troops → right-click to board; Unload (F) deploys. Shot down = everyone dies
-- **Fortress turrets** — 3× damage, tough (but siege-able) health, +50% cost, slower to
-  build and hungrier for power
+- **Fortress turrets** — massive damage with real blast areas and ~1,000+ range;
+  expensive, slow to build and power-hungry — a handful locks down a whole approach
 - **Hardened bases** — every structure has 3× health; razing a base is a siege, not a drive-by
 - **Regenerating supplies** — exhausted supply piles refill after 20 minutes to
   75%, then 50%, then 25% (repeating at 25%); an on-map ⏳ timer shows the countdown

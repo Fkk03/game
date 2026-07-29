@@ -148,9 +148,9 @@ const BUILDINGS = {
     icon: '🗼', cost: 1350, hp: 15840, size: 1, buildTime: 16, power: 3, armor: 'building',
     sight: 10, desc: 'Hardened fortress turret. Engages ground and air targets. Offline without power.',
     weaponByFaction: {
-      coalition: { dmg: 720, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
-      dynasty:   { dmg: 168, dtype: 'gatling', range: 250, cd: 0.09, projectile: 'bullet', aa: true, needsPower: true },
-      cartel:    { dmg: 624, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
+      coalition: { dmg: 2880, dtype: 'rocket', range: 1160, cd: 1.5, projectile: 'missile', splash: 60, aa: true, needsPower: true },
+      dynasty:   { dmg: 1344, dtype: 'gatling', range: 1000, cd: 0.18, projectile: 'flakburst', splash: 45, aa: true, needsPower: true },
+      cartel:    { dmg: 2496, dtype: 'rocket', range: 1080, cd: 1.6, projectile: 'missile', splash: 60, aa: true, needsPower: false },
     },
   },
   repairbay: {
@@ -259,17 +259,17 @@ const UNITS = {
 
   /* ---- Meridian Coalition ---- */
   ranger: {
-    name: 'Ranger', icon: '🪖', cost: 240, hp: 140, speed: 62, sight: 6, radius: 7,
+    name: 'Ranger', icon: '🪖', cost: 240, hp: 280, speed: 62, sight: 6, radius: 7,
     armor: 'inf', buildTime: 5, chassis: 'inf', desc: 'Elite rifle infantry.',
     weapon: { dmg: 22, dtype: 'bullet', range: 175, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   rocketeer: {
-    name: 'Javelin Trooper', icon: '🚀', cost: 320, hp: 120, speed: 56, sight: 7, radius: 7,
+    name: 'Javelin Trooper', icon: '🚀', cost: 320, hp: 240, speed: 56, sight: 7, radius: 7,
     armor: 'inf', buildTime: 6, chassis: 'rocketinf', desc: 'Anti-tank / anti-air missile infantry.',
     weapon: { dmg: 84, dtype: 'rocket', range: 210, cd: 1.9, projectile: 'missile', aa: true, ga: true },
   },
   commando: {
-    name: 'Praetorian Commando', icon: '🎖️', cost: 1200, hp: 700, speed: 78, sight: 9, radius: 8,
+    name: 'Praetorian Commando', icon: '🎖️', cost: 1200, hp: 1400, speed: 78, sight: 9, radius: 8,
     armor: 'inf', buildTime: 15, chassis: 'commando', limitPer: 12,
     stealthAir: true, decloakOnFire: 2, detect: 200, fieldRegen: 5,
     resist: { explosive: 0.5, flame: 0.5 },
@@ -307,12 +307,12 @@ const UNITS = {
 
   /* ---- Crimson Dynasty ---- */
   rifleman: {
-    name: 'Rifleman', icon: '🪖', cost: 140, hp: 110, speed: 58, sight: 5, radius: 7,
+    name: 'Rifleman', icon: '🪖', cost: 140, hp: 220, speed: 58, sight: 5, radius: 7,
     armor: 'inf', buildTime: 3.5, chassis: 'inf', desc: 'Cheap conscript infantry. Strength in numbers (Horde bonus).',
     weapon: { dmg: 18, dtype: 'bullet', range: 165, cd: 0.55, projectile: 'tracer', aa: false, ga: true }, horde: true,
   },
   rpg: {
-    name: 'RPG Squad', icon: '🚀', cost: 280, hp: 120, speed: 54, sight: 6, radius: 7,
+    name: 'RPG Squad', icon: '🚀', cost: 280, hp: 240, speed: 54, sight: 6, radius: 7,
     armor: 'inf', buildTime: 5.5, chassis: 'rocketinf', desc: 'Anti-tank / anti-air rockets. Horde bonus.',
     weapon: { dmg: 80, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true }, horde: true,
   },
@@ -340,12 +340,12 @@ const UNITS = {
 
   /* ---- Scorpion Cartel ---- */
   raider: {
-    name: 'Raider', icon: '🔫', cost: 130, hp: 100, speed: 72, sight: 6, radius: 7,
+    name: 'Raider', icon: '🔫', cost: 130, hp: 200, speed: 72, sight: 6, radius: 7,
     armor: 'inf', buildTime: 3, chassis: 'inf', desc: 'Fast, cheap SMG fighter.',
     weapon: { dmg: 16, dtype: 'bullet', range: 150, cd: 0.35, projectile: 'tracer', aa: false, ga: true },
   },
   rocketraider: {
-    name: 'Rocket Raider', icon: '🚀', cost: 260, hp: 110, speed: 62, sight: 6, radius: 7,
+    name: 'Rocket Raider', icon: '🚀', cost: 260, hp: 220, speed: 62, sight: 6, radius: 7,
     armor: 'inf', buildTime: 5, chassis: 'rocketinf', desc: 'Anti-tank / anti-air rockets.',
     weapon: { dmg: 76, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true },
   },

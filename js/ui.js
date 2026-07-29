@@ -393,6 +393,7 @@ const UI = (() => {
       if (w) {
         bits.push(`⚔ ${w.dmg} ${w.dtype}`);
         bits.push(`range ${w.range}`);
+        if (w.splash) bits.push(`blast ${w.splash}`);
         bits.push(`<b>kills ${e.kills || 0}</b>`);
       }
       if (d.income) bits.push(`income $${d.income}/s`);
@@ -477,7 +478,9 @@ const UI = (() => {
     if (!sel.length) { title.textContent = ''; return; }
 
     const units = sel.filter(e => e.kind === 'unit');
-    const dozer = units.find(u => u.def.builder);
+    // construction menu ONLY when every selected unit is a builder —
+    // a dozer inside an army selection must not hijack the A/S/D commands
+    const dozer = units.length && units.every(u => u.def.builder) ? units[0] : null;
     const building = sel.length === 1 && sel[0].kind === 'building' ? sel[0] : null;
 
     if (dozer) {
@@ -716,7 +719,7 @@ const UI = (() => {
         refreshSel(); refreshCmd();
         break;
       }
-      case 'attackmove': INPUT.awaitAttackMove = true; SFX.click(); break;
+      case 'attackmove': INPUT.awaitAttackMove = true; feed('Attack-move — click the target area'); SFX.click(); break;
       case 'guardbtn': INPUT.awaitGuard = true; SFX.click(); break;
       case 'stop': INPUT.stopSelected(); break;
       case 'sell': {
