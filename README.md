@@ -83,7 +83,7 @@ python3 -m http.server 8080
 - **Spy war** — unarmed stealth spy planes with enormous sight, completely undetectable
   and untouchable: no weapon in the game can target or harm a pure recon plane
 - **Umbra Ghost Strike** (Coalition only) — a cloaked super-jet, 3–4× a Seraph:
-  six 7,500-dmg missiles, faster, far tougher. Dimmed colors = cloaked (only
+  six 3,750-dmg missiles, faster, far tougher. Dimmed colors = cloaked (only
   detectors see it); firing exposes it for ~1 s (colors flare bright + decloak
   ring) before it fades back out
 - **Stealth Retrofit** (Coalition only) — any aircraft with ★ veterancy can be
