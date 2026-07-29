@@ -242,3 +242,4 @@ ul.howto b { color:#ffe9a0; }
 /* building upgrade buttons in the command grid */
 .cmd-btn.upg { border-color:#7a6a9a; background:linear-gradient(#2f2a3c, #1e1a28); }
 .cmd-btn.upg:not(.disabled):hover { border-color:#b09ae0; }
+.statline { display:block; color:#a89f82; font-size:12px; margin-top:2px; }

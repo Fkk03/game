@@ -106,6 +106,12 @@ python3 -m http.server 8080
   sabotage, ambushes, carpet bombing, thermobaric bombs…
 - **Superweapons** — Solaris Beam / Nuclear Missile / Rocket Storm, on a 5-minute countdown
   that both players can see
+- **Full stats on click** — select any unit or building to see its complete combat
+  card: damage per shot/missile, range, blast, speed, armor class, sight, ammo,
+  personal kill count, cloak state, income/power for structures, and owned upgrades
+- **Tank field upgrades** — tanks with ★ veterancy can buy ⚔ Gun (+25% damage) and
+  🛡 Armor (+25% health) upgrades, one level per star up to 3, each costing 30% of
+  the tank's price; bonuses stack with veterancy and survive promotions
 - **Unit veterancy up to ★★★★★** — every star adds damage and max health (up to +80%);
   from 2 stars units self-repair in the field, faster with each rank, and the Repair
   Center services veteran crews +25% faster per star

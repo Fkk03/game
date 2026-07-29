@@ -337,12 +337,15 @@ const UI = (() => {
       const nm = e.kind === 'unit' ? uName(e.key, game.players[e.owner]?.faction) : bName(e.key, game.players[e.owner]?.faction);
       let extra = '';
       if (e.kind === 'unit' && e.vetRank) extra += ` &nbsp;<span style="color:#ffd76a">${'★'.repeat(e.vetRank)}</span>`;
+      if (e.gunLvl) extra += ` &nbsp;<span style="color:#ffb070">⚔+${e.gunLvl * 25}%</span>`;
+      if (e.armorLvl) extra += ` &nbsp;<span style="color:#8fc7ff">🛡+${e.armorLvl * 25}%</span>`;
       if (e.kind === 'unit' && e.def.harvester) extra += ` &nbsp;· carrying $${e.carrying || 0}`;
       if (e.kind === 'unit' && e.def.air && e.def.ammo !== undefined) extra += ` &nbsp;· ammo ${e.ammo}/${e.def.ammo}`;
       if (e.kind === 'unit' && e.cargo && e.def.capacity) extra += ` &nbsp;· 🪖 ${e.cargo.length}/${e.def.capacity} aboard`;
       if (e.kind === 'building' && e.key === 'superweapon' && e.constructed)
         extra += e.swReady ? ' &nbsp;· <b style="color:#8f8">READY</b>' : ` &nbsp;· launch in ${U.fmtTime(e.swTimer)}`;
-      info.innerHTML = `<b>${nm}</b> &nbsp;${Math.ceil(e.hp)}/${e.maxHp} HP${extra}`;
+      info.innerHTML = `<b>${nm}</b> &nbsp;${Math.ceil(e.hp)}/${e.maxHp} HP${extra}
+        <span class="statline">${entStats(e)}</span>`;
     } else {
       info.innerHTML = `<b>${sel.length} selected</b>`;
     }
@@ -363,6 +366,44 @@ const UI = (() => {
       more.textContent = '+' + (sel.length - 24);
       grid.appendChild(more);
     }
+  }
+
+  /* full combat readout for the selection panel */
+  function entStats(e) {
+    const bits = [];
+    const d = e.def;
+    if (e.kind === 'unit') {
+      const w = d.weapon;
+      if (w) {
+        const dmg = Math.round(w.dmg * VET_DMG[e.vetRank] * (1 + 0.25 * (e.gunLvl || 0)));
+        bits.push(`⚔ ${dmg} ${w.dtype}${d.air ? ' per missile' : ''}`);
+        bits.push(`range ${w.range}`);
+        if (w.splash) bits.push(`blast ${w.splash}`);
+      }
+      if (d.suicide) bits.push(`💣 ${d.suicide.dmg} · blast ${d.suicide.splash}`);
+      bits.push(`speed ${d.speed}`);
+      bits.push(`armor ${d.armor}`);
+      bits.push(`sight ${d.sight}`);
+      if (d.detect) bits.push(`detects stealth ${d.detect}`);
+      if (hasCloak(e)) bits.push(isStealthed(e) ? '🌑 cloaked' : '⚠ visible');
+      bits.push(`<b>kills ${e.kills || 0}</b>`);
+    } else {
+      const w = d.weaponByFaction ? d.weaponByFaction[game.players[e.owner]?.faction] : null;
+      if (w) {
+        bits.push(`⚔ ${w.dmg} ${w.dtype}`);
+        bits.push(`range ${w.range}`);
+        bits.push(`<b>kills ${e.kills || 0}</b>`);
+      }
+      if (d.income) bits.push(`income $${d.income}/s`);
+      if (d.powerGive) bits.push(`power +${d.powerGive}`);
+      if (d.power) bits.push(`power −${d.power}`);
+      if (d.healRate) bits.push(`repairs ${d.healRate} hp/s nearby`);
+      if (d.meltdown) bits.push(`☢ meltdown ${d.meltdown.dmg}`);
+      if (e.queue && e.queue.length) bits.push(`producing (${e.queue.length} queued)`);
+      const ups = Object.keys(e.upgrades || {}).filter(k => e.upgrades[k]);
+      if (ups.length) bits.push('⬆ ' + ups.join(', '));
+    }
+    return bits.join(' &nbsp;· '); 
   }
 
   /* =================== command grid =================== */
@@ -450,6 +491,12 @@ const UI = (() => {
       curCmds[4] = { type: 'attackmove' };   // A
       curCmds[5] = { type: 'stop' };         // S
       curCmds[6] = { type: 'guardbtn' };     // D
+      // veteran tanks buy field upgrades: guns (R) and armor plating (F), one level per star (max 3)
+      const upTanks = kind => units.filter(u => TANK_CHASSIS.includes(u.def.chassis) &&
+        u.vetRank >= 1 && ((kind === 'gun' ? u.gunLvl : u.armorLvl) || 0) < Math.min(3, u.vetRank));
+      const gunEligible = upTanks('gun'), armorEligible = upTanks('armor');
+      if (gunEligible.length) curCmds[3] = { type: 'tankup', kind: 'gun', units: gunEligible };
+      if (armorEligible.length && !curCmds[7]) curCmds[7] = { type: 'tankup', kind: 'armor', units: armorEligible };
       // transports with troops aboard get an Unload command (F)
       const transports = units.filter(u => u.cargo && u.def.capacity);
       if (transports.length) curCmds[7] = { type: 'unloadbtn', transports };
@@ -530,6 +577,12 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">${c.up.icon}</span><span>${c.up.name}</span><span class="cost">$${cost}</span>`;
         b.classList.add('upg');
         if (p.money < cost) b.classList.add('disabled');
+      } else if (c.type === 'tankup') {
+        const n = c.units.length;
+        const cost = Math.round(uCost(c.units[0].key, p.faction) * 0.3);
+        b.innerHTML = `${hk}<span class="icon">${c.kind === 'gun' ? '⚔️' : '🛡️'}</span><span>${c.kind === 'gun' ? 'Gun +25%' : 'Armor +25%'}</span><span class="cost">~$${cost}${n > 1 ? '×' + n : ''}</span>`;
+        b.classList.add('upg');
+        if (p.money < cost) b.classList.add('disabled');
       } else if (c.type === 'unloadbtn') {
         const n = c.transports.reduce((a, t) => a + t.cargo.length, 0);
         b.innerHTML = `${hk}<span class="icon">🪂</span><span>Unload</span><span class="cost">${n} aboard</span>`;
@@ -542,7 +595,17 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">⚔️</span><span>Attack-Move</span>`;
       } else if (c.type === 'stop') {
         b.innerHTML = `${hk}<span class="icon">✋</span><span>Stop</span>`;
-      } else if (c.type === 'unloadbtn') {
+      } else if (c.type === 'tankup') {
+        const n = c.units.length;
+        const cost = Math.round(uCost(c.units[0].key, p.faction) * 0.3);
+        b.innerHTML = `${hk}<span class="icon">${c.kind === 'gun' ? '⚔️' : '🛡️'}</span><span>${c.kind === 'gun' ? 'Gun +25%' : 'Armor +25%'}</span><span class="cost">~$${cost}${n > 1 ? '×' + n : ''}</span>`;
+        b.classList.add('upg');
+        if (p.money < cost) b.classList.add('disabled');
+      } else if (c.type === 'tankup') {
+      tooltipHtml(el, `<h4>${c.kind === 'gun' ? '⚔️ Gun Upgrade' : '🛡️ Armor Plating'}</h4>
+        <div class="tt-cost">30% of the tank's cost per level · one level per veterancy star (max 3)</div>
+        <div class="tt-desc">${c.kind === 'gun' ? '+25% weapon damage per level, stacking with veterancy.' : '+25% maximum health per level, stacking with veterancy; the crew patches in the new plating immediately.'}</div>`);
+    } else if (c.type === 'unloadbtn') {
       tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
     } else if (c.type === 'guardbtn') {
         b.innerHTML = `${hk}<span class="icon">🛡️</span><span>Guard Area</span>`;
@@ -605,6 +668,30 @@ const UI = (() => {
         feed(up.name + ' installed on ' + bName(bld.key, p.faction), 'gold');
         SFX.cash();
         refreshCmd();
+        break;
+      }
+      case 'tankup': {
+        let done = 0;
+        for (const u of c.units) {
+          if (u.dead) continue;
+          const lvl = (c.kind === 'gun' ? u.gunLvl : u.armorLvl) || 0;
+          if (lvl >= Math.min(3, u.vetRank)) continue;
+          const cost = Math.round(uCost(u.key, p.faction) * 0.3);
+          if (p.money < cost) break;
+          p.spend(cost);
+          if (c.kind === 'gun') u.gunLvl = lvl + 1;
+          else {
+            u.armorLvl = lvl + 1;
+            const nm = Math.round(u.def.hp * VET_HP[u.vetRank] * (1 + 0.25 * u.armorLvl));
+            u.hp += nm - u.maxHp;
+            u.maxHp = nm;
+          }
+          FX.text(u.x, u.y - 22, c.kind === 'gun' ? '⚔ GUN UPGRADED' : '🛡 ARMOR PLATED', '#ffd76a');
+          done++;
+        }
+        if (done) { SFX.cash(); feed(`${c.kind === 'gun' ? 'Gun' : 'Armor'} upgrade fitted on ${done} tank${done > 1 ? 's' : ''}`, 'gold'); }
+        else { feed('Insufficient funds', 'bad'); SFX.error(); }
+        refreshSel(); refreshCmd();
         break;
       }
       case 'unloadbtn': {
@@ -708,6 +795,10 @@ const UI = (() => {
       tooltipHtml(el, `<h4>⚔️ Attack-Move</h4><div class="tt-desc">Move while engaging every enemy on the way. Hotkey A, then click the map.</div>`);
     } else if (c.type === 'stop') {
       tooltipHtml(el, `<h4>✋ Stop</h4><div class="tt-desc">Halt and hold position.</div>`);
+    } else if (c.type === 'tankup') {
+      tooltipHtml(el, `<h4>${c.kind === 'gun' ? '⚔️ Gun Upgrade' : '🛡️ Armor Plating'}</h4>
+        <div class="tt-cost">30% of the tank's cost per level · one level per veterancy star (max 3)</div>
+        <div class="tt-desc">${c.kind === 'gun' ? '+25% weapon damage per level, stacking with veterancy.' : '+25% maximum health per level, stacking with veterancy; the crew patches in the new plating immediately.'}</div>`);
     } else if (c.type === 'unloadbtn') {
       tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
     } else if (c.type === 'guardbtn') {

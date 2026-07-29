@@ -61,6 +61,7 @@ function effDamage(w, attacker) {
   let d = w.dmg;
   if (attacker && attacker.kind === 'unit') {
     d *= VET_DMG[attacker.vetRank];
+    if (attacker.gunLvl) d *= 1 + attacker.gunLvl * 0.25;        // field gun upgrades
     if (attacker.def.horde && attacker.hordeOn) d *= 1.25;
     if (hasCloak(attacker) && isStealthed(attacker)) d *= 1.5;   // strike from the shadows
   }
@@ -160,11 +161,12 @@ function killEnt(e, attacker) {
   // XP awards
   if (attacker && !attacker.dead && attacker.owner !== e.owner) {
     const val = e.def.cost || 500;
+    attacker.kills = (attacker.kills || 0) + 1;      // personal scoreboard (units & turrets)
     if (attacker.kind === 'unit' && attacker.def.weapon) {
       attacker.vetXp += val / 8;
       while (attacker.vetRank < 5 && attacker.vetXp >= VET_XP[attacker.vetRank + 1]) {
         attacker.vetRank++;
-        attacker.maxHp = Math.round(attacker.def.hp * VET_HP[attacker.vetRank]);
+        attacker.maxHp = Math.round(attacker.def.hp * VET_HP[attacker.vetRank] * (1 + 0.25 * (attacker.armorLvl || 0)));
         attacker.hp = Math.min(attacker.maxHp, attacker.hp + attacker.def.hp * 0.3);
         if (attacker.owner === 0) { FX.text(attacker.x, attacker.y - 20, '★ PROMOTED'); SFX.promote(); }
       }
@@ -454,7 +456,7 @@ class Unit {
           world.crates.splice(i, 1);
           if (this.vetRank < 5) {
             this.vetRank++;
-            this.maxHp = Math.round(this.def.hp * VET_HP[this.vetRank]);
+            this.maxHp = Math.round(this.def.hp * VET_HP[this.vetRank] * (1 + 0.25 * (this.armorLvl || 0)));
             this.hp = Math.min(this.maxHp, this.hp + this.def.hp * 0.35);
             if (this.owner === 0) { FX.text(this.x, this.y - 20, '★ SALVAGE UPGRADE'); SFX.promote(); }
           } else {
