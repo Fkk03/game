@@ -11,7 +11,7 @@ const UI = (() => {
   let announceT = 0;
 
   /* menu config state */
-  const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000,
+  const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 50000,
     allies: 0, enemies: 1, mode: 'domination', superweapons: 'on', startPos: 'auto' };
 
   function init() {
@@ -43,8 +43,8 @@ const UI = (() => {
       v => cfg.enemies = +v, 1);
     buildPills('diff-pick', Object.keys(DIFFICULTY).map(k => [k, DIFFICULTY[k].label]), v => cfg.diff = v, 'normal');
     buildPills('map-pick', Object.keys(MAPSIZES).map(k => [k, MAPSIZES[k].label]), v => cfg.map = v, 'medium');
-    buildPills('money-pick', [[5000, '$5,000'], [10000, '$10,000'], [20000, '$20,000']],
-      v => cfg.money = +v, 10000);
+    buildPills('money-pick', [[10000, '$10,000'], [20000, '$20,000'], [50000, '$50,000'], [100000, '$100,000']],
+      v => cfg.money = +v, 50000);
 
     $('idleworker').onclick = () => { SFX.init(); INPUT.cycleIdleWorker(); };
     for (const el of document.querySelectorAll('.prodtab')) {

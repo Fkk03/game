@@ -268,10 +268,10 @@ const UNITS = {
   },
   commando: {
     name: 'Praetorian Commando', icon: '🎖️', cost: 1200, hp: 700, speed: 78, sight: 9, radius: 8,
-    armor: 'inf', buildTime: 15, chassis: 'commando', limitPer: 6,
+    armor: 'inf', buildTime: 15, chassis: 'commando', limitPer: 12,
     stealthAir: true, decloakOnFire: 2, detect: 200, fieldRegen: 5,
     resist: { explosive: 0.5, flame: 0.5 },
-    desc: 'Elite special forces (max 6). Cloaked while not firing (+50% damage striking from stealth), reveals nearby stealth, shrugs off blasts and flame, self-heals out of combat. 5× the soldier for 5× the price.',
+    desc: 'Elite special forces (max 12). Cloaked while not firing (+50% damage striking from stealth), reveals nearby stealth, shrugs off blasts and flame, self-heals out of combat. 5× the soldier for 5× the price.',
     weapon: { dmg: 60, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   bulwark: {

@@ -799,10 +799,10 @@ const UNITS = {
   },
   commando: {
     name: 'Praetorian Commando', icon: '🎖️', cost: 1200, hp: 700, speed: 78, sight: 9, radius: 8,
-    armor: 'inf', buildTime: 15, chassis: 'commando', limitPer: 6,
+    armor: 'inf', buildTime: 15, chassis: 'commando', limitPer: 12,
     stealthAir: true, decloakOnFire: 2, detect: 200, fieldRegen: 5,
     resist: { explosive: 0.5, flame: 0.5 },
-    desc: 'Elite special forces (max 6). Cloaked while not firing (+50% damage striking from stealth), reveals nearby stealth, shrugs off blasts and flame, self-heals out of combat. 5× the soldier for 5× the price.',
+    desc: 'Elite special forces (max 12). Cloaked while not firing (+50% damage striking from stealth), reveals nearby stealth, shrugs off blasts and flame, self-heals out of combat. 5× the soldier for 5× the price.',
     weapon: { dmg: 60, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   bulwark: {
@@ -7106,7 +7106,7 @@ const UI = (() => {
   let announceT = 0;
 
   /* menu config state */
-  const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000,
+  const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 50000,
     allies: 0, enemies: 1, mode: 'domination', superweapons: 'on', startPos: 'auto' };
 
   function init() {
@@ -7138,8 +7138,8 @@ const UI = (() => {
       v => cfg.enemies = +v, 1);
     buildPills('diff-pick', Object.keys(DIFFICULTY).map(k => [k, DIFFICULTY[k].label]), v => cfg.diff = v, 'normal');
     buildPills('map-pick', Object.keys(MAPSIZES).map(k => [k, MAPSIZES[k].label]), v => cfg.map = v, 'medium');
-    buildPills('money-pick', [[5000, '$5,000'], [10000, '$10,000'], [20000, '$20,000']],
-      v => cfg.money = +v, 10000);
+    buildPills('money-pick', [[10000, '$10,000'], [20000, '$20,000'], [50000, '$50,000'], [100000, '$100,000']],
+      v => cfg.money = +v, 50000);
 
     $('idleworker').onclick = () => { SFX.init(); INPUT.cycleIdleWorker(); };
     for (const el of document.querySelectorAll('.prodtab')) {

@@ -50,7 +50,7 @@ python3 -m http.server 8080
   upgrades: Rapid Assembly (−30% production time), Auto-Repair (3%/3 s after 10 s of
   peace), Reinforced Structure (+50–100% health), and for Airfields also Fast Rearm
   (−30% turnaround) and Full Restoration (landing aircraft repaired to ≥50%)
-- **Praetorian Commando** (Coalition, max 6) — cloaked special forces: +50% damage
+- **Praetorian Commando** (Coalition, max 12) — cloaked special forces: +50% damage
   striking from stealth, reveals nearby stealth units, resists blasts and flame,
   self-heals out of combat. 5× the soldier for 5× the price
 - **Cartel war economy** — Scorpion Cartel infantry costs 40% less and ground combat
@@ -87,7 +87,7 @@ python3 -m http.server 8080
 - **Spy war** — unarmed stealth spy planes with enormous sight, completely undetectable
   and untouchable: no weapon in the game can target or harm a pure recon plane
 - **Umbra Ghost Strike** (Coalition only) — a cloaked super-jet, 3–4× a Seraph:
-  six 3,750-dmg missiles, faster, far tougher. Dimmed colors = cloaked (only
+  six 2,250-dmg missiles, faster, far tougher. Dimmed colors = cloaked (only
   detectors see it); firing exposes it for ~1 s (colors flare bright + decloak
   ring) before it fades back out
 - **Stealth Retrofit** (Coalition only) — any aircraft with ★ veterancy can be
