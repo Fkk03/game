@@ -61,6 +61,7 @@ python3 -m http.server 8080
   and hit Unload (F) to deploy. If it's shot down, everyone aboard goes with it
 - **Fortress turrets** — 3× damage, 4× health, +50% cost, slower to build and hungrier
   for power
+- **Hardened bases** — every structure has 3× health; razing a base is a siege, not a drive-by
 - **Regenerating supplies** — exhausted supply piles refill after 20 minutes to
   75%, then 50%, then 25% (repeating at 25%); an on-map ⏳ timer shows the countdown
 - **Public superweapons** — the moment ANY general breaks ground on a superweapon,
