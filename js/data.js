@@ -45,7 +45,7 @@ const DOM_RATE = 0.5;          // points per second while holding the point unco
 const DOM_CAPTURE_TIME = 8;    // seconds standing alone in the zone to flip it
 const DOM_ZONE_R = 120;        // world px
 const ECON_ZONE_R = 110;
-const ECON_BONUS = 1.3;        // +30% income for the team holding the trade point
+const ECON_BONUS = 2.0;        // +100% income (double) for the team holding the trade point
 
 /* per-player-slot colors (faction identity comes from units, color from slot) — 14 slots */
 const PLAYER_COLORS = ['#3d7edb', '#d43a2f', '#e8c33c', '#3fae5a', '#8e5bd6', '#e07b2f', '#38b8b8',
@@ -140,7 +140,7 @@ const BUILDINGS = {
     name: { coalition: 'Airfield', dynasty: 'Airstrip', cartel: null },
     icon: '🛩️', cost: 1500, hp: 1800, size: 3, buildTime: 20, power: 3, armor: 'building',
     sight: 8, desc: 'Builds and rearms strike jets (one jet per pad, 4 pads).',
-    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'umbra', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
+    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'umbra', 'albatross', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
     pads: 4,
   },
   turret: {
@@ -222,6 +222,12 @@ const UNITS = {
     desc: 'Satellite-detection vehicle — reveals enemy spy planes within its scan radius.',
     detect: 380,
   },
+  albatross: {
+    name: 'Albatross Transport', icon: '🚁', cost: 1400, hp: 950, speed: 175, sight: 8, radius: 19,
+    armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true, noAutoAttack: true,
+    capacity: 20,
+    desc: 'Coalition troop transport helicopter. Carries up to 20 soldiers (infantry only). Right-click it with troops selected to board; use Unload to deploy.',
+  },
   spyplane: {
     name: { coalition: 'Specter Spy Plane', dynasty: 'Shadow Spy Plane' },
     icon: '🛰️', cost: 1600, hp: 300, speed: 265, sight: 18, radius: 13,
@@ -233,20 +239,20 @@ const UNITS = {
     name: 'Umbra Ghost Strike', icon: '🌑', cost: 11700, hp: 2400, speed: 290, sight: 13, radius: 16,
     armor: 'air', buildTime: 34, chassis: 'jet', air: true, ammo: 6,
     stealthAir: true, decloakOnFire: 1,
-    desc: 'Coalition-exclusive stealth strike jet, 3–4× a Seraph in every way: six 3,750-dmg missiles, faster, far tougher. Cloaked in flight (colors dim); firing exposes it for ~1 s (colors brighten), then it fades back out.',
-    weapon: { dmg: 3750, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 110, aa: false, ga: true },
+    desc: 'Coalition-exclusive stealth strike jet, 3–4× a Seraph in every way: six 2,250-dmg missiles, faster, far tougher. Cloaked in flight (colors dim); firing exposes it for ~1 s (colors brighten), then it fades back out.',
+    weapon: { dmg: 2250, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 110, aa: false, ga: true },
   },
   seraph: {
     name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,
     armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 3,
     desc: 'End-game strike aircraft: three annihilating missiles and heavy armor.',
-    weapon: { dmg: 2500, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 91, aa: false, ga: true },
+    weapon: { dmg: 1500, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 91, aa: false, ga: true },
   },
   behemoth: {
     name: 'Behemoth Bomber', icon: '🐉', cost: 3600, hp: 1100, speed: 215, sight: 9, radius: 18,
     armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 1,
     desc: 'End-game heavy bomber: one cataclysmic napalm payload, heavily armored.',
-    weapon: { dmg: 10000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 165, aa: false, ga: true },
+    weapon: { dmg: 6000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 165, aa: false, ga: true },
   },
 
   /* ---- Meridian Coalition ---- */
@@ -287,14 +293,14 @@ const UNITS = {
     name: 'Falcon Strike Jet', icon: '✈️', cost: 1300, hp: 260, speed: 235, sight: 8, radius: 14,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 2,
     desc: 'Strike fighter. Two annihilating missiles, then returns to the Airfield to rearm.',
-    weapon: { dmg: 1200, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 77, aa: false, ga: true },
+    weapon: { dmg: 720, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 77, aa: false, ga: true },
   },
   kestrel: {
     name: { coalition: 'Kestrel Multirole', dynasty: 'Hornet Multirole' },
     icon: '🐦', cost: 1500, hp: 320, speed: 245, sight: 9, radius: 14,
     armor: 'air', buildTime: 15, chassis: 'jet', air: true, ammo: 8, burst: 2,
     desc: 'Multirole fighter — engages aircraft AND ground targets. Eight light missiles fired in two-missile bursts; switches targets instead of wasting ammo on a doomed one.',
-    weapon: { dmg: 600, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 21, aa: true, ga: true },
+    weapon: { dmg: 360, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 21, aa: true, ga: true },
   },
 
   /* ---- Crimson Dynasty ---- */
@@ -327,7 +333,7 @@ const UNITS = {
     name: 'Vulture Bomber', icon: '🦅', cost: 1200, hp: 300, speed: 205, sight: 8, radius: 15,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 1,
     desc: 'Drops one apocalyptic napalm bomb, then rearms at the Airstrip.',
-    weapon: { dmg: 4800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 147, aa: false, ga: true },
+    weapon: { dmg: 2880, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 147, aa: false, ga: true },
   },
 
   /* ---- Scorpion Cartel ---- */
@@ -440,12 +446,16 @@ const UPGRADES = {
   ],
 };
 
-/* faction-aware unit pricing — the Cartel fields cheap flesh and steel:
-   infantry −40%, ground combat vehicles −30% */
+/* faction-aware unit pricing.
+   Cartel: infantry −40%, non-tank ground combat vehicles −30%.
+   Everyone EXCEPT the Coalition: tanks −50%. */
+const TANK_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank'];
 function uCost(key, faction) {
   const u = UNITS[key];
   let c = u.cost;
-  if (faction === 'cartel') {
+  const isTank = TANK_CHASSIS.includes(u.chassis);
+  if (faction !== 'coalition' && isTank) c = Math.round(c * 0.5);
+  else if (faction === 'cartel') {
     if (u.chassis === 'inf' || u.chassis === 'rocketinf' || u.chassis === 'commando') c = Math.round(c * 0.6);
     else if (!u.air && !u.builder && !u.harvester) c = Math.round(c * 0.7);
   }

@@ -146,7 +146,7 @@ function updateZones() {
   for (const z of game.zones) {
     const present = new Set();
     for (const e of game.ents) {
-      if (e.dead || e.kind !== 'unit' || e.owner < 0) continue;
+      if (e.dead || e.embarked || e.kind !== 'unit' || e.owner < 0) continue;
       if (!e.def.weapon && !e.def.suicide) continue;    // only combat units hold ground
       if (e.def.air) continue;
       if (U.dist2(e.x, e.y, z.x, z.y) > z.r * z.r) continue;

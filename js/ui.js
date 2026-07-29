@@ -338,7 +338,8 @@ const UI = (() => {
       let extra = '';
       if (e.kind === 'unit' && e.vetRank) extra += ` &nbsp;<span style="color:#ffd76a">${'★'.repeat(e.vetRank)}</span>`;
       if (e.kind === 'unit' && e.def.harvester) extra += ` &nbsp;· carrying $${e.carrying || 0}`;
-      if (e.kind === 'unit' && e.def.air) extra += ` &nbsp;· ammo ${e.ammo}/${e.def.ammo}`;
+      if (e.kind === 'unit' && e.def.air && e.def.ammo !== undefined) extra += ` &nbsp;· ammo ${e.ammo}/${e.def.ammo}`;
+      if (e.kind === 'unit' && e.cargo && e.def.capacity) extra += ` &nbsp;· 🪖 ${e.cargo.length}/${e.def.capacity} aboard`;
       if (e.kind === 'building' && e.key === 'superweapon' && e.constructed)
         extra += e.swReady ? ' &nbsp;· <b style="color:#8f8">READY</b>' : ` &nbsp;· launch in ${U.fmtTime(e.swTimer)}`;
       info.innerHTML = `<b>${nm}</b> &nbsp;${Math.ceil(e.hp)}/${e.maxHp} HP${extra}`;
@@ -371,8 +372,8 @@ const UI = (() => {
       e.key === kind && e.constructed);
   }
   function airfieldLoad(af) {
-    // jets parked/assigned to this airfield plus queued aircraft — capped by pads
-    let n = af.queue.filter(q => UNITS[q.key].air).length;
+    // jets parked/assigned to this airfield plus queued aircraft — capped by pads (helis exempt)
+    let n = af.queue.filter(q => UNITS[q.key].air && !UNITS[q.key].heli).length;
     for (const e of game.ents) {
       if (!e.dead && e.kind === 'unit' && e.def.air && e.owner === af.owner && e.padId === af.id) n++;
     }
@@ -449,6 +450,9 @@ const UI = (() => {
       curCmds[4] = { type: 'attackmove' };   // A
       curCmds[5] = { type: 'stop' };         // S
       curCmds[6] = { type: 'guardbtn' };     // D
+      // transports with troops aboard get an Unload command (F)
+      const transports = units.filter(u => u.cargo && u.def.capacity);
+      if (transports.length) curCmds[7] = { type: 'unloadbtn', transports };
       // coalition veteran aircraft can be retrofitted with a cloak
       if (p.faction === 'coalition') {
         const eligible = units.filter(u => u.def.air && u.vetRank >= 1 && !u.def.stealthAir && !u.stealthUpgrade);
@@ -526,6 +530,10 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">${c.up.icon}</span><span>${c.up.name}</span><span class="cost">$${cost}</span>`;
         b.classList.add('upg');
         if (p.money < cost) b.classList.add('disabled');
+      } else if (c.type === 'unloadbtn') {
+        const n = c.transports.reduce((a, t) => a + t.cargo.length, 0);
+        b.innerHTML = `${hk}<span class="icon">🪂</span><span>Unload</span><span class="cost">${n} aboard</span>`;
+        if (!n) b.classList.add('disabled');
       } else if (c.type === 'stealthup') {
         const n = c.units.length;
         b.innerHTML = `${hk}<span class="icon">🌑</span><span>Stealth</span><span class="cost">$2,000${n > 1 ? '×' + n : ''}</span>`;
@@ -534,7 +542,9 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">⚔️</span><span>Attack-Move</span>`;
       } else if (c.type === 'stop') {
         b.innerHTML = `${hk}<span class="icon">✋</span><span>Stop</span>`;
-      } else if (c.type === 'guardbtn') {
+      } else if (c.type === 'unloadbtn') {
+      tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
+    } else if (c.type === 'guardbtn') {
         b.innerHTML = `${hk}<span class="icon">🛡️</span><span>Guard Area</span>`;
       } else if (c.type === 'sell') {
         b.innerHTML = `${hk}<span class="icon">💵</span><span>Sell 50%</span>`;
@@ -595,6 +605,12 @@ const UI = (() => {
         feed(up.name + ' installed on ' + bName(bld.key, p.faction), 'gold');
         SFX.cash();
         refreshCmd();
+        break;
+      }
+      case 'unloadbtn': {
+        let any = 0;
+        for (const t of c.transports) { if (t.cargo.length) { t.giveOrder({ type: 'unload' }); any++; } }
+        if (any) SFX.click();
         break;
       }
       case 'stealthup': {
@@ -692,6 +708,8 @@ const UI = (() => {
       tooltipHtml(el, `<h4>⚔️ Attack-Move</h4><div class="tt-desc">Move while engaging every enemy on the way. Hotkey A, then click the map.</div>`);
     } else if (c.type === 'stop') {
       tooltipHtml(el, `<h4>✋ Stop</h4><div class="tt-desc">Halt and hold position.</div>`);
+    } else if (c.type === 'unloadbtn') {
+      tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
     } else if (c.type === 'guardbtn') {
       tooltipHtml(el, `<h4>🛡️ Guard Area</h4><div class="tt-desc">Move to a point and hold it — engages enemies that come near, then returns to the post. Hotkey D, then click the map.</div>`);
     } else if (c.type === 'sell') {

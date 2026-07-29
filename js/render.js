@@ -317,7 +317,7 @@ const RENDER = (() => {
     for (const e of air) {
       if (!entVisibleToPlayer(e)) continue;
       if (!onScreen(e.x, e.y, 100)) continue;
-      drawJet(e);
+      if (e.def.heli) drawHeli(e); else drawJet(e);
     }
 
     // nuke incoming reticles
@@ -393,6 +393,7 @@ const RENDER = (() => {
   }
 
   function entVisibleToPlayer(e) {
+    if (e.embarked) return false;
     if (e.owner === -1) return true;
     const p = game.players[e.owner];
     if (p && p.team === game.players[0].team) return true;   // own + allied always visible
@@ -1117,6 +1118,62 @@ const RENDER = (() => {
       ctx.fillStyle = '#ff3020';
       ctx.beginPath(); ctx.arc(6, 0, 2.4, 0, 7); ctx.fill();
     }
+  }
+
+  function drawHeli(u) {
+    const [c1, c2] = teamColors(u);
+    // shadow far below
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.ellipse(u.x + 22, u.y + 30, 15, 6, u.angle, 0, 7); ctx.fill();
+    ctx.save();
+    ctx.translate(u.x, u.y);
+    ctx.rotate(u.angle);
+    const g = ctx.createLinearGradient(0, -10, 0, 10);
+    g.addColorStop(0, U.shade(c1, 1.25)); g.addColorStop(1, c2);
+    // fat fuselage with tail boom
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(14, 0);
+    ctx.quadraticCurveTo(14, -8, 4, -8); ctx.lineTo(-6, -6.5);
+    ctx.lineTo(-19, -2.4); ctx.lineTo(-19, 2.4); ctx.lineTo(-6, 6.5);
+    ctx.lineTo(4, 8); ctx.quadraticCurveTo(14, 8, 14, 0);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = c2; ctx.lineWidth = 1; ctx.stroke();
+    // tail fin + tail rotor
+    ctx.fillStyle = U.shade(c1, 0.9);
+    ctx.beginPath(); ctx.moveTo(-16, -1.6); ctx.lineTo(-21, -6); ctx.lineTo(-19, 0); ctx.closePath(); ctx.fill();
+    ctx.save();
+    ctx.translate(-20, -3);
+    ctx.rotate(game.renderT * 24);
+    ctx.strokeStyle = 'rgba(30,28,22,0.8)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(-3.5, 0); ctx.lineTo(3.5, 0); ctx.stroke();
+    ctx.restore();
+    // side doors
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(-2, -7.5, 7, 2); ctx.fillRect(-2, 5.5, 7, 2);
+    // cockpit glass
+    ctx.fillStyle = '#b8d8e8';
+    ctx.beginPath(); ctx.ellipse(9, 0, 4.2, 3.4, 0, 0, 7); ctx.fill();
+    // main rotor: spinning blades + translucent disc
+    ctx.fillStyle = 'rgba(120,120,120,0.13)';
+    ctx.beginPath(); ctx.arc(0, 0, 24, 0, 7); ctx.fill();
+    ctx.save();
+    ctx.rotate(game.renderT * 17);
+    ctx.strokeStyle = 'rgba(30,28,22,0.75)'; ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(-23, 0); ctx.lineTo(23, 0);
+    ctx.moveTo(0, -23); ctx.lineTo(0, 23);
+    ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+    // cargo readout
+    if (u.cargo && u.cargo.length && u.owner === 0) {
+      ctx.font = 'bold 10px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#c9e8a0';
+      ctx.fillText(u.cargo.length + '/' + u.def.capacity, u.x, u.y - 26);
+    }
+    drawHpBar(u);
   }
 
   function drawJet(u) {
@@ -2173,7 +2230,7 @@ const RENDER = (() => {
     // entities (enemies only when visible or remembered as ghosts)
     const humanTeam = game.players[0].team;
     for (const e of game.ents) {
-      if (e.dead) continue;
+      if (e.dead || e.embarked) continue;
       const p = game.players[e.owner];
       const hostile = e.owner !== -1 && p && p.team !== humanTeam;
       if (hostile && !world.isVisible(e.x, e.y) &&

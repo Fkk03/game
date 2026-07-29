@@ -48,6 +48,7 @@ function isDetectedBy(e, team) {
 }
 
 function weaponCanHit(w, target) {
+  if (target.embarked) return false;               // aboard a transport
   if (target.kind === 'unit' && target.def.air) {
     // unarmed recon planes are ghosts: no weapon in the game can target them
     if (target.def.stealthAir && !target.def.weapon) return false;
@@ -73,7 +74,7 @@ function effDamage(w, attacker) {
 /* central damage entry point. fromAir: delivered by an aircraft —
    air power hits units at 70% and structures at only 30% */
 function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
-  if (!target || target.dead) return;
+  if (!target || target.dead || target.embarked) return;
   // pure recon planes (unarmed stealth) are untouchable — nothing harms them
   if (target.kind === 'unit' && target.def.stealthAir && !target.def.weapon) return;
   const mod = (DMG_MOD[dtype] && DMG_MOD[dtype][target.armor] !== undefined) ? DMG_MOD[dtype][target.armor] : 1;
@@ -141,6 +142,18 @@ function killEnt(e, attacker) {
     }
     if (e.def.suicide && !e.detonated) { e.detonated = true;
       dealSplash(e.x, e.y, e.def.suicide.dmg, 'explosive', e.def.suicide.splash, e.owner, null); }
+    // a downed transport takes everyone aboard with it
+    if (e.cargo && e.cargo.length) {
+      for (const pid of e.cargo) {
+        const pass = game.byId.get(pid);
+        if (pass && !pass.dead) {
+          pass.embarked = false;
+          pass.x = e.x + U.rand(-16, 16); pass.y = e.y + U.rand(-16, 16);
+          killEnt(pass, attacker);
+        }
+      }
+      e.cargo.length = 0;
+    }
     if (p) p.stats.unitsLost++;
   }
 
@@ -228,6 +241,7 @@ class Unit {
     this.path = null; this.pathI = 0;
     this.cool = 0;
     this.vetXp = 0; this.vetRank = 0;
+    this.cargo = this.def.capacity && !this.def.harvester ? [] : null;   // transport passengers (unit ids)
     this.guardX = x; this.guardY = y;
     this.stuckT = 0; this.lastX = x; this.lastY = y;
     this.scanT = Math.random() * 0.5;
@@ -372,6 +386,7 @@ class Unit {
 
   /* --------- per-frame update --------- */
   update(dt) {
+    if (this.embarked) return;                     // riding inside a transport
     if (this.cool > 0) this.cool -= dt;
 
     // veterans patch themselves up in the field — faster with every star.
@@ -383,6 +398,7 @@ class Unit {
       this.hp = Math.min(this.maxHp, this.hp + this.def.fieldRegen * dt);
     }
 
+    if (this.def.heli) { this.updateHeli(dt); return; }
     if (this.def.air) { this.updateJet(dt); return; }
 
     // horde bonus cache (1 Hz)
@@ -425,6 +441,7 @@ class Unit {
       case 'guardarea': this.doGuardMove(dt, o); break;
       case 'attack': this.doAttack(dt, o); break;
       case 'harvest': this.doHarvest(dt, o); break;
+      case 'board': this.doBoard(dt, o); break;
       case 'build': this.doBuild(dt, o); break;
       case 'repair': this.doRepair(dt, o); break;
     }
@@ -606,6 +623,26 @@ class Unit {
     }
   }
 
+  /* infantry walking to a transport to climb aboard */
+  doBoard(dt, o) {
+    const tr = game.byId.get(o.targetId);
+    if (!tr || tr.dead || !tr.cargo || tr.cargo.length >= tr.def.capacity) { this.nextOrder(); return; }
+    const d = U.dist(this.x, this.y, tr.x, tr.y);
+    if (d > 55) {
+      // transport may drift — refresh the path once a second
+      this.boardRepathT = (this.boardRepathT || 0) - dt;
+      if (!this.path || this.boardRepathT <= 0) { this.setPathTo(tr.x, tr.y); this.boardRepathT = 1; }
+      this.moveAlongPath(dt);
+      return;
+    }
+    // climb aboard
+    this.embarked = true;
+    this.path = null;
+    tr.cargo.push(this.id);
+    this.order = { type: 'idle' };
+    if (this.owner === 0) FX.text(tr.x, tr.y - 26, tr.cargo.length + '/' + tr.def.capacity, '#9fdc7c');
+  }
+
   doBuild(dt, o) {
     const site = game.byId.get(o.targetId);
     if (!site || site.dead || site.constructed) { this.nextOrder(); return; }
@@ -645,6 +682,70 @@ class Unit {
       b.hp = Math.min(b.maxHp, b.hp + rate * dt);
       if (Math.random() < dt * 6) FX.sparks(b.x + U.rand(-b.size * 12, b.size * 12), b.y + U.rand(-b.size * 12, b.size * 12), 2);
     }
+  }
+
+  /* --------- transport helicopter --------- */
+  updateHeli(dt) {
+    const def = this.def;
+    const o = this.order;
+    const fly = (tx, ty, sp) => {
+      const d = U.dist(this.x, this.y, tx, ty);
+      const want = U.angTo(this.x, this.y, tx, ty);
+      this.angle = U.turnToward(this.angle, want, 4.5 * dt);
+      const spd = Math.min(sp, Math.max(46, d * 2.2));
+      if (d > 8) {
+        this.x += Math.cos(this.angle) * spd * dt;
+        this.y += Math.sin(this.angle) * spd * dt;
+        this.moving = true;
+      } else this.moving = false;
+      return d;
+    };
+    switch (o.type) {
+      case 'move':
+      case 'attackmove':
+      case 'guardarea':
+        if (fly(o.x, o.y, def.speed) < 14) this.nextOrder();
+        break;
+      case 'load': {   // hover over a friendly soldier and winch them up
+        const t = game.byId.get(o.targetId);
+        if (!t || t.dead || t.embarked || this.cargo.length >= def.capacity) { this.nextOrder(); break; }
+        if (fly(t.x, t.y, def.speed) < 80) {
+          t.embarked = true; t.path = null; t.order = { type: 'idle' };
+          this.cargo.push(t.id);
+          if (this.owner === 0) FX.text(this.x, this.y - 26, this.cargo.length + '/' + def.capacity, '#9fdc7c');
+          this.nextOrder();
+        }
+        break;
+      }
+      case 'unload':
+        this.deployCargo();
+        this.nextOrder();
+        break;
+      default:
+        this.moving = false;
+        break;
+    }
+  }
+
+  /* set every passenger down on open ground around the hover point */
+  deployCargo() {
+    if (!this.cargo || !this.cargo.length) return;
+    const ctx0 = Math.floor(this.x / TILE), cty0 = Math.floor(this.y / TILE);
+    let dropped = 0;
+    for (const pid of [...this.cargo]) {
+      const u = game.byId.get(pid);
+      if (!u || u.dead) continue;
+      const open = PATH.nearestOpen(world, ctx0 + U.randInt(-2, 2), cty0 + U.randInt(-2, 2), 7);
+      if (!open) break;   // nothing but cliffs below — keep the rest aboard
+      u.embarked = false;
+      u.x = (open.tx + 0.5) * TILE + U.rand(-8, 8);
+      u.y = (open.ty + 0.5) * TILE + U.rand(-8, 8);
+      u.guardX = u.x; u.guardY = u.y;
+      u.order = { type: 'guard' };
+      this.cargo.splice(this.cargo.indexOf(pid), 1);
+      dropped++;
+    }
+    if (dropped && this.owner === 0) { SFX.ack(); FX.text(this.x, this.y - 26, '▼ ' + dropped + ' deployed', '#9fdc7c'); }
   }
 
   /* --------- jets --------- */
@@ -954,7 +1055,7 @@ class Building {
         const u = new Unit(this.owner, it.key, spot.x, spot.y);
         game.addEnt(u);
         p.stats.unitsBuilt++;
-        if (udef.air) { u.padId = this.id; u.jetState = 'idle'; }
+        if (udef.air) { u.padId = udef.heli ? null : this.id; u.jetState = 'idle'; }
         else if (udef.harvester) u.giveOrder({ type: 'harvest' });
         else u.giveOrder({ type: 'attackmove', x: this.rallyX, y: this.rallyY });
         if (this.owner === 0) { SFX.ready(); UI.refreshCmd(); }

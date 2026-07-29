@@ -199,7 +199,7 @@ const INPUT = (() => {
   function entAt(wx, wy) {
     let best = null, bestScore = -1;
     for (const e of game.ents) {
-      if (e.dead) continue;
+      if (e.dead || e.embarked) continue;
       if (isEnemyOfHuman(e) && !world.isVisible(e.x, e.y)) continue;
       if (isEnemyOfHuman(e) && isStealthed(e) && !isDetectedBy(e, game.players[0].team)) continue;
       let hit = false;
@@ -261,7 +261,7 @@ const INPUT = (() => {
 
   function prune() {
     const before = selection.length;
-    selection = selection.filter(e => !e.dead);
+    selection = selection.filter(e => !e.dead && !e.embarked);
     if (selection.length !== before) { UI.refreshSel(); UI.refreshCmd(); }
   }
 
@@ -305,6 +305,26 @@ const INPUT = (() => {
         else u.giveOrder({ type: 'move', x: wx, y: wy }, shift);
       }
       if (anyTruck) { SFX.ack(); UI.flashOrder(wx, wy, 'move'); return; }
+    }
+
+    // transports: troops right-click a friendly transport to board it;
+    // a selected transport right-clicks a soldier to winch them up
+    if (target && target.owner === 0 && target.kind === 'unit') {
+      const INF = ['inf', 'rocketinf', 'commando'];
+      if (target.cargo && target.def.capacity) {
+        let boarded = 0;
+        for (const u of units) {
+          if (INF.includes(u.def.chassis)) { u.giveOrder({ type: 'board', targetId: target.id }, shift); boarded++; }
+        }
+        if (boarded) { SFX.ack(); UI.flashOrder(wx, wy, 'move'); return; }
+      }
+      if (INF.includes(target.def.chassis)) {
+        let sent = 0;
+        for (const u of units) {
+          if (u.cargo && u.def.capacity) { u.giveOrder({ type: 'load', targetId: target.id }, shift); sent++; }
+        }
+        if (sent) { SFX.ack(); return; }
+      }
     }
 
     if (target && target.owner === 0 && target.kind === 'building') {

@@ -576,7 +576,7 @@ const DOM_RATE = 0.5;          // points per second while holding the point unco
 const DOM_CAPTURE_TIME = 8;    // seconds standing alone in the zone to flip it
 const DOM_ZONE_R = 120;        // world px
 const ECON_ZONE_R = 110;
-const ECON_BONUS = 1.3;        // +30% income for the team holding the trade point
+const ECON_BONUS = 2.0;        // +100% income (double) for the team holding the trade point
 
 /* per-player-slot colors (faction identity comes from units, color from slot) — 14 slots */
 const PLAYER_COLORS = ['#3d7edb', '#d43a2f', '#e8c33c', '#3fae5a', '#8e5bd6', '#e07b2f', '#38b8b8',
@@ -671,7 +671,7 @@ const BUILDINGS = {
     name: { coalition: 'Airfield', dynasty: 'Airstrip', cartel: null },
     icon: '🛩️', cost: 1500, hp: 1800, size: 3, buildTime: 20, power: 3, armor: 'building',
     sight: 8, desc: 'Builds and rearms strike jets (one jet per pad, 4 pads).',
-    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'umbra', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
+    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'umbra', 'albatross', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
     pads: 4,
   },
   turret: {
@@ -753,6 +753,12 @@ const UNITS = {
     desc: 'Satellite-detection vehicle — reveals enemy spy planes within its scan radius.',
     detect: 380,
   },
+  albatross: {
+    name: 'Albatross Transport', icon: '🚁', cost: 1400, hp: 950, speed: 175, sight: 8, radius: 19,
+    armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true, noAutoAttack: true,
+    capacity: 20,
+    desc: 'Coalition troop transport helicopter. Carries up to 20 soldiers (infantry only). Right-click it with troops selected to board; use Unload to deploy.',
+  },
   spyplane: {
     name: { coalition: 'Specter Spy Plane', dynasty: 'Shadow Spy Plane' },
     icon: '🛰️', cost: 1600, hp: 300, speed: 265, sight: 18, radius: 13,
@@ -764,20 +770,20 @@ const UNITS = {
     name: 'Umbra Ghost Strike', icon: '🌑', cost: 11700, hp: 2400, speed: 290, sight: 13, radius: 16,
     armor: 'air', buildTime: 34, chassis: 'jet', air: true, ammo: 6,
     stealthAir: true, decloakOnFire: 1,
-    desc: 'Coalition-exclusive stealth strike jet, 3–4× a Seraph in every way: six 3,750-dmg missiles, faster, far tougher. Cloaked in flight (colors dim); firing exposes it for ~1 s (colors brighten), then it fades back out.',
-    weapon: { dmg: 3750, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 110, aa: false, ga: true },
+    desc: 'Coalition-exclusive stealth strike jet, 3–4× a Seraph in every way: six 2,250-dmg missiles, faster, far tougher. Cloaked in flight (colors dim); firing exposes it for ~1 s (colors brighten), then it fades back out.',
+    weapon: { dmg: 2250, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 110, aa: false, ga: true },
   },
   seraph: {
     name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,
     armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 3,
     desc: 'End-game strike aircraft: three annihilating missiles and heavy armor.',
-    weapon: { dmg: 2500, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 91, aa: false, ga: true },
+    weapon: { dmg: 1500, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 91, aa: false, ga: true },
   },
   behemoth: {
     name: 'Behemoth Bomber', icon: '🐉', cost: 3600, hp: 1100, speed: 215, sight: 9, radius: 18,
     armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 1,
     desc: 'End-game heavy bomber: one cataclysmic napalm payload, heavily armored.',
-    weapon: { dmg: 10000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 165, aa: false, ga: true },
+    weapon: { dmg: 6000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 165, aa: false, ga: true },
   },
 
   /* ---- Meridian Coalition ---- */
@@ -818,14 +824,14 @@ const UNITS = {
     name: 'Falcon Strike Jet', icon: '✈️', cost: 1300, hp: 260, speed: 235, sight: 8, radius: 14,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 2,
     desc: 'Strike fighter. Two annihilating missiles, then returns to the Airfield to rearm.',
-    weapon: { dmg: 1200, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 77, aa: false, ga: true },
+    weapon: { dmg: 720, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 77, aa: false, ga: true },
   },
   kestrel: {
     name: { coalition: 'Kestrel Multirole', dynasty: 'Hornet Multirole' },
     icon: '🐦', cost: 1500, hp: 320, speed: 245, sight: 9, radius: 14,
     armor: 'air', buildTime: 15, chassis: 'jet', air: true, ammo: 8, burst: 2,
     desc: 'Multirole fighter — engages aircraft AND ground targets. Eight light missiles fired in two-missile bursts; switches targets instead of wasting ammo on a doomed one.',
-    weapon: { dmg: 600, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 21, aa: true, ga: true },
+    weapon: { dmg: 360, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 21, aa: true, ga: true },
   },
 
   /* ---- Crimson Dynasty ---- */
@@ -858,7 +864,7 @@ const UNITS = {
     name: 'Vulture Bomber', icon: '🦅', cost: 1200, hp: 300, speed: 205, sight: 8, radius: 15,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 1,
     desc: 'Drops one apocalyptic napalm bomb, then rearms at the Airstrip.',
-    weapon: { dmg: 4800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 147, aa: false, ga: true },
+    weapon: { dmg: 2880, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 147, aa: false, ga: true },
   },
 
   /* ---- Scorpion Cartel ---- */
@@ -971,12 +977,16 @@ const UPGRADES = {
   ],
 };
 
-/* faction-aware unit pricing — the Cartel fields cheap flesh and steel:
-   infantry −40%, ground combat vehicles −30% */
+/* faction-aware unit pricing.
+   Cartel: infantry −40%, non-tank ground combat vehicles −30%.
+   Everyone EXCEPT the Coalition: tanks −50%. */
+const TANK_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank'];
 function uCost(key, faction) {
   const u = UNITS[key];
   let c = u.cost;
-  if (faction === 'cartel') {
+  const isTank = TANK_CHASSIS.includes(u.chassis);
+  if (faction !== 'coalition' && isTank) c = Math.round(c * 0.5);
+  else if (faction === 'cartel') {
     if (u.chassis === 'inf' || u.chassis === 'rocketinf' || u.chassis === 'commando') c = Math.round(c * 0.6);
     else if (!u.air && !u.builder && !u.harvester) c = Math.round(c * 0.7);
   }
@@ -1423,7 +1433,7 @@ class World {
     this.visionSources = [];
     const humanTeam = game.players[0].team;
     for (const e of game.ents) {
-      if (e.dead || e.owner < 0) continue;
+      if (e.dead || e.owner < 0 || e.embarked) continue;
       const p = game.players[e.owner];
       if (!p || p.team !== humanTeam) continue;          // allies share vision
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.05) continue;
@@ -1998,6 +2008,7 @@ function isDetectedBy(e, team) {
 }
 
 function weaponCanHit(w, target) {
+  if (target.embarked) return false;               // aboard a transport
   if (target.kind === 'unit' && target.def.air) {
     // unarmed recon planes are ghosts: no weapon in the game can target them
     if (target.def.stealthAir && !target.def.weapon) return false;
@@ -2023,7 +2034,7 @@ function effDamage(w, attacker) {
 /* central damage entry point. fromAir: delivered by an aircraft —
    air power hits units at 70% and structures at only 30% */
 function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
-  if (!target || target.dead) return;
+  if (!target || target.dead || target.embarked) return;
   // pure recon planes (unarmed stealth) are untouchable — nothing harms them
   if (target.kind === 'unit' && target.def.stealthAir && !target.def.weapon) return;
   const mod = (DMG_MOD[dtype] && DMG_MOD[dtype][target.armor] !== undefined) ? DMG_MOD[dtype][target.armor] : 1;
@@ -2091,6 +2102,18 @@ function killEnt(e, attacker) {
     }
     if (e.def.suicide && !e.detonated) { e.detonated = true;
       dealSplash(e.x, e.y, e.def.suicide.dmg, 'explosive', e.def.suicide.splash, e.owner, null); }
+    // a downed transport takes everyone aboard with it
+    if (e.cargo && e.cargo.length) {
+      for (const pid of e.cargo) {
+        const pass = game.byId.get(pid);
+        if (pass && !pass.dead) {
+          pass.embarked = false;
+          pass.x = e.x + U.rand(-16, 16); pass.y = e.y + U.rand(-16, 16);
+          killEnt(pass, attacker);
+        }
+      }
+      e.cargo.length = 0;
+    }
     if (p) p.stats.unitsLost++;
   }
 
@@ -2178,6 +2201,7 @@ class Unit {
     this.path = null; this.pathI = 0;
     this.cool = 0;
     this.vetXp = 0; this.vetRank = 0;
+    this.cargo = this.def.capacity && !this.def.harvester ? [] : null;   // transport passengers (unit ids)
     this.guardX = x; this.guardY = y;
     this.stuckT = 0; this.lastX = x; this.lastY = y;
     this.scanT = Math.random() * 0.5;
@@ -2322,6 +2346,7 @@ class Unit {
 
   /* --------- per-frame update --------- */
   update(dt) {
+    if (this.embarked) return;                     // riding inside a transport
     if (this.cool > 0) this.cool -= dt;
 
     // veterans patch themselves up in the field — faster with every star.
@@ -2333,6 +2358,7 @@ class Unit {
       this.hp = Math.min(this.maxHp, this.hp + this.def.fieldRegen * dt);
     }
 
+    if (this.def.heli) { this.updateHeli(dt); return; }
     if (this.def.air) { this.updateJet(dt); return; }
 
     // horde bonus cache (1 Hz)
@@ -2375,6 +2401,7 @@ class Unit {
       case 'guardarea': this.doGuardMove(dt, o); break;
       case 'attack': this.doAttack(dt, o); break;
       case 'harvest': this.doHarvest(dt, o); break;
+      case 'board': this.doBoard(dt, o); break;
       case 'build': this.doBuild(dt, o); break;
       case 'repair': this.doRepair(dt, o); break;
     }
@@ -2556,6 +2583,26 @@ class Unit {
     }
   }
 
+  /* infantry walking to a transport to climb aboard */
+  doBoard(dt, o) {
+    const tr = game.byId.get(o.targetId);
+    if (!tr || tr.dead || !tr.cargo || tr.cargo.length >= tr.def.capacity) { this.nextOrder(); return; }
+    const d = U.dist(this.x, this.y, tr.x, tr.y);
+    if (d > 55) {
+      // transport may drift — refresh the path once a second
+      this.boardRepathT = (this.boardRepathT || 0) - dt;
+      if (!this.path || this.boardRepathT <= 0) { this.setPathTo(tr.x, tr.y); this.boardRepathT = 1; }
+      this.moveAlongPath(dt);
+      return;
+    }
+    // climb aboard
+    this.embarked = true;
+    this.path = null;
+    tr.cargo.push(this.id);
+    this.order = { type: 'idle' };
+    if (this.owner === 0) FX.text(tr.x, tr.y - 26, tr.cargo.length + '/' + tr.def.capacity, '#9fdc7c');
+  }
+
   doBuild(dt, o) {
     const site = game.byId.get(o.targetId);
     if (!site || site.dead || site.constructed) { this.nextOrder(); return; }
@@ -2595,6 +2642,70 @@ class Unit {
       b.hp = Math.min(b.maxHp, b.hp + rate * dt);
       if (Math.random() < dt * 6) FX.sparks(b.x + U.rand(-b.size * 12, b.size * 12), b.y + U.rand(-b.size * 12, b.size * 12), 2);
     }
+  }
+
+  /* --------- transport helicopter --------- */
+  updateHeli(dt) {
+    const def = this.def;
+    const o = this.order;
+    const fly = (tx, ty, sp) => {
+      const d = U.dist(this.x, this.y, tx, ty);
+      const want = U.angTo(this.x, this.y, tx, ty);
+      this.angle = U.turnToward(this.angle, want, 4.5 * dt);
+      const spd = Math.min(sp, Math.max(46, d * 2.2));
+      if (d > 8) {
+        this.x += Math.cos(this.angle) * spd * dt;
+        this.y += Math.sin(this.angle) * spd * dt;
+        this.moving = true;
+      } else this.moving = false;
+      return d;
+    };
+    switch (o.type) {
+      case 'move':
+      case 'attackmove':
+      case 'guardarea':
+        if (fly(o.x, o.y, def.speed) < 14) this.nextOrder();
+        break;
+      case 'load': {   // hover over a friendly soldier and winch them up
+        const t = game.byId.get(o.targetId);
+        if (!t || t.dead || t.embarked || this.cargo.length >= def.capacity) { this.nextOrder(); break; }
+        if (fly(t.x, t.y, def.speed) < 80) {
+          t.embarked = true; t.path = null; t.order = { type: 'idle' };
+          this.cargo.push(t.id);
+          if (this.owner === 0) FX.text(this.x, this.y - 26, this.cargo.length + '/' + def.capacity, '#9fdc7c');
+          this.nextOrder();
+        }
+        break;
+      }
+      case 'unload':
+        this.deployCargo();
+        this.nextOrder();
+        break;
+      default:
+        this.moving = false;
+        break;
+    }
+  }
+
+  /* set every passenger down on open ground around the hover point */
+  deployCargo() {
+    if (!this.cargo || !this.cargo.length) return;
+    const ctx0 = Math.floor(this.x / TILE), cty0 = Math.floor(this.y / TILE);
+    let dropped = 0;
+    for (const pid of [...this.cargo]) {
+      const u = game.byId.get(pid);
+      if (!u || u.dead) continue;
+      const open = PATH.nearestOpen(world, ctx0 + U.randInt(-2, 2), cty0 + U.randInt(-2, 2), 7);
+      if (!open) break;   // nothing but cliffs below — keep the rest aboard
+      u.embarked = false;
+      u.x = (open.tx + 0.5) * TILE + U.rand(-8, 8);
+      u.y = (open.ty + 0.5) * TILE + U.rand(-8, 8);
+      u.guardX = u.x; u.guardY = u.y;
+      u.order = { type: 'guard' };
+      this.cargo.splice(this.cargo.indexOf(pid), 1);
+      dropped++;
+    }
+    if (dropped && this.owner === 0) { SFX.ack(); FX.text(this.x, this.y - 26, '▼ ' + dropped + ' deployed', '#9fdc7c'); }
   }
 
   /* --------- jets --------- */
@@ -2904,7 +3015,7 @@ class Building {
         const u = new Unit(this.owner, it.key, spot.x, spot.y);
         game.addEnt(u);
         p.stats.unitsBuilt++;
-        if (udef.air) { u.padId = this.id; u.jetState = 'idle'; }
+        if (udef.air) { u.padId = udef.heli ? null : this.id; u.jetState = 'idle'; }
         else if (udef.harvester) u.giveOrder({ type: 'harvest' });
         else u.giveOrder({ type: 'attackmove', x: this.rallyX, y: this.rallyY });
         if (this.owner === 0) { SFX.ready(); UI.refreshCmd(); }
@@ -3859,7 +3970,7 @@ const RENDER = (() => {
     for (const e of air) {
       if (!entVisibleToPlayer(e)) continue;
       if (!onScreen(e.x, e.y, 100)) continue;
-      drawJet(e);
+      if (e.def.heli) drawHeli(e); else drawJet(e);
     }
 
     // nuke incoming reticles
@@ -3935,6 +4046,7 @@ const RENDER = (() => {
   }
 
   function entVisibleToPlayer(e) {
+    if (e.embarked) return false;
     if (e.owner === -1) return true;
     const p = game.players[e.owner];
     if (p && p.team === game.players[0].team) return true;   // own + allied always visible
@@ -4659,6 +4771,62 @@ const RENDER = (() => {
       ctx.fillStyle = '#ff3020';
       ctx.beginPath(); ctx.arc(6, 0, 2.4, 0, 7); ctx.fill();
     }
+  }
+
+  function drawHeli(u) {
+    const [c1, c2] = teamColors(u);
+    // shadow far below
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.ellipse(u.x + 22, u.y + 30, 15, 6, u.angle, 0, 7); ctx.fill();
+    ctx.save();
+    ctx.translate(u.x, u.y);
+    ctx.rotate(u.angle);
+    const g = ctx.createLinearGradient(0, -10, 0, 10);
+    g.addColorStop(0, U.shade(c1, 1.25)); g.addColorStop(1, c2);
+    // fat fuselage with tail boom
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(14, 0);
+    ctx.quadraticCurveTo(14, -8, 4, -8); ctx.lineTo(-6, -6.5);
+    ctx.lineTo(-19, -2.4); ctx.lineTo(-19, 2.4); ctx.lineTo(-6, 6.5);
+    ctx.lineTo(4, 8); ctx.quadraticCurveTo(14, 8, 14, 0);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = c2; ctx.lineWidth = 1; ctx.stroke();
+    // tail fin + tail rotor
+    ctx.fillStyle = U.shade(c1, 0.9);
+    ctx.beginPath(); ctx.moveTo(-16, -1.6); ctx.lineTo(-21, -6); ctx.lineTo(-19, 0); ctx.closePath(); ctx.fill();
+    ctx.save();
+    ctx.translate(-20, -3);
+    ctx.rotate(game.renderT * 24);
+    ctx.strokeStyle = 'rgba(30,28,22,0.8)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(-3.5, 0); ctx.lineTo(3.5, 0); ctx.stroke();
+    ctx.restore();
+    // side doors
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(-2, -7.5, 7, 2); ctx.fillRect(-2, 5.5, 7, 2);
+    // cockpit glass
+    ctx.fillStyle = '#b8d8e8';
+    ctx.beginPath(); ctx.ellipse(9, 0, 4.2, 3.4, 0, 0, 7); ctx.fill();
+    // main rotor: spinning blades + translucent disc
+    ctx.fillStyle = 'rgba(120,120,120,0.13)';
+    ctx.beginPath(); ctx.arc(0, 0, 24, 0, 7); ctx.fill();
+    ctx.save();
+    ctx.rotate(game.renderT * 17);
+    ctx.strokeStyle = 'rgba(30,28,22,0.75)'; ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(-23, 0); ctx.lineTo(23, 0);
+    ctx.moveTo(0, -23); ctx.lineTo(0, 23);
+    ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+    // cargo readout
+    if (u.cargo && u.cargo.length && u.owner === 0) {
+      ctx.font = 'bold 10px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#c9e8a0';
+      ctx.fillText(u.cargo.length + '/' + u.def.capacity, u.x, u.y - 26);
+    }
+    drawHpBar(u);
   }
 
   function drawJet(u) {
@@ -5715,7 +5883,7 @@ const RENDER = (() => {
     // entities (enemies only when visible or remembered as ghosts)
     const humanTeam = game.players[0].team;
     for (const e of game.ents) {
-      if (e.dead) continue;
+      if (e.dead || e.embarked) continue;
       const p = game.players[e.owner];
       const hostile = e.owner !== -1 && p && p.team !== humanTeam;
       if (hostile && !world.isVisible(e.x, e.y) &&
@@ -6624,7 +6792,7 @@ const INPUT = (() => {
   function entAt(wx, wy) {
     let best = null, bestScore = -1;
     for (const e of game.ents) {
-      if (e.dead) continue;
+      if (e.dead || e.embarked) continue;
       if (isEnemyOfHuman(e) && !world.isVisible(e.x, e.y)) continue;
       if (isEnemyOfHuman(e) && isStealthed(e) && !isDetectedBy(e, game.players[0].team)) continue;
       let hit = false;
@@ -6686,7 +6854,7 @@ const INPUT = (() => {
 
   function prune() {
     const before = selection.length;
-    selection = selection.filter(e => !e.dead);
+    selection = selection.filter(e => !e.dead && !e.embarked);
     if (selection.length !== before) { UI.refreshSel(); UI.refreshCmd(); }
   }
 
@@ -6730,6 +6898,26 @@ const INPUT = (() => {
         else u.giveOrder({ type: 'move', x: wx, y: wy }, shift);
       }
       if (anyTruck) { SFX.ack(); UI.flashOrder(wx, wy, 'move'); return; }
+    }
+
+    // transports: troops right-click a friendly transport to board it;
+    // a selected transport right-clicks a soldier to winch them up
+    if (target && target.owner === 0 && target.kind === 'unit') {
+      const INF = ['inf', 'rocketinf', 'commando'];
+      if (target.cargo && target.def.capacity) {
+        let boarded = 0;
+        for (const u of units) {
+          if (INF.includes(u.def.chassis)) { u.giveOrder({ type: 'board', targetId: target.id }, shift); boarded++; }
+        }
+        if (boarded) { SFX.ack(); UI.flashOrder(wx, wy, 'move'); return; }
+      }
+      if (INF.includes(target.def.chassis)) {
+        let sent = 0;
+        for (const u of units) {
+          if (u.cargo && u.def.capacity) { u.giveOrder({ type: 'load', targetId: target.id }, shift); sent++; }
+        }
+        if (sent) { SFX.ack(); return; }
+      }
     }
 
     if (target && target.owner === 0 && target.kind === 'building') {
@@ -7245,7 +7433,8 @@ const UI = (() => {
       let extra = '';
       if (e.kind === 'unit' && e.vetRank) extra += ` &nbsp;<span style="color:#ffd76a">${'★'.repeat(e.vetRank)}</span>`;
       if (e.kind === 'unit' && e.def.harvester) extra += ` &nbsp;· carrying $${e.carrying || 0}`;
-      if (e.kind === 'unit' && e.def.air) extra += ` &nbsp;· ammo ${e.ammo}/${e.def.ammo}`;
+      if (e.kind === 'unit' && e.def.air && e.def.ammo !== undefined) extra += ` &nbsp;· ammo ${e.ammo}/${e.def.ammo}`;
+      if (e.kind === 'unit' && e.cargo && e.def.capacity) extra += ` &nbsp;· 🪖 ${e.cargo.length}/${e.def.capacity} aboard`;
       if (e.kind === 'building' && e.key === 'superweapon' && e.constructed)
         extra += e.swReady ? ' &nbsp;· <b style="color:#8f8">READY</b>' : ` &nbsp;· launch in ${U.fmtTime(e.swTimer)}`;
       info.innerHTML = `<b>${nm}</b> &nbsp;${Math.ceil(e.hp)}/${e.maxHp} HP${extra}`;
@@ -7278,8 +7467,8 @@ const UI = (() => {
       e.key === kind && e.constructed);
   }
   function airfieldLoad(af) {
-    // jets parked/assigned to this airfield plus queued aircraft — capped by pads
-    let n = af.queue.filter(q => UNITS[q.key].air).length;
+    // jets parked/assigned to this airfield plus queued aircraft — capped by pads (helis exempt)
+    let n = af.queue.filter(q => UNITS[q.key].air && !UNITS[q.key].heli).length;
     for (const e of game.ents) {
       if (!e.dead && e.kind === 'unit' && e.def.air && e.owner === af.owner && e.padId === af.id) n++;
     }
@@ -7356,6 +7545,9 @@ const UI = (() => {
       curCmds[4] = { type: 'attackmove' };   // A
       curCmds[5] = { type: 'stop' };         // S
       curCmds[6] = { type: 'guardbtn' };     // D
+      // transports with troops aboard get an Unload command (F)
+      const transports = units.filter(u => u.cargo && u.def.capacity);
+      if (transports.length) curCmds[7] = { type: 'unloadbtn', transports };
       // coalition veteran aircraft can be retrofitted with a cloak
       if (p.faction === 'coalition') {
         const eligible = units.filter(u => u.def.air && u.vetRank >= 1 && !u.def.stealthAir && !u.stealthUpgrade);
@@ -7433,6 +7625,10 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">${c.up.icon}</span><span>${c.up.name}</span><span class="cost">$${cost}</span>`;
         b.classList.add('upg');
         if (p.money < cost) b.classList.add('disabled');
+      } else if (c.type === 'unloadbtn') {
+        const n = c.transports.reduce((a, t) => a + t.cargo.length, 0);
+        b.innerHTML = `${hk}<span class="icon">🪂</span><span>Unload</span><span class="cost">${n} aboard</span>`;
+        if (!n) b.classList.add('disabled');
       } else if (c.type === 'stealthup') {
         const n = c.units.length;
         b.innerHTML = `${hk}<span class="icon">🌑</span><span>Stealth</span><span class="cost">$2,000${n > 1 ? '×' + n : ''}</span>`;
@@ -7441,7 +7637,9 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">⚔️</span><span>Attack-Move</span>`;
       } else if (c.type === 'stop') {
         b.innerHTML = `${hk}<span class="icon">✋</span><span>Stop</span>`;
-      } else if (c.type === 'guardbtn') {
+      } else if (c.type === 'unloadbtn') {
+      tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
+    } else if (c.type === 'guardbtn') {
         b.innerHTML = `${hk}<span class="icon">🛡️</span><span>Guard Area</span>`;
       } else if (c.type === 'sell') {
         b.innerHTML = `${hk}<span class="icon">💵</span><span>Sell 50%</span>`;
@@ -7502,6 +7700,12 @@ const UI = (() => {
         feed(up.name + ' installed on ' + bName(bld.key, p.faction), 'gold');
         SFX.cash();
         refreshCmd();
+        break;
+      }
+      case 'unloadbtn': {
+        let any = 0;
+        for (const t of c.transports) { if (t.cargo.length) { t.giveOrder({ type: 'unload' }); any++; } }
+        if (any) SFX.click();
         break;
       }
       case 'stealthup': {
@@ -7599,6 +7803,8 @@ const UI = (() => {
       tooltipHtml(el, `<h4>⚔️ Attack-Move</h4><div class="tt-desc">Move while engaging every enemy on the way. Hotkey A, then click the map.</div>`);
     } else if (c.type === 'stop') {
       tooltipHtml(el, `<h4>✋ Stop</h4><div class="tt-desc">Halt and hold position.</div>`);
+    } else if (c.type === 'unloadbtn') {
+      tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
     } else if (c.type === 'guardbtn') {
       tooltipHtml(el, `<h4>🛡️ Guard Area</h4><div class="tt-desc">Move to a point and hold it — engages enemies that come near, then returns to the post. Hotkey D, then click the map.</div>`);
     } else if (c.type === 'sell') {
@@ -7876,7 +8082,7 @@ function updateZones() {
   for (const z of game.zones) {
     const present = new Set();
     for (const e of game.ents) {
-      if (e.dead || e.kind !== 'unit' || e.owner < 0) continue;
+      if (e.dead || e.embarked || e.kind !== 'unit' || e.owner < 0) continue;
       if (!e.def.weapon && !e.def.suicide) continue;    // only combat units hold ground
       if (e.def.air) continue;
       if (U.dist2(e.x, e.y, z.x, z.y) > z.r * z.r) continue;

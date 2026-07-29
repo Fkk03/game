@@ -243,7 +243,7 @@ class World {
     this.visionSources = [];
     const humanTeam = game.players[0].team;
     for (const e of game.ents) {
-      if (e.dead || e.owner < 0) continue;
+      if (e.dead || e.owner < 0 || e.embarked) continue;
       const p = game.players[e.owner];
       if (!p || p.team !== humanTeam) continue;          // allies share vision
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.05) continue;
