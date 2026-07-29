@@ -18,7 +18,7 @@ const AI = (() => {
   }
 
   const COMPS = {
-    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, umbra: 1, spyplane: 1 },
+    coalition: { ranger: 3, rocketeer: 2, commando: 1, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, umbra: 1, spyplane: 1 },
     dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1, behemoth: 1, spyplane: 1 },
     cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1 },
   };
@@ -278,7 +278,7 @@ const AI = (() => {
         const queued = sc.queue.filter(q => q.key === 'truck').length;
         const nSup = myBuildings('supply').filter(b => b.constructed).length;
         const wanted = Math.min(9, 3 * nSup + (posture() === 'steady' || posture() === 'leading' ? 0 : 1));
-        if (trucks.length + queued < wanted && p().money > UNITS.truck.cost + 300) {
+        if (trucks.length + queued < wanted && p().money > uCost('truck', p().faction) + 300) {
           sc.enqueue('truck');
         }
       }
@@ -350,7 +350,7 @@ const AI = (() => {
           const ratio = (counts[k] || 0) / comp[k];
           if (ratio < worst) { worst = ratio; pick = k; }
         }
-        if (pick && p().money > UNITS[pick].cost + buf(game.t < 300 ? 500 : 120)) {
+        if (pick && p().money > uCost(pick, fac) + buf(game.t < 300 ? 500 : 120)) {
           b.enqueue(pick);
         }
       }

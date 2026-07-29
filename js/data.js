@@ -121,7 +121,7 @@ const BUILDINGS = {
     icon: '🎖️', cost: 500, hp: 1200, size: 2, buildTime: 12, power: 1, armor: 'building',
     sight: 7, desc: 'Trains infantry.',
     trainsByFaction: {
-      coalition: ['ranger', 'rocketeer'],
+      coalition: ['ranger', 'rocketeer', 'commando'],
       dynasty: ['rifleman', 'rpg'],
       cartel: ['raider', 'rocketraider'],
     },
@@ -145,17 +145,17 @@ const BUILDINGS = {
   },
   turret: {
     name: { coalition: 'Sentinel Battery', dynasty: 'Gatling Tower', cartel: 'Missile Nest' },
-    icon: '🗼', cost: 900, hp: 2200, size: 1, buildTime: 12, power: 2, armor: 'building',
-    sight: 10, desc: 'Compact hardened base defense. Engages ground and air targets. Offline without power.',
+    icon: '🗼', cost: 1350, hp: 8800, size: 1, buildTime: 16, power: 3, armor: 'building',
+    sight: 10, desc: 'Hardened fortress turret. Engages ground and air targets. Offline without power.',
     weaponByFaction: {
-      coalition: { dmg: 240, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
-      dynasty:   { dmg: 56, dtype: 'gatling', range: 250, cd: 0.09, projectile: 'bullet', aa: true, needsPower: true },
-      cartel:    { dmg: 208, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
+      coalition: { dmg: 720, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
+      dynasty:   { dmg: 168, dtype: 'gatling', range: 250, cd: 0.09, projectile: 'bullet', aa: true, needsPower: true },
+      cartel:    { dmg: 624, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
     },
   },
   repairbay: {
     name: { coalition: 'Service Depot', dynasty: 'Repair Yard', cartel: 'Scrap Garage' },
-    icon: '🔧', cost: 1200, hp: 1500, size: 3, buildTime: 16, power: 2, armor: 'building',
+    icon: '🔧', cost: 1200, hp: 1500, size: 2, buildTime: 16, power: 2, armor: 'building',
     sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft (16 hp/s).',
     healRadius: 200, healRate: 16,
   },
@@ -233,20 +233,20 @@ const UNITS = {
     name: 'Umbra Ghost Strike', icon: '🌑', cost: 11700, hp: 2400, speed: 290, sight: 13, radius: 16,
     armor: 'air', buildTime: 34, chassis: 'jet', air: true, ammo: 6,
     stealthAir: true, decloakOnFire: 1,
-    desc: 'Coalition-exclusive stealth strike jet, 3–4× a Seraph in every way: six 7,500-dmg missiles, faster, far tougher. Cloaked in flight (colors dim); firing exposes it for ~1 s (colors brighten), then it fades back out.',
-    weapon: { dmg: 7500, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 220, aa: false, ga: true },
+    desc: 'Coalition-exclusive stealth strike jet, 3–4× a Seraph in every way: six 3,750-dmg missiles, faster, far tougher. Cloaked in flight (colors dim); firing exposes it for ~1 s (colors brighten), then it fades back out.',
+    weapon: { dmg: 3750, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 110, aa: false, ga: true },
   },
   seraph: {
     name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,
     armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 3,
     desc: 'End-game strike aircraft: three annihilating missiles and heavy armor.',
-    weapon: { dmg: 5000, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 182, aa: false, ga: true },
+    weapon: { dmg: 2500, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 91, aa: false, ga: true },
   },
   behemoth: {
     name: 'Behemoth Bomber', icon: '🐉', cost: 3600, hp: 1100, speed: 215, sight: 9, radius: 18,
     armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 1,
     desc: 'End-game heavy bomber: one cataclysmic napalm payload, heavily armored.',
-    weapon: { dmg: 10000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 329, aa: false, ga: true },
+    weapon: { dmg: 10000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 165, aa: false, ga: true },
   },
 
   /* ---- Meridian Coalition ---- */
@@ -259,6 +259,14 @@ const UNITS = {
     name: 'Javelin Trooper', icon: '🚀', cost: 320, hp: 120, speed: 56, sight: 7, radius: 7,
     armor: 'inf', buildTime: 6, chassis: 'rocketinf', desc: 'Anti-tank / anti-air missile infantry.',
     weapon: { dmg: 42, dtype: 'rocket', range: 210, cd: 1.9, projectile: 'missile', aa: true, ga: true },
+  },
+  commando: {
+    name: 'Praetorian Commando', icon: '🎖️', cost: 1200, hp: 700, speed: 78, sight: 9, radius: 8,
+    armor: 'inf', buildTime: 15, chassis: 'commando', limitPer: 6,
+    stealthAir: true, decloakOnFire: 2, detect: 200, fieldRegen: 5,
+    resist: { explosive: 0.5, flame: 0.5 },
+    desc: 'Elite special forces (max 6). Cloaked while not firing (+50% damage striking from stealth), reveals nearby stealth, shrugs off blasts and flame, self-heals out of combat. 5× the soldier for 5× the price.',
+    weapon: { dmg: 60, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   bulwark: {
     name: 'Bulwark Tank', icon: '🛡️', cost: 900, hp: 620, speed: 74, sight: 6, radius: 17,
@@ -279,14 +287,14 @@ const UNITS = {
     name: 'Falcon Strike Jet', icon: '✈️', cost: 1300, hp: 260, speed: 235, sight: 8, radius: 14,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 2,
     desc: 'Strike fighter. Two annihilating missiles, then returns to the Airfield to rearm.',
-    weapon: { dmg: 2400, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 154, aa: false, ga: true },
+    weapon: { dmg: 1200, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 77, aa: false, ga: true },
   },
   kestrel: {
     name: { coalition: 'Kestrel Multirole', dynasty: 'Hornet Multirole' },
     icon: '🐦', cost: 1500, hp: 320, speed: 245, sight: 9, radius: 14,
     armor: 'air', buildTime: 15, chassis: 'jet', air: true, ammo: 8, burst: 2,
     desc: 'Multirole fighter — engages aircraft AND ground targets. Eight light missiles fired in two-missile bursts; switches targets instead of wasting ammo on a doomed one.',
-    weapon: { dmg: 1200, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 42, aa: true, ga: true },
+    weapon: { dmg: 600, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 21, aa: true, ga: true },
   },
 
   /* ---- Crimson Dynasty ---- */
@@ -319,7 +327,7 @@ const UNITS = {
     name: 'Vulture Bomber', icon: '🦅', cost: 1200, hp: 300, speed: 205, sight: 8, radius: 15,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 1,
     desc: 'Drops one apocalyptic napalm bomb, then rearms at the Airstrip.',
-    weapon: { dmg: 4800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 294, aa: false, ga: true },
+    weapon: { dmg: 4800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 147, aa: false, ga: true },
   },
 
   /* ---- Scorpion Cartel ---- */
@@ -396,6 +404,53 @@ const SUPERWEAPONS = {
   nuke:        { name: 'Nuclear Missile', desc: 'City-block-erasing nuclear strike.' },
   rocketstorm: { name: 'Rocket Storm', desc: '24 heavy rockets saturate a wide area.' },
 };
+
+/* =====================================================================
+   BUILDING UPGRADES — bought on a selected production building.
+   cost = building base cost × costMul.
+===================================================================== */
+const UPGRADES = {
+  airfield: [
+    { key: 'fastrepair', name: 'Fast Rearm', icon: '⚡', costMul: 0.4,
+      desc: 'Rearm crews work 30% faster — aircraft turn around sooner.' },
+    { key: 'restore', name: 'Full Restoration', icon: '❤️', costMul: 1.5,
+      desc: 'Aircraft landing to resupply are also repaired to at least 50% health.' },
+    { key: 'fastprod', name: 'Rapid Assembly', icon: '⚙️', costMul: 1.5,
+      desc: 'Aircraft production is 30% faster.' },
+    { key: 'selfrepair', name: 'Auto-Repair', icon: '🛠️', costMul: 1.0,
+      desc: 'The structure repairs itself (3% every 3 s) after 10 s without taking damage.' },
+    { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.5, hpMul: 2,
+      desc: 'Maximum health +100%.' },
+  ],
+  factory: [
+    { key: 'fastprod', name: 'Rapid Assembly', icon: '⚙️', costMul: 0.6,
+      desc: 'Vehicle production is 30% faster.' },
+    { key: 'selfrepair', name: 'Auto-Repair', icon: '🛠️', costMul: 1.5,
+      desc: 'The structure repairs itself (3% every 3 s) after 10 s without taking damage.' },
+    { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.0, hpMul: 1.5,
+      desc: 'Maximum health +50%.' },
+  ],
+  barracks: [
+    { key: 'fastprod', name: 'Rapid Drills', icon: '⚙️', costMul: 0.6,
+      desc: 'Infantry training is 30% faster.' },
+    { key: 'selfrepair', name: 'Auto-Repair', icon: '🛠️', costMul: 1.5,
+      desc: 'The structure repairs itself (3% every 3 s) after 10 s without taking damage.' },
+    { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.0, hpMul: 1.5,
+      desc: 'Maximum health +50%.' },
+  ],
+};
+
+/* faction-aware unit pricing — the Cartel fields cheap flesh and steel:
+   infantry −40%, ground combat vehicles −30% */
+function uCost(key, faction) {
+  const u = UNITS[key];
+  let c = u.cost;
+  if (faction === 'cartel') {
+    if (u.chassis === 'inf' || u.chassis === 'rocketinf' || u.chassis === 'commando') c = Math.round(c * 0.6);
+    else if (!u.air && !u.builder && !u.harvester) c = Math.round(c * 0.7);
+  }
+  return c;
+}
 
 /* helpers to resolve per-faction fields */
 function bName(key, faction) {

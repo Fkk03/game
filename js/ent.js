@@ -61,6 +61,7 @@ function effDamage(w, attacker) {
   if (attacker && attacker.kind === 'unit') {
     d *= VET_DMG[attacker.vetRank];
     if (attacker.def.horde && attacker.hordeOn) d *= 1.25;
+    if (hasCloak(attacker) && isStealthed(attacker)) d *= 1.5;   // strike from the shadows
   }
   if (attacker) {
     const p = game.players[attacker.owner];
@@ -78,10 +79,12 @@ function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   const mod = (DMG_MOD[dtype] && DMG_MOD[dtype][target.armor] !== undefined) ? DMG_MOD[dtype][target.armor] : 1;
   let dmg = rawDmg * mod;
   if (fromAir) dmg *= target.kind === 'building' ? 0.3 : 0.7;
+  if (target.def && target.def.resist && target.def.resist[dtype]) dmg *= target.def.resist[dtype];
   // an active cloak scatters targeting locks: stealthed aircraft take 75% less from everything
   if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.25;
   if (dmg <= 0) return;
   target.hp -= dmg;
+  target.lastHitT = game.t;
 
   // retaliation & alerts — only against genuine enemies (friendly splash must not flip units)
   if (attacker && attacker.owner !== target.owner) {
@@ -127,7 +130,8 @@ function killEnt(e, attacker) {
     else {
       FX.explosion(e.x, e.y, e.def.air ? 1.1 : 0.9);
       SFX.explo(e.x, e.y, 0.9);
-      if (!e.def.air) RENDER.addWreck(e.x, e.y, e.angle || 0, e.def.radius || 14);
+      // vehicles leave hulks; downed aircraft leave charred airframes
+      RENDER.addWreck(e.x, e.y, e.angle || 0, e.def.radius || 14, !!e.def.air);
       // cartel salvage: vehicles leave scrap if a cartel player is involved
       const cartelInvolved = (p && p.faction === 'cartel') ||
         (attacker && game.players[attacker.owner] && game.players[attacker.owner].faction === 'cartel');
@@ -362,6 +366,7 @@ class Unit {
     if (this.cool > 0) return 'cooling';
     this.cool = w.cd;
     fireWeapon(this, w, target);
+    if (this.def.decloakOnFire || this.stealthUpgrade) this.decloakUntil = game.t + (this.def.decloakOnFire || 1);
     return 'fired';
   }
 
@@ -373,6 +378,10 @@ class Unit {
     // Runs BEFORE the aircraft branch so veteran pilots heal too.
     const regen = VET_REGEN[this.vetRank];
     if (regen && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
+    // special-forces conditioning: self-heal once out of combat for 8 s
+    if (this.def.fieldRegen && this.hp < this.maxHp && game.t - (this.lastHitT || -99) > 8) {
+      this.hp = Math.min(this.maxHp, this.hp + this.def.fieldRegen * dt);
+    }
 
     if (this.def.air) { this.updateJet(dt); return; }
 
@@ -767,18 +776,26 @@ class Unit {
         }
 
         if (!w || !t || t.dead || !weaponCanHit(w, t)) {
-          // a multirole with ammo keeps hunting nearby targets before heading home
-          const nt = def.burst && this.ammo > 0 ? reacquire(0) : null;
+          // ANY jet with ammo left keeps hunting nearby targets before heading home
+          const nt = this.ammo > 0 ? reacquire(0) : null;
           if (nt) {
             this.order = { type: 'attack', targetId: nt.id };
             this.persistTargetId = nt.id;
             break;
           }
           this.persistTargetId = 0;
-          this.jetState = pad ? 'return' : (this.guardPost ? 'guardmove' : 'idle');
+          // guard duty continues until ammo runs dry; never fly home with a loaded rack
+          this.jetState = this.guardPost ? 'guardmove' :
+            (this.ammo > 0 ? 'idle' : (pad ? 'return' : 'idle'));
+          if (this.jetState === 'idle' && !pad) { this.guardX = this.x; this.guardY = this.y; }
           break;
         }
         if (this.ammo <= 0) { this.jetState = 'return'; break; }
+        if (this.hp < this.maxHp * 0.3 && pad) {   // critically damaged — break off and go home
+          this.persistTargetId = 0;
+          this.jetState = 'return';
+          break;
+        }
         const d = flyToward(t.x, t.y, def.speed);
         if (d < w.range && this.cool <= 0) {
           this.cool = w.cd;
@@ -811,8 +828,9 @@ class Unit {
         if (!pad) { this.jetState = this.guardPost ? 'guardmove' : 'idle'; break; }
         this.x = U.lerp(this.x, pad.x, dt * 4); this.y = U.lerp(this.y, pad.y, dt * 4);
         this.rearmT += dt;
-        if (this.rearmT > 4) {
+        if (this.rearmT > (pad.upgrades && pad.upgrades.fastrepair ? 2.8 : 4)) {
           this.ammo = def.ammo;
+          if (pad.upgrades && pad.upgrades.restore && this.hp < this.maxHp * 0.5) this.hp = this.maxHp * 0.5;
           if (this.persistTargetId && game.byId.get(this.persistTargetId) && !game.byId.get(this.persistTargetId).dead) {
             this.jetState = 'attack'; this.order = { type: 'attack', targetId: this.persistTargetId };
           } else if (this.guardPost) {
@@ -846,6 +864,7 @@ class Building {
     this.buildProgress = prebuilt ? 1 : 0;
     this.hp = prebuilt ? this.maxHp : this.maxHp * 0.1;
     this.queue = [];                       // production {key, prog}
+    this.upgrades = {};                    // purchased building upgrades {key: true}
     this.rallyX = this.x; this.rallyY = this.y + this.size * TILE * 0.7 + 20;
     this.cool = 0; this.tAngle = 0;
     this.scanT = Math.random() * 0.4;
@@ -854,6 +873,19 @@ class Building {
     this.incomeAcc = 0;
     world.blockRect(tx, ty, this.size, true);
     if (prebuilt) recomputePower(owner);
+    // superweapon sites are public knowledge the moment ground is broken
+    if (key === 'superweapon' && !prebuilt && game.started && game.players[owner]) {
+      const mine = owner === 0;
+      const sameTeam = game.players[owner].team === game.players[0].team;
+      if (!mine) {
+        if (sameTeam) UI.feed('Allied superweapon construction started', 'gold');
+        else {
+          UI.feed('⚠ ENEMY SUPERWEAPON CONSTRUCTION DETECTED — check the minimap', 'bad');
+          UI.ping(this.x, this.y, '#ff5540');
+          SFX.klaxon(); SFX.say('Warning. Enemy superweapon construction detected', true);
+        }
+      }
+    }
   }
 
   finishConstruction() {
@@ -913,7 +945,8 @@ class Building {
     if (this.queue.length) {
       const it = this.queue[0];
       const udef = UNITS[it.key];
-      const mul = this.powered ? 1 : 0.4;
+      let mul = this.powered ? 1 : 0.4;
+      if (this.upgrades.fastprod) mul /= 0.7;          // 30% faster production
       it.prog += dt / udef.buildTime * mul;
       if (it.prog >= 1) {
         this.queue.shift();
@@ -927,6 +960,12 @@ class Building {
         if (this.owner === 0) { SFX.ready(); UI.refreshCmd(); }
         if (game.players[this.owner] && game.players[this.owner].isAI) AI.onUnitDone(u);
       }
+    }
+
+    // auto-repair upgrade: 3% every 3 s once left alone for 10 s
+    if (this.upgrades.selfrepair && this.hp < this.maxHp && game.t - (this.lastHitT || -99) > 10) {
+      this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.01 * dt);
+      if (Math.random() < dt * 0.7) FX.sparks(this.x + U.rand(-this.size * 12, this.size * 12), this.y + U.rand(-this.size * 12, this.size * 12), 2);
     }
 
     // market income
@@ -984,9 +1023,17 @@ class Building {
 
   enqueue(key) {
     const p = game.players[this.owner];
-    const cost = UNITS[key].cost;
+    const cost = uCost(key, p.faction);
     if (p.money < cost) return false;
     if (this.queue.length >= 7) return false;
+    const lim = UNITS[key].limitPer;
+    if (lim) {
+      let n = 0;
+      for (const e of game.ents) if (!e.dead && e.kind === 'unit' && e.owner === this.owner && e.key === key) n++;
+      for (const e of game.ents) if (!e.dead && e.kind === 'building' && e.owner === this.owner)
+        n += (e.queue || []).filter(q => q.key === key).length;
+      if (n >= lim) return false;
+    }
     p.spend(cost);
     this.queue.push({ key, prog: 0, cost });
     return true;

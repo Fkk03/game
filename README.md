@@ -45,6 +45,24 @@ python3 -m http.server 8080
 - **Supply economy** — rich supply piles scattered all across the map; Supply Trucks haul them
   to your Supply Center, Markets pay a fat $32/s trickle
 - **Repair Center** — automatically fixes your tanks and aircraft in a radius around it
+  (now a compact 2-tile pad)
+- **Building upgrades** — select a Barracks, War Factory or Airfield and buy one-time
+  upgrades: Rapid Assembly (−30% production time), Auto-Repair (3%/3 s after 10 s of
+  peace), Reinforced Structure (+50–100% health), and for Airfields also Fast Rearm
+  (−30% turnaround) and Full Restoration (landing aircraft repaired to ≥50%)
+- **Praetorian Commando** (Coalition, max 6) — cloaked special forces: +50% damage
+  striking from stealth, reveals nearby stealth units, resists blasts and flame,
+  self-heals out of combat. 5× the soldier for 5× the price
+- **Cartel war economy** — Scorpion Cartel infantry costs 40% less and ground combat
+  vehicles 30% less, everywhere prices appear
+- **Fortress turrets** — 3× damage, 4× health, +50% cost, slower to build and hungrier
+  for power
+- **Regenerating supplies** — exhausted supply piles refill after 20 minutes to
+  75%, then 50%, then 25% (repeating at 25%); an on-map ⏳ timer shows the countdown
+- **Public superweapons** — the moment ANY general breaks ground on a superweapon,
+  every player gets a warning and a blinking marker on the minimap until it dies
+- **Persistent battlefield** — wrecked tanks, burned-out airframes, craters, rubble and
+  scorch marks are baked into the terrain and never fade
 - **Nuclear Reactor** — 5× the power of a standard plant… but if it's destroyed, the
   meltdown devastates everything nearby, yours and theirs alike. High risk, high reward.
 - **Global production (B / T / J)** — order units without clicking each building: the

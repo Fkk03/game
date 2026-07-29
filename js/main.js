@@ -238,6 +238,9 @@ function simStep(dt) {
   // AI tick at 2 Hz
   if (game.frame % 15 === 0) AI.tick(0.5);
 
+  // staged supply regeneration at 1 Hz
+  if (game.frame % 30 === 21) world.updateDocks();
+
   // fog recompute at ~5 Hz
   if (game.frame % 6 === 0) {
     world.recomputeFog();

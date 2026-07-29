@@ -461,6 +461,15 @@ const UI = (() => {
       } else {
         const trains = bTrains(building.key, p.faction);
         trains.forEach((uk, i) => { if (i < 8) curCmds[i] = { type: 'train', key: uk, building }; });
+        // purchasable upgrades fill the free slots after the unit list
+        let slot = Math.min(trains.length, 8);
+        for (const up of (UPGRADES[building.key] || [])) {
+          if (building.upgrades[up.key]) continue;
+          while (slot < 11 && curCmds[slot]) slot++;
+          if (slot >= 11) break;
+          curCmds[slot] = { type: 'upgrade', up, building };
+          slot++;
+        }
         curCmds[11] = { type: 'sell' };      // V
       }
     }
@@ -476,14 +485,15 @@ const UI = (() => {
       const hk = b.querySelector('.hk')?.outerHTML || '';
       if (c.type === 'gtrain') {
         const def = UNITS[c.key];
+        const cost = uCost(c.key, p.faction);
         const list = prodBuildings(c.bkind);
         const cnt = list.reduce((n, bl) => n + bl.queue.filter(q => q.key === c.key).length, 0);
         let prog = 0;
         for (const bl of list) if (bl.queue[0] && bl.queue[0].key === c.key) prog = Math.max(prog, bl.queue[0].prog);
-        b.innerHTML = `${hk}<span class="icon">${def.icon}</span><span>${uName(c.key, p.faction).split(' ')[0]}</span><span class="cost">$${def.cost}</span>
+        b.innerHTML = `${hk}<span class="icon">${def.icon}</span><span>${uName(c.key, p.faction).split(' ')[0]}</span><span class="cost">$${cost}</span>
           ${cnt ? `<span class="count">${cnt}</span>` : ''}
           <div class="prog" style="width:${Math.round(prog * 100)}%"></div>`;
-        if (p.money < def.cost) b.classList.add('disabled');
+        if (p.money < cost) b.classList.add('disabled');
       } else if (c.type === 'place') {
         const def = BUILDINGS[c.key];
         const afford = p.money >= def.cost;
@@ -495,11 +505,27 @@ const UI = (() => {
         }
       } else if (c.type === 'train') {
         const def = UNITS[c.key];
+        const cost = uCost(c.key, p.faction);
         const cnt = c.building.queue.filter(q => q.key === c.key).length;
-        b.innerHTML = `${hk}<span class="icon">${def.icon}</span><span>${uName(c.key, p.faction).split(' ')[0]}</span><span class="cost">$${def.cost}</span>
+        let atLimit = false;
+        if (def.limitPer) {
+          let n = 0;
+          for (const e of game.ents) {
+            if (e.dead || e.owner !== 0) continue;
+            if (e.kind === 'unit' && e.key === c.key) n++;
+            if (e.kind === 'building') n += (e.queue || []).filter(q => q.key === c.key).length;
+          }
+          atLimit = n >= def.limitPer;
+        }
+        b.innerHTML = `${hk}<span class="icon">${def.icon}</span><span>${uName(c.key, p.faction).split(' ')[0]}</span><span class="cost">${atLimit ? 'MAX' : '$' + cost}</span>
           ${cnt ? `<span class="count">${cnt}</span>` : ''}
           <div class="prog" style="width:${c.building.queue[0] && c.building.queue[0].key === c.key ? Math.round(c.building.queue[0].prog * 100) : 0}%"></div>`;
-        if (p.money < def.cost) b.classList.add('disabled');
+        if (p.money < cost || atLimit) b.classList.add('disabled');
+      } else if (c.type === 'upgrade') {
+        const cost = Math.round(BUILDINGS[c.building.key].cost * c.up.costMul);
+        b.innerHTML = `${hk}<span class="icon">${c.up.icon}</span><span>${c.up.name}</span><span class="cost">$${cost}</span>`;
+        b.classList.add('upg');
+        if (p.money < cost) b.classList.add('disabled');
       } else if (c.type === 'stealthup') {
         const n = c.units.length;
         b.innerHTML = `${hk}<span class="icon">🌑</span><span>Stealth</span><span class="cost">$2,000${n > 1 ? '×' + n : ''}</span>`;
@@ -551,6 +577,23 @@ const UI = (() => {
           ok = true;
         }
         if (ok) SFX.click();
+        refreshCmd();
+        break;
+      }
+      case 'upgrade': {
+        const bld = c.building, up = c.up;
+        const cost = Math.round(BUILDINGS[bld.key].cost * up.costMul);
+        if (bld.dead || bld.upgrades[up.key]) { refreshCmd(); break; }
+        if (p.money < cost) { feed('Insufficient funds', 'bad'); SFX.error(); SFX.say('Insufficient funds'); break; }
+        p.spend(cost);
+        bld.upgrades[up.key] = true;
+        if (up.hpMul) {
+          const add = Math.round(bld.def.hp * (up.hpMul - 1));
+          bld.maxHp += add; bld.hp += add;
+        }
+        FX.text(bld.x, bld.y - bld.size * 14, up.icon + ' ' + up.name.toUpperCase(), '#9fdc7c');
+        feed(up.name + ' installed on ' + bName(bld.key, p.faction), 'gold');
+        SFX.cash();
         refreshCmd();
         break;
       }
@@ -635,8 +678,12 @@ const UI = (() => {
     } else if (c.type === 'train') {
       const def = UNITS[c.key];
       tooltipHtml(el, `<h4>${def.icon} ${uName(c.key, p.faction)}</h4>
-        <div class="tt-cost">$${def.cost} · ${def.buildTime}s</div>
+        <div class="tt-cost">$${uCost(c.key, p.faction)} · ${def.buildTime}s${def.limitPer ? ' · max ' + def.limitPer : ''}</div>
         <div class="tt-desc">${def.desc}</div>`);
+    } else if (c.type === 'upgrade') {
+      tooltipHtml(el, `<h4>${c.up.icon} ${c.up.name}</h4>
+        <div class="tt-cost">$${Math.round(BUILDINGS[c.building.key].cost * c.up.costMul)} · one-time building upgrade</div>
+        <div class="tt-desc">${c.up.desc}</div>`);
     } else if (c.type === 'stealthup') {
       tooltipHtml(el, `<h4>🌑 Stealth Retrofit</h4>
         <div class="tt-cost">$2,000 per aircraft · requires ★ veterancy · Coalition only</div>

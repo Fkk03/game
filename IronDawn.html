@@ -246,6 +246,10 @@ ul.howto b { color:#ffe9a0; }
 .sb-cols span:nth-child(2) { width:44px; text-align:right; }
 .sb-cols span:nth-child(3) { width:64px; text-align:right; }
 
+/* building upgrade buttons in the command grid */
+.cmd-btn.upg { border-color:#7a6a9a; background:linear-gradient(#2f2a3c, #1e1a28); }
+.cmd-btn.upg:not(.disabled):hover { border-color:#b09ae0; }
+
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
 </head>
@@ -648,7 +652,7 @@ const BUILDINGS = {
     icon: '🎖️', cost: 500, hp: 1200, size: 2, buildTime: 12, power: 1, armor: 'building',
     sight: 7, desc: 'Trains infantry.',
     trainsByFaction: {
-      coalition: ['ranger', 'rocketeer'],
+      coalition: ['ranger', 'rocketeer', 'commando'],
       dynasty: ['rifleman', 'rpg'],
       cartel: ['raider', 'rocketraider'],
     },
@@ -672,17 +676,17 @@ const BUILDINGS = {
   },
   turret: {
     name: { coalition: 'Sentinel Battery', dynasty: 'Gatling Tower', cartel: 'Missile Nest' },
-    icon: '🗼', cost: 900, hp: 2200, size: 1, buildTime: 12, power: 2, armor: 'building',
-    sight: 10, desc: 'Compact hardened base defense. Engages ground and air targets. Offline without power.',
+    icon: '🗼', cost: 1350, hp: 8800, size: 1, buildTime: 16, power: 3, armor: 'building',
+    sight: 10, desc: 'Hardened fortress turret. Engages ground and air targets. Offline without power.',
     weaponByFaction: {
-      coalition: { dmg: 240, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
-      dynasty:   { dmg: 56, dtype: 'gatling', range: 250, cd: 0.09, projectile: 'bullet', aa: true, needsPower: true },
-      cartel:    { dmg: 208, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
+      coalition: { dmg: 720, dtype: 'rocket', range: 290, cd: 1.5, projectile: 'missile', aa: true, needsPower: true },
+      dynasty:   { dmg: 168, dtype: 'gatling', range: 250, cd: 0.09, projectile: 'bullet', aa: true, needsPower: true },
+      cartel:    { dmg: 624, dtype: 'rocket', range: 270, cd: 1.6, projectile: 'missile', aa: true, needsPower: false },
     },
   },
   repairbay: {
     name: { coalition: 'Service Depot', dynasty: 'Repair Yard', cartel: 'Scrap Garage' },
-    icon: '🔧', cost: 1200, hp: 1500, size: 3, buildTime: 16, power: 2, armor: 'building',
+    icon: '🔧', cost: 1200, hp: 1500, size: 2, buildTime: 16, power: 2, armor: 'building',
     sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft (16 hp/s).',
     healRadius: 200, healRate: 16,
   },
@@ -760,20 +764,20 @@ const UNITS = {
     name: 'Umbra Ghost Strike', icon: '🌑', cost: 11700, hp: 2400, speed: 290, sight: 13, radius: 16,
     armor: 'air', buildTime: 34, chassis: 'jet', air: true, ammo: 6,
     stealthAir: true, decloakOnFire: 1,
-    desc: 'Coalition-exclusive stealth strike jet, 3–4× a Seraph in every way: six 7,500-dmg missiles, faster, far tougher. Cloaked in flight (colors dim); firing exposes it for ~1 s (colors brighten), then it fades back out.',
-    weapon: { dmg: 7500, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 220, aa: false, ga: true },
+    desc: 'Coalition-exclusive stealth strike jet, 3–4× a Seraph in every way: six 3,750-dmg missiles, faster, far tougher. Cloaked in flight (colors dim); firing exposes it for ~1 s (colors brighten), then it fades back out.',
+    weapon: { dmg: 3750, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 110, aa: false, ga: true },
   },
   seraph: {
     name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,
     armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 3,
     desc: 'End-game strike aircraft: three annihilating missiles and heavy armor.',
-    weapon: { dmg: 5000, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 182, aa: false, ga: true },
+    weapon: { dmg: 2500, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 91, aa: false, ga: true },
   },
   behemoth: {
     name: 'Behemoth Bomber', icon: '🐉', cost: 3600, hp: 1100, speed: 215, sight: 9, radius: 18,
     armor: 'air', buildTime: 26, chassis: 'jet', air: true, ammo: 1,
     desc: 'End-game heavy bomber: one cataclysmic napalm payload, heavily armored.',
-    weapon: { dmg: 10000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 329, aa: false, ga: true },
+    weapon: { dmg: 10000, dtype: 'flame', range: 130, cd: 0.5, projectile: 'napalm', splash: 165, aa: false, ga: true },
   },
 
   /* ---- Meridian Coalition ---- */
@@ -786,6 +790,14 @@ const UNITS = {
     name: 'Javelin Trooper', icon: '🚀', cost: 320, hp: 120, speed: 56, sight: 7, radius: 7,
     armor: 'inf', buildTime: 6, chassis: 'rocketinf', desc: 'Anti-tank / anti-air missile infantry.',
     weapon: { dmg: 42, dtype: 'rocket', range: 210, cd: 1.9, projectile: 'missile', aa: true, ga: true },
+  },
+  commando: {
+    name: 'Praetorian Commando', icon: '🎖️', cost: 1200, hp: 700, speed: 78, sight: 9, radius: 8,
+    armor: 'inf', buildTime: 15, chassis: 'commando', limitPer: 6,
+    stealthAir: true, decloakOnFire: 2, detect: 200, fieldRegen: 5,
+    resist: { explosive: 0.5, flame: 0.5 },
+    desc: 'Elite special forces (max 6). Cloaked while not firing (+50% damage striking from stealth), reveals nearby stealth, shrugs off blasts and flame, self-heals out of combat. 5× the soldier for 5× the price.',
+    weapon: { dmg: 60, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   bulwark: {
     name: 'Bulwark Tank', icon: '🛡️', cost: 900, hp: 620, speed: 74, sight: 6, radius: 17,
@@ -806,14 +818,14 @@ const UNITS = {
     name: 'Falcon Strike Jet', icon: '✈️', cost: 1300, hp: 260, speed: 235, sight: 8, radius: 14,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 2,
     desc: 'Strike fighter. Two annihilating missiles, then returns to the Airfield to rearm.',
-    weapon: { dmg: 2400, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 154, aa: false, ga: true },
+    weapon: { dmg: 1200, dtype: 'rocket', range: 165, cd: 0.5, projectile: 'missile', splash: 77, aa: false, ga: true },
   },
   kestrel: {
     name: { coalition: 'Kestrel Multirole', dynasty: 'Hornet Multirole' },
     icon: '🐦', cost: 1500, hp: 320, speed: 245, sight: 9, radius: 14,
     armor: 'air', buildTime: 15, chassis: 'jet', air: true, ammo: 8, burst: 2,
     desc: 'Multirole fighter — engages aircraft AND ground targets. Eight light missiles fired in two-missile bursts; switches targets instead of wasting ammo on a doomed one.',
-    weapon: { dmg: 1200, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 42, aa: true, ga: true },
+    weapon: { dmg: 600, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 21, aa: true, ga: true },
   },
 
   /* ---- Crimson Dynasty ---- */
@@ -846,7 +858,7 @@ const UNITS = {
     name: 'Vulture Bomber', icon: '🦅', cost: 1200, hp: 300, speed: 205, sight: 8, radius: 15,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 1,
     desc: 'Drops one apocalyptic napalm bomb, then rearms at the Airstrip.',
-    weapon: { dmg: 4800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 294, aa: false, ga: true },
+    weapon: { dmg: 4800, dtype: 'flame', range: 120, cd: 0.5, projectile: 'napalm', splash: 147, aa: false, ga: true },
   },
 
   /* ---- Scorpion Cartel ---- */
@@ -923,6 +935,53 @@ const SUPERWEAPONS = {
   nuke:        { name: 'Nuclear Missile', desc: 'City-block-erasing nuclear strike.' },
   rocketstorm: { name: 'Rocket Storm', desc: '24 heavy rockets saturate a wide area.' },
 };
+
+/* =====================================================================
+   BUILDING UPGRADES — bought on a selected production building.
+   cost = building base cost × costMul.
+===================================================================== */
+const UPGRADES = {
+  airfield: [
+    { key: 'fastrepair', name: 'Fast Rearm', icon: '⚡', costMul: 0.4,
+      desc: 'Rearm crews work 30% faster — aircraft turn around sooner.' },
+    { key: 'restore', name: 'Full Restoration', icon: '❤️', costMul: 1.5,
+      desc: 'Aircraft landing to resupply are also repaired to at least 50% health.' },
+    { key: 'fastprod', name: 'Rapid Assembly', icon: '⚙️', costMul: 1.5,
+      desc: 'Aircraft production is 30% faster.' },
+    { key: 'selfrepair', name: 'Auto-Repair', icon: '🛠️', costMul: 1.0,
+      desc: 'The structure repairs itself (3% every 3 s) after 10 s without taking damage.' },
+    { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.5, hpMul: 2,
+      desc: 'Maximum health +100%.' },
+  ],
+  factory: [
+    { key: 'fastprod', name: 'Rapid Assembly', icon: '⚙️', costMul: 0.6,
+      desc: 'Vehicle production is 30% faster.' },
+    { key: 'selfrepair', name: 'Auto-Repair', icon: '🛠️', costMul: 1.5,
+      desc: 'The structure repairs itself (3% every 3 s) after 10 s without taking damage.' },
+    { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.0, hpMul: 1.5,
+      desc: 'Maximum health +50%.' },
+  ],
+  barracks: [
+    { key: 'fastprod', name: 'Rapid Drills', icon: '⚙️', costMul: 0.6,
+      desc: 'Infantry training is 30% faster.' },
+    { key: 'selfrepair', name: 'Auto-Repair', icon: '🛠️', costMul: 1.5,
+      desc: 'The structure repairs itself (3% every 3 s) after 10 s without taking damage.' },
+    { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.0, hpMul: 1.5,
+      desc: 'Maximum health +50%.' },
+  ],
+};
+
+/* faction-aware unit pricing — the Cartel fields cheap flesh and steel:
+   infantry −40%, ground combat vehicles −30% */
+function uCost(key, faction) {
+  const u = UNITS[key];
+  let c = u.cost;
+  if (faction === 'cartel') {
+    if (u.chassis === 'inf' || u.chassis === 'rocketinf' || u.chassis === 'commando') c = Math.round(c * 0.6);
+    else if (!u.air && !u.builder && !u.harvester) c = Math.round(c * 0.7);
+  }
+  return c;
+}
 
 /* helpers to resolve per-faction fields */
 function bName(key, faction) {
@@ -1269,6 +1328,7 @@ class World {
     this.docks.push({
       x: (cx + 1) * TILE, y: (cy + 1) * TILE,
       amount, max: amount, tiles,
+      stage: 0, regenAt: 0,       // staged regeneration: 75% → 50% → 25% (cap), 20 min each
       seed: Math.floor(rng() * 1e9),
     });
   }
@@ -1285,6 +1345,22 @@ class World {
     if (d.amount <= 0) {
       d.amount = 0;
       for (const t of d.tiles) this.blocked[this.idx(t.tx, t.ty)] = 0;
+      d.regenAt = game.t + 1200;         // 20 minutes to the next staged refill
+    }
+  }
+
+  /* staged supply regeneration — called at 1 Hz from the sim */
+  updateDocks() {
+    for (const d of this.docks) {
+      if (d.amount > 0 || !d.regenAt || game.t < d.regenAt) continue;
+      d.stage = Math.min(d.stage + 1, 3);
+      const frac = [1, 0.75, 0.5, 0.25][d.stage];
+      d.amount = Math.round(d.max * frac);
+      d.regenAt = 0;
+      // re-block pile tiles that are still free (a building may have claimed one)
+      for (const t of d.tiles) {
+        if (this.blocked[this.idx(t.tx, t.ty)] === 0) this.blocked[this.idx(t.tx, t.ty)] = 2;
+      }
     }
   }
 
@@ -1935,6 +2011,7 @@ function effDamage(w, attacker) {
   if (attacker && attacker.kind === 'unit') {
     d *= VET_DMG[attacker.vetRank];
     if (attacker.def.horde && attacker.hordeOn) d *= 1.25;
+    if (hasCloak(attacker) && isStealthed(attacker)) d *= 1.5;   // strike from the shadows
   }
   if (attacker) {
     const p = game.players[attacker.owner];
@@ -1952,10 +2029,12 @@ function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   const mod = (DMG_MOD[dtype] && DMG_MOD[dtype][target.armor] !== undefined) ? DMG_MOD[dtype][target.armor] : 1;
   let dmg = rawDmg * mod;
   if (fromAir) dmg *= target.kind === 'building' ? 0.3 : 0.7;
+  if (target.def && target.def.resist && target.def.resist[dtype]) dmg *= target.def.resist[dtype];
   // an active cloak scatters targeting locks: stealthed aircraft take 75% less from everything
   if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.25;
   if (dmg <= 0) return;
   target.hp -= dmg;
+  target.lastHitT = game.t;
 
   // retaliation & alerts — only against genuine enemies (friendly splash must not flip units)
   if (attacker && attacker.owner !== target.owner) {
@@ -2001,7 +2080,8 @@ function killEnt(e, attacker) {
     else {
       FX.explosion(e.x, e.y, e.def.air ? 1.1 : 0.9);
       SFX.explo(e.x, e.y, 0.9);
-      if (!e.def.air) RENDER.addWreck(e.x, e.y, e.angle || 0, e.def.radius || 14);
+      // vehicles leave hulks; downed aircraft leave charred airframes
+      RENDER.addWreck(e.x, e.y, e.angle || 0, e.def.radius || 14, !!e.def.air);
       // cartel salvage: vehicles leave scrap if a cartel player is involved
       const cartelInvolved = (p && p.faction === 'cartel') ||
         (attacker && game.players[attacker.owner] && game.players[attacker.owner].faction === 'cartel');
@@ -2236,6 +2316,7 @@ class Unit {
     if (this.cool > 0) return 'cooling';
     this.cool = w.cd;
     fireWeapon(this, w, target);
+    if (this.def.decloakOnFire || this.stealthUpgrade) this.decloakUntil = game.t + (this.def.decloakOnFire || 1);
     return 'fired';
   }
 
@@ -2247,6 +2328,10 @@ class Unit {
     // Runs BEFORE the aircraft branch so veteran pilots heal too.
     const regen = VET_REGEN[this.vetRank];
     if (regen && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
+    // special-forces conditioning: self-heal once out of combat for 8 s
+    if (this.def.fieldRegen && this.hp < this.maxHp && game.t - (this.lastHitT || -99) > 8) {
+      this.hp = Math.min(this.maxHp, this.hp + this.def.fieldRegen * dt);
+    }
 
     if (this.def.air) { this.updateJet(dt); return; }
 
@@ -2641,18 +2726,26 @@ class Unit {
         }
 
         if (!w || !t || t.dead || !weaponCanHit(w, t)) {
-          // a multirole with ammo keeps hunting nearby targets before heading home
-          const nt = def.burst && this.ammo > 0 ? reacquire(0) : null;
+          // ANY jet with ammo left keeps hunting nearby targets before heading home
+          const nt = this.ammo > 0 ? reacquire(0) : null;
           if (nt) {
             this.order = { type: 'attack', targetId: nt.id };
             this.persistTargetId = nt.id;
             break;
           }
           this.persistTargetId = 0;
-          this.jetState = pad ? 'return' : (this.guardPost ? 'guardmove' : 'idle');
+          // guard duty continues until ammo runs dry; never fly home with a loaded rack
+          this.jetState = this.guardPost ? 'guardmove' :
+            (this.ammo > 0 ? 'idle' : (pad ? 'return' : 'idle'));
+          if (this.jetState === 'idle' && !pad) { this.guardX = this.x; this.guardY = this.y; }
           break;
         }
         if (this.ammo <= 0) { this.jetState = 'return'; break; }
+        if (this.hp < this.maxHp * 0.3 && pad) {   // critically damaged — break off and go home
+          this.persistTargetId = 0;
+          this.jetState = 'return';
+          break;
+        }
         const d = flyToward(t.x, t.y, def.speed);
         if (d < w.range && this.cool <= 0) {
           this.cool = w.cd;
@@ -2685,8 +2778,9 @@ class Unit {
         if (!pad) { this.jetState = this.guardPost ? 'guardmove' : 'idle'; break; }
         this.x = U.lerp(this.x, pad.x, dt * 4); this.y = U.lerp(this.y, pad.y, dt * 4);
         this.rearmT += dt;
-        if (this.rearmT > 4) {
+        if (this.rearmT > (pad.upgrades && pad.upgrades.fastrepair ? 2.8 : 4)) {
           this.ammo = def.ammo;
+          if (pad.upgrades && pad.upgrades.restore && this.hp < this.maxHp * 0.5) this.hp = this.maxHp * 0.5;
           if (this.persistTargetId && game.byId.get(this.persistTargetId) && !game.byId.get(this.persistTargetId).dead) {
             this.jetState = 'attack'; this.order = { type: 'attack', targetId: this.persistTargetId };
           } else if (this.guardPost) {
@@ -2720,6 +2814,7 @@ class Building {
     this.buildProgress = prebuilt ? 1 : 0;
     this.hp = prebuilt ? this.maxHp : this.maxHp * 0.1;
     this.queue = [];                       // production {key, prog}
+    this.upgrades = {};                    // purchased building upgrades {key: true}
     this.rallyX = this.x; this.rallyY = this.y + this.size * TILE * 0.7 + 20;
     this.cool = 0; this.tAngle = 0;
     this.scanT = Math.random() * 0.4;
@@ -2728,6 +2823,19 @@ class Building {
     this.incomeAcc = 0;
     world.blockRect(tx, ty, this.size, true);
     if (prebuilt) recomputePower(owner);
+    // superweapon sites are public knowledge the moment ground is broken
+    if (key === 'superweapon' && !prebuilt && game.started && game.players[owner]) {
+      const mine = owner === 0;
+      const sameTeam = game.players[owner].team === game.players[0].team;
+      if (!mine) {
+        if (sameTeam) UI.feed('Allied superweapon construction started', 'gold');
+        else {
+          UI.feed('⚠ ENEMY SUPERWEAPON CONSTRUCTION DETECTED — check the minimap', 'bad');
+          UI.ping(this.x, this.y, '#ff5540');
+          SFX.klaxon(); SFX.say('Warning. Enemy superweapon construction detected', true);
+        }
+      }
+    }
   }
 
   finishConstruction() {
@@ -2787,7 +2895,8 @@ class Building {
     if (this.queue.length) {
       const it = this.queue[0];
       const udef = UNITS[it.key];
-      const mul = this.powered ? 1 : 0.4;
+      let mul = this.powered ? 1 : 0.4;
+      if (this.upgrades.fastprod) mul /= 0.7;          // 30% faster production
       it.prog += dt / udef.buildTime * mul;
       if (it.prog >= 1) {
         this.queue.shift();
@@ -2801,6 +2910,12 @@ class Building {
         if (this.owner === 0) { SFX.ready(); UI.refreshCmd(); }
         if (game.players[this.owner] && game.players[this.owner].isAI) AI.onUnitDone(u);
       }
+    }
+
+    // auto-repair upgrade: 3% every 3 s once left alone for 10 s
+    if (this.upgrades.selfrepair && this.hp < this.maxHp && game.t - (this.lastHitT || -99) > 10) {
+      this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.01 * dt);
+      if (Math.random() < dt * 0.7) FX.sparks(this.x + U.rand(-this.size * 12, this.size * 12), this.y + U.rand(-this.size * 12, this.size * 12), 2);
     }
 
     // market income
@@ -2858,9 +2973,17 @@ class Building {
 
   enqueue(key) {
     const p = game.players[this.owner];
-    const cost = UNITS[key].cost;
+    const cost = uCost(key, p.faction);
     if (p.money < cost) return false;
     if (this.queue.length >= 7) return false;
+    const lim = UNITS[key].limitPer;
+    if (lim) {
+      let n = 0;
+      for (const e of game.ents) if (!e.dead && e.kind === 'unit' && e.owner === this.owner && e.key === key) n++;
+      for (const e of game.ents) if (!e.dead && e.kind === 'building' && e.owner === this.owner)
+        n += (e.queue || []).filter(q => q.key === key).length;
+      if (n >= lim) return false;
+    }
     p.spend(cost);
     this.queue.push({ key, prog: 0, cost });
     return true;
@@ -3580,13 +3703,27 @@ const RENDER = (() => {
     c.restore();
   }
 
-  function addWreck(x, y, ang, radius) {
+  function addWreck(x, y, ang, radius, air) {
     if (!terrainCtx) return;
     const c = terrainCtx;
     addDecal(x, y, radius * 2.2);
     c.save();
     c.translate(x * TS, y * TS);
     c.rotate(ang);
+    if (air) {
+      // burned airframe: charred dart + snapped wing spars
+      const L = radius * 2.1 * TS;
+      c.fillStyle = '#241f18';
+      c.beginPath();
+      c.moveTo(L * 0.6, 0); c.lineTo(-L * 0.45, -L * 0.16); c.lineTo(-L * 0.45, L * 0.16);
+      c.closePath(); c.fill();
+      c.strokeStyle = '#1a1610'; c.lineWidth = 2 * TS;
+      c.beginPath(); c.moveTo(-L * 0.05, -L * 0.42); c.lineTo(L * 0.1, L * 0.38); c.stroke();
+      c.fillStyle = '#3c362a';
+      for (let i = 0; i < 5; i++) c.fillRect(U.rand(-L * 0.5, L * 0.5), U.rand(-L * 0.4, L * 0.4), U.rand(2, 4), U.rand(1.5, 3));
+      c.restore();
+      return;
+    }
     const w = radius * 1.7 * TS, h = radius * 1.15 * TS;
     c.fillStyle = '#2e2a22';
     c.fillRect(-w / 2, -h / 2, w, h);
@@ -3849,6 +3986,26 @@ const RENDER = (() => {
   function drawDock(d) {
     const f = d.amount / d.max;
     const rng = U.seededRng(d.seed);
+    if (f <= 0) {
+      // exhausted: leftover pallet marks + regeneration countdown
+      ctx.save();
+      ctx.translate(d.x, d.y);
+      ctx.fillStyle = 'rgba(40,32,20,0.35)';
+      ctx.beginPath(); ctx.ellipse(0, 4, 40, 19, 0, 0, 7); ctx.fill();
+      if (d.regenAt > game.t) {
+        const left = Math.max(0, d.regenAt - game.t);
+        ctx.font = 'bold 13px system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,225,150,0.85)';
+        ctx.fillText('⏳ ' + U.fmtTime(left), 0, -6);
+        ctx.font = '10px system-ui';
+        ctx.fillStyle = 'rgba(220,205,160,0.7)';
+        const nextFrac = [1, 0.75, 0.5, 0.25][Math.min(d.stage + 1, 3)];
+        ctx.fillText('resupply ' + Math.round(nextFrac * 100) + '%', 0, 8);
+      }
+      ctx.restore();
+      return;
+    }
     ctx.save();
     ctx.translate(d.x, d.y);
     ctx.fillStyle = 'rgba(0,0,0,0.18)';
@@ -3884,8 +4041,14 @@ const RENDER = (() => {
     ctx.fillStyle = 'rgba(24,18,10,0.32)';
     ctx.beginPath(); ctx.ellipse(3.5, 4.5, u.radius * 1.1, u.radius * 0.62, 0, 0, 7); ctx.fill();
 
+    // ground cloak readout (commandos, retrofits): dim while stealthed, bright when exposed
+    if (!u.def.air && hasCloak(u)) {
+      if (isStealthed(u)) ctx.globalAlpha = 0.42 + 0.09 * Math.sin(game.renderT * 5 + u.id);
+      else ctx.globalAlpha = 1;
+    }
     const ch = u.def.chassis;
     if (ch === 'inf' || ch === 'rocketinf') drawInfantry(u, c1, c2);
+    else if (ch === 'commando') drawCommando(u, c1, c2);
     else {
       ctx.rotate(u.angle);
       // every vehicle model gets its own silhouette; chassis is only the fallback
@@ -3955,6 +4118,43 @@ const RENDER = (() => {
     ctx.rotate(u.tAngle);
     ctx.strokeStyle = '#1c1a14'; ctx.lineWidth = u.def.chassis === 'rocketinf' ? 3 : 1.8;
     ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(u.def.chassis === 'rocketinf' ? 10 : 8, 0); ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+  }
+
+  function drawCommando(u, c1, c2) {
+    const t = game.renderT * 8;
+    const bob = u.moving ? Math.sin(t + u.id) * 1.5 : 0;
+    ctx.save();
+    ctx.translate(0, bob * 0.4);
+    if (u.moving) {
+      ctx.strokeStyle = '#20242c'; ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.moveTo(-2.4, 2); ctx.lineTo(-2.4 + Math.sin(t + u.id) * 3.4, 8);
+      ctx.moveTo(2.4, 2); ctx.lineTo(2.4 - Math.sin(t + u.id) * 3.4, 8);
+      ctx.stroke();
+    }
+    // armored bulk
+    ctx.fillStyle = U.shade(c2, 0.8);
+    ctx.beginPath(); ctx.arc(0, 0, 5.6, 0, 7); ctx.fill();
+    ctx.fillStyle = U.shade(c1, 0.9);
+    ctx.beginPath(); ctx.arc(0, -1.6, 3.8, 0, 7); ctx.fill();
+    // shoulder plates
+    ctx.fillStyle = '#2c3038';
+    ctx.beginPath(); ctx.ellipse(-3.4, 0.5, 1.8, 2.4, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(3.4, 0.5, 1.8, 2.4, 0, 0, 7); ctx.fill();
+    // black ops helmet with glowing visor slit
+    ctx.fillStyle = '#1c2026';
+    ctx.beginPath(); ctx.arc(0, -2.8, 2.7, 0, 7); ctx.fill();
+    ctx.fillStyle = isStealthed(u) ? '#6fe0c8' : '#ff9c50';
+    ctx.fillRect(-1.8, -3.4, 3.6, 1.1);
+    // long marksman rifle
+    ctx.save();
+    ctx.rotate(u.tAngle);
+    ctx.strokeStyle = '#10141a'; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(13, 0); ctx.stroke();
+    ctx.strokeStyle = '#3c424e'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(6, -1.6); ctx.lineTo(9, -1.6); ctx.stroke();
     ctx.restore();
     ctx.restore();
   }
@@ -5525,6 +5725,22 @@ const RENDER = (() => {
       const s = e.kind === 'building' ? Math.max(3, e.size * sx) : 2;
       c.fillRect(e.x / TILE * sx - s / 2, e.y / TILE * sy - s / 2, s, s);
     }
+    // superweapon sites & silos: public knowledge — blinking warning through the fog
+    for (const e of game.ents) {
+      if (e.dead || e.kind !== 'building' || e.key !== 'superweapon') continue;
+      const px = e.x / TILE * sx, py = e.y / TILE * sy;
+      const friendly = game.players[e.owner] && game.players[e.owner].team === humanTeam;
+      const blink = Math.floor(game.renderT * 3) % 2 === 0;
+      if (blink || friendly) {
+        c.fillStyle = friendly ? '#ffd76a' : '#ff4030';
+        c.beginPath();
+        c.moveTo(px, py - 5); c.lineTo(px + 4.5, py + 3); c.lineTo(px - 4.5, py + 3);
+        c.closePath(); c.fill();
+        c.fillStyle = '#000';
+        c.fillRect(px - 0.7, py - 2.5, 1.4, 3);
+        c.fillRect(px - 0.7, py + 1.2, 1.4, 1.2);
+      }
+    }
     // fog overlay
     c.globalAlpha = 1;
     c.drawImage(fogCv, 0, 0, fogCv.width, fogCv.height, 0, 0, w, h);
@@ -5599,7 +5815,7 @@ const AI = (() => {
   }
 
   const COMPS = {
-    coalition: { ranger: 3, rocketeer: 2, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, umbra: 1, spyplane: 1 },
+    coalition: { ranger: 3, rocketeer: 2, commando: 1, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, umbra: 1, spyplane: 1 },
     dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1, behemoth: 1, spyplane: 1 },
     cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1 },
   };
@@ -5859,7 +6075,7 @@ const AI = (() => {
         const queued = sc.queue.filter(q => q.key === 'truck').length;
         const nSup = myBuildings('supply').filter(b => b.constructed).length;
         const wanted = Math.min(9, 3 * nSup + (posture() === 'steady' || posture() === 'leading' ? 0 : 1));
-        if (trucks.length + queued < wanted && p().money > UNITS.truck.cost + 300) {
+        if (trucks.length + queued < wanted && p().money > uCost('truck', p().faction) + 300) {
           sc.enqueue('truck');
         }
       }
@@ -5931,7 +6147,7 @@ const AI = (() => {
           const ratio = (counts[k] || 0) / comp[k];
           if (ratio < worst) { worst = ratio; pick = k; }
         }
-        if (pick && p().money > UNITS[pick].cost + buf(game.t < 300 ? 500 : 120)) {
+        if (pick && p().money > uCost(pick, fac) + buf(game.t < 300 ? 500 : 120)) {
           b.enqueue(pick);
         }
       }
@@ -7152,6 +7368,15 @@ const UI = (() => {
       } else {
         const trains = bTrains(building.key, p.faction);
         trains.forEach((uk, i) => { if (i < 8) curCmds[i] = { type: 'train', key: uk, building }; });
+        // purchasable upgrades fill the free slots after the unit list
+        let slot = Math.min(trains.length, 8);
+        for (const up of (UPGRADES[building.key] || [])) {
+          if (building.upgrades[up.key]) continue;
+          while (slot < 11 && curCmds[slot]) slot++;
+          if (slot >= 11) break;
+          curCmds[slot] = { type: 'upgrade', up, building };
+          slot++;
+        }
         curCmds[11] = { type: 'sell' };      // V
       }
     }
@@ -7167,14 +7392,15 @@ const UI = (() => {
       const hk = b.querySelector('.hk')?.outerHTML || '';
       if (c.type === 'gtrain') {
         const def = UNITS[c.key];
+        const cost = uCost(c.key, p.faction);
         const list = prodBuildings(c.bkind);
         const cnt = list.reduce((n, bl) => n + bl.queue.filter(q => q.key === c.key).length, 0);
         let prog = 0;
         for (const bl of list) if (bl.queue[0] && bl.queue[0].key === c.key) prog = Math.max(prog, bl.queue[0].prog);
-        b.innerHTML = `${hk}<span class="icon">${def.icon}</span><span>${uName(c.key, p.faction).split(' ')[0]}</span><span class="cost">$${def.cost}</span>
+        b.innerHTML = `${hk}<span class="icon">${def.icon}</span><span>${uName(c.key, p.faction).split(' ')[0]}</span><span class="cost">$${cost}</span>
           ${cnt ? `<span class="count">${cnt}</span>` : ''}
           <div class="prog" style="width:${Math.round(prog * 100)}%"></div>`;
-        if (p.money < def.cost) b.classList.add('disabled');
+        if (p.money < cost) b.classList.add('disabled');
       } else if (c.type === 'place') {
         const def = BUILDINGS[c.key];
         const afford = p.money >= def.cost;
@@ -7186,11 +7412,27 @@ const UI = (() => {
         }
       } else if (c.type === 'train') {
         const def = UNITS[c.key];
+        const cost = uCost(c.key, p.faction);
         const cnt = c.building.queue.filter(q => q.key === c.key).length;
-        b.innerHTML = `${hk}<span class="icon">${def.icon}</span><span>${uName(c.key, p.faction).split(' ')[0]}</span><span class="cost">$${def.cost}</span>
+        let atLimit = false;
+        if (def.limitPer) {
+          let n = 0;
+          for (const e of game.ents) {
+            if (e.dead || e.owner !== 0) continue;
+            if (e.kind === 'unit' && e.key === c.key) n++;
+            if (e.kind === 'building') n += (e.queue || []).filter(q => q.key === c.key).length;
+          }
+          atLimit = n >= def.limitPer;
+        }
+        b.innerHTML = `${hk}<span class="icon">${def.icon}</span><span>${uName(c.key, p.faction).split(' ')[0]}</span><span class="cost">${atLimit ? 'MAX' : '$' + cost}</span>
           ${cnt ? `<span class="count">${cnt}</span>` : ''}
           <div class="prog" style="width:${c.building.queue[0] && c.building.queue[0].key === c.key ? Math.round(c.building.queue[0].prog * 100) : 0}%"></div>`;
-        if (p.money < def.cost) b.classList.add('disabled');
+        if (p.money < cost || atLimit) b.classList.add('disabled');
+      } else if (c.type === 'upgrade') {
+        const cost = Math.round(BUILDINGS[c.building.key].cost * c.up.costMul);
+        b.innerHTML = `${hk}<span class="icon">${c.up.icon}</span><span>${c.up.name}</span><span class="cost">$${cost}</span>`;
+        b.classList.add('upg');
+        if (p.money < cost) b.classList.add('disabled');
       } else if (c.type === 'stealthup') {
         const n = c.units.length;
         b.innerHTML = `${hk}<span class="icon">🌑</span><span>Stealth</span><span class="cost">$2,000${n > 1 ? '×' + n : ''}</span>`;
@@ -7242,6 +7484,23 @@ const UI = (() => {
           ok = true;
         }
         if (ok) SFX.click();
+        refreshCmd();
+        break;
+      }
+      case 'upgrade': {
+        const bld = c.building, up = c.up;
+        const cost = Math.round(BUILDINGS[bld.key].cost * up.costMul);
+        if (bld.dead || bld.upgrades[up.key]) { refreshCmd(); break; }
+        if (p.money < cost) { feed('Insufficient funds', 'bad'); SFX.error(); SFX.say('Insufficient funds'); break; }
+        p.spend(cost);
+        bld.upgrades[up.key] = true;
+        if (up.hpMul) {
+          const add = Math.round(bld.def.hp * (up.hpMul - 1));
+          bld.maxHp += add; bld.hp += add;
+        }
+        FX.text(bld.x, bld.y - bld.size * 14, up.icon + ' ' + up.name.toUpperCase(), '#9fdc7c');
+        feed(up.name + ' installed on ' + bName(bld.key, p.faction), 'gold');
+        SFX.cash();
         refreshCmd();
         break;
       }
@@ -7326,8 +7585,12 @@ const UI = (() => {
     } else if (c.type === 'train') {
       const def = UNITS[c.key];
       tooltipHtml(el, `<h4>${def.icon} ${uName(c.key, p.faction)}</h4>
-        <div class="tt-cost">$${def.cost} · ${def.buildTime}s</div>
+        <div class="tt-cost">$${uCost(c.key, p.faction)} · ${def.buildTime}s${def.limitPer ? ' · max ' + def.limitPer : ''}</div>
         <div class="tt-desc">${def.desc}</div>`);
+    } else if (c.type === 'upgrade') {
+      tooltipHtml(el, `<h4>${c.up.icon} ${c.up.name}</h4>
+        <div class="tt-cost">$${Math.round(BUILDINGS[c.building.key].cost * c.up.costMul)} · one-time building upgrade</div>
+        <div class="tt-desc">${c.up.desc}</div>`);
     } else if (c.type === 'stealthup') {
       tooltipHtml(el, `<h4>🌑 Stealth Retrofit</h4>
         <div class="tt-cost">$2,000 per aircraft · requires ★ veterancy · Coalition only</div>
@@ -7704,6 +7967,9 @@ function simStep(dt) {
 
   // AI tick at 2 Hz
   if (game.frame % 15 === 0) AI.tick(0.5);
+
+  // staged supply regeneration at 1 Hz
+  if (game.frame % 30 === 21) world.updateDocks();
 
   // fog recompute at ~5 Hz
   if (game.frame % 6 === 0) {

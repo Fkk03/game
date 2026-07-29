@@ -161,13 +161,27 @@ const RENDER = (() => {
     c.restore();
   }
 
-  function addWreck(x, y, ang, radius) {
+  function addWreck(x, y, ang, radius, air) {
     if (!terrainCtx) return;
     const c = terrainCtx;
     addDecal(x, y, radius * 2.2);
     c.save();
     c.translate(x * TS, y * TS);
     c.rotate(ang);
+    if (air) {
+      // burned airframe: charred dart + snapped wing spars
+      const L = radius * 2.1 * TS;
+      c.fillStyle = '#241f18';
+      c.beginPath();
+      c.moveTo(L * 0.6, 0); c.lineTo(-L * 0.45, -L * 0.16); c.lineTo(-L * 0.45, L * 0.16);
+      c.closePath(); c.fill();
+      c.strokeStyle = '#1a1610'; c.lineWidth = 2 * TS;
+      c.beginPath(); c.moveTo(-L * 0.05, -L * 0.42); c.lineTo(L * 0.1, L * 0.38); c.stroke();
+      c.fillStyle = '#3c362a';
+      for (let i = 0; i < 5; i++) c.fillRect(U.rand(-L * 0.5, L * 0.5), U.rand(-L * 0.4, L * 0.4), U.rand(2, 4), U.rand(1.5, 3));
+      c.restore();
+      return;
+    }
     const w = radius * 1.7 * TS, h = radius * 1.15 * TS;
     c.fillStyle = '#2e2a22';
     c.fillRect(-w / 2, -h / 2, w, h);
@@ -430,6 +444,26 @@ const RENDER = (() => {
   function drawDock(d) {
     const f = d.amount / d.max;
     const rng = U.seededRng(d.seed);
+    if (f <= 0) {
+      // exhausted: leftover pallet marks + regeneration countdown
+      ctx.save();
+      ctx.translate(d.x, d.y);
+      ctx.fillStyle = 'rgba(40,32,20,0.35)';
+      ctx.beginPath(); ctx.ellipse(0, 4, 40, 19, 0, 0, 7); ctx.fill();
+      if (d.regenAt > game.t) {
+        const left = Math.max(0, d.regenAt - game.t);
+        ctx.font = 'bold 13px system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,225,150,0.85)';
+        ctx.fillText('⏳ ' + U.fmtTime(left), 0, -6);
+        ctx.font = '10px system-ui';
+        ctx.fillStyle = 'rgba(220,205,160,0.7)';
+        const nextFrac = [1, 0.75, 0.5, 0.25][Math.min(d.stage + 1, 3)];
+        ctx.fillText('resupply ' + Math.round(nextFrac * 100) + '%', 0, 8);
+      }
+      ctx.restore();
+      return;
+    }
     ctx.save();
     ctx.translate(d.x, d.y);
     ctx.fillStyle = 'rgba(0,0,0,0.18)';
@@ -465,8 +499,14 @@ const RENDER = (() => {
     ctx.fillStyle = 'rgba(24,18,10,0.32)';
     ctx.beginPath(); ctx.ellipse(3.5, 4.5, u.radius * 1.1, u.radius * 0.62, 0, 0, 7); ctx.fill();
 
+    // ground cloak readout (commandos, retrofits): dim while stealthed, bright when exposed
+    if (!u.def.air && hasCloak(u)) {
+      if (isStealthed(u)) ctx.globalAlpha = 0.42 + 0.09 * Math.sin(game.renderT * 5 + u.id);
+      else ctx.globalAlpha = 1;
+    }
     const ch = u.def.chassis;
     if (ch === 'inf' || ch === 'rocketinf') drawInfantry(u, c1, c2);
+    else if (ch === 'commando') drawCommando(u, c1, c2);
     else {
       ctx.rotate(u.angle);
       // every vehicle model gets its own silhouette; chassis is only the fallback
@@ -536,6 +576,43 @@ const RENDER = (() => {
     ctx.rotate(u.tAngle);
     ctx.strokeStyle = '#1c1a14'; ctx.lineWidth = u.def.chassis === 'rocketinf' ? 3 : 1.8;
     ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(u.def.chassis === 'rocketinf' ? 10 : 8, 0); ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+  }
+
+  function drawCommando(u, c1, c2) {
+    const t = game.renderT * 8;
+    const bob = u.moving ? Math.sin(t + u.id) * 1.5 : 0;
+    ctx.save();
+    ctx.translate(0, bob * 0.4);
+    if (u.moving) {
+      ctx.strokeStyle = '#20242c'; ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.moveTo(-2.4, 2); ctx.lineTo(-2.4 + Math.sin(t + u.id) * 3.4, 8);
+      ctx.moveTo(2.4, 2); ctx.lineTo(2.4 - Math.sin(t + u.id) * 3.4, 8);
+      ctx.stroke();
+    }
+    // armored bulk
+    ctx.fillStyle = U.shade(c2, 0.8);
+    ctx.beginPath(); ctx.arc(0, 0, 5.6, 0, 7); ctx.fill();
+    ctx.fillStyle = U.shade(c1, 0.9);
+    ctx.beginPath(); ctx.arc(0, -1.6, 3.8, 0, 7); ctx.fill();
+    // shoulder plates
+    ctx.fillStyle = '#2c3038';
+    ctx.beginPath(); ctx.ellipse(-3.4, 0.5, 1.8, 2.4, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(3.4, 0.5, 1.8, 2.4, 0, 0, 7); ctx.fill();
+    // black ops helmet with glowing visor slit
+    ctx.fillStyle = '#1c2026';
+    ctx.beginPath(); ctx.arc(0, -2.8, 2.7, 0, 7); ctx.fill();
+    ctx.fillStyle = isStealthed(u) ? '#6fe0c8' : '#ff9c50';
+    ctx.fillRect(-1.8, -3.4, 3.6, 1.1);
+    // long marksman rifle
+    ctx.save();
+    ctx.rotate(u.tAngle);
+    ctx.strokeStyle = '#10141a'; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(13, 0); ctx.stroke();
+    ctx.strokeStyle = '#3c424e'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(6, -1.6); ctx.lineTo(9, -1.6); ctx.stroke();
     ctx.restore();
     ctx.restore();
   }
@@ -2105,6 +2182,22 @@ const RENDER = (() => {
       c.fillStyle = e.owner === -1 ? '#999' : p.color;
       const s = e.kind === 'building' ? Math.max(3, e.size * sx) : 2;
       c.fillRect(e.x / TILE * sx - s / 2, e.y / TILE * sy - s / 2, s, s);
+    }
+    // superweapon sites & silos: public knowledge — blinking warning through the fog
+    for (const e of game.ents) {
+      if (e.dead || e.kind !== 'building' || e.key !== 'superweapon') continue;
+      const px = e.x / TILE * sx, py = e.y / TILE * sy;
+      const friendly = game.players[e.owner] && game.players[e.owner].team === humanTeam;
+      const blink = Math.floor(game.renderT * 3) % 2 === 0;
+      if (blink || friendly) {
+        c.fillStyle = friendly ? '#ffd76a' : '#ff4030';
+        c.beginPath();
+        c.moveTo(px, py - 5); c.lineTo(px + 4.5, py + 3); c.lineTo(px - 4.5, py + 3);
+        c.closePath(); c.fill();
+        c.fillStyle = '#000';
+        c.fillRect(px - 0.7, py - 2.5, 1.4, 3);
+        c.fillRect(px - 0.7, py + 1.2, 1.4, 1.2);
+      }
     }
     // fog overlay
     c.globalAlpha = 1;

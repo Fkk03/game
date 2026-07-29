@@ -148,6 +148,7 @@ class World {
     this.docks.push({
       x: (cx + 1) * TILE, y: (cy + 1) * TILE,
       amount, max: amount, tiles,
+      stage: 0, regenAt: 0,       // staged regeneration: 75% → 50% → 25% (cap), 20 min each
       seed: Math.floor(rng() * 1e9),
     });
   }
@@ -164,6 +165,22 @@ class World {
     if (d.amount <= 0) {
       d.amount = 0;
       for (const t of d.tiles) this.blocked[this.idx(t.tx, t.ty)] = 0;
+      d.regenAt = game.t + 1200;         // 20 minutes to the next staged refill
+    }
+  }
+
+  /* staged supply regeneration — called at 1 Hz from the sim */
+  updateDocks() {
+    for (const d of this.docks) {
+      if (d.amount > 0 || !d.regenAt || game.t < d.regenAt) continue;
+      d.stage = Math.min(d.stage + 1, 3);
+      const frac = [1, 0.75, 0.5, 0.25][d.stage];
+      d.amount = Math.round(d.max * frac);
+      d.regenAt = 0;
+      // re-block pile tiles that are still free (a building may have claimed one)
+      for (const t of d.tiles) {
+        if (this.blocked[this.idx(t.tx, t.ty)] === 0) this.blocked[this.idx(t.tx, t.ty)] = 2;
+      }
     }
   }
 
