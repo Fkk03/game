@@ -62,15 +62,19 @@ python3 -m http.server 8080
 - **Aegis Storm / Dragonhail / Sky Reaper** — elite quad-autocannon AA tank (all factions):
   3× the cost of standard AA, ~4× the punch — 340 range, heavy armor, shreds strike jets
   before they can line up a second pass
-- **Spy war** — unarmed stealth spy planes with enormous sight, invisible to the enemy
-  unless a satellite-detection radar truck is in scan range
-- **Umbra Ghost Strike** (Coalition only) — a cloaked strike jet with Seraph-grade
-  missiles at triple the price. Dimmed colors = cloaked (only detectors see it);
-  firing drops the cloak for ~5 s (colors flare bright + decloak ring) before it
-  fades back out
+- **Spy war** — unarmed stealth spy planes with enormous sight, completely undetectable
+  and untouchable: no weapon in the game can target or harm a pure recon plane
+- **Umbra Ghost Strike** (Coalition only) — a cloaked super-jet, 3–4× a Seraph:
+  six 7,500-dmg missiles, faster, far tougher. Dimmed colors = cloaked (only
+  detectors see it); firing exposes it for ~1 s (colors flare bright + decloak
+  ring) before it fades back out
 - **Stealth Retrofit** (Coalition only) — any aircraft with ★ veterancy can be
   fitted with a cloak for $2,000 (select the plane → 🌑 button / hotkey R). Same
-  rules as the Umbra: invisible in flight, ~5 s visible after firing
+  rules as the Umbra: invisible in flight, ~1 s visible after firing
+- **Cloak armor** — while a stealth aircraft's cloak is active, every hit against
+  it (flak, rockets, bullets, turrets) deals 75% less damage
+- **Pick your corner** — a lobby option chooses your team's approximate start
+  bearing (N/S/E/W and diagonals); enemies spawn on the opposite side
 - **Superweapons toggle** — a lobby switch to allow or disable superweapons for the
   whole match (you and every AI)
 - **Power grid** — run out of power and production crawls while defenses go offline

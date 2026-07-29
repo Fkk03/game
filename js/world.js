@@ -2,11 +2,12 @@
 'use strict';
 
 class World {
-  constructor(wTiles, hTiles, seed, playerTeams) {
+  constructor(wTiles, hTiles, seed, playerTeams, startAng) {
     this.w = wTiles; this.h = hTiles;
     this.pw = wTiles * TILE; this.ph = hTiles * TILE;   // pixel size
     this.seed = seed;
     this.playerTeams = playerTeams || [0, 1];   // team id per player slot
+    this.startAng = startAng;                   // player team's ring angle (undefined = default SW)
     this.terrain = new Uint8Array(wTiles * hTiles);     // 0 sand, 1 rough, 2 cliff (impassable)
     this.blocked = new Uint8Array(wTiles * hTiles);     // 0 free, 1 building, 2 supply pile
     this.explored = new Uint8Array(wTiles * hTiles);    // player fog
@@ -58,7 +59,8 @@ class World {
     const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.36;
     const byTeam = {};
     teams.forEach((t, pi) => { (byTeam[t] = byTeam[t] || []).push(pi); });
-    const baseAng = { 0: Math.PI * 0.75, 1: -Math.PI * 0.25 };   // SW / NE
+    const myAng = this.startAng !== undefined ? this.startAng : Math.PI * 0.75;
+    const baseAng = { 0: myAng, 1: myAng + Math.PI };   // player's team at the chosen bearing, enemies opposite
     this.starts = new Array(teams.length);
     for (const t in byTeam) {
       const members = byTeam[t];

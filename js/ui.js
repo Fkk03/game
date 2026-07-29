@@ -12,7 +12,7 @@ const UI = (() => {
 
   /* menu config state */
   const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000,
-    allies: 0, enemies: 1, mode: 'domination', superweapons: 'on' };
+    allies: 0, enemies: 1, mode: 'domination', superweapons: 'on', startPos: 'auto' };
 
   function init() {
     mmCanvas = $('minimap');
@@ -35,6 +35,9 @@ const UI = (() => {
     buildPills('mode-pick', [['domination', '⚑ Domination (first team to 1,000 pts)'], ['annihilation', '💀 Annihilation only']],
       v => cfg.mode = v, 'domination');
     buildPills('sw-pick', [['on', 'Allowed'], ['off', 'Disabled']], v => cfg.superweapons = v, 'on');
+    buildPills('pos-pick', [['auto', 'Auto'], ['nw', '↖ NW'], ['n', '↑ N'], ['ne', '↗ NE'],
+      ['w', '← W'], ['e', '→ E'], ['sw', '↙ SW'], ['s', '↓ S'], ['se', '↘ SE']],
+      v => cfg.startPos = v, 'auto');
     buildPills('allies-pick', [[0, 'None'], [1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5']], v => cfg.allies = +v, 0);
     buildPills('enemies-pick', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7'], [8, '8']],
       v => cfg.enemies = +v, 1);
@@ -637,7 +640,7 @@ const UI = (() => {
     } else if (c.type === 'stealthup') {
       tooltipHtml(el, `<h4>🌑 Stealth Retrofit</h4>
         <div class="tt-cost">$2,000 per aircraft · requires ★ veterancy · Coalition only</div>
-        <div class="tt-desc">Fit a cloak to this veteran aircraft. It stays invisible in flight (only satellite-detection units can see it), decloaks for ~5 s when it fires, then fades back out. Colors dim while cloaked, brighten while visible.</div>`);
+        <div class="tt-desc">Fit a cloak to this veteran aircraft. It stays invisible in flight (only satellite-detection units can see it), decloaks for ~1 s when it fires, then fades back out. While cloaked it takes 75% less damage. Colors dim while cloaked, brighten while visible.</div>`);
     } else if (c.type === 'attackmove') {
       tooltipHtml(el, `<h4>⚔️ Attack-Move</h4><div class="tt-desc">Move while engaging every enemy on the way. Hotkey A, then click the map.</div>`);
     } else if (c.type === 'stop') {

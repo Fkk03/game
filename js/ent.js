@@ -36,6 +36,8 @@ function isDetectedBy(e, team) {
   if (!hasCloak(e)) return true;
   const p = game.players[e.owner];
   if (p && p.team === team) return true;
+  // unarmed recon planes are beyond detection entirely
+  if (e.def && e.def.stealthAir && !e.def.weapon) return false;
   for (const d of game.ents) {
     if (d.dead || d.kind !== 'unit' || !d.def.detect) continue;
     const dp = game.players[d.owner];
@@ -46,7 +48,11 @@ function isDetectedBy(e, team) {
 }
 
 function weaponCanHit(w, target) {
-  if (target.kind === 'unit' && target.def.air) return !!w.aa;
+  if (target.kind === 'unit' && target.def.air) {
+    // unarmed recon planes are ghosts: no weapon in the game can target them
+    if (target.def.stealthAir && !target.def.weapon) return false;
+    return !!w.aa;
+  }
   return w.ga !== false;
 }
 
@@ -67,9 +73,13 @@ function effDamage(w, attacker) {
    air power hits units at 70% and structures at only 30% */
 function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   if (!target || target.dead) return;
+  // pure recon planes (unarmed stealth) are untouchable — nothing harms them
+  if (target.kind === 'unit' && target.def.stealthAir && !target.def.weapon) return;
   const mod = (DMG_MOD[dtype] && DMG_MOD[dtype][target.armor] !== undefined) ? DMG_MOD[dtype][target.armor] : 1;
   let dmg = rawDmg * mod;
   if (fromAir) dmg *= target.kind === 'building' ? 0.3 : 0.7;
+  // an active cloak scatters targeting locks: stealthed aircraft take 75% less from everything
+  if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.25;
   if (dmg <= 0) return;
   target.hp -= dmg;
 
@@ -774,7 +784,7 @@ class Unit {
           this.cool = w.cd;
           fireWeapon(this, w, t);
           this.ammo--;
-          if (def.decloakOnFire || this.stealthUpgrade) this.decloakUntil = game.t + (def.decloakOnFire || 5);
+          if (def.decloakOnFire || this.stealthUpgrade) this.decloakUntil = game.t + (def.decloakOnFire || 1);
           if (!this._shots || game.t - (this._shotsT || 0) > 6) this._shots = {};
           this._shots[t.id] = (this._shots[t.id] || 0) + 1;
           this._shotsT = game.t;

@@ -319,7 +319,8 @@ const AI = (() => {
       const ep = enemyProfile();
       const comp = { ...baseComp };
       // counter-intel: enemy spy planes in the air -> field detectors
-      const enemySpies = game.ents.some(e => !e.dead && e.kind === 'unit' && hasCloak(e) && isEnemyEnt(e));
+      // detectors only matter against ARMED cloaked aircraft — pure recon planes are undetectable
+      const enemySpies = game.ents.some(e => !e.dead && e.kind === 'unit' && hasCloak(e) && e.def.weapon && isEnemyEnt(e));
       const myDetectors = myUnits('detector').length;
       if (enemySpies && myDetectors < 2) comp.detector = 2;
       if (ep) {

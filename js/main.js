@@ -92,7 +92,11 @@ function startGame(cfg) {
   const minIdx = total >= 10 ? 4 : total >= 7 ? 3 : total >= 5 ? 2 : total >= 4 ? 1 : 0;
   if (sizeOrder.indexOf(mapKey) < minIdx) mapKey = sizeOrder[minIdx];
   const ms = MAPSIZES[mapKey];
-  world = new World(ms.w, ms.h, (Math.random() * 1e9) | 0, game.players.map(p => p.team));
+  // approximate start bearing chosen in the lobby (enemies spawn opposite)
+  const START_ANGLES = { w: Math.PI, e: 0, n: -Math.PI / 2, s: Math.PI / 2,
+    nw: -Math.PI * 0.75, ne: -Math.PI * 0.25, sw: Math.PI * 0.75, se: Math.PI * 0.25 };
+  const startAng = START_ANGLES[cfg.startPos];   // undefined for 'auto' → classic SW
+  world = new World(ms.w, ms.h, (Math.random() * 1e9) | 0, game.players.map(p => p.team), startAng);
 
   // starting base: CC + dozer for every player
   for (let pi = 0; pi < total; pi++) {

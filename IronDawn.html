@@ -329,6 +329,10 @@ ul.howto b { color:#ffe9a0; }
           <div class="menu-label">SUPERWEAPONS</div>
           <div id="sw-pick" class="pills"></div>
         </div>
+        <div class="menu-section">
+          <div class="menu-label">YOUR START POSITION</div>
+          <div id="pos-pick" class="pills"></div>
+        </div>
       </div>
       <div class="menu-row">
         <div class="menu-section">
@@ -750,14 +754,14 @@ const UNITS = {
     icon: '🛰️', cost: 1600, hp: 300, speed: 265, sight: 18, radius: 13,
     armor: 'air', buildTime: 14, chassis: 'jet', air: true, ammo: 0, noAutoAttack: true,
     stealthAir: true,
-    desc: 'Unarmed stealth recon aircraft with enormous sight. Invisible to the enemy unless a detection unit is nearby.',
+    desc: 'Unarmed stealth recon aircraft with enormous sight. Completely undetectable and untouchable — no weapon in the game can target or harm it.',
   },
   umbra: {
-    name: 'Umbra Ghost Strike', icon: '🌑', cost: 11700, hp: 950, speed: 250, sight: 12, radius: 16,
-    armor: 'air', buildTime: 32, chassis: 'jet', air: true, ammo: 3,
-    stealthAir: true, decloakOnFire: 5,
-    desc: 'Coalition-exclusive stealth strike jet. Cloaked in flight (colors dim) — only satellite-detection units can see it. Firing drops the cloak for ~5 s (colors brighten), then it fades back out. Seraph-grade firepower at triple the price.',
-    weapon: { dmg: 5000, dtype: 'rocket', range: 175, cd: 0.5, projectile: 'missile', splash: 182, aa: false, ga: true },
+    name: 'Umbra Ghost Strike', icon: '🌑', cost: 11700, hp: 2400, speed: 290, sight: 13, radius: 16,
+    armor: 'air', buildTime: 34, chassis: 'jet', air: true, ammo: 6,
+    stealthAir: true, decloakOnFire: 1,
+    desc: 'Coalition-exclusive stealth strike jet, 3–4× a Seraph in every way: six 7,500-dmg missiles, faster, far tougher. Cloaked in flight (colors dim); firing exposes it for ~1 s (colors brighten), then it fades back out.',
+    weapon: { dmg: 7500, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 220, aa: false, ga: true },
   },
   seraph: {
     name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,
@@ -1119,11 +1123,12 @@ const SFX = (() => {
 'use strict';
 
 class World {
-  constructor(wTiles, hTiles, seed, playerTeams) {
+  constructor(wTiles, hTiles, seed, playerTeams, startAng) {
     this.w = wTiles; this.h = hTiles;
     this.pw = wTiles * TILE; this.ph = hTiles * TILE;   // pixel size
     this.seed = seed;
     this.playerTeams = playerTeams || [0, 1];   // team id per player slot
+    this.startAng = startAng;                   // player team's ring angle (undefined = default SW)
     this.terrain = new Uint8Array(wTiles * hTiles);     // 0 sand, 1 rough, 2 cliff (impassable)
     this.blocked = new Uint8Array(wTiles * hTiles);     // 0 free, 1 building, 2 supply pile
     this.explored = new Uint8Array(wTiles * hTiles);    // player fog
@@ -1175,7 +1180,8 @@ class World {
     const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.36;
     const byTeam = {};
     teams.forEach((t, pi) => { (byTeam[t] = byTeam[t] || []).push(pi); });
-    const baseAng = { 0: Math.PI * 0.75, 1: -Math.PI * 0.25 };   // SW / NE
+    const myAng = this.startAng !== undefined ? this.startAng : Math.PI * 0.75;
+    const baseAng = { 0: myAng, 1: myAng + Math.PI };   // player's team at the chosen bearing, enemies opposite
     this.starts = new Array(teams.length);
     for (const t in byTeam) {
       const members = byTeam[t];
@@ -1904,6 +1910,8 @@ function isDetectedBy(e, team) {
   if (!hasCloak(e)) return true;
   const p = game.players[e.owner];
   if (p && p.team === team) return true;
+  // unarmed recon planes are beyond detection entirely
+  if (e.def && e.def.stealthAir && !e.def.weapon) return false;
   for (const d of game.ents) {
     if (d.dead || d.kind !== 'unit' || !d.def.detect) continue;
     const dp = game.players[d.owner];
@@ -1914,7 +1922,11 @@ function isDetectedBy(e, team) {
 }
 
 function weaponCanHit(w, target) {
-  if (target.kind === 'unit' && target.def.air) return !!w.aa;
+  if (target.kind === 'unit' && target.def.air) {
+    // unarmed recon planes are ghosts: no weapon in the game can target them
+    if (target.def.stealthAir && !target.def.weapon) return false;
+    return !!w.aa;
+  }
   return w.ga !== false;
 }
 
@@ -1935,9 +1947,13 @@ function effDamage(w, attacker) {
    air power hits units at 70% and structures at only 30% */
 function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   if (!target || target.dead) return;
+  // pure recon planes (unarmed stealth) are untouchable — nothing harms them
+  if (target.kind === 'unit' && target.def.stealthAir && !target.def.weapon) return;
   const mod = (DMG_MOD[dtype] && DMG_MOD[dtype][target.armor] !== undefined) ? DMG_MOD[dtype][target.armor] : 1;
   let dmg = rawDmg * mod;
   if (fromAir) dmg *= target.kind === 'building' ? 0.3 : 0.7;
+  // an active cloak scatters targeting locks: stealthed aircraft take 75% less from everything
+  if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.25;
   if (dmg <= 0) return;
   target.hp -= dmg;
 
@@ -2642,7 +2658,7 @@ class Unit {
           this.cool = w.cd;
           fireWeapon(this, w, t);
           this.ammo--;
-          if (def.decloakOnFire || this.stealthUpgrade) this.decloakUntil = game.t + (def.decloakOnFire || 5);
+          if (def.decloakOnFire || this.stealthUpgrade) this.decloakUntil = game.t + (def.decloakOnFire || 1);
           if (!this._shots || game.t - (this._shotsT || 0) > 6) this._shots = {};
           this._shots[t.id] = (this._shots[t.id] || 0) + 1;
           this._shotsT = game.t;
@@ -5884,7 +5900,8 @@ const AI = (() => {
       const ep = enemyProfile();
       const comp = { ...baseComp };
       // counter-intel: enemy spy planes in the air -> field detectors
-      const enemySpies = game.ents.some(e => !e.dead && e.kind === 'unit' && hasCloak(e) && isEnemyEnt(e));
+      // detectors only matter against ARMED cloaked aircraft — pure recon planes are undetectable
+      const enemySpies = game.ents.some(e => !e.dead && e.kind === 'unit' && hasCloak(e) && e.def.weapon && isEnemyEnt(e));
       const myDetectors = myUnits('detector').length;
       if (enemySpies && myDetectors < 2) comp.detector = 2;
       if (ep) {
@@ -6686,7 +6703,7 @@ const UI = (() => {
 
   /* menu config state */
   const cfg = { faction: 'coalition', enemy: 'random', diff: 'normal', map: 'medium', money: 10000,
-    allies: 0, enemies: 1, mode: 'domination', superweapons: 'on' };
+    allies: 0, enemies: 1, mode: 'domination', superweapons: 'on', startPos: 'auto' };
 
   function init() {
     mmCanvas = $('minimap');
@@ -6709,6 +6726,9 @@ const UI = (() => {
     buildPills('mode-pick', [['domination', '⚑ Domination (first team to 1,000 pts)'], ['annihilation', '💀 Annihilation only']],
       v => cfg.mode = v, 'domination');
     buildPills('sw-pick', [['on', 'Allowed'], ['off', 'Disabled']], v => cfg.superweapons = v, 'on');
+    buildPills('pos-pick', [['auto', 'Auto'], ['nw', '↖ NW'], ['n', '↑ N'], ['ne', '↗ NE'],
+      ['w', '← W'], ['e', '→ E'], ['sw', '↙ SW'], ['s', '↓ S'], ['se', '↘ SE']],
+      v => cfg.startPos = v, 'auto');
     buildPills('allies-pick', [[0, 'None'], [1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5']], v => cfg.allies = +v, 0);
     buildPills('enemies-pick', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6'], [7, '7'], [8, '8']],
       v => cfg.enemies = +v, 1);
@@ -7311,7 +7331,7 @@ const UI = (() => {
     } else if (c.type === 'stealthup') {
       tooltipHtml(el, `<h4>🌑 Stealth Retrofit</h4>
         <div class="tt-cost">$2,000 per aircraft · requires ★ veterancy · Coalition only</div>
-        <div class="tt-desc">Fit a cloak to this veteran aircraft. It stays invisible in flight (only satellite-detection units can see it), decloaks for ~5 s when it fires, then fades back out. Colors dim while cloaked, brighten while visible.</div>`);
+        <div class="tt-desc">Fit a cloak to this veteran aircraft. It stays invisible in flight (only satellite-detection units can see it), decloaks for ~1 s when it fires, then fades back out. While cloaked it takes 75% less damage. Colors dim while cloaked, brighten while visible.</div>`);
     } else if (c.type === 'attackmove') {
       tooltipHtml(el, `<h4>⚔️ Attack-Move</h4><div class="tt-desc">Move while engaging every enemy on the way. Hotkey A, then click the map.</div>`);
     } else if (c.type === 'stop') {
@@ -7539,7 +7559,11 @@ function startGame(cfg) {
   const minIdx = total >= 10 ? 4 : total >= 7 ? 3 : total >= 5 ? 2 : total >= 4 ? 1 : 0;
   if (sizeOrder.indexOf(mapKey) < minIdx) mapKey = sizeOrder[minIdx];
   const ms = MAPSIZES[mapKey];
-  world = new World(ms.w, ms.h, (Math.random() * 1e9) | 0, game.players.map(p => p.team));
+  // approximate start bearing chosen in the lobby (enemies spawn opposite)
+  const START_ANGLES = { w: Math.PI, e: 0, n: -Math.PI / 2, s: Math.PI / 2,
+    nw: -Math.PI * 0.75, ne: -Math.PI * 0.25, sw: Math.PI * 0.75, se: Math.PI * 0.25 };
+  const startAng = START_ANGLES[cfg.startPos];   // undefined for 'auto' → classic SW
+  world = new World(ms.w, ms.h, (Math.random() * 1e9) | 0, game.players.map(p => p.team), startAng);
 
   // starting base: CC + dozer for every player
   for (let pi = 0; pi < total; pi++) {
