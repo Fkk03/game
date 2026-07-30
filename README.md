@@ -39,6 +39,27 @@ python3 -m http.server 8080
   supplies, and stuck construction is recycled instead of freezing the base. AI bases
   keep walkable lanes between structures, and their defenses spread out across the
   threat-facing arc instead of clumping on one spot
+- **Generals who think before they charge** — each AI keeps a live threat map of your
+  defenses (every emplacement and dug-in squad, its reach and its rate of fire) and uses
+  it to pick a fight it can win:
+  - **Finds the weak point** — structures are ranked by worth against the fire covering
+    them, so an undefended factory outranks a fortified one and half-built sites get
+    rushed
+  - **Picks the soft flank** — it rings the objective with candidate staging points and
+    scores each approach corridor by the guns it crosses, then attacks from the quiet side
+  - **Won't feed the grinder** — a wave only commits if it can actually break what's
+    waiting; otherwise it peels the outer emplacements first. Reinforcements muster and
+    move up as a group instead of trickling in one at a time, wounded units peel off to
+    the repair bay, and artillery shells the line from outside its reach instead of
+    driving into it
+  - **Knows when to quit** — an assault that can't dent its objective breaks contact,
+    regroups, and comes back heavier; the target and the doctrine that failed both go to
+    the back of the queue
+  - **Switches doctrine** — massed push, artillery siege, air strike or economy raid,
+    chosen from what it has and what you've fortified. Dense anti-air makes it buy
+    artillery instead of jets; an AA-blind gun line makes it press the air advantage
+- **AI war chest** — every AI general is resupplied with **$100,000 every 10 minutes**,
+  so the pressure never lets up in a long game
 - **3 asymmetric factions**
   - 🦅 **Meridian Coalition** — expensive high-tech elite units, strike jets, precision firepower
   - 🐲 **Crimson Dynasty** — cheap infantry hordes (Horde bonus!), heavy Warlord tanks, flame weapons, nukes
@@ -60,9 +81,9 @@ python3 -m http.server 8080
 - **Cartel war economy** — Scorpion Cartel infantry costs 40% less and ground combat
   vehicles 30% less, everywhere prices appear
 - **Cheap steel** — tanks cost 50% less for every faction EXCEPT the Meridian Coalition
-- **Albatross Gunship** (Coalition) — a triple-strength combat transport helicopter
-  (3× health, damage and speed): carries 20 soldiers, guns down infantry with its chin
-  turret and fires rockets at armor — hits like a heavy tank and outruns every jet.
+- **Albatross Gunship** (Coalition) — a heavy combat transport helicopter (3× health and
+  damage): carries 20 soldiers, guns down infantry with its chin turret and fires rockets
+  at armor — hits like a heavy tank, but lumbers across the map at gunship pace.
   Select troops → right-click to board; Unload (F) deploys. Shot down = everyone dies
 - **Twin base defenses** — every faction fields two: the rapid-fire **Gatling Defense**
   ($800, ~700 range — shreds infantry, light vehicles and aircraft, barely dents heavy
@@ -105,7 +126,8 @@ python3 -m http.server 8080
   fitted with a cloak for $2,000 (select the plane → 🌑 button / hotkey R). Same
   rules as the Umbra: invisible in flight, ~1 s visible after firing
 - **Cloak armor** — while a stealth aircraft's cloak is active, every hit against
-  it (flak, rockets, bullets, turrets) deals 75% less damage
+  it (flak, rockets, bullets, defenses) deals half damage — cloak buys you a
+  scattered targeting lock, not invulnerability
 - **Pick your corner** — a lobby option chooses your team's approximate start
   bearing (N/S/E/W and diagonals); enemies spawn on the opposite side
 - **Superweapons toggle** — a lobby switch to allow or disable superweapons for the

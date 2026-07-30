@@ -31,6 +31,9 @@ const DIFFICULTY = {
   hard:   { label: 'Hard',    income: 1.35, startBonus: 5000, firstAttack: 170, waveEvery: 70,  harass: true,  superweapon: true,  powers: 3, armyCap: 80 },
 };
 
+/* AI war chest: every AI general is resupplied this much every 10 minutes */
+const AI_CASH_DROP = 100000;
+
 const MAPSIZES = {
   small:  { label: 'Small',  w: 72,  h: 72 },
   medium: { label: 'Medium', w: 96,  h: 96 },
@@ -233,7 +236,7 @@ const UNITS = {
     detect: 380,
   },
   albatross: {
-    name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 2850, speed: 525, sight: 8, radius: 19,
+    name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 2850, speed: 262, sight: 8, radius: 19,
     armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true,
     capacity: 20,
     desc: 'Coalition gunship-transport. Carries up to 20 soldiers, guns down infantry with its chin turret and fires rockets at armor — triple-strength airframe: 3× the health, damage and speed. Unload (F) deploys the troops.',

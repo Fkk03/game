@@ -563,6 +563,9 @@ const DIFFICULTY = {
   hard:   { label: 'Hard',    income: 1.35, startBonus: 5000, firstAttack: 170, waveEvery: 70,  harass: true,  superweapon: true,  powers: 3, armyCap: 80 },
 };
 
+/* AI war chest: every AI general is resupplied this much every 10 minutes */
+const AI_CASH_DROP = 100000;
+
 const MAPSIZES = {
   small:  { label: 'Small',  w: 72,  h: 72 },
   medium: { label: 'Medium', w: 96,  h: 96 },
@@ -765,7 +768,7 @@ const UNITS = {
     detect: 380,
   },
   albatross: {
-    name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 2850, speed: 525, sight: 8, radius: 19,
+    name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 2850, speed: 262, sight: 8, radius: 19,
     armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true,
     capacity: 20,
     desc: 'Coalition gunship-transport. Carries up to 20 soldiers, guns down infantry with its chin turret and fires rockets at armor — triple-strength airframe: 3× the health, damage and speed. Unload (F) deploys the troops.',
@@ -2060,8 +2063,8 @@ function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   if (fromAir) dmg *= target.kind === 'building' ? 0.3 : 0.7;
   if (target.def && target.def.resist && target.def.resist[dtype]) dmg *= target.def.resist[dtype];
   if (target.kind === 'building' && target.upgrades && target.upgrades.plating) dmg *= 0.75;
-  // an active cloak scatters targeting locks: stealthed aircraft take 75% less from everything
-  if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.25;
+  // an active cloak scatters targeting locks: stealthed aircraft still take half damage
+  if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.5;
   if (dmg <= 0) return;
   target.hp -= dmg;
   target.lastHitT = game.t;
@@ -6147,6 +6150,15 @@ const AI = (() => {
       powerUseT: 20 + U.rand(0, 10),
       waveSize: 6,
       armyValueStart: 0,
+      strategy: 'push',        // push | siege | air | raid
+      stratFail: {},           // doctrine → recent failures, steers the next choice
+      plan: null,              // {strategy, target, threat, approach}
+      failedTargets: {},       // targetId → time a wave broke against it
+      regroupUntil: 0,         // no fresh assault before this — rebuild first
+      withdrawT: 0,
+      reinforceReady: false,
+      targetHpStart: 1,
+      cashT: 600,              // war-chest drop every 10 minutes
     };
 
     const p = () => game.players[pi];
@@ -6241,6 +6253,148 @@ const AI = (() => {
         if (d < bd) { bd = d; best = e; }
       }
       return best;
+    }
+
+    /* =================================================================
+       THREAT MODEL — the AI reads the enemy's defenses before committing.
+       Every defensive emplacement and every unit sitting on guard is
+       catalogued with its reach and sustained damage, so the brain can ask
+       "how much fire covers this spot?" instead of walking in blind.
+       Rebuilt every 7 s and shared by every query in between.
+    ================================================================= */
+    const MOBILE_DEF_CAP = 40;
+    let defT = -99, defCache = [];
+    function enemyDefenses() {
+      if (game.t - defT < 7) return defCache;
+      defT = game.t;
+      const hard = [], soft = [];
+      for (const e of game.ents) {
+        if (e.dead || !isEnemyEnt(e)) continue;
+        let w = null, weight = 1;
+        if (e.kind === 'building') {
+          if (!e.constructed) continue;
+          const pe = game.players[e.owner];
+          w = e.def.weaponByFaction && pe ? e.def.weaponByFaction[pe.faction] : null;
+        } else if (e.kind === 'unit' && e.def.weapon && !e.def.air) {
+          const ot = e.order.type;
+          // only troops actually holding ground count as fixed defense
+          if (ot !== 'guard' && ot !== 'idle' && ot !== 'guardarea') continue;
+          w = e.def.weapon;
+          weight = 0.6;                       // mobile: may not be here when we arrive
+        }
+        if (!w) continue;
+        const rec = { id: e.id, x: e.x, y: e.y, r: w.range, minR: w.minRange || 0,
+          dps: w.dmg / Math.max(0.15, w.cd) * weight,
+          aa: !!w.aa, ga: w.ga !== false, hard: e.kind === 'building' };
+        (rec.hard ? hard : soft).push(rec);
+      }
+      // emplacements always count; mobile defenders are capped to the heaviest few so
+      // the threat lookups stay cheap in a fourteen-army game
+      if (soft.length > MOBILE_DEF_CAP) {
+        soft.sort((a, b) => b.dps - a.dps);
+        soft.length = MOBILE_DEF_CAP;
+      }
+      defCache = hard.concat(soft);
+      return defCache;
+    }
+
+    /* how much enemy fire covers this spot? mode: 'ground' | 'air' */
+    function threatAt(x, y, mode) {
+      let t = 0;
+      for (const d of enemyDefenses()) {
+        if (mode === 'air' ? !d.aa : !d.ga) continue;
+        const dist = U.dist(x, y, d.x, d.y);
+        if (dist <= d.r && dist >= d.minR) t += d.dps;
+      }
+      return t;
+    }
+
+    /* the enemy's fortification mix: how much of their static firepower shoots up,
+       how much shoots along the ground, and how many emplacements there are */
+    function enemyDefenseMix() {
+      let aa = 0, ga = 0, n = 0;
+      for (const d of enemyDefenses()) {
+        if (!d.hard) continue;
+        n++;
+        if (d.aa) aa += d.dps;
+        if (d.ga) ga += d.dps;
+      }
+      return { aa, ga, n };
+    }
+
+    /* what KIND of defense guards this spot — picks the right counter-units */
+    function defenseProfileAt(x, y) {
+      let aa = 0, ground = 0, hard = 0;
+      for (const d of enemyDefenses()) {
+        if (U.dist(x, y, d.x, d.y) > d.r * 1.15) continue;
+        if (d.aa) aa += d.dps;
+        if (d.ga) ground += d.dps;
+        if (d.hard) hard += d.dps;
+      }
+      return { aa, ground, hard };
+    }
+
+    /* every enemy structure scored: worth a lot, guarded lightly, close by = go there.
+       This is the "find the weak point" pass. */
+    const TARGET_VALUE = { superweapon: 3.2, cc: 2.4, factory: 2.0, nuclear: 1.9, airfield: 1.8,
+      supply: 1.7, power: 1.5, barracks: 1.3, market: 1.0, repairbay: 0.9, artdef: 0.6, gatdef: 0.5 };
+    let rankT = { ground: -99, air: -99 }, rankCache = { ground: [], air: [] };
+    function rankedTargets(mode) {
+      mode = mode || 'ground';
+      if (game.t - rankT[mode] < 5) return rankCache[mode];
+      rankT[mode] = game.t;
+      const anchor = baseAnchor();
+      const out = [];
+      for (const e of game.ents) {
+        if (e.dead || e.kind !== 'building' || !isEnemyEnt(e)) continue;
+        const th = threatAt(e.x, e.y, mode);
+        const dist = anchor ? U.dist(anchor.x, anchor.y, e.x, e.y) : 0;
+        let val = TARGET_VALUE[e.key] || 1;
+        if (!e.constructed) val *= 1.7;                 // a half-built site is a free kill
+        // a target that already broke one of our waves goes to the back of the queue
+        if (S.failedTargets[e.id] && game.t - S.failedTargets[e.id] < 150) val *= 0.25;
+        const score = val * 1000 / ((1 + th / 55) * (1 + dist / 2400));
+        out.push({ ent: e, score, threat: th, dist });
+      }
+      out.sort((a, b) => b.score - a.score);
+      rankCache[mode] = out;
+      return out;
+    }
+
+    /* the softest way in: ring the target with candidate staging points and
+       score the final approach corridor by the fire it has to cross */
+    function pickApproach(target, mode) {
+      const anchor = baseAnchor();
+      if (!anchor || !target) return null;
+      const R = 560;
+      let best = null, bestCost = Infinity;
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2 + 0.13;
+        const sx = target.x + Math.cos(a) * R, sy = target.y + Math.sin(a) * R;
+        if (!world.inb(Math.floor(sx / TILE), Math.floor(sy / TILE))) continue;
+        if (!world.passableWorld(sx, sy)) continue;
+        let cost = 0;
+        for (let k = 1; k <= 6; k++) {
+          const t = k / 6;
+          cost += threatAt(U.lerp(sx, target.x, t), U.lerp(sy, target.y, t), mode || 'ground');
+        }
+        cost += U.dist(anchor.x, anchor.y, sx, sy) / 10;   // mild preference for shorter marches
+        if (cost < bestCost) { bestCost = cost; best = { x: sx, y: sy, cost: bestCost }; }
+      }
+      return best;
+    }
+
+    /* rough combat power of a unit list — used to decide whether a wave can
+       actually break what is waiting for it */
+    function forcePower(units) {
+      let pw = 0;
+      for (const u of units) {
+        const w = u.def.weapon;
+        if (!w && !u.def.suicide) continue;
+        const dps = w ? w.dmg / Math.max(0.2, w.cd) : u.def.cost / 12;
+        pw += dps * (u.hp / Math.max(1, u.maxHp)) * (1 + u.vetRank * 0.15);
+      }
+      return pw;
     }
 
     /* attackmove toward a target; direct attack when auto-acquire can't see it
@@ -6483,6 +6637,22 @@ const AI = (() => {
           }
         }
       }
+      // read the enemy's FORTIFICATIONS too and build what actually gets through them
+      const mix = enemyDefenseMix();
+      const AIR_KEYS = ['falcon', 'seraph', 'vulture', 'behemoth', 'kestrel', 'umbra'];
+      if (mix.n >= 2) {
+        // Artillery outranges every emplacement, so some of the budget shifts to guns
+        // that never enter their envelope — but only some: siege pieces are fragile
+        // and an army that is mostly artillery cannot actually take ground.
+        comp.siege = (comp.siege || 1) * (1 + Math.min(2.5, mix.n * 0.5));
+        if (mix.aa < mix.ga * 0.35) {
+          for (const k of AIR_KEYS) if (comp[k]) comp[k] *= 1.8;   // their line can't shoot up
+        } else {
+          for (const k of AIR_KEYS) if (comp[k]) comp[k] *= 0.45;  // dense AA: keep jets home
+          for (const k of ['bulwark', 'warlord', 'goliath', 'jackal']) if (comp[k]) comp[k] *= 1.4;
+        }
+      }
+      S.lastComp = comp;                        // exposed for diagnostics/tests
       const army = combatUnits();
       if (army.length >= armyCapEff()) return;
       const counts = {};
@@ -6517,8 +6687,118 @@ const AI = (() => {
       return { x: anchor.x + Math.cos(dir) * 260, y: anchor.y + Math.sin(dir) * 260 };
     }
 
+    /* Force needed to crack a position. The coefficient is deliberately steep:
+       crossing open ground under massed emplacements costs a unit a second, so a
+       wave that merely "outnumbers" a fortified line still dissolves in it. When
+       nothing valuable is affordable the AI falls through to the outer defenses
+       and peels the line apart instead of charging the middle. */
+    function reqFor(threat) { return 110 + threat * 1.6; }
+
+    /* pick this wave's doctrine. Strategies that just failed get shelved for a
+       while, so a blocked AI tries something else instead of repeating itself. */
+    function chooseStrategy(ground, jets) {
+      const arty = ground.filter(u => u.def.weapon && u.def.weapon.range >= 380);
+      const fast = ground.filter(u => u.def.speed >= 95);
+      const tg = rankedTargets('ground')[0];
+      const ta = jets.length ? rankedTargets('air')[0] : null;   // only rank for air if we fly
+      const sc = {};
+      sc.push  = ground.length * 12 / (1 + (tg ? tg.threat : 0) / 260);
+      sc.siege = arty.length * 55 * (1 + (tg ? Math.min(2, tg.threat / 180) : 0));
+      sc.air   = jets.length * 34 / (1 + (ta ? threatAt(ta.ent.x, ta.ent.y, 'air') : 0) / 60);
+      const trucks = game.ents.some(e => !e.dead && e.kind === 'unit' && e.def.harvester && isEnemyEnt(e));
+      sc.raid  = fast.length * 14 + (trucks ? 70 : 0);
+      const po = posture();
+      if (po === 'desperate') { sc.raid *= 1.6; sc.push *= 0.8; }
+      if (po === 'leading') sc.push *= 1.3;
+      for (const k in sc) sc[k] /= 1 + (S.stratFail[k] || 0) * 0.7;
+      let best = 'push', bv = -1;
+      for (const k in sc) if (sc[k] > bv) { bv = sc[k]; best = k; }
+      return best;
+    }
+
+    /* build a full assault plan: doctrine, the weak point worth hitting that we
+       can actually break, and the least-defended corridor to reach it */
+    function planAssault(ground, jets, forceCommit) {
+      const strategy = chooseStrategy(ground, jets);
+      const mode = strategy === 'air' ? 'air' : 'ground';
+      let list = rankedTargets(mode);
+      if (!list.length) return null;
+      if (strategy === 'raid') {
+        // economy first: supply lines and expansions, not the fortified core
+        const eco = list.filter(c => (c.ent.key === 'supply' || c.ent.key === 'market' ||
+          c.ent.key === 'power') && c.threat < 200);
+        if (eco.length) list = eco.concat(list);
+      }
+      const force = forcePower(strategy === 'air' ? jets : ground);
+      let pick = list.find(c => force >= reqFor(c.threat));
+      if (!pick) {
+        if (!forceCommit) return null;              // can't break anything yet — keep massing
+        pick = list.reduce((a, b) => (a.threat <= b.threat ? a : b));
+      }
+      return { strategy, target: pick.ent, threat: pick.threat,
+        approach: pickApproach(pick.ent, mode) };
+    }
+
+    /* send a unit in along the planned corridor instead of straight across the guns */
+    function routeTo(u, plan) {
+      const t = plan.target;
+      const ap = plan.approach;
+      if (ap && U.dist(u.x, u.y, ap.x, ap.y) > 300 && U.dist(u.x, u.y, t.x, t.y) > 700) {
+        u.giveOrder({ type: 'attackmove', x: ap.x + U.rand(-70, 70), y: ap.y + U.rand(-70, 70) });
+        u.giveOrder({ type: 'attackmove', x: t.x + U.rand(-60, 60), y: t.y + U.rand(-60, 60) }, true);
+      } else {
+        orderAssault(u, t);
+      }
+    }
+
+    /* per-unit assault behaviour: artillery shells from stand-off range, wounded
+       units peel out to heal instead of dying, everyone else presses the plan */
+    function assaultMicro(ground, plan) {
+      const repair = myBuildings('repairbay').find(b => b.constructed) || baseAnchor();
+      for (const u of ground) {
+        if (u._staging) continue;               // mustering for the next batch
+        // already pulled out and still healing? leave it alone
+        if (u._healT && game.t < u._healT) {
+          if (u.hp >= u.maxHp * 0.85) u._healT = 0;
+          continue;
+        }
+        if (u.hp < u.maxHp * 0.32 && repair) {
+          u._healT = game.t + 30;
+          u.giveOrder({ type: 'move', x: repair.x + U.rand(-70, 70), y: repair.y + U.rand(-70, 70) });
+          continue;
+        }
+        const w = u.def.weapon;
+        if (w && w.range >= 380) {
+          // siege piece: hit defenses from outside their reach, never drive into them
+          let best = null, bd = Infinity;
+          for (const d of enemyDefenses()) {
+            if (!d.hard) continue;
+            const dist = U.dist(u.x, u.y, d.x, d.y);
+            if (dist < bd) { bd = dist; best = d; }
+          }
+          if (best && bd <= w.range * 0.95) {
+            const victim = game.byId.get(best.id);
+            if (victim && !victim.dead) {
+              if (u.order.type !== 'attack') u.giveOrder({ type: 'attack', targetId: victim.id });
+              continue;
+            }
+          }
+          if (best && bd > w.range * 0.95 && (u.order.type === 'idle' || u.order.type === 'guard')) {
+            const a = U.angTo(best.x, best.y, u.x, u.y);
+            u.giveOrder({ type: 'attackmove', x: best.x + Math.cos(a) * w.range * 0.85,
+              y: best.y + Math.sin(a) * w.range * 0.85 });
+            continue;
+          }
+        }
+        if (u.order.type === 'idle' || u.order.type === 'guard') {
+          // near the front → rejoin now; still at home → wait for a proper batch
+          if (U.dist(u.x, u.y, plan.target.x, plan.target.y) < 850 || S.reinforceReady) routeTo(u, plan);
+        }
+      }
+    }
+
     function manageAttack(dt2) {
-      const army = combatUnits().filter(u => !u.def.air);
+      const army = combatUnits().filter(u => !u.def.air && !u.def.builder);
       const jets = combatUnits().filter(u => u.def.air);
 
       switch (S.attackState) {
@@ -6536,29 +6816,50 @@ const AI = (() => {
               }
             }
           }
-          // a full army never sits at home — parade-ground generals lose wars
-          if (army.length >= armyCapEff() * 0.88) S.waveT = Math.min(S.waveT, 12);
+          // A full army never sits at home — but straight after a wave has broken,
+          // honour the regroup window instead of shovelling the rebuilt army back
+          // into the same guns twelve seconds later.
+          const regrouping = game.t < S.regroupUntil;
+          const capped = army.length >= armyCapEff() * 0.88;
+          if (capped && !regrouping) S.waveT = Math.min(S.waveT, 12);
           const needed = Math.min(S.waveSize, diff.armyCap * (posture() === 'desperate' ? 0.28 : 0.4));
           if (S.waveT <= 0 && army.length >= needed) {
+            // commit only against something this force can actually break; if the
+            // whole map is too hard right now, wait unless we're capped out or losing
+            const forceCommit = (capped && !regrouping) || posture() === 'desperate' || S.waveT < -70;
+            const plan = planAssault(army, jets, forceCommit);
+            if (!plan) break;
+            S.plan = plan;
+            S.strategy = plan.strategy;
             S.attackState = 'gathering';
             S.gatherT = 22;
-            const g = gatherPoint();
-            for (const u of army) u.giveOrder({ type: 'attackmove', x: g.x + U.rand(-70, 70), y: g.y + U.rand(-70, 70) });
+            const g = plan.approach || gatherPoint();
+            // everybody who was mustering joins this wave
+            for (const u of army) {
+              u._staging = false;
+              u.giveOrder({ type: 'attackmove', x: g.x + U.rand(-90, 90), y: g.y + U.rand(-90, 90) });
+            }
           }
           break;
         }
         case 'gathering': {
           S.gatherT -= dt2;
-          if (S.gatherT <= 0) {
-            const anchor = baseAnchor();
-            const target = enemyKeyBuilding() ||
-              (anchor ? nearestEnemyEntTo(anchor.x, anchor.y) : null);
+          // move out once the force is actually assembled, not just when the clock runs out
+          const ap = S.plan && S.plan.approach;
+          const massed = ap ? army.filter(u => U.dist(u.x, u.y, ap.x, ap.y) < 380).length : 0;
+          if (S.gatherT <= 0 || (massed >= Math.max(3, army.length * 0.6) && S.gatherT < 14)) {
+            const plan = S.plan;
+            const target = plan && !plan.target.dead ? plan.target :
+              (baseAnchor() ? nearestEnemyEntTo(baseAnchor().x, baseAnchor().y) : null);
             if (!target) { S.attackState = 'idle'; S.waveT = waveEvery(); break; }
+            if (plan) plan.target = target;
             S.attackState = 'attacking';
             S.attackTargetId = target.id;
             S.attackT = 0;
+            S.reinforceReady = true;
             S.armyValueStart = army.reduce((s, u) => s + u.def.cost, 0);
-            for (const u of army) orderAssault(u, target);
+            S.targetHpStart = target.hp || 1;
+            for (const u of army) routeTo(u, plan || { target, approach: null });
             const cl = enemyCluster();
             for (const j of jets) {
               const jt = cl ? nearestEnemyEntTo(cl.x, cl.y) : target;
@@ -6571,44 +6872,54 @@ const AI = (() => {
           const target = game.byId.get(S.attackTargetId);
           const val = army.reduce((s, u) => s + u.def.cost, 0);
           S.attackT = (S.attackT || 0) + dt2;
-          // keep the pressure on: units that finished a skirmish rejoin the assault
-          if (target && !target.dead) {
-            for (const u of army) {
-              if (u.order.type === 'idle' || u.order.type === 'guard') orderAssault(u, target);
-            }
+
+          // reinforcements travel in batches — a steady trickle just feeds the grinder
+          const waiting = army.filter(u => u._staging);
+          S.reinforceReady = waiting.length >= 3;
+          if (S.reinforceReady && target && !target.dead) {
+            const plan = S.plan || { target, approach: null };
+            for (const u of waiting) { u._staging = false; routeTo(u, plan); }
           }
+
+          if (target && !target.dead) assaultMicro(army, S.plan || { target, approach: null });
           for (const j of jets) {
             if (j.jetState === 'idle' && j.ammo > 0) {
               const jt = target && !target.dead ? target : enemyKeyBuilding();
               if (jt) j.giveOrder({ type: 'attack', targetId: jt.id });
             }
           }
+
+          const losses = S.armyValueStart ? 1 - val / S.armyValueStart : 0;
+          const progress = target && !target.dead && S.targetHpStart ?
+            1 - target.hp / S.targetHpStart : 1;
+
           if (!target || target.dead) {
-            const anchor = baseAnchor();
-            const next = enemyKeyBuilding() ||
-              (anchor ? nearestEnemyEntTo(anchor.x, anchor.y) : null);
+            // objective down: re-plan against the next weak point rather than
+            // wandering into whatever happens to be nearest
+            S.stratFail[S.strategy] = Math.max(0, (S.stratFail[S.strategy] || 0) - 1);
+            const next = planAssault(army, jets, true);
             if (next) {
-              S.attackTargetId = next.id;
-              for (const u of army) {
-                if (u.order.type === 'idle' || u.order.type === 'guard') orderAssault(u, next);
-              }
+              S.plan = next; S.strategy = next.strategy;
+              S.attackTargetId = next.target.id;
+              S.targetHpStart = next.target.hp || 1;
+              S.armyValueStart = val;
+              for (const u of army) if (u.order.type === 'idle' || u.order.type === 'guard') routeTo(u, next);
             } else { S.attackState = 'idle'; S.waveT = waveEvery(); }
-          } else if (target.kind === 'building' && !target.constructed) {
-            for (const u of army) {
-              if (u.order.type === 'idle' || u.order.type === 'guard')
-                u.giveOrder({ type: 'attack', targetId: target.id });
-            }
-          } else if (S.attackT > 300) {
-            // assault has dragged on too long — regroup and come back with a fresh wave
+          } else if (S.attackT > 75 && progress < 0.15) {
+            // a minute in and the objective is barely scratched: this force simply
+            // cannot hurt what it is standing in front of. Leave before it dissolves.
+            withdraw(army, 'stalled');
+          } else if (losses > 0.6 && progress < 0.35) {
+            withdraw(army, 'losses');
+          } else if (S.attackT > 420) {
             S.attackState = 'idle';
             S.waveT = 25;
-          } else if (S.armyValueStart && val < S.armyValueStart * 0.25) {
-            const anchor = baseAnchor();
-            if (anchor) for (const u of army) u.giveOrder({ type: 'move', x: anchor.x + U.rand(-90, 90), y: anchor.y + U.rand(-90, 90) });
-            S.attackState = 'idle';
-            S.waveT = waveEvery();
-            S.waveSize = Math.min(diff.armyCap, S.waveSize + 3);
           }
+          break;
+        }
+        case 'withdraw': {
+          S.withdrawT -= dt2;
+          if (S.withdrawT <= 0) { S.attackState = 'idle'; S.waveT = waveEvery(); }
           break;
         }
       }
@@ -6624,6 +6935,22 @@ const AI = (() => {
           for (const r of raiders) r.giveOrder({ type: 'attack', targetId: truck.id });
         }
       }
+    }
+
+    /* break contact and regroup — the wave lives to fight another day */
+    function withdraw(army, why) {
+      const rally = gatherPoint();
+      for (const u of army) {
+        u._healT = 0;
+        u.giveOrder({ type: 'move', x: rally.x + U.rand(-110, 110), y: rally.y + U.rand(-110, 110) });
+      }
+      S.stratFail[S.strategy] = (S.stratFail[S.strategy] || 0) + 1;
+      if (S.attackTargetId) S.failedTargets[S.attackTargetId] = game.t;
+      S.regroupUntil = game.t + 60;      // rebuild before trying again
+      S.attackState = 'withdraw';
+      S.withdrawT = 20;
+      S.waveSize = Math.min(diff.armyCap, S.waveSize + 4);   // next time, come heavier
+      S.lastFail = why;
     }
 
     /* ------------- powers & superweapon ------------- */
@@ -6720,6 +7047,9 @@ const AI = (() => {
     function tick(dt2) {
       if (game.over || p().defeated) return;
       if (S.defendT > 0) S.defendT -= dt2;
+      // war chest: every AI general is resupplied with $100,000 every 10 minutes
+      S.cashT -= dt2;
+      if (S.cashT <= 0) { S.cashT = 600; p().addMoney(AI_CASH_DROP); }
       if (!myEnts().length) return;
       zoneDuty();
       manageDozers();
@@ -6743,13 +7073,19 @@ const AI = (() => {
         u.giveOrder({ type: 'guardarea', x: g.x + U.rand(-60, 60), y: g.y + U.rand(-60, 60) });
         return;
       }
-      if (u.def.weapon && !u.def.air && S.attackState === 'attacking') {
-        const target = game.byId.get(S.attackTargetId);
-        if (target && !target.dead) u.giveOrder({ type: 'attackmove', x: target.x, y: target.y });
+      // fresh troops muster at the staging point and wait to be released as a
+      // group — feeding them in one at a time is exactly the meat grinder.
+      if (u.def.weapon && !u.def.air) {
+        const g = S.attackState === 'idle' ? gatherPoint() : ((S.plan && S.plan.approach) || gatherPoint());
+        u._staging = true;
+        u.giveOrder({ type: 'guardarea', x: g.x + U.rand(-80, 80), y: g.y + U.rand(-80, 80) });
       }
     }
 
-    return { pi, tick, notifyAttack, spend, onUnitDone, S, posture };
+    return { pi, tick, notifyAttack, spend, onUnitDone, S, posture,
+      // exposed for diagnostics and tests
+      enemyDefenses, threatAt, rankedTargets, pickApproach, planAssault, forcePower,
+      enemyDefenseMix, reqFor };
   }
 
   /* ---------------- module API (routes to instances) ---------------- */
@@ -6775,8 +7111,11 @@ const AI = (() => {
   function onBuildingDone(b) { /* hook for future logic */ }
 
   return { initGame, tick, notifyAttack, spendPowerPoints, onUnitDone, onBuildingDone,
+    _brain: pi => ais.find(a => a.pi === pi),
     _debug: () => ais.map(a => ({ pi: a.pi, state: a.S.attackState, waveT: Math.round(a.S.waveT),
       attackT: Math.round(a.S.attackT || 0), waveSize: a.S.waveSize, targetId: a.S.attackTargetId,
+      strategy: a.S.strategy, stratFail: { ...a.S.stratFail }, lastFail: a.S.lastFail,
+      planThreat: a.S.plan ? Math.round(a.S.plan.threat) : null,
       posture: a.posture(), standing: Math.round(standings()[a.pi]) })) };
 })();
 

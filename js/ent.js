@@ -83,8 +83,8 @@ function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   if (fromAir) dmg *= target.kind === 'building' ? 0.3 : 0.7;
   if (target.def && target.def.resist && target.def.resist[dtype]) dmg *= target.def.resist[dtype];
   if (target.kind === 'building' && target.upgrades && target.upgrades.plating) dmg *= 0.75;
-  // an active cloak scatters targeting locks: stealthed aircraft take 75% less from everything
-  if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.25;
+  // an active cloak scatters targeting locks: stealthed aircraft still take half damage
+  if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.5;
   if (dmg <= 0) return;
   target.hp -= dmg;
   target.lastHitT = game.t;
