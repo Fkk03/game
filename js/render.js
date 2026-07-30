@@ -1545,7 +1545,8 @@ const RENDER = (() => {
       case 'barracks': drawBarracks(b, s, c1, c2); break;
       case 'factory': drawFactory(b, s, c1, c2); break;
       case 'airfield': drawAirfield(b, s, c1, c2); break;
-      case 'turret': drawTurretB(b, s, c1, c2, fac); break;
+      case 'gatdef': drawGatDef(b, s, c1, c2, fac); break;
+      case 'artdef': drawArtDef(b, s, c1, c2, fac); break;
       case 'repairbay': drawRepairBay(b, s, c1, c2); break;
       case 'market': drawMarket(b, s, c1, c2); break;
       case 'superweapon': drawSuper(b, s, c1, c2, fac); break;
@@ -1816,41 +1817,86 @@ const RENDER = (() => {
     }
   }
 
-  function drawTurretB(b, s, c1, c2, fac) {
-    // base
-    ctx.fillStyle = '#6e6852';
-    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.34, 0, 7); ctx.fill();
-    ctx.strokeStyle = '#4c4738'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.34, 0, 7); ctx.stroke();
+  function defenseOffline(b) {
     const p = game.players[b.owner];
-    const offline = p && FACTIONS[p.faction].usesPower && p.lowPower &&
-      BUILDINGS.turret.weaponByFaction[p.faction].needsPower;
+    return p && FACTIONS[p.faction].usesPower && p.lowPower &&
+      BUILDINGS[b.key].weaponByFaction[p.faction].needsPower;
+  }
+
+  function drawOfflineBolt(s) {
+    ctx.fillStyle = '#ff5040'; ctx.font = `bold ${Math.round(s * 0.3)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡', s * 0.5, s * 0.3);
+    ctx.textAlign = 'left';
+  }
+
+  /* Gatling Defense — squat armored tower, spinning multi-barrel head */
+  function drawGatDef(b, s, c1, c2, fac) {
+    // round emplacement base + sandbag ring
+    ctx.fillStyle = '#6e6852';
+    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.36, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#4c4738'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.36, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.27, 0, 7); ctx.stroke();
     ctx.save();
     ctx.translate(s * 0.5, s * 0.5);
     ctx.rotate(b.tAngle || 0);
-    if (fac === 'dynasty') {
-      // gatling drum
-      ctx.fillStyle = U.shade(c1, 1.1);
-      ctx.beginPath(); ctx.arc(0, 0, s * 0.18, 0, 7); ctx.fill();
-      ctx.fillStyle = '#22201a';
-      ctx.fillRect(2, -4, s * 0.34, 2.4);
-      ctx.fillRect(2, -0.8, s * 0.34, 2.4);
-      ctx.fillRect(2, 2.4, s * 0.34, 2.4);
-    } else {
-      // missile pods
-      ctx.fillStyle = U.shade(c1, 1.1);
-      roundRect(-s * 0.14, -s * 0.2, s * 0.3, s * 0.4, 3); ctx.fill();
-      ctx.fillStyle = '#14120e';
-      for (const my of [-s * 0.12, -s * 0.02, s * 0.08])
-        ctx.fillRect(s * 0.02, my, s * 0.13, s * 0.06);
+    // armored head
+    ctx.fillStyle = U.shade(c1, 1.12);
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.17, 0, 7); ctx.fill();
+    ctx.strokeStyle = U.shade(c2, 0.8); ctx.lineWidth = 1; ctx.stroke();
+    // rotary barrel cluster — spins while firing
+    const spin = (b.cool !== undefined && b.targetId) ? game.t * 22 : 0;
+    ctx.save();
+    ctx.rotate(0);
+    ctx.fillStyle = '#22201a';
+    for (let i = 0; i < 3; i++) {
+      const off = Math.sin(spin + i * 2.09) * 2.6;
+      ctx.fillRect(3, -3.9 + i * 3.1 + off * 0.2, s * 0.33, 2.1);
     }
     ctx.restore();
-    if (offline) {
-      ctx.fillStyle = '#ff5040'; ctx.font = `bold ${Math.round(s * 0.3)}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡', s * 0.5, s * 0.3);
-      ctx.textAlign = 'left';
+    // muzzle shroud
+    ctx.fillStyle = U.shade(c1, 0.8);
+    ctx.fillRect(s * 0.3, -2.6, 3.4, 5.2);
+    // small radar vane
+    ctx.strokeStyle = '#1c1a14'; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(-4, -3); ctx.lineTo(-10, -9); ctx.stroke();
+    ctx.restore();
+    if (defenseOffline(b)) drawOfflineBolt(s);
+  }
+
+  /* Artillery Defense — heavy square rampart, long single cannon with recoil sled */
+  function drawArtDef(b, s, c1, c2, fac) {
+    // square hardened rampart
+    ctx.fillStyle = '#6a644e';
+    roundRect(s * 0.1, s * 0.1, s * 0.8, s * 0.8, 4); ctx.fill();
+    ctx.strokeStyle = '#48432f'; ctx.lineWidth = 2;
+    roundRect(s * 0.1, s * 0.1, s * 0.8, s * 0.8, 4); ctx.stroke();
+    // corner bolts
+    ctx.fillStyle = '#3c3828';
+    for (const cx of [s * 0.18, s * 0.82]) for (const cy of [s * 0.18, s * 0.82]) {
+      ctx.beginPath(); ctx.arc(cx, cy, 1.8, 0, 7); ctx.fill();
     }
+    ctx.save();
+    ctx.translate(s * 0.5, s * 0.5);
+    ctx.rotate(b.tAngle || 0);
+    // recoil sled + mount
+    ctx.fillStyle = U.shade(c2, 0.9);
+    roundRect(-s * 0.2, -s * 0.13, s * 0.34, s * 0.26, 2); ctx.fill();
+    ctx.fillStyle = U.shade(c1, 1.15);
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.14, 0, 7); ctx.fill();
+    ctx.strokeStyle = U.shade(c2, 0.7); ctx.lineWidth = 1; ctx.stroke();
+    // long barrel: recoils right after firing (cool near max)
+    const w = BUILDINGS.artdef.weaponByFaction[game.players[b.owner] ? game.players[b.owner].faction : 'coalition'];
+    const rec = b.cool > 0 ? Math.max(0, (b.cool / w.cd) - 0.7) * 12 : 0;
+    ctx.fillStyle = '#22201a';
+    ctx.fillRect(2 - rec, -2.2, s * 0.5, 4.4);
+    // muzzle brake
+    ctx.fillStyle = '#14120e';
+    ctx.fillRect(2 - rec + s * 0.5 - 3, -3.2, 4, 6.4);
+    ctx.restore();
+    if (defenseOffline(b)) drawOfflineBolt(s);
   }
 
   function drawRepairBay(b, s, c1, c2) {

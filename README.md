@@ -36,7 +36,9 @@ python3 -m http.server 8080
 - **Rubber-band AI** — every AI constantly compares its total strength (army + base + cash)
   with the leading general; falling behind makes it build harder, expand faster and attack
   more often. Full armies never sit at home, mined-out AIs immediately expand to fresh
-  supplies, and stuck construction is recycled instead of freezing the base
+  supplies, and stuck construction is recycled instead of freezing the base. AI bases
+  keep walkable lanes between structures, and their defenses spread out across the
+  threat-facing arc instead of clumping on one spot
 - **3 asymmetric factions**
   - 🦅 **Meridian Coalition** — expensive high-tech elite units, strike jets, precision firepower
   - 🐲 **Crimson Dynasty** — cheap infantry hordes (Horde bonus!), heavy Warlord tanks, flame weapons, nukes
@@ -62,8 +64,13 @@ python3 -m http.server 8080
   (3× health, damage and speed): carries 20 soldiers, guns down infantry with its chin
   turret and fires rockets at armor — hits like a heavy tank and outruns every jet.
   Select troops → right-click to board; Unload (F) deploys. Shot down = everyone dies
-- **Fortress turrets** — extreme ~1,000+ range with real blast areas; expensive, slow
-  to build and power-hungry — steady area denial that locks down a whole approach
+- **Twin base defenses** — every faction fields two: the rapid-fire **Gatling Defense**
+  ($800, ~700 range — shreds infantry, light vehicles and aircraft, barely dents heavy
+  armor) and the long-range **Artillery Defense** ($1,600, ~1,200 range — leads its
+  shots to crack moving tanks open, but can't touch aircraft and has a close-in dead
+  zone). Both go dark without grid power (the grid-less Cartel runs them off generators)
+- **Queued construction** — hold Shift while placing buildings to chain up build sites;
+  your dozer works through the whole list on its own
 - **Hardened bases** — every structure has 3× health; razing a base is a siege, not a drive-by
 - **Regenerating supplies** — exhausted supply piles refill after 20 minutes to
   75%, then 50%, then 25% (repeating at 25%); an on-map ⏳ timer shows the countdown
@@ -130,6 +137,7 @@ python3 -m http.server 8080
 | Double-click | Select all of that type on screen |
 | Right click | Move / Attack / Harvest / Repair / Set rally |
 | Shift + right click | Queue waypoints |
+| Shift + click (while placing) | Queue multiple construction sites |
 | Q W E R / A S D F / Z X C V | Command-grid hotkeys (shown on buttons) |
 | A / S / D | Attack-move · Stop · Guard area (with units selected) |
 | I | Cycle idle workers |

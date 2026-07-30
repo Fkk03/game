@@ -654,10 +654,11 @@ class Unit {
     const site = game.byId.get(o.targetId);
     if (!site || site.dead || site.constructed) { this.nextOrder(); return; }
     const d = U.dist(this.x, this.y, site.x, site.y);
-    const need = site.size * TILE * 0.5 + this.radius + 22;
+    // reach = footprint CORNER distance: the pathfinder may drop us on a diagonal tile
+    const need = site.size * TILE * 0.5 * 1.45 + this.radius + 22;
     if (d > need) {
       if (!this.path) this.setPathTo(site.x, site.y);
-      this.moveAlongPath(dt);
+      if (this.moveAlongPath(dt)) this.path = null;   // path ended short of the site — approach again
       return;
     }
     this.path = null;
@@ -675,10 +676,10 @@ class Unit {
     const b = game.byId.get(o.targetId);
     if (!b || b.dead || b.hp >= b.maxHp) { this.nextOrder(); return; }
     const d = U.dist(this.x, this.y, b.x, b.y);
-    const need = b.size * TILE * 0.5 + this.radius + 22;
+    const need = b.size * TILE * 0.5 * 1.45 + this.radius + 22;
     if (d > need) {
       if (!this.path) this.setPathTo(b.x, b.y);
-      this.moveAlongPath(dt);
+      if (this.moveAlongPath(dt)) this.path = null;   // path ended short — approach again
       return;
     }
     this.path = null;
@@ -1160,16 +1161,21 @@ class Building {
       this.scanT -= dt;
       if (this.scanT <= 0 || this.targetId) {
         this.scanT = 0.4;
+        const minR = w.minRange || 0;
         let t = this.targetId ? game.byId.get(this.targetId) : null;
-        if (!t || t.dead || U.dist(this.x, this.y, t.x, t.y) > w.range * 1.05 || !weaponCanHit(w, t)) {
-          t = null; this.targetId = 0;
+        if (t) {
+          const d = U.dist(this.x, this.y, t.x, t.y);
+          if (t.dead || d > w.range * 1.05 || d < minR * 0.95 || !weaponCanHit(w, t)) t = null;
+        }
+        if (!t) {
+          this.targetId = 0;
           let bd = Infinity;
           for (const e of game.ents) {
             if (e.dead || !isEnemy(this, e) || e.kind !== 'unit') continue;
             if (!weaponCanHit(w, e)) continue;
             if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
             const d = U.dist(this.x, this.y, e.x, e.y);
-            if (d < w.range && d < bd) { bd = d; t = e; }
+            if (d < w.range && d >= minR && d < bd) { bd = d; t = e; }
           }
           if (t) this.targetId = t.id;
         }
@@ -1311,8 +1317,15 @@ function fireWeapon(src, w, target) {
       const dist = U.dist(src.x, src.y, target.x, target.y);
       const fly = U.clamp(dist / 260, 0.9, 2.2);
       const spread = 26;
+      // lead moving ground targets: aim where they'll be when the shell lands,
+      // otherwise anything on the move simply outwalks the splash radius
+      let aimX = target.x, aimY = target.y;
+      if (target.kind === 'unit' && target.moving && !target.def.air) {
+        aimX += Math.cos(target.angle) * target.def.speed * fly * 0.9;
+        aimY += Math.sin(target.angle) * target.def.speed * fly * 0.9;
+      }
       game.projs.push({ kind: 'arty', x: muzX, y: muzY, sx: muzX, sy: muzY,
-        tx: target.x + U.rand(-spread, spread), ty: target.y + U.rand(-spread, spread),
+        tx: aimX + U.rand(-spread, spread), ty: aimY + U.rand(-spread, spread),
         fly, t: 0, dmg, dtype: w.dtype, splash: w.splash || 40, owner: src.owner, srcId: src.id, srcAir, dead: false });
       break;
     }

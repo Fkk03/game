@@ -115,7 +115,7 @@ const AI = (() => {
     function enemyKeyBuilding() {
       const anchor = baseAnchor();
       const ax = anchor ? anchor.x : world.pw / 2, ay = anchor ? anchor.y : world.ph / 2;
-      const order = ['superweapon', 'factory', 'airfield', 'barracks', 'cc', 'supply', 'power', 'market', 'repairbay', 'turret'];
+      const order = ['superweapon', 'factory', 'airfield', 'barracks', 'cc', 'supply', 'power', 'market', 'repairbay', 'artdef', 'gatdef'];
       for (const key of order) {
         let best = null, bd = Infinity;
         for (const e of game.ents) {
@@ -181,7 +181,8 @@ const AI = (() => {
       }
       if (!has('barracks') && money >= BUILDINGS.barracks.cost) return 'barracks';
       if (!has('factory') && money >= BUILDINGS.factory.cost + buf(300)) return 'factory';
-      if (has('turret') < 2 && money >= BUILDINGS.turret.cost + buf(600) && game.t > 150) return 'turret';
+      if (has('gatdef') < 1 && money >= BUILDINGS.gatdef.cost + buf(500) && game.t > 140) return 'gatdef';
+      if (has('artdef') < 1 && money >= BUILDINGS.artdef.cost + buf(700) && game.t > 200) return 'artdef';
       if (has('market') < 2 && money >= BUILDINGS.market.cost + buf(300)) return 'market';
       if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + buf(800) && game.t > 240) return 'airfield';
       if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + buf(1200) && game.t > 330) return 'repairbay';
@@ -192,9 +193,51 @@ const AI = (() => {
       if (game.swAllowed !== false && diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('factory') < 3 && game.t > 600 && money >= BUILDINGS.factory.cost + buf(6000)) return 'factory';
-      if (has('turret') < 4 && money >= BUILDINGS.turret.cost + buf(2500) && game.t > 400) return 'turret';
+      if (has('gatdef') < 3 && money >= BUILDINGS.gatdef.cost + buf(2000) && game.t > 380) return 'gatdef';
+      if (has('artdef') < 3 && money >= BUILDINGS.artdef.cost + buf(2500) && game.t > 430) return 'artdef';
       if (has('market') < 12 && money >= BUILDINGS.market.cost + buf(2500) && game.t > 240) return 'market';
       if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
+      return null;
+    }
+
+    /* one free walkable tile all around the footprint, so units never get
+       wedged between structures and the base keeps clear lanes */
+    function marginClear(tx, ty, size) {
+      for (let y = ty - 1; y <= ty + size; y++) for (let x = tx - 1; x <= tx + size; x++) {
+        if (y >= ty && y < ty + size && x >= tx && x < tx + size) continue;
+        if (!world.inb(x, y)) return false;
+        const i = world.idx(x, y);
+        if (world.terrain[i] === 2 || world.blocked[i] !== 0) return false;
+      }
+      return true;
+    }
+
+    /* defenses fan out across the threat-facing arc instead of piling on one spot;
+       spacing keeps each battery covering fresh ground */
+    function defenseSpot(key, def, anchor) {
+      const t = enemyKeyBuilding();
+      const dir = t ? Math.atan2(t.y - anchor.y, t.x - anchor.x) : Math.atan2(world.ph / 2 - anchor.y, world.pw / 2 - anchor.x);
+      const baseR = key === 'gatdef' ? 9 : 6;        // gatlings out on the rim, artillery further back
+      const minSpace = key === 'gatdef' ? 5.5 : 7;   // tiles between same-type batteries
+      const mine = game.ents.filter(e => !e.dead && e.kind === 'building' && e.owner === pi &&
+        (e.key === 'gatdef' || e.key === 'artdef'));
+      for (let ring = 0; ring < 3; ring++) {
+        for (let k = 0; k < 9; k++) {
+          const sgn = k % 2 ? 1 : -1;
+          const a = dir + Math.ceil(k / 2) * 0.55 * sgn;
+          const r = baseR + ring * 3;
+          const tx = Math.floor(anchor.x / TILE + Math.cos(a) * r) - Math.floor(def.size / 2);
+          const ty = Math.floor(anchor.y / TILE + Math.sin(a) * r) - Math.floor(def.size / 2);
+          if (!world.canPlace(tx, ty, def.size, pi) || !marginClear(tx, ty, def.size)) continue;
+          const wx = (tx + def.size / 2) * TILE, wy = (ty + def.size / 2) * TILE;
+          let ok = true;
+          for (const m of mine) {
+            const need = (m.key === key ? minSpace : 4) * TILE;
+            if (U.dist(m.x, m.y, wx, wy) < need) { ok = false; break; }
+          }
+          if (ok) return { tx, ty };
+        }
+      }
       return null;
     }
 
@@ -204,20 +247,25 @@ const AI = (() => {
       const def = BUILDINGS[key];
       const ax = Math.floor(anchor.x / TILE), ay = Math.floor(anchor.y / TILE);
       let bx = ax, by = ay;
-      if (key === 'turret') {
-        const t = enemyKeyBuilding();
-        const dir = t ? Math.atan2(t.y - anchor.y, t.x - anchor.x) : Math.atan2(world.ph / 2 - anchor.y, world.pw / 2 - anchor.x);
-        bx = ax + Math.round(Math.cos(dir) * 8); by = ay + Math.round(Math.sin(dir) * 8);
+      if (key === 'gatdef' || key === 'artdef') {
+        const spot = defenseSpot(key, def, anchor);
+        if (spot) return spot;
+        // arc is full — fall through to the generic search rather than build nothing
       } else if (key === 'supply') {
         const dock = nearestDockWithSupplies(anchor.x, anchor.y);
         if (dock) { bx = Math.floor(dock.x / TILE) - 4; by = Math.floor(dock.y / TILE) - 4; }
       }
-      for (let r = 1; r <= 16; r++) {
-        for (let attempt = 0; attempt < 14; attempt++) {
-          const a = U.rand(0, Math.PI * 2);
-          const tx = Math.round(bx + Math.cos(a) * r) - Math.floor(def.size / 2);
-          const ty = Math.round(by + Math.sin(a) * r) - Math.floor(def.size / 2);
-          if (world.canPlace(tx, ty, def.size, pi)) return { tx, ty };
+      // pass 0 demands a free lane around the building; pass 1 relaxes if the base is cramped
+      for (let pass = 0; pass < 2; pass++) {
+        for (let r = 1; r <= 16; r++) {
+          for (let attempt = 0; attempt < 14; attempt++) {
+            const a = U.rand(0, Math.PI * 2);
+            const tx = Math.round(bx + Math.cos(a) * r) - Math.floor(def.size / 2);
+            const ty = Math.round(by + Math.sin(a) * r) - Math.floor(def.size / 2);
+            if (!world.canPlace(tx, ty, def.size, pi)) continue;
+            if (pass === 0 && !marginClear(tx, ty, def.size)) continue;
+            return { tx, ty };
+          }
         }
       }
       return null;

@@ -595,7 +595,7 @@ const FACTIONS = {
     desc: 'High-tech expeditionary force. Expensive but elite units, strike jets and precision firepower.',
     usesPower: true,
     dozerName: 'Combat Dozer', dozerIcon: '🚜',
-    buildings: ['cc', 'power', 'nuclear', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'turret', 'market', 'superweapon'],
+    buildings: ['cc', 'power', 'nuclear', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'gatdef', 'artdef', 'market', 'superweapon'],
     powers: ['recon', 'supplydrop', 'airstrike', 'paradrop', 'thermobomb'],
     eva: 'Command',
   },
@@ -604,7 +604,7 @@ const FACTIONS = {
     desc: 'Industrial war machine. Cheap infantry hordes, heavy tanks, flame weapons and raw firepower.',
     usesPower: true,
     dozerName: 'Worker Dozer', dozerIcon: '🚜',
-    buildings: ['cc', 'power', 'nuclear', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'turret', 'market', 'superweapon'],
+    buildings: ['cc', 'power', 'nuclear', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'gatdef', 'artdef', 'market', 'superweapon'],
     powers: ['recon', 'barrage', 'reinforce', 'frenzy', 'carpet'],
     eva: 'Command',
   },
@@ -613,7 +613,7 @@ const FACTIONS = {
     desc: 'Desert guerrillas. Dirt-cheap fast units, no power grid needed, salvage wrecks to upgrade vehicles.',
     usesPower: false,
     dozerName: 'Worker', dozerIcon: '👷',
-    buildings: ['cc', 'supply', 'barracks', 'factory', 'repairbay', 'turret', 'market', 'superweapon'],
+    buildings: ['cc', 'supply', 'barracks', 'factory', 'repairbay', 'gatdef', 'artdef', 'market', 'superweapon'],
     powers: ['recon', 'ambush', 'demo', 'sabotage', 'vengeance'],
     eva: 'Boss',
   },
@@ -675,14 +675,24 @@ const BUILDINGS = {
     trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'umbra', 'albatross', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
     pads: 4,
   },
-  turret: {
-    name: { coalition: 'Sentinel Battery', dynasty: 'Gatling Tower', cartel: 'Missile Nest' },
-    icon: '🗼', cost: 1350, hp: 15840, size: 1, buildTime: 16, power: 3, armor: 'building',
-    sight: 10, desc: 'Hardened fortress turret. Engages ground and air targets. Offline without power.',
+  gatdef: {
+    name: { coalition: 'Vulcan Sentry', dynasty: 'Gatling Tower', cartel: 'Shredder Nest' },
+    icon: '🗼', cost: 800, hp: 9000, size: 1, buildTime: 12, power: 2, armor: 'building',
+    sight: 9, desc: 'Rapid-fire point defense. Shreds infantry, light vehicles and aircraft; barely dents heavy armor. Offline without power.',
     weaponByFaction: {
-      coalition: { dmg: 864, dtype: 'rocket', range: 1160, cd: 1.5, projectile: 'missile', splash: 60, aa: true, needsPower: true },
-      dynasty:   { dmg: 403, dtype: 'gatling', range: 1000, cd: 0.18, projectile: 'flakburst', splash: 45, aa: true, needsPower: true },
-      cartel:    { dmg: 749, dtype: 'rocket', range: 1080, cd: 1.6, projectile: 'missile', splash: 60, aa: true, needsPower: false },
+      coalition: { dmg: 55, dtype: 'gatling', range: 700, cd: 0.15, projectile: 'bullet', splash: 18, aa: true, ga: true, needsPower: true },
+      dynasty:   { dmg: 60, dtype: 'gatling', range: 680, cd: 0.15, projectile: 'bullet', splash: 18, aa: true, ga: true, needsPower: true },
+      cartel:    { dmg: 50, dtype: 'gatling', range: 660, cd: 0.14, projectile: 'bullet', splash: 18, aa: true, ga: true, needsPower: true },
+    },
+  },
+  artdef: {
+    name: { coalition: 'Longstrike Battery', dynasty: 'Dragonmaw Cannon', cartel: 'Scorpion Gun' },
+    icon: '🎯', cost: 1600, hp: 12000, size: 1, buildTime: 18, power: 3, armor: 'building',
+    sight: 10, desc: 'Long-range artillery emplacement. Devastates tanks and armor at extreme range; cannot hit aircraft and has a dead zone up close. Offline without power.',
+    weaponByFaction: {
+      coalition: { dmg: 1400, dtype: 'cannon', range: 1250, minRange: 180, cd: 4.0, projectile: 'arty', splash: 70, aa: false, ga: true, needsPower: true },
+      dynasty:   { dmg: 1550, dtype: 'cannon', range: 1200, minRange: 180, cd: 4.2, projectile: 'arty', splash: 80, aa: false, ga: true, needsPower: true },
+      cartel:    { dmg: 1300, dtype: 'cannon', range: 1180, minRange: 180, cd: 3.8, projectile: 'arty', splash: 70, aa: false, ga: true, needsPower: true },
     },
   },
   repairbay: {
@@ -1014,7 +1024,7 @@ function bTrains(key, faction) {
   if (b.trainsByFaction) return b.trainsByFaction[faction] || [];
   return b.trains || [];
 }
-function turretWeapon(faction) { return BUILDINGS.turret.weaponByFaction[faction]; }
+function defenseWeapon(key, faction) { return BUILDINGS[key].weaponByFaction[faction]; }
 
 </script>
 <script>
@@ -2621,10 +2631,11 @@ class Unit {
     const site = game.byId.get(o.targetId);
     if (!site || site.dead || site.constructed) { this.nextOrder(); return; }
     const d = U.dist(this.x, this.y, site.x, site.y);
-    const need = site.size * TILE * 0.5 + this.radius + 22;
+    // reach = footprint CORNER distance: the pathfinder may drop us on a diagonal tile
+    const need = site.size * TILE * 0.5 * 1.45 + this.radius + 22;
     if (d > need) {
       if (!this.path) this.setPathTo(site.x, site.y);
-      this.moveAlongPath(dt);
+      if (this.moveAlongPath(dt)) this.path = null;   // path ended short of the site — approach again
       return;
     }
     this.path = null;
@@ -2642,10 +2653,10 @@ class Unit {
     const b = game.byId.get(o.targetId);
     if (!b || b.dead || b.hp >= b.maxHp) { this.nextOrder(); return; }
     const d = U.dist(this.x, this.y, b.x, b.y);
-    const need = b.size * TILE * 0.5 + this.radius + 22;
+    const need = b.size * TILE * 0.5 * 1.45 + this.radius + 22;
     if (d > need) {
       if (!this.path) this.setPathTo(b.x, b.y);
-      this.moveAlongPath(dt);
+      if (this.moveAlongPath(dt)) this.path = null;   // path ended short — approach again
       return;
     }
     this.path = null;
@@ -3127,16 +3138,21 @@ class Building {
       this.scanT -= dt;
       if (this.scanT <= 0 || this.targetId) {
         this.scanT = 0.4;
+        const minR = w.minRange || 0;
         let t = this.targetId ? game.byId.get(this.targetId) : null;
-        if (!t || t.dead || U.dist(this.x, this.y, t.x, t.y) > w.range * 1.05 || !weaponCanHit(w, t)) {
-          t = null; this.targetId = 0;
+        if (t) {
+          const d = U.dist(this.x, this.y, t.x, t.y);
+          if (t.dead || d > w.range * 1.05 || d < minR * 0.95 || !weaponCanHit(w, t)) t = null;
+        }
+        if (!t) {
+          this.targetId = 0;
           let bd = Infinity;
           for (const e of game.ents) {
             if (e.dead || !isEnemy(this, e) || e.kind !== 'unit') continue;
             if (!weaponCanHit(w, e)) continue;
             if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
             const d = U.dist(this.x, this.y, e.x, e.y);
-            if (d < w.range && d < bd) { bd = d; t = e; }
+            if (d < w.range && d >= minR && d < bd) { bd = d; t = e; }
           }
           if (t) this.targetId = t.id;
         }
@@ -3278,8 +3294,15 @@ function fireWeapon(src, w, target) {
       const dist = U.dist(src.x, src.y, target.x, target.y);
       const fly = U.clamp(dist / 260, 0.9, 2.2);
       const spread = 26;
+      // lead moving ground targets: aim where they'll be when the shell lands,
+      // otherwise anything on the move simply outwalks the splash radius
+      let aimX = target.x, aimY = target.y;
+      if (target.kind === 'unit' && target.moving && !target.def.air) {
+        aimX += Math.cos(target.angle) * target.def.speed * fly * 0.9;
+        aimY += Math.sin(target.angle) * target.def.speed * fly * 0.9;
+      }
       game.projs.push({ kind: 'arty', x: muzX, y: muzY, sx: muzX, sy: muzY,
-        tx: target.x + U.rand(-spread, spread), ty: target.y + U.rand(-spread, spread),
+        tx: aimX + U.rand(-spread, spread), ty: aimY + U.rand(-spread, spread),
         fly, t: 0, dmg, dtype: w.dtype, splash: w.splash || 40, owner: src.owner, srcId: src.id, srcAir, dead: false });
       break;
     }
@@ -3672,7 +3695,7 @@ const POWERS_SYS = (() => {
           const off = (i - 6.5) * 34;
           const px = x + Math.cos(ang) * off, py = y + Math.sin(ang) * off;
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 2.5 + i * 0.32,
-            dmg: 1260, dtype: 'beam', splash: 65, owner: pi, dead: false, x: px, y: py, fxSize: 1.35, beam: true });
+            dmg: 1890, dtype: 'beam', splash: 65, owner: pi, dead: false, x: px, y: py, fxSize: 1.35, beam: true });
         }
         game.beamStrikes.push({ x, y, ang, t: 0, dur: 14 * 0.32 + 2.5 });
         SFX.beam(x, y);
@@ -3682,7 +3705,7 @@ const POWERS_SYS = (() => {
         for (let i = 0; i < 24; i++) {
           const px = x + U.rand(-160, 160), py = y + U.rand(-160, 160);
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 1.5 + i * 0.33,
-            dmg: 900, dtype: 'explosive', splash: 70, owner: pi, dead: false, x: px, y: py, fxSize: 1.2 });
+            dmg: 1350, dtype: 'explosive', splash: 70, owner: pi, dead: false, x: px, y: py, fxSize: 1.2 });
         }
         break;
       }
@@ -3697,7 +3720,7 @@ const POWERS_SYS = (() => {
       if (n.t >= n.fly) {
         FX.nukeExplosion(n.x, n.y);
         SFX.bigExplo(n.x, n.y);
-        dealSplash(n.x, n.y, 9600, 'explosive', 230, n.owner, null);
+        dealSplash(n.x, n.y, 14400, 'explosive', 230, n.owner, null);
         game.nukes.splice(i, 1);
       }
     }
@@ -5268,7 +5291,8 @@ const RENDER = (() => {
       case 'barracks': drawBarracks(b, s, c1, c2); break;
       case 'factory': drawFactory(b, s, c1, c2); break;
       case 'airfield': drawAirfield(b, s, c1, c2); break;
-      case 'turret': drawTurretB(b, s, c1, c2, fac); break;
+      case 'gatdef': drawGatDef(b, s, c1, c2, fac); break;
+      case 'artdef': drawArtDef(b, s, c1, c2, fac); break;
       case 'repairbay': drawRepairBay(b, s, c1, c2); break;
       case 'market': drawMarket(b, s, c1, c2); break;
       case 'superweapon': drawSuper(b, s, c1, c2, fac); break;
@@ -5539,41 +5563,86 @@ const RENDER = (() => {
     }
   }
 
-  function drawTurretB(b, s, c1, c2, fac) {
-    // base
-    ctx.fillStyle = '#6e6852';
-    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.34, 0, 7); ctx.fill();
-    ctx.strokeStyle = '#4c4738'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.34, 0, 7); ctx.stroke();
+  function defenseOffline(b) {
     const p = game.players[b.owner];
-    const offline = p && FACTIONS[p.faction].usesPower && p.lowPower &&
-      BUILDINGS.turret.weaponByFaction[p.faction].needsPower;
+    return p && FACTIONS[p.faction].usesPower && p.lowPower &&
+      BUILDINGS[b.key].weaponByFaction[p.faction].needsPower;
+  }
+
+  function drawOfflineBolt(s) {
+    ctx.fillStyle = '#ff5040'; ctx.font = `bold ${Math.round(s * 0.3)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡', s * 0.5, s * 0.3);
+    ctx.textAlign = 'left';
+  }
+
+  /* Gatling Defense — squat armored tower, spinning multi-barrel head */
+  function drawGatDef(b, s, c1, c2, fac) {
+    // round emplacement base + sandbag ring
+    ctx.fillStyle = '#6e6852';
+    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.36, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#4c4738'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.36, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.27, 0, 7); ctx.stroke();
     ctx.save();
     ctx.translate(s * 0.5, s * 0.5);
     ctx.rotate(b.tAngle || 0);
-    if (fac === 'dynasty') {
-      // gatling drum
-      ctx.fillStyle = U.shade(c1, 1.1);
-      ctx.beginPath(); ctx.arc(0, 0, s * 0.18, 0, 7); ctx.fill();
-      ctx.fillStyle = '#22201a';
-      ctx.fillRect(2, -4, s * 0.34, 2.4);
-      ctx.fillRect(2, -0.8, s * 0.34, 2.4);
-      ctx.fillRect(2, 2.4, s * 0.34, 2.4);
-    } else {
-      // missile pods
-      ctx.fillStyle = U.shade(c1, 1.1);
-      roundRect(-s * 0.14, -s * 0.2, s * 0.3, s * 0.4, 3); ctx.fill();
-      ctx.fillStyle = '#14120e';
-      for (const my of [-s * 0.12, -s * 0.02, s * 0.08])
-        ctx.fillRect(s * 0.02, my, s * 0.13, s * 0.06);
+    // armored head
+    ctx.fillStyle = U.shade(c1, 1.12);
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.17, 0, 7); ctx.fill();
+    ctx.strokeStyle = U.shade(c2, 0.8); ctx.lineWidth = 1; ctx.stroke();
+    // rotary barrel cluster — spins while firing
+    const spin = (b.cool !== undefined && b.targetId) ? game.t * 22 : 0;
+    ctx.save();
+    ctx.rotate(0);
+    ctx.fillStyle = '#22201a';
+    for (let i = 0; i < 3; i++) {
+      const off = Math.sin(spin + i * 2.09) * 2.6;
+      ctx.fillRect(3, -3.9 + i * 3.1 + off * 0.2, s * 0.33, 2.1);
     }
     ctx.restore();
-    if (offline) {
-      ctx.fillStyle = '#ff5040'; ctx.font = `bold ${Math.round(s * 0.3)}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡', s * 0.5, s * 0.3);
-      ctx.textAlign = 'left';
+    // muzzle shroud
+    ctx.fillStyle = U.shade(c1, 0.8);
+    ctx.fillRect(s * 0.3, -2.6, 3.4, 5.2);
+    // small radar vane
+    ctx.strokeStyle = '#1c1a14'; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(-4, -3); ctx.lineTo(-10, -9); ctx.stroke();
+    ctx.restore();
+    if (defenseOffline(b)) drawOfflineBolt(s);
+  }
+
+  /* Artillery Defense — heavy square rampart, long single cannon with recoil sled */
+  function drawArtDef(b, s, c1, c2, fac) {
+    // square hardened rampart
+    ctx.fillStyle = '#6a644e';
+    roundRect(s * 0.1, s * 0.1, s * 0.8, s * 0.8, 4); ctx.fill();
+    ctx.strokeStyle = '#48432f'; ctx.lineWidth = 2;
+    roundRect(s * 0.1, s * 0.1, s * 0.8, s * 0.8, 4); ctx.stroke();
+    // corner bolts
+    ctx.fillStyle = '#3c3828';
+    for (const cx of [s * 0.18, s * 0.82]) for (const cy of [s * 0.18, s * 0.82]) {
+      ctx.beginPath(); ctx.arc(cx, cy, 1.8, 0, 7); ctx.fill();
     }
+    ctx.save();
+    ctx.translate(s * 0.5, s * 0.5);
+    ctx.rotate(b.tAngle || 0);
+    // recoil sled + mount
+    ctx.fillStyle = U.shade(c2, 0.9);
+    roundRect(-s * 0.2, -s * 0.13, s * 0.34, s * 0.26, 2); ctx.fill();
+    ctx.fillStyle = U.shade(c1, 1.15);
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.14, 0, 7); ctx.fill();
+    ctx.strokeStyle = U.shade(c2, 0.7); ctx.lineWidth = 1; ctx.stroke();
+    // long barrel: recoils right after firing (cool near max)
+    const w = BUILDINGS.artdef.weaponByFaction[game.players[b.owner] ? game.players[b.owner].faction : 'coalition'];
+    const rec = b.cool > 0 ? Math.max(0, (b.cool / w.cd) - 0.7) * 12 : 0;
+    ctx.fillStyle = '#22201a';
+    ctx.fillRect(2 - rec, -2.2, s * 0.5, 4.4);
+    // muzzle brake
+    ctx.fillStyle = '#14120e';
+    ctx.fillRect(2 - rec + s * 0.5 - 3, -3.2, 4, 6.4);
+    ctx.restore();
+    if (defenseOffline(b)) drawOfflineBolt(s);
   }
 
   function drawRepairBay(b, s, c1, c2) {
@@ -6150,7 +6219,7 @@ const AI = (() => {
     function enemyKeyBuilding() {
       const anchor = baseAnchor();
       const ax = anchor ? anchor.x : world.pw / 2, ay = anchor ? anchor.y : world.ph / 2;
-      const order = ['superweapon', 'factory', 'airfield', 'barracks', 'cc', 'supply', 'power', 'market', 'repairbay', 'turret'];
+      const order = ['superweapon', 'factory', 'airfield', 'barracks', 'cc', 'supply', 'power', 'market', 'repairbay', 'artdef', 'gatdef'];
       for (const key of order) {
         let best = null, bd = Infinity;
         for (const e of game.ents) {
@@ -6216,7 +6285,8 @@ const AI = (() => {
       }
       if (!has('barracks') && money >= BUILDINGS.barracks.cost) return 'barracks';
       if (!has('factory') && money >= BUILDINGS.factory.cost + buf(300)) return 'factory';
-      if (has('turret') < 2 && money >= BUILDINGS.turret.cost + buf(600) && game.t > 150) return 'turret';
+      if (has('gatdef') < 1 && money >= BUILDINGS.gatdef.cost + buf(500) && game.t > 140) return 'gatdef';
+      if (has('artdef') < 1 && money >= BUILDINGS.artdef.cost + buf(700) && game.t > 200) return 'artdef';
       if (has('market') < 2 && money >= BUILDINGS.market.cost + buf(300)) return 'market';
       if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + buf(800) && game.t > 240) return 'airfield';
       if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + buf(1200) && game.t > 330) return 'repairbay';
@@ -6227,9 +6297,51 @@ const AI = (() => {
       if (game.swAllowed !== false && diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
       if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
       if (has('factory') < 3 && game.t > 600 && money >= BUILDINGS.factory.cost + buf(6000)) return 'factory';
-      if (has('turret') < 4 && money >= BUILDINGS.turret.cost + buf(2500) && game.t > 400) return 'turret';
+      if (has('gatdef') < 3 && money >= BUILDINGS.gatdef.cost + buf(2000) && game.t > 380) return 'gatdef';
+      if (has('artdef') < 3 && money >= BUILDINGS.artdef.cost + buf(2500) && game.t > 430) return 'artdef';
       if (has('market') < 12 && money >= BUILDINGS.market.cost + buf(2500) && game.t > 240) return 'market';
       if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
+      return null;
+    }
+
+    /* one free walkable tile all around the footprint, so units never get
+       wedged between structures and the base keeps clear lanes */
+    function marginClear(tx, ty, size) {
+      for (let y = ty - 1; y <= ty + size; y++) for (let x = tx - 1; x <= tx + size; x++) {
+        if (y >= ty && y < ty + size && x >= tx && x < tx + size) continue;
+        if (!world.inb(x, y)) return false;
+        const i = world.idx(x, y);
+        if (world.terrain[i] === 2 || world.blocked[i] !== 0) return false;
+      }
+      return true;
+    }
+
+    /* defenses fan out across the threat-facing arc instead of piling on one spot;
+       spacing keeps each battery covering fresh ground */
+    function defenseSpot(key, def, anchor) {
+      const t = enemyKeyBuilding();
+      const dir = t ? Math.atan2(t.y - anchor.y, t.x - anchor.x) : Math.atan2(world.ph / 2 - anchor.y, world.pw / 2 - anchor.x);
+      const baseR = key === 'gatdef' ? 9 : 6;        // gatlings out on the rim, artillery further back
+      const minSpace = key === 'gatdef' ? 5.5 : 7;   // tiles between same-type batteries
+      const mine = game.ents.filter(e => !e.dead && e.kind === 'building' && e.owner === pi &&
+        (e.key === 'gatdef' || e.key === 'artdef'));
+      for (let ring = 0; ring < 3; ring++) {
+        for (let k = 0; k < 9; k++) {
+          const sgn = k % 2 ? 1 : -1;
+          const a = dir + Math.ceil(k / 2) * 0.55 * sgn;
+          const r = baseR + ring * 3;
+          const tx = Math.floor(anchor.x / TILE + Math.cos(a) * r) - Math.floor(def.size / 2);
+          const ty = Math.floor(anchor.y / TILE + Math.sin(a) * r) - Math.floor(def.size / 2);
+          if (!world.canPlace(tx, ty, def.size, pi) || !marginClear(tx, ty, def.size)) continue;
+          const wx = (tx + def.size / 2) * TILE, wy = (ty + def.size / 2) * TILE;
+          let ok = true;
+          for (const m of mine) {
+            const need = (m.key === key ? minSpace : 4) * TILE;
+            if (U.dist(m.x, m.y, wx, wy) < need) { ok = false; break; }
+          }
+          if (ok) return { tx, ty };
+        }
+      }
       return null;
     }
 
@@ -6239,20 +6351,25 @@ const AI = (() => {
       const def = BUILDINGS[key];
       const ax = Math.floor(anchor.x / TILE), ay = Math.floor(anchor.y / TILE);
       let bx = ax, by = ay;
-      if (key === 'turret') {
-        const t = enemyKeyBuilding();
-        const dir = t ? Math.atan2(t.y - anchor.y, t.x - anchor.x) : Math.atan2(world.ph / 2 - anchor.y, world.pw / 2 - anchor.x);
-        bx = ax + Math.round(Math.cos(dir) * 8); by = ay + Math.round(Math.sin(dir) * 8);
+      if (key === 'gatdef' || key === 'artdef') {
+        const spot = defenseSpot(key, def, anchor);
+        if (spot) return spot;
+        // arc is full — fall through to the generic search rather than build nothing
       } else if (key === 'supply') {
         const dock = nearestDockWithSupplies(anchor.x, anchor.y);
         if (dock) { bx = Math.floor(dock.x / TILE) - 4; by = Math.floor(dock.y / TILE) - 4; }
       }
-      for (let r = 1; r <= 16; r++) {
-        for (let attempt = 0; attempt < 14; attempt++) {
-          const a = U.rand(0, Math.PI * 2);
-          const tx = Math.round(bx + Math.cos(a) * r) - Math.floor(def.size / 2);
-          const ty = Math.round(by + Math.sin(a) * r) - Math.floor(def.size / 2);
-          if (world.canPlace(tx, ty, def.size, pi)) return { tx, ty };
+      // pass 0 demands a free lane around the building; pass 1 relaxes if the base is cramped
+      for (let pass = 0; pass < 2; pass++) {
+        for (let r = 1; r <= 16; r++) {
+          for (let attempt = 0; attempt < 14; attempt++) {
+            const a = U.rand(0, Math.PI * 2);
+            const tx = Math.round(bx + Math.cos(a) * r) - Math.floor(def.size / 2);
+            const ty = Math.round(by + Math.sin(a) * r) - Math.floor(def.size / 2);
+            if (!world.canPlace(tx, ty, def.size, pi)) continue;
+            if (pass === 0 && !marginClear(tx, ty, def.size)) continue;
+            return { tx, ty };
+          }
         }
       }
       return null;

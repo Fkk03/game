@@ -63,7 +63,7 @@ const FACTIONS = {
     desc: 'High-tech expeditionary force. Expensive but elite units, strike jets and precision firepower.',
     usesPower: true,
     dozerName: 'Combat Dozer', dozerIcon: '🚜',
-    buildings: ['cc', 'power', 'nuclear', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'turret', 'market', 'superweapon'],
+    buildings: ['cc', 'power', 'nuclear', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'gatdef', 'artdef', 'market', 'superweapon'],
     powers: ['recon', 'supplydrop', 'airstrike', 'paradrop', 'thermobomb'],
     eva: 'Command',
   },
@@ -72,7 +72,7 @@ const FACTIONS = {
     desc: 'Industrial war machine. Cheap infantry hordes, heavy tanks, flame weapons and raw firepower.',
     usesPower: true,
     dozerName: 'Worker Dozer', dozerIcon: '🚜',
-    buildings: ['cc', 'power', 'nuclear', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'turret', 'market', 'superweapon'],
+    buildings: ['cc', 'power', 'nuclear', 'supply', 'barracks', 'factory', 'repairbay', 'airfield', 'gatdef', 'artdef', 'market', 'superweapon'],
     powers: ['recon', 'barrage', 'reinforce', 'frenzy', 'carpet'],
     eva: 'Command',
   },
@@ -81,7 +81,7 @@ const FACTIONS = {
     desc: 'Desert guerrillas. Dirt-cheap fast units, no power grid needed, salvage wrecks to upgrade vehicles.',
     usesPower: false,
     dozerName: 'Worker', dozerIcon: '👷',
-    buildings: ['cc', 'supply', 'barracks', 'factory', 'repairbay', 'turret', 'market', 'superweapon'],
+    buildings: ['cc', 'supply', 'barracks', 'factory', 'repairbay', 'gatdef', 'artdef', 'market', 'superweapon'],
     powers: ['recon', 'ambush', 'demo', 'sabotage', 'vengeance'],
     eva: 'Boss',
   },
@@ -143,14 +143,24 @@ const BUILDINGS = {
     trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'umbra', 'albatross', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
     pads: 4,
   },
-  turret: {
-    name: { coalition: 'Sentinel Battery', dynasty: 'Gatling Tower', cartel: 'Missile Nest' },
-    icon: '🗼', cost: 1350, hp: 15840, size: 1, buildTime: 16, power: 3, armor: 'building',
-    sight: 10, desc: 'Hardened fortress turret. Engages ground and air targets. Offline without power.',
+  gatdef: {
+    name: { coalition: 'Vulcan Sentry', dynasty: 'Gatling Tower', cartel: 'Shredder Nest' },
+    icon: '🗼', cost: 800, hp: 9000, size: 1, buildTime: 12, power: 2, armor: 'building',
+    sight: 9, desc: 'Rapid-fire point defense. Shreds infantry, light vehicles and aircraft; barely dents heavy armor. Offline without power.',
     weaponByFaction: {
-      coalition: { dmg: 864, dtype: 'rocket', range: 1160, cd: 1.5, projectile: 'missile', splash: 60, aa: true, needsPower: true },
-      dynasty:   { dmg: 403, dtype: 'gatling', range: 1000, cd: 0.18, projectile: 'flakburst', splash: 45, aa: true, needsPower: true },
-      cartel:    { dmg: 749, dtype: 'rocket', range: 1080, cd: 1.6, projectile: 'missile', splash: 60, aa: true, needsPower: false },
+      coalition: { dmg: 55, dtype: 'gatling', range: 700, cd: 0.15, projectile: 'bullet', splash: 18, aa: true, ga: true, needsPower: true },
+      dynasty:   { dmg: 60, dtype: 'gatling', range: 680, cd: 0.15, projectile: 'bullet', splash: 18, aa: true, ga: true, needsPower: true },
+      cartel:    { dmg: 50, dtype: 'gatling', range: 660, cd: 0.14, projectile: 'bullet', splash: 18, aa: true, ga: true, needsPower: true },
+    },
+  },
+  artdef: {
+    name: { coalition: 'Longstrike Battery', dynasty: 'Dragonmaw Cannon', cartel: 'Scorpion Gun' },
+    icon: '🎯', cost: 1600, hp: 12000, size: 1, buildTime: 18, power: 3, armor: 'building',
+    sight: 10, desc: 'Long-range artillery emplacement. Devastates tanks and armor at extreme range; cannot hit aircraft and has a dead zone up close. Offline without power.',
+    weaponByFaction: {
+      coalition: { dmg: 1400, dtype: 'cannon', range: 1250, minRange: 180, cd: 4.0, projectile: 'arty', splash: 70, aa: false, ga: true, needsPower: true },
+      dynasty:   { dmg: 1550, dtype: 'cannon', range: 1200, minRange: 180, cd: 4.2, projectile: 'arty', splash: 80, aa: false, ga: true, needsPower: true },
+      cartel:    { dmg: 1300, dtype: 'cannon', range: 1180, minRange: 180, cd: 3.8, projectile: 'arty', splash: 70, aa: false, ga: true, needsPower: true },
     },
   },
   repairbay: {
@@ -482,4 +492,4 @@ function bTrains(key, faction) {
   if (b.trainsByFaction) return b.trainsByFaction[faction] || [];
   return b.trains || [];
 }
-function turretWeapon(faction) { return BUILDINGS.turret.weaponByFaction[faction]; }
+function defenseWeapon(key, faction) { return BUILDINGS[key].weaponByFaction[faction]; }
