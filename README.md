@@ -129,7 +129,15 @@ python3 -m http.server 8080
 - **Idle-worker button (I)** — one click (bottom-left 🚜) cycles through every idle
   dozer/worker so nobody stands around doing nothing
 - **End-game arsenal** — superheavy tanks (3× cost, 4× power), elite strike aircraft,
-  extreme-range siege artillery (range 1,350 — bring spotters), compact hardened turrets
+  compact hardened turrets
+- **Armoured warfare** — every tank has **3× health**: Bulwark 1,860, Warlord 3,450,
+  Aegis 3,450, Paragon 7,800. Armour columns now trade blows for a long time instead
+  of melting, and veterancy plus 🛡 Armor upgrades stack on top of the new baseline
+- **Siege artillery, range 4,050** — the Longbow / Great Wall Gun / Doomsday Cannon
+  outranges every emplacement in the game more than threefold and shells bases from
+  well outside their reply. It stays slow and fragile, and it is **blind on its own**:
+  past its own sight it only auto-fires at targets your team can actually see, so bring
+  spotters — or right-click a target yourself and it will shell it at full reach
 - **Balanced air power** — aircraft deal 70% damage to units and only 30% to structures;
   jets are for battlefield strikes, not free base-deletion
 - **Kestrel/Hornet Multirole** — dogfighter + ground-attack in one airframe: 8 light

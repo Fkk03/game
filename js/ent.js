@@ -375,6 +375,14 @@ class Unit {
   findTarget(range) {
     const w = this.def.weapon;
     if (!w && !this.def.suicide) return null;
+    /* A gun that outranges its own eyes cannot pick targets by itself: past the
+       unit's sight radius the team needs a real spotter. This is what keeps
+       extreme-range artillery honest instead of auto-sniping through the fog.
+       Only the human team has fog — the AI plays with map knowledge as ever —
+       and a direct attack order still fires at the weapon's full reach. */
+    const mine = game.players[this.owner];
+    const spotted = mine && game.players[0] && mine.team === game.players[0].team;
+    const eyes = (this.def.sight || 0) * TILE;
     let best = null, bestScore = Infinity;
     for (const e of game.ents) {
       if (e.dead || !isEnemy(this, e)) continue;
@@ -383,6 +391,10 @@ class Unit {
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.03) continue;
       const d = U.dist(this.x, this.y, e.x, e.y);
       if (d > range) continue;
+      if (spotted && d > eyes) {
+        const tx = Math.floor(e.x / TILE), ty = Math.floor(e.y / TILE);
+        if (!world.inb(tx, ty) || !world.visible[world.idx(tx, ty)]) continue;
+      }
       let score = d;
       if (e.kind === 'building') score += 220;                    // prefer units
       if (e.kind === 'unit' && !e.def.weapon) score += 90;        // prefer shooters

@@ -823,8 +823,11 @@ const AI = (() => {
           }
           if (best && bd > w.range * 0.95 && (u.order.type === 'idle' || u.order.type === 'guard')) {
             const a = U.angTo(best.x, best.y, u.x, u.y);
-            u.giveOrder({ type: 'attackmove', x: best.x + Math.cos(a) * w.range * 0.85,
-              y: best.y + Math.sin(a) * w.range * 0.85 });
+            // extreme-range guns would otherwise stand off the edge of the world
+            const stand = Math.min(w.range * 0.85, 1400);
+            u.giveOrder({ type: 'attackmove',
+              x: U.clamp(best.x + Math.cos(a) * stand, 60, world.pw - 60),
+              y: U.clamp(best.y + Math.sin(a) * stand, 60, world.ph - 60) });
             continue;
           }
         }

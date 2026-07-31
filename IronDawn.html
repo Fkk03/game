@@ -747,7 +747,7 @@ const UNITS = {
   /* ---- end-game & specialist units (all factions) ---- */
   goliath: {
     name: { coalition: 'Paragon Superheavy', dynasty: 'Emperor Tank', cartel: 'Basilisk' },
-    icon: '👑', cost: 2800, hp: 2600, speed: 52, sight: 7, radius: 23,
+    icon: '👑', cost: 2800, hp: 7800, speed: 52, sight: 7, radius: 23,
     armor: 'heavy', buildTime: 22, chassis: 'heavytank',
     desc: 'End-game superheavy tank. Triple the cost, quadruple the punch.',
     weapon: { dmg: 300, dtype: 'cannon', range: 245, cd: 2.4, projectile: 'shell', splash: 50, aa: false, ga: true },
@@ -756,12 +756,12 @@ const UNITS = {
     name: { coalition: 'Longbow Siege Platform', dynasty: 'Great Wall Gun', cartel: 'Doomsday Cannon' },
     icon: '☄️', cost: 2800, hp: 420, speed: 45, sight: 7, radius: 19,
     armor: 'light', buildTime: 24, chassis: 'mlrs',
-    desc: 'Extreme-range siege artillery (range 1350 — far beyond its own sight; use spotters). Slow and fragile.',
-    weapon: { dmg: 340, dtype: 'explosive', range: 1350, minRange: 260, cd: 8, projectile: 'arty', splash: 75, aa: false, ga: true },
+    desc: 'Extreme-range siege artillery (range 4050 — many times its own sight; it is blind without spotters). Slow and fragile.',
+    weapon: { dmg: 340, dtype: 'explosive', range: 4050, minRange: 260, cd: 8, projectile: 'arty', splash: 75, aa: false, ga: true },
   },
   aegis: {
     name: { coalition: 'Aegis Storm Tank', dynasty: 'Dragonhail Tank', cartel: 'Sky Reaper' },
-    icon: '🌪️', cost: 2100, hp: 1150, speed: 80, sight: 8, radius: 18,
+    icon: '🌪️', cost: 2100, hp: 3450, speed: 80, sight: 8, radius: 18,
     armor: 'heavy', buildTime: 16, chassis: 'aatank',
     desc: 'Elite anti-aircraft tank: quad autocannons with tracking radar. 3× the cost of a standard AA vehicle, ~4× the punch — far more damage, range and armor.',
     weapon: { dmg: 52, dtype: 'flak', range: 340, cd: 0.28, projectile: 'flakburst', splash: 30, aa: true, ga: true },
@@ -828,7 +828,7 @@ const UNITS = {
     weapon: { dmg: 120, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   bulwark: {
-    name: 'Bulwark Tank', icon: '🛡️', cost: 900, hp: 620, speed: 74, sight: 6, radius: 17,
+    name: 'Bulwark Tank', icon: '🛡️', cost: 900, hp: 1860, speed: 74, sight: 6, radius: 17,
     armor: 'heavy', buildTime: 10, chassis: 'tank', desc: 'Reliable main battle tank.',
     weapon: { dmg: 78, dtype: 'cannon', range: 215, cd: 2.1, projectile: 'shell', splash: 28, aa: false, ga: true },
   },
@@ -868,7 +868,7 @@ const UNITS = {
     weapon: { dmg: 80, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true }, horde: true,
   },
   warlord: {
-    name: 'Warlord Tank', icon: '💪', cost: 1400, hp: 1150, speed: 52, sight: 6, radius: 21,
+    name: 'Warlord Tank', icon: '💪', cost: 1400, hp: 3450, speed: 52, sight: 6, radius: 21,
     armor: 'heavy', buildTime: 16, chassis: 'heavytank', desc: 'Massive twin-cannon assault tank. Slow but devastating. Horde bonus.',
     weapon: { dmg: 65, dtype: 'cannon', range: 220, cd: 1.3, projectile: 'shell', splash: 30, aa: false, ga: true }, horde: true,
   },
@@ -878,7 +878,7 @@ const UNITS = {
     weapon: { dmg: 26, dtype: 'flak', range: 240, cd: 0.55, projectile: 'flakburst', splash: 22, aa: true, ga: true },
   },
   salamander: {
-    name: 'Salamander', icon: '🔥', cost: 850, hp: 480, speed: 78, sight: 5, radius: 16,
+    name: 'Salamander', icon: '🔥', cost: 850, hp: 1440, speed: 78, sight: 5, radius: 16,
     armor: 'light', buildTime: 10, chassis: 'flametank', desc: 'Flame tank. Melts infantry and buildings.',
     weapon: { dmg: 26, dtype: 'flame', range: 130, cd: 0.22, projectile: 'flame', splash: 20, aa: false, ga: true },
   },
@@ -901,7 +901,7 @@ const UNITS = {
     weapon: { dmg: 76, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true },
   },
   jackal: {
-    name: 'Jackal Tank', icon: '🐺', cost: 620, hp: 430, speed: 92, sight: 6, radius: 16,
+    name: 'Jackal Tank', icon: '🐺', cost: 620, hp: 1290, speed: 92, sight: 6, radius: 16,
     armor: 'heavy', buildTime: 8, chassis: 'tank', desc: 'Light, fast, cheap tank. Salvages wrecks to upgrade.',
     weapon: { dmg: 55, dtype: 'cannon', range: 200, cd: 1.9, projectile: 'shell', splash: 22, aa: false, ga: true }, salvager: true,
   },
@@ -2378,6 +2378,14 @@ class Unit {
   findTarget(range) {
     const w = this.def.weapon;
     if (!w && !this.def.suicide) return null;
+    /* A gun that outranges its own eyes cannot pick targets by itself: past the
+       unit's sight radius the team needs a real spotter. This is what keeps
+       extreme-range artillery honest instead of auto-sniping through the fog.
+       Only the human team has fog — the AI plays with map knowledge as ever —
+       and a direct attack order still fires at the weapon's full reach. */
+    const mine = game.players[this.owner];
+    const spotted = mine && game.players[0] && mine.team === game.players[0].team;
+    const eyes = (this.def.sight || 0) * TILE;
     let best = null, bestScore = Infinity;
     for (const e of game.ents) {
       if (e.dead || !isEnemy(this, e)) continue;
@@ -2386,6 +2394,10 @@ class Unit {
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.03) continue;
       const d = U.dist(this.x, this.y, e.x, e.y);
       if (d > range) continue;
+      if (spotted && d > eyes) {
+        const tx = Math.floor(e.x / TILE), ty = Math.floor(e.y / TILE);
+        if (!world.inb(tx, ty) || !world.visible[world.idx(tx, ty)]) continue;
+      }
       let score = d;
       if (e.kind === 'building') score += 220;                    // prefer units
       if (e.kind === 'unit' && !e.def.weapon) score += 90;        // prefer shooters
@@ -7016,8 +7028,11 @@ const AI = (() => {
           }
           if (best && bd > w.range * 0.95 && (u.order.type === 'idle' || u.order.type === 'guard')) {
             const a = U.angTo(best.x, best.y, u.x, u.y);
-            u.giveOrder({ type: 'attackmove', x: best.x + Math.cos(a) * w.range * 0.85,
-              y: best.y + Math.sin(a) * w.range * 0.85 });
+            // extreme-range guns would otherwise stand off the edge of the world
+            const stand = Math.min(w.range * 0.85, 1400);
+            u.giveOrder({ type: 'attackmove',
+              x: U.clamp(best.x + Math.cos(a) * stand, 60, world.pw - 60),
+              y: U.clamp(best.y + Math.sin(a) * stand, 60, world.ph - 60) });
             continue;
           }
         }

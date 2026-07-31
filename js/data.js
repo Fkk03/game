@@ -212,7 +212,7 @@ const UNITS = {
   /* ---- end-game & specialist units (all factions) ---- */
   goliath: {
     name: { coalition: 'Paragon Superheavy', dynasty: 'Emperor Tank', cartel: 'Basilisk' },
-    icon: '👑', cost: 2800, hp: 2600, speed: 52, sight: 7, radius: 23,
+    icon: '👑', cost: 2800, hp: 7800, speed: 52, sight: 7, radius: 23,
     armor: 'heavy', buildTime: 22, chassis: 'heavytank',
     desc: 'End-game superheavy tank. Triple the cost, quadruple the punch.',
     weapon: { dmg: 300, dtype: 'cannon', range: 245, cd: 2.4, projectile: 'shell', splash: 50, aa: false, ga: true },
@@ -221,12 +221,12 @@ const UNITS = {
     name: { coalition: 'Longbow Siege Platform', dynasty: 'Great Wall Gun', cartel: 'Doomsday Cannon' },
     icon: '☄️', cost: 2800, hp: 420, speed: 45, sight: 7, radius: 19,
     armor: 'light', buildTime: 24, chassis: 'mlrs',
-    desc: 'Extreme-range siege artillery (range 1350 — far beyond its own sight; use spotters). Slow and fragile.',
-    weapon: { dmg: 340, dtype: 'explosive', range: 1350, minRange: 260, cd: 8, projectile: 'arty', splash: 75, aa: false, ga: true },
+    desc: 'Extreme-range siege artillery (range 4050 — many times its own sight; it is blind without spotters). Slow and fragile.',
+    weapon: { dmg: 340, dtype: 'explosive', range: 4050, minRange: 260, cd: 8, projectile: 'arty', splash: 75, aa: false, ga: true },
   },
   aegis: {
     name: { coalition: 'Aegis Storm Tank', dynasty: 'Dragonhail Tank', cartel: 'Sky Reaper' },
-    icon: '🌪️', cost: 2100, hp: 1150, speed: 80, sight: 8, radius: 18,
+    icon: '🌪️', cost: 2100, hp: 3450, speed: 80, sight: 8, radius: 18,
     armor: 'heavy', buildTime: 16, chassis: 'aatank',
     desc: 'Elite anti-aircraft tank: quad autocannons with tracking radar. 3× the cost of a standard AA vehicle, ~4× the punch — far more damage, range and armor.',
     weapon: { dmg: 52, dtype: 'flak', range: 340, cd: 0.28, projectile: 'flakburst', splash: 30, aa: true, ga: true },
@@ -293,7 +293,7 @@ const UNITS = {
     weapon: { dmg: 120, dtype: 'bullet', range: 260, cd: 0.5, projectile: 'tracer', aa: false, ga: true },
   },
   bulwark: {
-    name: 'Bulwark Tank', icon: '🛡️', cost: 900, hp: 620, speed: 74, sight: 6, radius: 17,
+    name: 'Bulwark Tank', icon: '🛡️', cost: 900, hp: 1860, speed: 74, sight: 6, radius: 17,
     armor: 'heavy', buildTime: 10, chassis: 'tank', desc: 'Reliable main battle tank.',
     weapon: { dmg: 78, dtype: 'cannon', range: 215, cd: 2.1, projectile: 'shell', splash: 28, aa: false, ga: true },
   },
@@ -333,7 +333,7 @@ const UNITS = {
     weapon: { dmg: 80, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true }, horde: true,
   },
   warlord: {
-    name: 'Warlord Tank', icon: '💪', cost: 1400, hp: 1150, speed: 52, sight: 6, radius: 21,
+    name: 'Warlord Tank', icon: '💪', cost: 1400, hp: 3450, speed: 52, sight: 6, radius: 21,
     armor: 'heavy', buildTime: 16, chassis: 'heavytank', desc: 'Massive twin-cannon assault tank. Slow but devastating. Horde bonus.',
     weapon: { dmg: 65, dtype: 'cannon', range: 220, cd: 1.3, projectile: 'shell', splash: 30, aa: false, ga: true }, horde: true,
   },
@@ -343,7 +343,7 @@ const UNITS = {
     weapon: { dmg: 26, dtype: 'flak', range: 240, cd: 0.55, projectile: 'flakburst', splash: 22, aa: true, ga: true },
   },
   salamander: {
-    name: 'Salamander', icon: '🔥', cost: 850, hp: 480, speed: 78, sight: 5, radius: 16,
+    name: 'Salamander', icon: '🔥', cost: 850, hp: 1440, speed: 78, sight: 5, radius: 16,
     armor: 'light', buildTime: 10, chassis: 'flametank', desc: 'Flame tank. Melts infantry and buildings.',
     weapon: { dmg: 26, dtype: 'flame', range: 130, cd: 0.22, projectile: 'flame', splash: 20, aa: false, ga: true },
   },
@@ -366,7 +366,7 @@ const UNITS = {
     weapon: { dmg: 76, dtype: 'rocket', range: 200, cd: 2.0, projectile: 'missile', aa: true, ga: true },
   },
   jackal: {
-    name: 'Jackal Tank', icon: '🐺', cost: 620, hp: 430, speed: 92, sight: 6, radius: 16,
+    name: 'Jackal Tank', icon: '🐺', cost: 620, hp: 1290, speed: 92, sight: 6, radius: 16,
     armor: 'heavy', buildTime: 8, chassis: 'tank', desc: 'Light, fast, cheap tank. Salvages wrecks to upgrade.',
     weapon: { dmg: 55, dtype: 'cannon', range: 200, cd: 1.9, projectile: 'shell', splash: 22, aa: false, ga: true }, salvager: true,
   },
