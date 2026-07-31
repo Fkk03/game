@@ -1099,6 +1099,7 @@ class Building {
       const udef = UNITS[it.key];
       let mul = this.powered ? 1 : 0.4;
       if (this.upgrades.fastprod) mul /= 0.7;          // 30% faster production
+      if (p.isAI) mul /= AI_BUILDTIME_MUL;             // AI factories run at double speed
       it.prog += dt / udef.buildTime * mul;
       if (it.prog >= 1) {
         this.queue.shift();
@@ -1193,7 +1194,7 @@ class Building {
 
   enqueue(key) {
     const p = game.players[this.owner];
-    const cost = uCost(key, p.faction);
+    const cost = uCost(key, p.faction, this.owner);
     if (p.money < cost) return false;
     if (this.queue.length >= 7) return false;
     const lim = UNITS[key].limitPer;

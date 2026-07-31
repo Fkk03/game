@@ -883,7 +883,7 @@ const UI = (() => {
     const humanTeam = game.players[0].team;
     const sorted = [...game.players].sort((a, b) =>
       (a.team === humanTeam ? 0 : 1) - (b.team === humanTeam ? 0 : 1) || a.idx - b.idx);
-    let html = `<div class="sb-cols"><span>GENERAL</span><span>KILLS</span><span>ARMY $</span></div>`;
+    let html = `<div class="sb-cols"><span>GENERAL</span><span>KILLS</span><span>ARMY $</span><span>CASH</span></div>`;
     for (const p of sorted) {
       const tag = p.idx === 0 ? 'You' : (p.team === humanTeam ? 'Ally' : 'Enemy');
       html += `<div class="sb-row${p.idx === 0 ? ' me' : ''}${p.defeated ? ' sb-dead' : ''}">
@@ -891,6 +891,7 @@ const UI = (() => {
         <span class="sb-name">${FACTIONS[p.faction].flag} ${FACTIONS[p.faction].name.split(' ')[1] || FACTIONS[p.faction].name} <span class="sb-tag">· ${tag}</span></span>
         <span class="sb-kills">${p.stats.kills}</span>
         <span class="sb-army">$${armies[p.idx].toLocaleString('en-US')}</span>
+        <span class="sb-cash">$${Math.round(p.money).toLocaleString('en-US')}</span>
       </div>`;
     }
     rows.innerHTML = html;

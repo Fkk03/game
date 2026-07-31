@@ -477,7 +477,7 @@ const AI = (() => {
         const queued = sc.queue.filter(q => q.key === 'truck').length;
         const nSup = myBuildings('supply').filter(b => b.constructed).length;
         const wanted = Math.min(9, 3 * nSup + (posture() === 'steady' || posture() === 'leading' ? 0 : 1));
-        if (trucks.length + queued < wanted && p().money > uCost('truck', p().faction) + 300) {
+        if (trucks.length + queued < wanted && p().money > uCost('truck', p().faction, pi) + 300) {
           sc.enqueue('truck');
         }
       }
@@ -565,7 +565,7 @@ const AI = (() => {
           const ratio = (counts[k] || 0) / comp[k];
           if (ratio < worst) { worst = ratio; pick = k; }
         }
-        if (pick && p().money > uCost(pick, fac) + buf(game.t < 300 ? 500 : 120)) {
+        if (pick && p().money > uCost(pick, fac, pi) + buf(game.t < 300 ? 500 : 120)) {
           b.enqueue(pick);
         }
       }

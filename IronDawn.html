@@ -228,7 +228,7 @@ ul.howto b { color:#ffe9a0; }
 #rate-out { color:#e0a080; }
 
 /* ---------------- scoreboard ---------------- */
-#scoreboard { right:10px; top:52px; width:264px; background:#14140fe6;
+#scoreboard { right:10px; top:52px; width:330px; background:#14140fe6;
   border:1px solid #57543f; border-radius:6px; padding:7px 9px; z-index:11; }
 #sb-head { font-size:11px; letter-spacing:2px; color:#b0a988; margin-bottom:5px; }
 .sb-hint { color:#6d6a58; letter-spacing:0; }
@@ -240,11 +240,13 @@ ul.howto b { color:#ffe9a0; }
 .sb-name .sb-tag { color:#8f8a70; font-size:10px; }
 .sb-kills { width:44px; text-align:right; color:#ffd76a; font-variant-numeric:tabular-nums; }
 .sb-army { width:64px; text-align:right; color:#8fd4e8; font-variant-numeric:tabular-nums; }
+.sb-cash { width:70px; text-align:right; color:#9fe08a; font-variant-numeric:tabular-nums; }
 .sb-dead { opacity:.4; text-decoration:line-through; }
 .sb-cols { display:flex; font-size:9.5px; color:#6d6a58; letter-spacing:1px; }
 .sb-cols span:first-child { flex:1; }
 .sb-cols span:nth-child(2) { width:44px; text-align:right; }
 .sb-cols span:nth-child(3) { width:64px; text-align:right; }
+.sb-cols span:nth-child(4) { width:70px; text-align:right; }
 
 /* building upgrade buttons in the command grid */
 .cmd-btn.upg { border-color:#7a6a9a; background:linear-gradient(#2f2a3c, #1e1a28); }
@@ -436,7 +438,7 @@ ul.howto b { color:#ffe9a0; }
             <li><b>Promotions</b>: combat earns ★ ranks — spend points on General's Powers (top bar): airstrikes, ambushes, carpet bombs…</li>
             <li><b>Superweapon</b>: each faction has one. Long countdown, devastating result. The enemy sees your timer — and you see theirs.</li>
             <li><b>Domination mode</b>: hold the central ⚑ point uncontested to earn ~30 pts/min — first team to 1,000 wins. The 💰 Trade Point gives your whole team +30% income. Annihilation also wins.</li>
-            <li><b>Tab</b> toggles the live battle scoreboard (kills &amp; army value for every general).</li>
+            <li><b>Tab</b> toggles the live battle scoreboard — kills, army value and current cash for every general, yours and theirs.</li>
             <li><b>Win</b> by reaching 1,000 domination points or destroying every enemy structure.</li>
           </ul>
         </div>
@@ -565,6 +567,9 @@ const DIFFICULTY = {
 
 /* AI war chest: every AI general is resupplied this much every 10 minutes */
 const AI_CASH_DROP = 100000;
+/* AI production handicap: units cost and take half as long to build */
+const AI_UNIT_COST_MUL = 0.5;
+const AI_BUILDTIME_MUL = 0.5;
 
 const MAPSIZES = {
   small:  { label: 'Small',  w: 72,  h: 72 },
@@ -1001,7 +1006,7 @@ const UPGRADES = {
    Cartel: infantry −40%, non-tank ground combat vehicles −30%.
    Everyone EXCEPT the Coalition: tanks −50%. */
 const TANK_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank'];
-function uCost(key, faction) {
+function uCost(key, faction, owner) {
   const u = UNITS[key];
   let c = u.cost;
   const isTank = TANK_CHASSIS.includes(u.chassis);
@@ -1010,7 +1015,16 @@ function uCost(key, faction) {
     if (u.chassis === 'inf' || u.chassis === 'rocketinf' || u.chassis === 'commando') c = Math.round(c * 0.6);
     else if (!u.air && !u.builder && !u.harvester) c = Math.round(c * 0.7);
   }
+  if (isAIPlayer(owner)) c = Math.round(c * AI_UNIT_COST_MUL);
   return c;
+}
+
+/* AI handicap: their factories are cheaper and faster than yours */
+function isAIPlayer(owner) {
+  if (owner === undefined || owner === null) return false;
+  if (typeof game === 'undefined' || !game.players) return false;
+  const p = game.players[owner];
+  return !!(p && p.isAI);
 }
 
 /* helpers to resolve per-faction fields */
@@ -3079,6 +3093,7 @@ class Building {
       const udef = UNITS[it.key];
       let mul = this.powered ? 1 : 0.4;
       if (this.upgrades.fastprod) mul /= 0.7;          // 30% faster production
+      if (p.isAI) mul /= AI_BUILDTIME_MUL;             // AI factories run at double speed
       it.prog += dt / udef.buildTime * mul;
       if (it.prog >= 1) {
         this.queue.shift();
@@ -3173,7 +3188,7 @@ class Building {
 
   enqueue(key) {
     const p = game.players[this.owner];
-    const cost = uCost(key, p.faction);
+    const cost = uCost(key, p.faction, this.owner);
     if (p.money < cost) return false;
     if (this.queue.length >= 7) return false;
     const lim = UNITS[key].limitPer;
@@ -6584,7 +6599,7 @@ const AI = (() => {
         const queued = sc.queue.filter(q => q.key === 'truck').length;
         const nSup = myBuildings('supply').filter(b => b.constructed).length;
         const wanted = Math.min(9, 3 * nSup + (posture() === 'steady' || posture() === 'leading' ? 0 : 1));
-        if (trucks.length + queued < wanted && p().money > uCost('truck', p().faction) + 300) {
+        if (trucks.length + queued < wanted && p().money > uCost('truck', p().faction, pi) + 300) {
           sc.enqueue('truck');
         }
       }
@@ -6672,7 +6687,7 @@ const AI = (() => {
           const ratio = (counts[k] || 0) / comp[k];
           if (ratio < worst) { worst = ratio; pick = k; }
         }
-        if (pick && p().money > uCost(pick, fac) + buf(game.t < 300 ? 500 : 120)) {
+        if (pick && p().money > uCost(pick, fac, pi) + buf(game.t < 300 ? 500 : 120)) {
           b.enqueue(pick);
         }
       }
@@ -8509,7 +8524,7 @@ const UI = (() => {
     const humanTeam = game.players[0].team;
     const sorted = [...game.players].sort((a, b) =>
       (a.team === humanTeam ? 0 : 1) - (b.team === humanTeam ? 0 : 1) || a.idx - b.idx);
-    let html = `<div class="sb-cols"><span>GENERAL</span><span>KILLS</span><span>ARMY $</span></div>`;
+    let html = `<div class="sb-cols"><span>GENERAL</span><span>KILLS</span><span>ARMY $</span><span>CASH</span></div>`;
     for (const p of sorted) {
       const tag = p.idx === 0 ? 'You' : (p.team === humanTeam ? 'Ally' : 'Enemy');
       html += `<div class="sb-row${p.idx === 0 ? ' me' : ''}${p.defeated ? ' sb-dead' : ''}">
@@ -8517,6 +8532,7 @@ const UI = (() => {
         <span class="sb-name">${FACTIONS[p.faction].flag} ${FACTIONS[p.faction].name.split(' ')[1] || FACTIONS[p.faction].name} <span class="sb-tag">· ${tag}</span></span>
         <span class="sb-kills">${p.stats.kills}</span>
         <span class="sb-army">$${armies[p.idx].toLocaleString('en-US')}</span>
+        <span class="sb-cash">$${Math.round(p.money).toLocaleString('en-US')}</span>
       </div>`;
     }
     rows.innerHTML = html;

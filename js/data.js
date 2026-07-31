@@ -33,6 +33,9 @@ const DIFFICULTY = {
 
 /* AI war chest: every AI general is resupplied this much every 10 minutes */
 const AI_CASH_DROP = 100000;
+/* AI production handicap: units cost and take half as long to build */
+const AI_UNIT_COST_MUL = 0.5;
+const AI_BUILDTIME_MUL = 0.5;
 
 const MAPSIZES = {
   small:  { label: 'Small',  w: 72,  h: 72 },
@@ -469,7 +472,7 @@ const UPGRADES = {
    Cartel: infantry −40%, non-tank ground combat vehicles −30%.
    Everyone EXCEPT the Coalition: tanks −50%. */
 const TANK_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank'];
-function uCost(key, faction) {
+function uCost(key, faction, owner) {
   const u = UNITS[key];
   let c = u.cost;
   const isTank = TANK_CHASSIS.includes(u.chassis);
@@ -478,7 +481,16 @@ function uCost(key, faction) {
     if (u.chassis === 'inf' || u.chassis === 'rocketinf' || u.chassis === 'commando') c = Math.round(c * 0.6);
     else if (!u.air && !u.builder && !u.harvester) c = Math.round(c * 0.7);
   }
+  if (isAIPlayer(owner)) c = Math.round(c * AI_UNIT_COST_MUL);
   return c;
+}
+
+/* AI handicap: their factories are cheaper and faster than yours */
+function isAIPlayer(owner) {
+  if (owner === undefined || owner === null) return false;
+  if (typeof game === 'undefined' || !game.players) return false;
+  const p = game.players[owner];
+  return !!(p && p.isAI);
 }
 
 /* helpers to resolve per-faction fields */

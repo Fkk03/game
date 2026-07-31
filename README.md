@@ -29,8 +29,9 @@ python3 -m http.server 8080
 - **Domination mode** — hold the central ⚑ control point uncontested to earn ~30 pts/min;
   first team to 1,000 wins (annihilation also wins). A second 💰 Trade Point DOUBLES the
   controlling team's income. Classic annihilation-only mode still selectable.
-- **Live battle stats** — Tab toggles a scoreboard with kills and army value for every
-  general (allies and enemies); the top bar shows your income and spending per minute
+- **Live battle stats** — Tab toggles a scoreboard with kills, army value and **current
+  cash** for every general, allies and enemies alike, so you can see exactly how rich the
+  AI is before its next wave; the top bar shows your income and spending per minute
 - **Up to 14 players** — choose 0–5 allied AI generals and 1–8 enemies; the map auto-scales
   (up to the Colossal size), allies share your radar and fight beside you
 - **Rubber-band AI** — every AI constantly compares its total strength (army + base + cash)
@@ -59,7 +60,8 @@ python3 -m http.server 8080
     chosen from what it has and what you've fortified. Dense anti-air makes it buy
     artillery instead of jets; an AA-blind gun line makes it press the air advantage
 - **AI war chest** — every AI general is resupplied with **$100,000 every 10 minutes**,
-  so the pressure never lets up in a long game
+  and their units cost half price and roll off the line in half the time, so the
+  pressure never lets up in a long game
 - **3 asymmetric factions**
   - 🦅 **Meridian Coalition** — expensive high-tech elite units, strike jets, precision firepower
   - 🐲 **Crimson Dynasty** — cheap infantry hordes (Horde bonus!), heavy Warlord tanks, flame weapons, nukes
