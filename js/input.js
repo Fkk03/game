@@ -273,8 +273,40 @@ const INPUT = (() => {
     const target = entAt(wx, wy);
     const dock = world.dockAt(wx, wy);
 
-    // production building rally point
     if (!units.length) {
+      /* Defensive emplacements: right-click an enemy to assign a target by hand,
+         right-click open ground to release them back to automatic fire. */
+      const guns = selection.filter(e => e.kind === 'building' && e.owner === 0 &&
+        e.constructed && e.def.weaponByFaction);
+      if (guns.length) {
+        if (target && isEnemyOfHuman(target)) {
+          let assigned = 0;
+          for (const g of guns) {
+            const w = buildingWeapon(g);
+            if (!w || !weaponCanHit(w, target)) continue;
+            g.forcedTargetId = target.id;
+            g.targetId = target.id;
+            assigned++;
+          }
+          if (assigned) {
+            SFX.ack();
+            UI.flashOrder(target.x, target.y, 'attack');
+            const far = guns.filter(g => {
+              const w = buildingWeapon(g);
+              return w && U.dist(g.x, g.y, target.x, target.y) > w.range;
+            }).length;
+            UI.feed(assigned + (assigned > 1 ? ' emplacements' : ' emplacement') + ' targeting' +
+              (far ? ' — ' + far + ' out of range, will fire when it closes' : ''),
+              far ? 'bad' : 'gold');
+          } else { UI.feed('That target is out of these guns\' arc', 'bad'); SFX.error(); }
+          return;
+        }
+        // no enemy under the cursor — hand the guns back to automatic fire
+        let released = 0;
+        for (const g of guns) if (g.forcedTargetId) { g.forcedTargetId = 0; g.targetId = 0; released++; }
+        if (released) { UI.feed(released + ' back on automatic fire'); SFX.click(); return; }
+      }
+      // production building rally point
       const b = selection.find(e => e.kind === 'building' && e.owner === 0);
       if (b && (bTrains(b.key, game.players[0].faction).length)) {
         b.rallyX = wx; b.rallyY = wy;
@@ -479,7 +511,7 @@ const INPUT = (() => {
 
   return {
     init, updateCamera, prune, centerOn, centerOnBase, resetMatch,
-    beginPlace, beginTargeting, stopSelected, issueAttackMove,
+    beginPlace, beginTargeting, stopSelected, issueAttackMove, issueSmartOrder,
     idleWorkers, cycleIdleWorker,
     get keys() { return keys; },
     get mouse() { return mouse; },

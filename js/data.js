@@ -458,6 +458,14 @@ const UPGRADES = {
     { key: 'plating', name: 'Armor Plating', icon: '🛡️', costMul: 1.0,
       desc: 'Hardened walls — all damage taken by this factory is reduced by 25%.' },
   ],
+  artdef: [
+    { key: 'firepower', name: 'Heavy Shells', icon: '⚔️', costMul: 0.75,
+      desc: 'Shells hit 50% harder with a 20% wider blast.' },
+    { key: 'longrange', name: 'Extended Barrel', icon: '🎯', costMul: 0.9,
+      desc: 'Firing range +30% — outranges anything that can shoot back.' },
+    { key: 'plating', name: 'Hardened Casemate', icon: '🛡️', costMul: 1.0, hpMul: 1.6,
+      desc: 'Maximum health +60% and all incoming damage reduced by 25%.' },
+  ],
   barracks: [
     { key: 'fastprod', name: 'Rapid Drills', icon: '⚙️', costMul: 0.6,
       desc: 'Infantry training is 30% faster.' },

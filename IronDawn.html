@@ -439,6 +439,7 @@ ul.howto b { color:#ffe9a0; }
             <li><b>Superweapon</b>: each faction has one. Long countdown, devastating result. The enemy sees your timer — and you see theirs.</li>
             <li><b>Domination mode</b>: hold the central ⚑ point uncontested to earn ~30 pts/min — first team to 1,000 wins. The 💰 Trade Point gives your whole team +30% income. Annihilation also wins.</li>
             <li><b>Tab</b> toggles the live battle scoreboard — kills, army value and current cash for every general, yours and theirs.</li>
+            <li><b>Defenses</b>: they fire automatically, but select one and right-click an enemy (even a building) to assign a target by hand — right-click open ground to release them. Artillery emplacements can buy firepower, range and armor upgrades.</li>
             <li><b>Win</b> by reaching 1,000 domination points or destroying every enemy structure.</li>
           </ul>
         </div>
@@ -991,6 +992,14 @@ const UPGRADES = {
       desc: 'Factory mechanics repair nearby friendly vehicles and aircraft (14 hp/s, like a small Repair Center).' },
     { key: 'plating', name: 'Armor Plating', icon: '🛡️', costMul: 1.0,
       desc: 'Hardened walls — all damage taken by this factory is reduced by 25%.' },
+  ],
+  artdef: [
+    { key: 'firepower', name: 'Heavy Shells', icon: '⚔️', costMul: 0.75,
+      desc: 'Shells hit 50% harder with a 20% wider blast.' },
+    { key: 'longrange', name: 'Extended Barrel', icon: '🎯', costMul: 0.9,
+      desc: 'Firing range +30% — outranges anything that can shoot back.' },
+    { key: 'plating', name: 'Hardened Casemate', icon: '🛡️', costMul: 1.0, hpMul: 1.6,
+      desc: 'Maximum health +60% and all incoming damage reduced by 25%.' },
   ],
   barracks: [
     { key: 'fastprod', name: 'Rapid Drills', icon: '⚙️', costMul: 0.6,
@@ -2199,6 +2208,26 @@ function dealSplash(x, y, dmg, dtype, radius, ownerIdx, srcEnt, hitAir, fromAir)
   }
 }
 
+/* A defensive structure's weapon after its installed upgrades. Cached per building
+   so the derived object isn't rebuilt every scan. */
+function buildingWeapon(b) {
+  const p = game.players[b.owner];
+  const base = b.def.weaponByFaction && p ? b.def.weaponByFaction[p.faction] : null;
+  if (!base) return null;
+  const u = b.upgrades || {};
+  if (!u.firepower && !u.longrange) return base;
+  const key = (u.firepower ? 'F' : '') + (u.longrange ? 'R' : '');
+  if (b._wKey !== key) {
+    b._wKey = key;
+    b._wCache = Object.assign({}, base, {
+      dmg: Math.round(base.dmg * (u.firepower ? 1.5 : 1)),
+      splash: base.splash ? Math.round(base.splash * (u.firepower ? 1.2 : 1)) : base.splash,
+      range: Math.round(base.range * (u.longrange ? 1.3 : 1)),
+    });
+  }
+  return b._wCache;
+}
+
 function recomputePower(pi) {
   const p = game.players[pi];
   if (!p) return;
@@ -3148,8 +3177,8 @@ class Building {
       }
     }
 
-    // defensive turret
-    const w = this.def.weaponByFaction ? this.def.weaponByFaction[p.faction] : null;
+    // defensive emplacement
+    const w = buildingWeapon(this);
     if (w) {
       if (this.cool > 0) this.cool -= dt;
       if (w.needsPower && !this.powered) return;
@@ -3157,6 +3186,19 @@ class Building {
       if (this.scanT <= 0 || this.targetId) {
         this.scanT = 0.4;
         const minR = w.minRange || 0;
+        /* A target the commander assigned by hand outranks anything the gun would
+           pick itself — but only while it is actually shootable. If it dies the
+           order is cleared; if it is merely out of reach the gun defends itself
+           and goes back to the assigned target when it comes back into range. */
+        if (this.forcedTargetId) {
+          const ft = game.byId.get(this.forcedTargetId);
+          if (!ft || ft.dead || !isEnemy(this, ft)) this.forcedTargetId = 0;
+          else {
+            const d = U.dist(this.x, this.y, ft.x, ft.y);
+            const hidden = isStealthed(ft) && !isDetectedBy(ft, game.players[this.owner].team);
+            if (d <= w.range && d >= minR && weaponCanHit(w, ft) && !hidden) this.targetId = ft.id;
+          }
+        }
         let t = this.targetId ? game.byId.get(this.targetId) : null;
         if (t) {
           const d = U.dist(this.x, this.y, t.x, t.y);
@@ -5835,6 +5877,35 @@ const RENDER = (() => {
         ctx.beginPath(); ctx.arc(e.x, e.y, e.def.healRadius, 0, 7); ctx.stroke();
         ctx.setLineDash([]);
       }
+      // defensive emplacement: firing envelope, plus a lock line to a hand-picked target
+      if (e.kind === 'building' && e.def.weaponByFaction && e.constructed) {
+        const w = buildingWeapon(e);
+        if (w) {
+          ctx.strokeStyle = 'rgba(232,195,60,0.30)'; ctx.lineWidth = 1.5;
+          ctx.setLineDash([9, 9]);
+          ctx.beginPath(); ctx.arc(e.x, e.y, w.range, 0, 7); ctx.stroke();
+          if (w.minRange) {
+            ctx.strokeStyle = 'rgba(224,85,64,0.35)';
+            ctx.beginPath(); ctx.arc(e.x, e.y, w.minRange, 0, 7); ctx.stroke();
+          }
+          ctx.setLineDash([]);
+          const ft = e.forcedTargetId ? game.byId.get(e.forcedTargetId) : null;
+          if (ft && !ft.dead) {
+            ctx.strokeStyle = 'rgba(255,90,70,0.75)'; ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(ft.x, ft.y); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#ff5a46';
+            ctx.beginPath(); ctx.arc(ft.x, ft.y, 13, 0, 7); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(ft.x - 18, ft.y); ctx.lineTo(ft.x - 8, ft.y);
+            ctx.moveTo(ft.x + 8, ft.y); ctx.lineTo(ft.x + 18, ft.y);
+            ctx.moveTo(ft.x, ft.y - 18); ctx.lineTo(ft.x, ft.y - 8);
+            ctx.moveTo(ft.x, ft.y + 8); ctx.lineTo(ft.x, ft.y + 18);
+            ctx.stroke();
+          }
+        }
+      }
       // rally point for production buildings
       if (e.kind === 'building' && e.owner === 0 && (bTrains(e.key, game.players[0].faction).length || e.def.trains)) {
         ctx.strokeStyle = 'rgba(159,220,124,0.5)'; ctx.lineWidth = 1.5;
@@ -6288,8 +6359,7 @@ const AI = (() => {
         let w = null, weight = 1;
         if (e.kind === 'building') {
           if (!e.constructed) continue;
-          const pe = game.players[e.owner];
-          w = e.def.weaponByFaction && pe ? e.def.weaponByFaction[pe.faction] : null;
+          w = e.def.weaponByFaction ? buildingWeapon(e) : null;   // includes installed upgrades
         } else if (e.kind === 'unit' && e.def.weapon && !e.def.air) {
           const ot = e.order.type;
           // only troops actually holding ground count as fixed defense
@@ -6754,7 +6824,9 @@ const AI = (() => {
       const lobbyScale = game.players.length > 8 ? 0.42 : game.players.length > 4 ? 0.55 : 1;
       const po = posture();
       const postureCap = po === 'desperate' ? 1.5 : po === 'pushing' ? 1.25 : po === 'leading' ? 1.05 : 1;
-      return Math.min(diff.armyCap * 2.5,
+      // ceiling stays at 2x: a rich AI now pours its surplus into bases and defenses,
+      // and pushing army sizes higher costs more frame time than it adds pressure
+      return Math.min(diff.armyCap * 2,
         diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500)) * lobbyScale * postureCap;
     }
 
@@ -7555,8 +7627,40 @@ const INPUT = (() => {
     const target = entAt(wx, wy);
     const dock = world.dockAt(wx, wy);
 
-    // production building rally point
     if (!units.length) {
+      /* Defensive emplacements: right-click an enemy to assign a target by hand,
+         right-click open ground to release them back to automatic fire. */
+      const guns = selection.filter(e => e.kind === 'building' && e.owner === 0 &&
+        e.constructed && e.def.weaponByFaction);
+      if (guns.length) {
+        if (target && isEnemyOfHuman(target)) {
+          let assigned = 0;
+          for (const g of guns) {
+            const w = buildingWeapon(g);
+            if (!w || !weaponCanHit(w, target)) continue;
+            g.forcedTargetId = target.id;
+            g.targetId = target.id;
+            assigned++;
+          }
+          if (assigned) {
+            SFX.ack();
+            UI.flashOrder(target.x, target.y, 'attack');
+            const far = guns.filter(g => {
+              const w = buildingWeapon(g);
+              return w && U.dist(g.x, g.y, target.x, target.y) > w.range;
+            }).length;
+            UI.feed(assigned + (assigned > 1 ? ' emplacements' : ' emplacement') + ' targeting' +
+              (far ? ' — ' + far + ' out of range, will fire when it closes' : ''),
+              far ? 'bad' : 'gold');
+          } else { UI.feed('That target is out of these guns\' arc', 'bad'); SFX.error(); }
+          return;
+        }
+        // no enemy under the cursor — hand the guns back to automatic fire
+        let released = 0;
+        for (const g of guns) if (g.forcedTargetId) { g.forcedTargetId = 0; g.targetId = 0; released++; }
+        if (released) { UI.feed(released + ' back on automatic fire'); SFX.click(); return; }
+      }
+      // production building rally point
       const b = selection.find(e => e.kind === 'building' && e.owner === 0);
       if (b && (bTrains(b.key, game.players[0].faction).length)) {
         b.rallyX = wx; b.rallyY = wy;
@@ -7761,7 +7865,7 @@ const INPUT = (() => {
 
   return {
     init, updateCamera, prune, centerOn, centerOnBase, resetMatch,
-    beginPlace, beginTargeting, stopSelected, issueAttackMove,
+    beginPlace, beginTargeting, stopSelected, issueAttackMove, issueSmartOrder,
     idleWorkers, cycleIdleWorker,
     get keys() { return keys; },
     get mouse() { return mouse; },
@@ -8174,11 +8278,16 @@ const UI = (() => {
       if (hasCloak(e)) bits.push(isStealthed(e) ? '🌑 cloaked' : '⚠ visible');
       bits.push(`<b>kills ${e.kills || 0}</b>`);
     } else {
-      const w = d.weaponByFaction ? d.weaponByFaction[game.players[e.owner]?.faction] : null;
+      const w = d.weaponByFaction ? buildingWeapon(e) : null;
       if (w) {
         bits.push(`⚔ ${w.dmg} ${w.dtype}`);
-        bits.push(`range ${w.range}`);
+        bits.push(`range ${w.range}${w.minRange ? ' (min ' + w.minRange + ')' : ''}`);
         if (w.splash) bits.push(`blast ${w.splash}`);
+        // manual fire orders: right-click an enemy to assign, right-click ground to release
+        if (e.forcedTargetId) {
+          const ft = game.byId.get(e.forcedTargetId);
+          bits.push(ft && !ft.dead ? '🎯 <b>manual target</b>' : '🎯 target lost');
+        } else bits.push('auto-firing');
         bits.push(`<b>kills ${e.kills || 0}</b>`);
       }
       if (d.income) bits.push(`income $${d.income}/s`);

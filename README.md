@@ -101,6 +101,17 @@ python3 -m http.server 8080
   armor) and the long-range **Artillery Defense** ($1,600, ~1,200 range — leads its
   shots to crack moving tanks open, but can't touch aircraft and has a close-in dead
   zone). Both go dark without grid power (the grid-less Cartel runs them off generators)
+- **Point your guns** — emplacements fire on their own by default, but select one (or a
+  whole line of them) and **right-click an enemy to assign that target by hand** —
+  including enemy *structures*, which automatic fire never picks. Right-click open
+  ground to release them back to automatic. An assigned target that dies clears the
+  order; one that's out of reach is remembered while the gun still defends itself, and
+  it opens up the moment the target closes. Selected emplacements show their firing
+  envelope, their dead zone, and a lock line to whatever you've told them to kill
+- **Artillery upgrades** — select an Artillery Defense to buy **Heavy Shells**
+  (+50% damage, +20% blast, $1,200), **Extended Barrel** (+30% range, $1,440) and
+  **Hardened Casemate** (+60% health and −25% damage taken, $1,600). A fully upgraded
+  battery outranges everything that can shoot back at it
 - **Queued construction** — hold Shift while placing buildings to chain up build sites;
   your dozer works through the whole list on its own
 - **Hardened bases** — every structure has 3× health; razing a base is a siege, not a drive-by

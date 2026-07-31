@@ -205,6 +205,26 @@ function dealSplash(x, y, dmg, dtype, radius, ownerIdx, srcEnt, hitAir, fromAir)
   }
 }
 
+/* A defensive structure's weapon after its installed upgrades. Cached per building
+   so the derived object isn't rebuilt every scan. */
+function buildingWeapon(b) {
+  const p = game.players[b.owner];
+  const base = b.def.weaponByFaction && p ? b.def.weaponByFaction[p.faction] : null;
+  if (!base) return null;
+  const u = b.upgrades || {};
+  if (!u.firepower && !u.longrange) return base;
+  const key = (u.firepower ? 'F' : '') + (u.longrange ? 'R' : '');
+  if (b._wKey !== key) {
+    b._wKey = key;
+    b._wCache = Object.assign({}, base, {
+      dmg: Math.round(base.dmg * (u.firepower ? 1.5 : 1)),
+      splash: base.splash ? Math.round(base.splash * (u.firepower ? 1.2 : 1)) : base.splash,
+      range: Math.round(base.range * (u.longrange ? 1.3 : 1)),
+    });
+  }
+  return b._wCache;
+}
+
 function recomputePower(pi) {
   const p = game.players[pi];
   if (!p) return;
@@ -1154,8 +1174,8 @@ class Building {
       }
     }
 
-    // defensive turret
-    const w = this.def.weaponByFaction ? this.def.weaponByFaction[p.faction] : null;
+    // defensive emplacement
+    const w = buildingWeapon(this);
     if (w) {
       if (this.cool > 0) this.cool -= dt;
       if (w.needsPower && !this.powered) return;
@@ -1163,6 +1183,19 @@ class Building {
       if (this.scanT <= 0 || this.targetId) {
         this.scanT = 0.4;
         const minR = w.minRange || 0;
+        /* A target the commander assigned by hand outranks anything the gun would
+           pick itself — but only while it is actually shootable. If it dies the
+           order is cleared; if it is merely out of reach the gun defends itself
+           and goes back to the assigned target when it comes back into range. */
+        if (this.forcedTargetId) {
+          const ft = game.byId.get(this.forcedTargetId);
+          if (!ft || ft.dead || !isEnemy(this, ft)) this.forcedTargetId = 0;
+          else {
+            const d = U.dist(this.x, this.y, ft.x, ft.y);
+            const hidden = isStealthed(ft) && !isDetectedBy(ft, game.players[this.owner].team);
+            if (d <= w.range && d >= minR && weaponCanHit(w, ft) && !hidden) this.targetId = ft.id;
+          }
+        }
         let t = this.targetId ? game.byId.get(this.targetId) : null;
         if (t) {
           const d = U.dist(this.x, this.y, t.x, t.y);

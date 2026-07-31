@@ -166,8 +166,7 @@ const AI = (() => {
         let w = null, weight = 1;
         if (e.kind === 'building') {
           if (!e.constructed) continue;
-          const pe = game.players[e.owner];
-          w = e.def.weaponByFaction && pe ? e.def.weaponByFaction[pe.faction] : null;
+          w = e.def.weaponByFaction ? buildingWeapon(e) : null;   // includes installed upgrades
         } else if (e.kind === 'unit' && e.def.weapon && !e.def.air) {
           const ot = e.order.type;
           // only troops actually holding ground count as fixed defense
@@ -632,7 +631,9 @@ const AI = (() => {
       const lobbyScale = game.players.length > 8 ? 0.42 : game.players.length > 4 ? 0.55 : 1;
       const po = posture();
       const postureCap = po === 'desperate' ? 1.5 : po === 'pushing' ? 1.25 : po === 'leading' ? 1.05 : 1;
-      return Math.min(diff.armyCap * 2.5,
+      // ceiling stays at 2x: a rich AI now pours its surplus into bases and defenses,
+      // and pushing army sizes higher costs more frame time than it adds pressure
+      return Math.min(diff.armyCap * 2,
         diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500)) * lobbyScale * postureCap;
     }
 

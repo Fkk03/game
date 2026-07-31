@@ -389,11 +389,16 @@ const UI = (() => {
       if (hasCloak(e)) bits.push(isStealthed(e) ? '🌑 cloaked' : '⚠ visible');
       bits.push(`<b>kills ${e.kills || 0}</b>`);
     } else {
-      const w = d.weaponByFaction ? d.weaponByFaction[game.players[e.owner]?.faction] : null;
+      const w = d.weaponByFaction ? buildingWeapon(e) : null;
       if (w) {
         bits.push(`⚔ ${w.dmg} ${w.dtype}`);
-        bits.push(`range ${w.range}`);
+        bits.push(`range ${w.range}${w.minRange ? ' (min ' + w.minRange + ')' : ''}`);
         if (w.splash) bits.push(`blast ${w.splash}`);
+        // manual fire orders: right-click an enemy to assign, right-click ground to release
+        if (e.forcedTargetId) {
+          const ft = game.byId.get(e.forcedTargetId);
+          bits.push(ft && !ft.dead ? '🎯 <b>manual target</b>' : '🎯 target lost');
+        } else bits.push('auto-firing');
         bits.push(`<b>kills ${e.kills || 0}</b>`);
       }
       if (d.income) bits.push(`income $${d.income}/s`);

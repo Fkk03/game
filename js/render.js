@@ -2071,6 +2071,35 @@ const RENDER = (() => {
         ctx.beginPath(); ctx.arc(e.x, e.y, e.def.healRadius, 0, 7); ctx.stroke();
         ctx.setLineDash([]);
       }
+      // defensive emplacement: firing envelope, plus a lock line to a hand-picked target
+      if (e.kind === 'building' && e.def.weaponByFaction && e.constructed) {
+        const w = buildingWeapon(e);
+        if (w) {
+          ctx.strokeStyle = 'rgba(232,195,60,0.30)'; ctx.lineWidth = 1.5;
+          ctx.setLineDash([9, 9]);
+          ctx.beginPath(); ctx.arc(e.x, e.y, w.range, 0, 7); ctx.stroke();
+          if (w.minRange) {
+            ctx.strokeStyle = 'rgba(224,85,64,0.35)';
+            ctx.beginPath(); ctx.arc(e.x, e.y, w.minRange, 0, 7); ctx.stroke();
+          }
+          ctx.setLineDash([]);
+          const ft = e.forcedTargetId ? game.byId.get(e.forcedTargetId) : null;
+          if (ft && !ft.dead) {
+            ctx.strokeStyle = 'rgba(255,90,70,0.75)'; ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(ft.x, ft.y); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#ff5a46';
+            ctx.beginPath(); ctx.arc(ft.x, ft.y, 13, 0, 7); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(ft.x - 18, ft.y); ctx.lineTo(ft.x - 8, ft.y);
+            ctx.moveTo(ft.x + 8, ft.y); ctx.lineTo(ft.x + 18, ft.y);
+            ctx.moveTo(ft.x, ft.y - 18); ctx.lineTo(ft.x, ft.y - 8);
+            ctx.moveTo(ft.x, ft.y + 8); ctx.lineTo(ft.x, ft.y + 18);
+            ctx.stroke();
+          }
+        }
+      }
       // rally point for production buildings
       if (e.kind === 'building' && e.owner === 0 && (bTrains(e.key, game.players[0].faction).length || e.def.trains)) {
         ctx.strokeStyle = 'rgba(159,220,124,0.5)'; ctx.lineWidth = 1.5;
