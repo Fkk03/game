@@ -6437,6 +6437,55 @@ const AI = (() => {
     }
 
     /* ------------- construction ------------- */
+
+    /* my base clusters — owned buildings grouped by proximity. New construction
+       spreads across them (and onto fresh ground) instead of stacking on the first. */
+    let cluT = -99, cluCache = [];
+    function clusters() {
+      if (game.t - cluT < 6) return cluCache;
+      cluT = game.t;
+      const out = [];
+      for (const b of myBuildings()) {
+        if (b.key === 'gatdef' || b.key === 'artdef') continue;   // defenses don't found towns
+        let hit = null;
+        for (const c of out) if (U.dist(c.x, c.y, b.x, b.y) < 850) { hit = c; break; }
+        if (hit) {
+          hit.n++;
+          hit.x += (b.x - hit.x) / hit.n; hit.y += (b.y - hit.y) / hit.n;
+          hit.keys[b.key] = (hit.keys[b.key] || 0) + 1;
+        } else out.push({ x: b.x, y: b.y, n: 1, keys: { [b.key]: 1 } });
+      }
+      cluCache = out;
+      return out;
+    }
+
+    /* ground for a forward base: live supplies, well clear of what I already hold,
+       and not parked on the enemy's doorstep */
+    function expansionSite() {
+      let best = null, bestScore = 0;
+      for (const d of world.docks) {
+        if (d.amount < d.max * 0.2) continue;
+        let near = Infinity;
+        for (const c of clusters()) near = Math.min(near, U.dist(c.x, c.y, d.x, d.y));
+        if (near < 1100 || near === Infinity) continue;      // already covered by a town
+        let foeD = Infinity;
+        for (const e of game.ents) {
+          if (e.dead || e.kind !== 'building' || e.key !== 'cc' || !isEnemyEnt(e)) continue;
+          foeD = Math.min(foeD, U.dist(e.x, e.y, d.x, d.y));
+        }
+        if (foeD < 1500) continue;                            // too deep in their half
+        const score = d.amount / 1200 + near / 500;
+        if (score > bestScore) { bestScore = score; best = d; }
+      }
+      return best;
+    }
+
+    /* how many of a structure the treasury justifies. Money that sits in the bank
+       loses wars, so every wealth tier buys another building. */
+    function affordCount(base, per, cap) {
+      return Math.min(cap, base + Math.floor(Math.max(0, p().money) / per));
+    }
+
     function wantedStructure() {
       const fac = p().faction, F = FACTIONS[fac];
       const has = k => myBuildings(k).length;
@@ -6452,23 +6501,50 @@ const AI = (() => {
             money >= BUILDINGS.nuclear.cost + 1500 && game.t > 420) return 'nuclear';
         if (money >= BUILDINGS.power.cost) return 'power';
       }
+      // opening build order — one of each core structure before anything scales up
       if (!has('barracks') && money >= BUILDINGS.barracks.cost) return 'barracks';
       if (!has('factory') && money >= BUILDINGS.factory.cost + buf(300)) return 'factory';
-      if (has('gatdef') < 1 && money >= BUILDINGS.gatdef.cost + buf(500) && game.t > 140) return 'gatdef';
-      if (has('artdef') < 1 && money >= BUILDINGS.artdef.cost + buf(700) && game.t > 200) return 'artdef';
+      if (has('gatdef') < 1 && money >= BUILDINGS.gatdef.cost + buf(500) && game.t > 130) return 'gatdef';
+      if (has('artdef') < 1 && money >= BUILDINGS.artdef.cost + buf(700) && game.t > 190) return 'artdef';
       if (has('market') < 2 && money >= BUILDINGS.market.cost + buf(300)) return 'market';
-      if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + buf(800) && game.t > 240) return 'airfield';
-      if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + buf(1200) && game.t > 330) return 'repairbay';
-      if (has('supply') < 2 && game.t > 150 && money >= BUILDINGS.supply.cost + buf(500)) return 'supply';
-      if (has('supply') < 3 && game.t > 340 && money >= BUILDINGS.supply.cost + buf(1500)) return 'supply';
-      if (has('factory') < 2 && game.t > 300 && money >= BUILDINGS.factory.cost + buf(3000)) return 'factory';
-      if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 420 && money >= BUILDINGS.superweapon.cost + buf(1000)) return 'superweapon';
-      if (game.swAllowed !== false && diffKey === 'hard' && has('superweapon') < 2 && game.t > 780 && money >= BUILDINGS.superweapon.cost + 6000) return 'superweapon';
-      if (diffKey === 'hard' && has('factory') < 2 && game.t > 420 && money >= BUILDINGS.factory.cost + 1500) return 'factory';
-      if (has('factory') < 3 && game.t > 600 && money >= BUILDINGS.factory.cost + buf(6000)) return 'factory';
-      if (has('gatdef') < 3 && money >= BUILDINGS.gatdef.cost + buf(2000) && game.t > 380) return 'gatdef';
-      if (has('artdef') < 3 && money >= BUILDINGS.artdef.cost + buf(2500) && game.t > 430) return 'artdef';
-      if (has('market') < 12 && money >= BUILDINGS.market.cost + buf(2500) && game.t > 240) return 'market';
+      if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + buf(800) && game.t > 220) return 'airfield';
+      if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + buf(1200) && game.t > 320) return 'repairbay';
+      if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 420 &&
+          money >= BUILDINGS.superweapon.cost + buf(1000)) return 'superweapon';
+      if (game.swAllowed !== false && has('superweapon') < 3 && game.t > 700 &&
+          money >= BUILDINGS.superweapon.cost + buf(6000)) return 'superweapon';
+
+      /* Wealth-scaled build-out: pick whichever structure is furthest below what the
+         treasury justifies, so a rich general grows production, economy and defenses
+         together instead of hoarding cash or spamming one thing. */
+      const plan = [
+        { key: 'supply',    want: affordCount(2, 26000, 14), t: 150, extra: 500,  w: 1.4 },
+        { key: 'factory',   want: affordCount(1, 20000, 12), t: 230, extra: 1200, w: 1.35 },
+        { key: 'gatdef',    want: affordCount(2, 8000, 48),  t: 250, extra: 600,  w: 1.5 },
+        { key: 'artdef',    want: affordCount(2, 11000, 36), t: 290, extra: 800,  w: 1.35 },
+        { key: 'airfield',  want: affordCount(1, 26000, 10), t: 290, extra: 1500, w: 1.1 },
+        { key: 'barracks',  want: affordCount(1, 28000, 9),  t: 250, extra: 700,  w: 0.95 },
+        { key: 'market',    want: affordCount(2, 11000, 26), t: 240, extra: 900,  w: 0.85 },
+        { key: 'cc',        want: affordCount(1, 55000, 7),  t: 400, extra: 4000, w: 0.9 },
+        { key: 'repairbay', want: affordCount(1, 40000, 7),  t: 330, extra: 1200, w: 0.6 },
+        { key: 'power',     want: affordCount(2, 30000, 20), t: 300, extra: 800,  w: 0.5 },
+      ];
+      let pick = null, bestScore = 0;
+      for (const e of plan) {
+        if (game.t < e.t || !F.buildings.includes(e.key)) continue;
+        const n = has(e.key);
+        if (n >= e.want) continue;
+        if (money < BUILDINGS[e.key].cost + buf(e.extra)) continue;
+        if (e.key === 'supply' && !nearestDockWithSupplies(world.pw / 2, world.ph / 2)) continue;
+        if (e.key === 'cc' && !expansionSite()) continue;   // only expand onto real ground
+        // FRACTIONAL deficit: score by how far behind its own target a category is,
+        // not by raw count. Otherwise the categories with the biggest ceilings
+        // (defenses) starve everything else and the AI ends up with 37 turrets,
+        // one barracks and one airfield.
+        const score = ((e.want - n) / e.want) * e.w;
+        if (score > bestScore) { bestScore = score; pick = e.key; }
+      }
+      if (pick) return pick;
       if (!has('cc') && money >= BUILDINGS.cc.cost) return 'cc';
       return null;
     }
@@ -6485,6 +6561,30 @@ const AI = (() => {
       return true;
     }
 
+    /* Which of my holdings most needs another gun? Every town, every forward
+       expansion and every control zone I care about is a candidate, scored by how
+       little cover it already has. This is what pushes defenses out across the map
+       instead of ringing the capital over and over. */
+    function defenseAnchor() {
+      const mine = myBuildings().filter(b => b.key === 'gatdef' || b.key === 'artdef');
+      const assets = [];
+      for (const c of clusters()) assets.push({ x: c.x, y: c.y, weight: 1 + c.n * 0.35, r: 620 });
+      for (const z of game.zones) {
+        // fight for map control: zones I hold or contest deserve their own guns
+        const holding = z.owner === myTeam() || (z.present && z.present.includes(myTeam()));
+        if (holding) assets.push({ x: z.x, y: z.y, weight: 2.2, r: 560 });
+      }
+      if (!assets.length) return baseAnchor();
+      let best = null, bestNeed = -1;
+      for (const a of assets) {
+        let cover = 0;
+        for (const d of mine) if (U.dist(a.x, a.y, d.x, d.y) < a.r) cover++;
+        const need = a.weight / (1 + cover);
+        if (need > bestNeed) { bestNeed = need; best = a; }
+      }
+      return best;
+    }
+
     /* defenses fan out across the threat-facing arc instead of piling on one spot;
        spacing keeps each battery covering fresh ground */
     function defenseSpot(key, def, anchor) {
@@ -6494,8 +6594,8 @@ const AI = (() => {
       const minSpace = key === 'gatdef' ? 5.5 : 7;   // tiles between same-type batteries
       const mine = game.ents.filter(e => !e.dead && e.kind === 'building' && e.owner === pi &&
         (e.key === 'gatdef' || e.key === 'artdef'));
-      for (let ring = 0; ring < 3; ring++) {
-        for (let k = 0; k < 9; k++) {
+      for (let ring = 0; ring < 6; ring++) {
+        for (let k = 0; k < 13; k++) {
           const sgn = k % 2 ? 1 : -1;
           const a = dir + Math.ceil(k / 2) * 0.55 * sgn;
           const r = baseR + ring * 3;
@@ -6519,24 +6619,57 @@ const AI = (() => {
       if (!anchor) return null;
       const def = BUILDINGS[key];
       const ax = Math.floor(anchor.x / TILE), ay = Math.floor(anchor.y / TILE);
-      let bx = ax, by = ay;
+      let bx = ax, by = ay, maxR = 16;
       if (key === 'gatdef' || key === 'artdef') {
-        const spot = defenseSpot(key, def, anchor);
+        // guns go wherever my territory is thinnest — a town, an outpost or a zone
+        const da = defenseAnchor() || anchor;
+        const spot = defenseSpot(key, def, da);
         if (spot) return spot;
-        // arc is full — fall through to the generic search rather than build nothing
+        bx = Math.floor(da.x / TILE); by = Math.floor(da.y / TILE);   // arc full: fill in nearby
       } else if (key === 'supply') {
         const dock = nearestDockWithSupplies(anchor.x, anchor.y);
         if (dock) { bx = Math.floor(dock.x / TILE) - 4; by = Math.floor(dock.y / TILE) - 4; }
+      } else if (key === 'cc') {
+        // found a forward town on fresh supplies rather than a second capital at home
+        const site = expansionSite();
+        if (site) { bx = Math.floor(site.x / TILE) - 3; by = Math.floor(site.y / TILE) - 3; maxR = 10; }
+      } else {
+        /* Production and economy spread across every town I own: pick the settlement
+           with the fewest of this kind, so expansions grow their own factories and
+           airfields instead of everything piling into the capital. */
+        const cs = clusters();
+        if (cs.length) {
+          let bestC = null, bestV = Infinity;
+          for (const c of cs) {
+            const v = (c.keys[key] || 0) * 10 - c.n * 0.4;
+            if (v < bestV) { bestV = v; bestC = c; }
+          }
+          if (bestC) { bx = Math.floor(bestC.x / TILE); by = Math.floor(bestC.y / TILE); }
+        }
       }
-      // pass 0 demands a free lane around the building; pass 1 relaxes if the base is cramped
+      /* Pass 0 demands a free lane around the building and ranges WIDE — as a base
+         fills up, the right answer is to build further out, not to wedge structures
+         into the gaps and trap your own units. Pass 1 only cramps as a last resort. */
       for (let pass = 0; pass < 2; pass++) {
-        for (let r = 1; r <= 16; r++) {
+        const rMax = pass === 0 ? maxR + 14 : maxR;
+        for (let r = 1; r <= rMax; r++) {
           for (let attempt = 0; attempt < 14; attempt++) {
             const a = U.rand(0, Math.PI * 2);
             const tx = Math.round(bx + Math.cos(a) * r) - Math.floor(def.size / 2);
             const ty = Math.round(by + Math.sin(a) * r) - Math.floor(def.size / 2);
             if (!world.canPlace(tx, ty, def.size, pi)) continue;
             if (pass === 0 && !marginClear(tx, ty, def.size)) continue;
+            // even on the fallback path, guns keep their spacing — a stack of turrets
+            // on one tile covers no more ground than a single one
+            if (key === 'gatdef' || key === 'artdef') {
+              const wx = (tx + def.size / 2) * TILE, wy = (ty + def.size / 2) * TILE;
+              let clash = false;
+              for (const m of myBuildings()) {
+                if (m.key !== 'gatdef' && m.key !== 'artdef') continue;
+                if (U.dist(m.x, m.y, wx, wy) < 180) { clash = true; break; }
+              }
+              if (clash) continue;
+            }
             return { tx, ty };
           }
         }
@@ -6547,18 +6680,25 @@ const AI = (() => {
     function manageDozers() {
       const dozers = myUnits('dozer');
       const cc = myBuildings('cc')[0];
-      // a builder-less AI is a dead AI: rebuild dozers with zero hesitation
-      const wantDozers = p().money > 5000 ? 3 : 2;
+      // a builder-less AI is a dead AI: rebuild dozers with zero hesitation, and a rich
+      // one runs a whole construction corps so the war chest turns into buildings
+      const m = p().money;
+      const wantDozers = m > 150000 ? 10 : m > 60000 ? 8 : m > 30000 ? 6 : m > 12000 ? 4 : m > 5000 ? 3 : 2;
       if (dozers.length < wantDozers && cc && cc.constructed &&
           p().money > UNITS.dozer.cost + (dozers.length ? 400 : 0)) {
         const queued = cc.queue.filter(q => q.key === 'dozer').length;
         if (dozers.length + queued < wantDozers) cc.enqueue('dozer');
       }
       let sites = myBuildings().filter(b => !b.constructed);
-      // a site nobody can reach would freeze construction forever — refund and clear it
+      const enRoute = new Set();
+      for (const d of dozers) if (d.order.type === 'build') enRoute.add(d.order.targetId);
+      // a site nobody can reach would freeze construction forever — refund and clear it.
+      // Sites with a builder walking to them get far longer: a forward expansion on a
+      // colossal map is a long march, and killing it mid-journey blocks all expansion.
       for (const site of sites) {
+        const patience = enRoute.has(site.id) ? 180 : 75;
         if (site._aiProg !== site.buildProgress) { site._aiProg = site.buildProgress; site._aiProgT = game.t; }
-        else if (game.t - (site._aiProgT ?? game.t) > 75) {
+        else if (game.t - (site._aiProgT ?? game.t) > patience) {
           p().addMoney(Math.floor(site.def.cost * 0.75));
           site.dead = true;
           world.blockRect(site.tx, site.ty, site.size, false);
@@ -6580,7 +6720,10 @@ const AI = (() => {
         if (idle) idle.giveOrder({ type: 'repair', targetId: hurt.id });
       }
       const want = wantedStructure();
-      const maxSites = dozers.length >= 3 ? 3 : 2;   // extra dozers = parallel construction
+      // extra dozers = parallel construction; a flush treasury opens more sites at once,
+      // because a war chest only matters at the rate it can be turned into buildings
+      const maxSites = Math.max(2, Math.min(dozers.length,
+        m > 150000 ? 10 : m > 60000 ? 8 : m > 30000 ? 6 : m > 12000 ? 4 : 3));
       if (want && sites.length < maxSites && dozers.length) {
         const spot = findPlacement(want);
         if (spot && p().money >= BUILDINGS[want].cost) {
@@ -6598,7 +6741,8 @@ const AI = (() => {
         const trucks = myUnits('truck');
         const queued = sc.queue.filter(q => q.key === 'truck').length;
         const nSup = myBuildings('supply').filter(b => b.constructed).length;
-        const wanted = Math.min(9, 3 * nSup + (posture() === 'steady' || posture() === 'leading' ? 0 : 1));
+        // every supply centre earns its own haulers, so expansions actually pay for themselves
+        const wanted = Math.min(18, 3 * nSup + (posture() === 'steady' || posture() === 'leading' ? 0 : 1));
         if (trucks.length + queued < wanted && p().money > uCost('truck', p().faction, pi) + 300) {
           sc.enqueue('truck');
         }
@@ -6610,7 +6754,7 @@ const AI = (() => {
       const lobbyScale = game.players.length > 8 ? 0.42 : game.players.length > 4 ? 0.55 : 1;
       const po = posture();
       const postureCap = po === 'desperate' ? 1.5 : po === 'pushing' ? 1.25 : po === 'leading' ? 1.05 : 1;
-      return Math.min(diff.armyCap * 2,
+      return Math.min(diff.armyCap * 2.5,
         diff.armyCap + Math.floor(Math.max(0, p().money - 4000) / 2500)) * lobbyScale * postureCap;
     }
 

@@ -62,6 +62,15 @@ python3 -m http.server 8080
 - **AI war chest** — every AI general is resupplied with **$100,000 every 10 minutes**,
   and their units cost half price and roll off the line in half the time, so the
   pressure never lets up in a long game
+- **Generals who expand** — an AI never sits on its starting plot. It founds forward
+  towns on fresh supply fields, grows each one its own war factories, airfields and
+  barracks instead of stacking everything in the capital, and runs a construction
+  corps of up to ten dozers so a full treasury becomes buildings instead of savings.
+  Every wealth tier raises what it thinks it should own, so a rich general keeps
+  building — after twenty minutes expect a dozen factories, a string of airfields
+  and **turret belts fifty-plus emplacements deep** strung across its territory,
+  covering every town, outpost and control point it holds. Getting a bomber or a
+  tank column to their capital means fighting through all of it
 - **3 asymmetric factions**
   - 🦅 **Meridian Coalition** — expensive high-tech elite units, strike jets, precision firepower
   - 🐲 **Crimson Dynasty** — cheap infantry hordes (Horde bonus!), heavy Warlord tanks, flame weapons, nukes
