@@ -1328,6 +1328,42 @@ const RENDER = (() => {
         ctx.beginPath(); ctx.ellipse(9, 0, 3.6, 1.8, 0, 0, 7); ctx.fill();
         break;
       }
+      case 'obsidian': {  // strategic bomber: broad black flying wing, deep W trailing edge
+        if (burning) {
+          ctx.fillStyle = `rgba(255,150,90,${0.4 + 0.3 * Math.sin(game.renderT * 40)})`;
+          for (const wy of [-7, 7]) {
+            ctx.beginPath(); ctx.moveTo(-13, wy); ctx.lineTo(-24, wy - 1.8); ctx.lineTo(-24, wy + 1.8);
+            ctx.closePath(); ctx.fill();
+          }
+          ctx.fillStyle = g;
+        }
+        // one continuous wing: sharp nose, long swept leading edges, notched tail
+        ctx.fillStyle = U.shade(c2, 0.62);
+        ctx.beginPath();
+        ctx.moveTo(22, 0);
+        ctx.lineTo(-6, -24); ctx.lineTo(-14, -24);
+        ctx.lineTo(-10, -12); ctx.lineTo(-16, -6); ctx.lineTo(-11, 0);   // W notch
+        ctx.lineTo(-16, 6); ctx.lineTo(-10, 12);
+        ctx.lineTo(-14, 24); ctx.lineTo(-6, 24);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = 1; ctx.stroke();
+        // faceted spine catching light
+        ctx.fillStyle = U.shade(c1, 0.95);
+        ctx.beginPath();
+        ctx.moveTo(20, 0); ctx.lineTo(-4, -7); ctx.lineTo(-9, 0); ctx.lineTo(-4, 7);
+        ctx.closePath(); ctx.fill();
+        // cockpit blister + buried intakes
+        ctx.fillStyle = 'rgba(20,24,30,0.85)';
+        ctx.beginPath(); ctx.ellipse(11, 0, 4, 2.6, 0, 0, 7); ctx.fill();
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        for (const wy of [-6, 6]) ctx.fillRect(-4, wy - 1.6, 6, 3.2);
+        // payload bay glows while it still has the bomb
+        if (u.ammo > 0) {
+          ctx.fillStyle = 'rgba(255,207,90,0.5)';
+          ctx.fillRect(-2, -2.4, 5, 4.8);
+        }
+        break;
+      }
       case 'umbra': {     // stealth strike: faceted arrowhead flying-wing, sawtooth trailing edge
         if (burning) {
           ctx.fillStyle = `rgba(150,120,255,${0.4 + 0.3 * Math.sin(game.renderT * 40)})`;
@@ -2023,6 +2059,22 @@ const RENDER = (() => {
           ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, 7); ctx.fill();  // ground shadow
           ctx.fillStyle = '#2e2b22';
           ctx.beginPath(); ctx.arc(p.x, p.y - p.z, 3.2, 0, 7); ctx.fill();
+          break;
+        }
+        case 'nukebomb': {
+          // heavy finned device with a growing ground shadow as it falls
+          const kk = U.clamp(p.t / p.fly, 0, 1);
+          ctx.fillStyle = 'rgba(0,0,0,0.3)';
+          ctx.beginPath(); ctx.ellipse(p.tx, p.ty, 5 + 7 * kk, 3 + 4 * kk, 0, 0, 7); ctx.fill();
+          const by = p.y - p.z;
+          ctx.fillStyle = '#3a3630';
+          ctx.beginPath(); ctx.ellipse(p.x, by, 4.5, 7, 0, 0, 7); ctx.fill();
+          ctx.fillStyle = '#201d18';
+          ctx.beginPath();
+          ctx.moveTo(p.x - 4, by + 5); ctx.lineTo(p.x, by + 10); ctx.lineTo(p.x + 4, by + 5);
+          ctx.closePath(); ctx.fill();
+          ctx.fillStyle = '#c9a227';
+          ctx.fillRect(p.x - 4.5, by - 1.5, 9, 2);
           break;
         }
         case 'napalm': {

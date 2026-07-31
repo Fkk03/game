@@ -1382,6 +1382,17 @@ function fireWeapon(src, w, target) {
         speed: 520, dmg, dtype: w.dtype, splash: w.splash || 20, owner: src.owner, srcId: src.id, dead: false });
       break;
     }
+    case 'nukebomb': {
+      // a strategic payload, not a strafing run: it falls where the bomber releases it
+      game.projs.push({ kind: 'nukebomb', x: src.x, y: src.y, sx: src.x, sy: src.y,
+        tx: target.x, ty: target.y, z: 80, t: 0, fly: 1.6,
+        dmg, dtype: w.dtype, splash: w.splash || 300, owner: src.owner, srcId: src.id, dead: false });
+      SFX.rocket(src.x, src.y);
+      if (src.owner === 0) { UI.feed('☢ NUCLEAR PAYLOAD RELEASED', 'gold'); }
+      else { UI.feed('⚠ ENEMY NUCLEAR PAYLOAD INBOUND', 'bad'); SFX.klaxon(); }
+      UI.ping(target.x, target.y, '#ffcf5a');
+      break;
+    }
     case 'napalm': {
       game.projs.push({ kind: 'napalm', x: src.x, y: src.y, tx: target.x, ty: target.y, z: 60, t: 0, fly: 0.7,
         sx: src.x, sy: src.y, dmg, dtype: 'flame', splash: w.splash || 60, owner: src.owner, srcId: src.id, srcAir, dead: false });
@@ -1460,6 +1471,26 @@ function updateProjectiles(dt) {
           dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, game.byId.get(p.srcId), false, p.srcAir);
           FX.explosion(p.tx, p.ty, 0.9);
           SFX.explo(p.tx, p.ty, 0.9);
+          p.dead = true;
+        }
+        break;
+      }
+      case 'nukebomb': {
+        p.t += dt;
+        const k = Math.min(1, p.t / p.fly);
+        p.x = U.lerp(p.sx, p.tx, k);
+        p.y = U.lerp(p.sy, p.ty, k);
+        p.z = 80 * (1 - k);
+        if (Math.random() < dt * 12) FX.smokePuff(p.x, p.y - p.z, 2);
+        if (k >= 1) {
+          FX.nukeExplosion(p.x, p.y);
+          FX.flash('255,240,190', 0.55, 0.9);
+          SFX.bigExplo(p.x, p.y);
+          RENDER.addDecal(p.x, p.y, p.splash * 0.75);
+          /* fromAir is deliberately false: this is a nuclear device, so it lands at
+             full force like a superweapon rather than taking the 30%-vs-structures
+             reduction that keeps ordinary air power from deleting bases. */
+          dealSplash(p.tx, p.ty, p.dmg, p.dtype, p.splash, p.owner, game.byId.get(p.srcId), false, false);
           p.dead = true;
         }
         break;

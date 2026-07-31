@@ -146,7 +146,7 @@ const BUILDINGS = {
     name: { coalition: 'Airfield', dynasty: 'Airstrip', cartel: null },
     icon: '🛩️', cost: 1500, hp: 5400, size: 3, buildTime: 20, power: 3, armor: 'building',
     sight: 8, desc: 'Builds and rearms strike jets (one jet per pad, 4 pads).',
-    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'umbra', 'albatross', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
+    trainsByFaction: { coalition: ['falcon', 'kestrel', 'seraph', 'umbra', 'obsidian', 'albatross', 'spyplane'], dynasty: ['vulture', 'kestrel', 'behemoth', 'spyplane'] },
     pads: 4,
   },
   gatdef: {
@@ -259,6 +259,13 @@ const UNITS = {
     stealthAir: true, decloakOnFire: 1,
     desc: 'Coalition-exclusive stealth strike jet, 3–4× a Seraph in every way: six 2,250-dmg missiles, faster, far tougher. Cloaked in flight (colors dim); firing exposes it for ~1 s (colors brighten), then it fades back out.',
     weapon: { dmg: 2250, dtype: 'rocket', range: 185, cd: 0.45, projectile: 'missile', splash: 110, aa: false, ga: true },
+  },
+  obsidian: {
+    name: 'Obsidian Strategic Bomber', icon: '🦇', cost: 100000, hp: 4800, speed: 180, sight: 12, radius: 22,
+    armor: 'air', buildTime: 90, chassis: 'jet', air: true, ammo: 1, limitPer: 2,
+    stealthAir: true, decloakOnFire: 2,
+    desc: 'Coalition strategic bomber (max 2). Cloaked flying wing carrying ONE nuclear payload — a 22,500-damage detonation with a 400 blast, the largest in the arsenal, and it strikes structures at full force rather than the reduced damage other aircraft deal. Flies home to rearm after every drop.',
+    weapon: { dmg: 22500, dtype: 'explosive', range: 120, cd: 1.0, projectile: 'nukebomb', splash: 400, aa: false, ga: true },
   },
   seraph: {
     name: 'Seraph Gunship', icon: '🌩️', cost: 3900, hp: 950, speed: 245, sight: 9, radius: 16,

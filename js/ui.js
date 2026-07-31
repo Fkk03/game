@@ -376,7 +376,9 @@ const UI = (() => {
       const w = d.weapon;
       if (w) {
         const dmg = Math.round(w.dmg * VET_DMG[e.vetRank] * (1 + 0.25 * (e.gunLvl || 0)));
-        bits.push(`⚔ ${dmg} ${w.dtype}${d.air ? ' per missile' : ''}`);
+        const per = w.projectile === 'nukebomb' ? ' per bomb' :
+          w.projectile === 'napalm' ? ' per payload' : ' per missile';
+        bits.push(`⚔ ${dmg} ${w.dtype}${d.air ? per : ''}`);
         bits.push(`range ${w.range}`);
         if (w.splash) bits.push(`blast ${w.splash}`);
       }
