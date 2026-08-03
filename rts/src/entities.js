@@ -124,7 +124,7 @@ export function maybeSpawnTestBattle() {
     // capture-order demo: rangers walk to the oilfield derricks and channel
     // (verify with `oilfield:t=18&battle=4&live` — accents flip to blue)
     LAYOUT.derricks.slice(0, 2).forEach((d, i) => {
-      const r = spawnUnit('ranger', 0, d.x - 16, d.z - 10 - i * 4, 0);
+      const r = spawnUnit('ranger', 0, 80 - i * 4, 38 - i * 4, 0);   // clear staging W of the field
       const target = G.buildings.find(bl =>
         bl.alive && bl.def.capturable && Math.hypot(bl.pos.x - d.x, bl.pos.z - d.z) < 2);
       if (target) r.order = { type: 'capture', target };

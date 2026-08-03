@@ -67,10 +67,12 @@ export class CameraRig {
     if (G.state === 'playing') {
       const spd = this.zoom * 1.5 * dt;
       let rx = 0, fz = 0;
+      // A = attack-move and S = stop while units are selected, so those two
+      // keys only pan when the selection is empty (W/D and arrows always pan)
+      const noSel = !G.sel.length;
       if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) fz += 1;
-      if (this.keys.has('KeyS') && !this.keys.has('ShiftLeft')) fz -= 1;   // S also = stop; input.js filters
-      if (this.keys.has('ArrowDown')) fz -= 1;
-      if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) rx -= 1;
+      if ((noSel && this.keys.has('KeyS')) || this.keys.has('ArrowDown')) fz -= 1;
+      if ((noSel && this.keys.has('KeyA')) || this.keys.has('ArrowLeft')) rx -= 1;
       if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) rx += 1;
       // edge scroll
       if (this.edgeEnabled && this._mx !== undefined && !document.querySelector('.overlay:not(.hidden)')) {
