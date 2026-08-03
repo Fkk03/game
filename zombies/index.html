@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLACKSITE 115 — Undead Protocol</title>
+<style>
+  :root {
+    --bone: #e8e0cc; --blood: #a11f1f; --blood2: #ff3020; --gold: #d8b04a;
+    --spread: 6px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+  body { font-family: 'Trebuchet MS', 'DejaVu Sans', Verdana, sans-serif; color: var(--bone); user-select: none; }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity .4s; }
+  #hud.on { opacity: 1; }
+  .hudtxt { text-shadow: 0 0 6px rgba(0,0,0,.9), 0 2px 2px rgba(0,0,0,.8); }
+
+  #crosshair { position: fixed; left: 50%; top: 50%; width: 0; height: 0; }
+  .xline { position: absolute; background: rgba(240,240,230,.85); box-shadow: 0 0 2px rgba(0,0,0,.9); }
+  .xline.t { left: -1px; top: calc(-6px - var(--spread)); width: 2px; height: 7px; }
+  .xline.b { left: -1px; top: calc(-1px + var(--spread)); width: 2px; height: 7px; }
+  .xline.l { top: -1px; left: calc(-6px - var(--spread)); height: 2px; width: 7px; }
+  .xline.r { top: -1px; left: calc(-1px + var(--spread)); height: 2px; width: 7px; }
+  #crosshair.ads .xline { opacity: 0; }
+
+  #hitmarker { position: fixed; left: 50%; top: 50%; width: 0; height: 0; opacity: 0; }
+  #hitmarker.show { opacity: 1; }
+  .hm { position: absolute; width: 2px; height: 9px; background: #fff; box-shadow: 0 0 3px rgba(0,0,0,.9); }
+  #hitmarker.kill .hm { background: var(--blood2); }
+  .hm1 { transform: translate(-7px,-11px) rotate(45deg); }
+  .hm2 { transform: translate(5px,-11px) rotate(-45deg); }
+  .hm3 { transform: translate(-7px,2px) rotate(-45deg); }
+  .hm4 { transform: translate(5px,2px) rotate(45deg); }
+
+  #round { position: fixed; left: 26px; bottom: 18px; font-size: 64px; font-weight: 900;
+    color: var(--blood2); font-family: Georgia, 'Times New Roman', serif; line-height: 1;
+    text-shadow: 0 0 14px rgba(120,0,0,.95), 0 0 40px rgba(160,10,10,.6), 0 2px 3px #000; letter-spacing: 2px; }
+  #roundlbl { position: fixed; left: 28px; bottom: 88px; font-size: 12px; letter-spacing: 5px; color: #caa; opacity: .85; }
+
+  #points { position: fixed; left: 120px; bottom: 30px; font-size: 26px; font-weight: 700; color: var(--gold);
+    letter-spacing: 1px; }
+  #popups { position: fixed; left: 130px; bottom: 64px; width: 220px; }
+  .pop { position: absolute; left: 0; bottom: 0; font-weight: 700; font-size: 18px; color: var(--gold);
+    text-shadow: 0 0 6px #000; animation: popfly 0.9s ease-out forwards; }
+  .pop.neg { color: #d33; }
+  @keyframes popfly { 0% { opacity: 0; transform: translateY(8px); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-34px); } }
+
+  #weaponbox { position: fixed; right: 30px; bottom: 22px; text-align: right; }
+  #wname { font-size: 15px; letter-spacing: 3px; color: #cfc7b0; margin-bottom: 2px; }
+  #wname.pap { color: #b070ff; text-shadow: 0 0 10px rgba(150,80,255,.8); }
+  #ammo { font-size: 44px; font-weight: 800; line-height: 1; }
+  #ammo .res { font-size: 22px; color: #9a9482; font-weight: 600; }
+  #ammo.low { color: var(--blood2); }
+  #grenades { font-size: 15px; color: #cfc7b0; margin-top: 4px; letter-spacing: 2px; }
+
+  #health-vignette { position: fixed; inset: 0; pointer-events: none; opacity: 0;
+    background: radial-gradient(ellipse at center, transparent 42%, rgba(140,0,0,.55) 78%, rgba(90,0,0,.9) 100%); }
+
+  #prompt { position: fixed; left: 50%; bottom: 26%; transform: translateX(-50%); font-size: 17px;
+    letter-spacing: 1px; background: rgba(0,0,0,.55); padding: 8px 18px; border: 1px solid rgba(216,176,74,.4);
+    border-radius: 3px; opacity: 0; transition: opacity .15s; }
+  #prompt.on { opacity: 1; }
+  #prompt b { color: var(--gold); }
+
+  #banner { position: fixed; left: 0; right: 0; top: 20%; text-align: center; font-size: 58px; font-weight: 900;
+    font-family: Georgia, serif; color: var(--blood2); letter-spacing: 6px; opacity: 0; pointer-events: none;
+    text-shadow: 0 0 20px rgba(140,0,0,.9), 0 3px 4px #000; }
+  #banner.show { animation: bannerfade 3.4s ease-out forwards; }
+  #banner.gold { color: var(--gold); text-shadow: 0 0 20px rgba(180,140,0,.9), 0 3px 4px #000; }
+  @keyframes bannerfade { 0% { opacity: 0; transform: scale(1.25); } 12% { opacity: 1; transform: scale(1); } 78% { opacity: 1; } 100% { opacity: 0; } }
+
+  #subtitle { position: fixed; left: 0; right: 0; bottom: 14%; text-align: center; font-size: 16px;
+    color: #d5cdb5; letter-spacing: 1px; opacity: 0; transition: opacity .3s; text-shadow: 0 1px 3px #000; }
+  #subtitle.on { opacity: 1; }
+
+  /* ---------- overlays ---------- */
+  .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; background: rgba(2,3,5,.78); z-index: 10; }
+  .hidden { display: none !important; }
+  .title { font-family: Georgia, serif; font-weight: 900; font-size: clamp(44px, 8vw, 96px); letter-spacing: 10px;
+    color: var(--bone); text-shadow: 0 0 30px rgba(160,20,20,.8), 0 4px 6px #000; }
+  .title em { color: var(--blood2); font-style: normal; }
+  .subtitle2 { margin-top: 6px; letter-spacing: 8px; font-size: 14px; color: #b8ae94; }
+  .deploy { margin-top: 46px; font-size: 22px; letter-spacing: 5px; padding: 14px 44px; color: var(--bone);
+    border: 2px solid rgba(216,176,74,.7); background: rgba(20,10,8,.6); cursor: pointer; transition: all .2s; }
+  .deploy:hover { background: rgba(120,20,14,.55); box-shadow: 0 0 26px rgba(190,40,30,.5); letter-spacing: 7px; }
+  .controls { margin-top: 40px; display: grid; grid-template-columns: auto auto; gap: 6px 22px; font-size: 14px; color: #a89f88; }
+  .controls b { color: var(--bone); font-weight: 700; text-align: right; }
+  .lore { position: absolute; bottom: 26px; left: 0; right: 0; text-align: center; font-size: 12px;
+    letter-spacing: 2px; color: #6d675a; }
+  #gameover .title { color: var(--blood2); }
+  #gostats { margin-top: 26px; font-size: 19px; letter-spacing: 2px; color: #cfc7b0; text-align: center; line-height: 1.9; }
+  #gostats b { color: var(--gold); }
+  #paused-note { font-size: 20px; letter-spacing: 4px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="hud">
+  <div id="crosshair"><div class="xline t"></div><div class="xline b"></div><div class="xline l"></div><div class="xline r"></div></div>
+  <div id="hitmarker"><div class="hm hm1"></div><div class="hm hm2"></div><div class="hm hm3"></div><div class="hm hm4"></div></div>
+  <div id="health-vignette"></div>
+  <div id="roundlbl" class="hudtxt">ROUND</div>
+  <div id="round" class="hudtxt">1</div>
+  <div id="points" class="hudtxt">500</div>
+  <div id="popups"></div>
+  <div id="weaponbox" class="hudtxt">
+    <div id="wname">KESTREL .45</div>
+    <div id="ammo">8 <span class="res">/ 96</span></div>
+    <div id="grenades">✸ 2</div>
+  </div>
+  <div id="prompt"></div>
+  <div id="banner"></div>
+  <div id="subtitle"></div>
+</div>
+
+<div id="menu" class="overlay">
+  <div class="title">BLACKSITE <em>115</em></div>
+  <div class="subtitle2">UNDEAD PROTOCOL — VERLASSEN</div>
+  <button class="deploy" id="btn-deploy">CLICK TO DEPLOY</button>
+  <div class="controls">
+    <b>WASD</b><span>Move</span>
+    <b>SHIFT</b><span>Sprint</span>
+    <b>MOUSE</b><span>Aim · Fire · Hold RMB to ADS</span>
+    <b>R</b><span>Reload</span>
+    <b>F</b><span>Use / Buy</span>
+    <b>G</b><span>Frag grenade</span>
+    <b>V</b><span>Knife</span>
+    <b>1 / 2 / Q</b><span>Switch weapon</span>
+  </div>
+  <div class="lore">SITE RECORD 115 — CONTAINMENT FAILED — SURVIVORS NOT EXPECTED</div>
+</div>
+
+<div id="gameover" class="overlay hidden">
+  <div class="title">YOU DIED</div>
+  <div id="gostats"></div>
+  <button class="deploy" id="btn-restart">TRY AGAIN</button>
+</div>
+
+<div id="paused" class="overlay hidden">
+  <div id="paused-note">PAUSED — CLICK TO RESUME</div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./lib/three.module.js", "three/addons/": "./lib/jsm/" } }
+</script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

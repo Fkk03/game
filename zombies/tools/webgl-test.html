@@ -1,0 +1,15 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>webgl test</title></head><body>
+<script type="importmap">{"imports":{"three":"../lib/three.module.js","three/addons/":"../lib/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setSize(640, 360); document.body.appendChild(r.domElement);
+const s = new THREE.Scene(); s.background = new THREE.Color(0x203040);
+const c = new THREE.PerspectiveCamera(60, 16/9, 0.1, 100); c.position.z = 3;
+const m = new THREE.Mesh(new THREE.TorusKnotGeometry(0.8, 0.3, 128, 32), new THREE.MeshStandardMaterial({ color: 0xcc4422, roughness: 0.3 }));
+s.add(m, new THREE.DirectionalLight(0xffffff, 2), new THREE.AmbientLight(0x404040));
+r.render(s, c);
+window.__glinfo = r.getContext().getParameter(r.getContext().RENDERER) || 'ctx-ok';
+window.__photoReady = true;
+</script></body></html>
