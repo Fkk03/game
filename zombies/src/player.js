@@ -31,7 +31,8 @@ export function initPlayer(G) {
   });
   addEventListener('keyup', (e) => { keys[e.code] = false; });
   addEventListener('mousemove', (e) => {
-    if (!G.locked) return;
+    // fallback look mode for embeds that deny pointer lock (G.dragLook set by main)
+    if (!G.locked && !(G.dragLook && G.state === 'PLAYING')) return;
     const s = 0.0021;
     P.yaw -= e.movementX * s;
     P.pitch = Math.max(-1.45, Math.min(1.45, P.pitch - e.movementY * s));

@@ -1,5 +1,6 @@
 // BLACKSITE 115 — main entry: renderer, game state machine, module wiring, loop.
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { initPlayer, updatePlayer } from './player.js';
 import { initWorld } from './world.js';
 import { initWeapons, updateWeapons } from './weapons.js';
@@ -44,7 +45,6 @@ scene.fog = new THREE.FogExp2(0x0a0e12, 0.026);
 // low-intensity IBL so metals (guns, casings, machines) have something to
 // reflect — without this, high-metalness surfaces render black
 {
-  const { RoomEnvironment } = await import('three/addons/environments/RoomEnvironment.js');
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.055;
@@ -104,9 +104,15 @@ pausedEl.addEventListener('click', () => {
 });
 document.addEventListener('pointerlockchange', () => {
   G.locked = document.pointerLockElement === renderer.domElement;
-  if (!G.locked && G.state === 'PLAYING' && !G.player.dead) {
+  if (!G.locked && G.state === 'PLAYING' && !G.player.dead && !G.dragLook) {
     pausedEl.classList.remove('hidden');
   }
+});
+// embeds (e.g. sandboxed iframes) may deny pointer lock — fall back to raw
+// mousemove look so the game stays playable
+document.addEventListener('pointerlockerror', () => {
+  G.dragLook = true;
+  G.locked = false;
 });
 G.events.on('playerDied', () => { G.state = 'DEAD'; });
 
