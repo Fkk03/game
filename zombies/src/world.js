@@ -59,7 +59,12 @@ export function initWorld(G) {
     ground: std(ground, { bumpScale: 1.6 }),
     plaster: std(plaster),
     dark: new THREE.MeshStandardMaterial({ color: 0x14120f, roughness: 0.95 }),
-    silhouette: new THREE.MeshBasicMaterial({ color: 0x04060a }),
+    // distant ruins: dark but light-responsive so moon + fog model them instead
+    // of reading as holes in the sky
+    silhouette: new THREE.MeshStandardMaterial({
+      map: brickDark.map, bumpMap: brickDark.bumpMap, bumpScale: 0.5,
+      color: 0x4a4e58, roughness: 0.96,
+    }),
   };
 
   // ---------- helpers ----------
@@ -698,13 +703,14 @@ export function initWorld(G) {
     pole.position.set(cx, 2.2, cz); pole.castShadow = true; scene.add(pole);
     const arm = new THREE.Mesh(boxGeo, M.metal); arm.scale.set(1.1, 0.08, 0.08);
     arm.position.set(cx + 0.5, 4.35, cz); scene.add(arm);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshBasicMaterial({ color: 0x1a1a18 }));
+    // dim gas glow pre-power so lamps never read as dead props; power brightens them
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshBasicMaterial({ color: 0x8a6a34 }));
     head.position.set(cx + 1, 4.28, cz); scene.add(head);
-    const l = new THREE.PointLight(0xffc878, 0, 15, 2);
+    const l = new THREE.PointLight(0xffc878, 2.2, 15, 2);
     l.position.set(cx + 1, 4.1, cz);
     scene.add(l);
     addCollider(cx, cz, 0.35, 4.4, 0.35);
-    W.powerLights.push({ light: l, mesh: head, on: 9 });
+    W.powerLights.push({ light: l, mesh: head, on: 9, off: 2.2, headLit: 0xffd890, headDim: 0x8a6a34 });
   }
   lampPost(-2, 7);
   lampPost(-20, 2);
@@ -860,8 +866,8 @@ export function initWorld(G) {
   function setPower(G, on) {
     W.powerOn = on;
     for (const pl of W.powerLights) {
-      if (pl.light) pl.light.intensity = on ? pl.on : 0;
-      if (pl.mesh) pl.mesh.material.color.setHex(on ? 0xffd9a0 : 0x1a1a18);
+      if (pl.light) pl.light.intensity = on ? pl.on : (pl.off ?? 0);
+      if (pl.mesh) pl.mesh.material.color.setHex(on ? (pl.headLit ?? 0xffd9a0) : (pl.headDim ?? 0x1a1a18));
       if (pl.mat) pl.mat.emissiveIntensity = on ? pl.emissive : 0.05;
     }
     G.events.emit('power', on);

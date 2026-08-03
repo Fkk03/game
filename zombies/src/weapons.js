@@ -473,7 +473,7 @@ function fire(G, S, w, st, t) {
   P.pitch += st.kick * (0.5 + Math.random() * 0.4);
   P.yaw += st.kick * (Math.random() - 0.5) * 0.4;
   S.flashLight.position.copy(muzzleWorld(G, S));
-  S.flashLight.intensity = st.type === 'ray' ? 8 : 18;
+  S.flashLight.intensity = st.type === 'ray' ? 8 : 11;
   S.flashLight.color.setHex(st.type === 'ray' ? 0x40ff70 : 0xffb050);
   S.flashT = 0.055;
   const fl = S.models[w.id]?.userData?.flash;

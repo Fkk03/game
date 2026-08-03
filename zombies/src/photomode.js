@@ -29,13 +29,16 @@ export function initPhotoMode(G, preset) {
   switch (preset) {
     case 1: { // courtyard vista: horde shambling at the player, house + fires behind
       setCam(0, 1.62, 13.5, 0, 0.02);
+      // two loose clumps with overlapping silhouettes + a close flanker, yaws
+      // scattered off-axis so it reads as a horde, not a lineup
       const spots = [
-        [-4.5, 5.5, 0.3, 'walk', 0.8], [-1.8, 4, 0.1, 'walk', 2.9], [1.2, 6, -0.2, 'walk', 4.4],
-        [3.8, 3.2, -0.3, 'walk', 1.7], [-6.5, 8, 0.45, 'walk', 3.6], [6, 7.5, -0.5, 'walk', 5.2],
-        [0.2, 1.8, 0, 'attack', 0], [-2.8, 9.5, 0.2, 'walk', 0.4],
+        [-4.8, 6.2, 0.35, 'walk', 0.8], [-3.6, 5.1, -0.2, 'walk', 2.9], [-2.6, 6.8, 0.15, 'walk', 4.4],
+        [2.8, 4.4, -0.3, 'walk', 1.7], [3.9, 5.6, 0.4, 'walk', 3.6], [5, 4, -0.5, 'walk', 5.2],
+        [0.4, 2.2, 0, 'attack', 0], [-1.2, 9.8, 0.2, 'walk', 0.4],
+        [-7.5, 10.8, 0.6, 'walk', 2.2], [7, 9.2, -0.7, 'walk', 1.1],
       ];
       for (const [x, z, dy, pose, ph] of spots) {
-        Z.spawnPosed(x, z, Math.atan2(0 - x, 13.5 - z), pose, ph, { hunch: 0.25 + (ph % 1) * 0.2 });
+        Z.spawnPosed(x, z, Math.atan2(0 - x, 13.5 - z) + dy * 0.6, pose, ph, { hunch: 0.25 + (ph % 1) * 0.2 });
       }
       stageHud(8, 4230);
       break;
@@ -111,12 +114,15 @@ export function initPhotoMode(G, preset) {
       primeFrames = 40;
       break;
     }
-    case 6: { // high overview of the whole map
+    case 6: { // high overview of the whole map — clean plate: no viewmodel, brighter key
       G.camera.position.set(30, 27, 32);
       G.camera.lookAt(0, 0, -2);
       P.pos.set(30, 25.4, 32);
+      for (const o of G.camera.children) if (o.isGroup) o.visible = false;
+      G.moon.intensity *= 2.4;
+      G.scene.fog.density *= 0.55;
       for (const [x, z] of [[0, 8], [-3, 4], [3, 2], [18, 0], [-19, 3], [8, -8], [-6, -10]])
-        Z.spawnPosed(x, z, Math.random() * 6, 'walk', (x + z) % 6);
+        Z.spawnPosed(x, z, ((x * 7 + z * 13) % 12) * 0.52, 'walk', (x + z) % 6);
       break;
     }
   }
