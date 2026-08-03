@@ -161,6 +161,13 @@ export function initZombies(G) {
     parts.head.castShadow = parts.head.receiveShadow = true;
     parts.neck.add(parts.head);
     parts.jaw = mk('jaw', skin, 0, -0.12, 0.04); parts.head.add(parts.jaw);
+    // neck stub + matted hair cap (most, not all)
+    const nk = mk('jaw', skin, 0, -0.14, -0.02); nk.scale.set(0.6, 1.6, 0.7); parts.head.add(nk);
+    if (rng() < 0.72) {
+      const hair = new THREE.Mesh(geo.jaw, new THREE.MeshStandardMaterial({ color: [0x1c1712, 0x2e2418, 0x3a3226][Math.floor(rng() * 3)], roughness: 1 }));
+      hair.scale.set(1.38, 0.75, 1.72); hair.position.set(0, 0.135, -0.01);
+      hair.castShadow = true; parts.head.add(hair);
+    }
     const eL = new THREE.Mesh(geo.eye, eyeMat); eL.position.set(-0.047, 0.026, 0.1); parts.head.add(eL);
     const eR = new THREE.Mesh(geo.eye, eyeMat); eR.position.set(0.047, 0.026, 0.1); parts.head.add(eR);
     for (const side of ['L', 'R']) {

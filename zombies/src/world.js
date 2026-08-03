@@ -417,7 +417,10 @@ export function initWorld(G) {
   })(4, 16);
 
   // graveyard: headstones + mounds (zombie spawns)
-  const graveMat = M.conc;
+  // weathered dark stone (conc map tinted down — bright speckle reads wrong at night)
+  const graveMat = new THREE.MeshStandardMaterial({
+    map: M.conc.map, bumpMap: M.conc.bumpMap, bumpScale: 1.3, roughness: 0.95, color: 0x63645c,
+  });
   const moundMat = new THREE.MeshStandardMaterial({ color: 0x2e2418, roughness: 1 });
   const moundGeo = new THREE.SphereGeometry(0.9, 10, 6);
   for (let gx = 0; gx < 3; gx++) for (let gz = 0; gz < 3; gz++) {
