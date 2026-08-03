@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRON DAWN: FIRST STRIKE — Desert FPS</title>
+<link rel="stylesheet" href="css/fps.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/three.module.js",
+    "three/addons/": "./vendor/three/addons/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+
+  <!-- ============ HUD ============ -->
+  <div id="hud" class="hidden">
+    <!-- crosshair -->
+    <div id="crosshair">
+      <span class="ch-l"></span><span class="ch-r"></span><span class="ch-t"></span><span class="ch-b"></span>
+      <span class="ch-dot"></span>
+    </div>
+    <div id="hitmarker"></div>
+
+    <!-- damage vignette -->
+    <div id="dmg-vignette"></div>
+    <div id="flashbang"></div>
+
+    <!-- compass -->
+    <div id="compass"><div id="compass-strip"></div><div id="compass-notch">▼</div></div>
+
+    <!-- top-right objectives -->
+    <div id="objectives">
+      <div class="obj-head">■ OPERATION: FIRST STRIKE</div>
+      <div id="obj-list"></div>
+    </div>
+
+    <!-- bottom-left: health/armor -->
+    <div id="vitals">
+      <div class="vit-row"><span class="vit-ico">✚</span>
+        <div class="vit-bar"><div id="hp-fill"></div></div><span id="hp-num">100</span></div>
+      <div class="vit-row"><span class="vit-ico">◆</span>
+        <div class="vit-bar"><div id="ap-fill"></div></div><span id="ap-num">50</span></div>
+    </div>
+
+    <!-- bottom-right: weapon -->
+    <div id="weaponbox">
+      <div id="wpn-name">M4A1 CARBINE</div>
+      <div id="wpn-ammo"><span id="ammo-mag">30</span><span id="ammo-sep">/</span><span id="ammo-res">120</span></div>
+      <div id="wpn-slots"></div>
+    </div>
+
+    <!-- kill feed -->
+    <div id="killfeed"></div>
+
+    <!-- center announcements -->
+    <div id="announce"></div>
+    <div id="subannounce"></div>
+
+    <!-- minimap / radar -->
+    <div id="radar-wrap"><canvas id="radar" width="176" height="176"></canvas>
+      <div id="radar-label">TACTICAL</div></div>
+
+    <!-- interaction prompt -->
+    <div id="prompt"></div>
+  </div>
+
+  <!-- ============ MENU ============ -->
+  <div id="menu" class="overlay">
+    <div class="menu-box">
+      <div class="menu-eagle">🦅</div>
+      <h1 class="title">IRON DAWN</h1>
+      <div class="title-sub">FIRST&nbsp;STRIKE</div>
+      <p class="tagline">A lone Coalition operative. A fortified Scorpion Cartel stronghold.<br>
+        Zero backup. Dawn is when you strike.</p>
+      <button id="btn-play" class="bigbtn">DEPLOY</button>
+      <div class="menu-keys">
+        <table>
+          <tr><td>WASD</td><td>Move</td><td>Mouse</td><td>Aim / Fire</td></tr>
+          <tr><td>Shift</td><td>Sprint</td><td>R.Mouse</td><td>Aim down sights</td></tr>
+          <tr><td>Space</td><td>Jump</td><td>R</td><td>Reload</td></tr>
+          <tr><td>1 / 2 / 3</td><td>Weapons</td><td>G</td><td>Frag grenade</td></tr>
+          <tr><td>C</td><td>Crouch</td><td>Esc</td><td>Pause</td></tr>
+        </table>
+      </div>
+      <div class="fineprint">An original fan homage to early-2000s desert-war RTS classics.<br>
+        All assets procedural — nothing extracted from any commercial game.</div>
+    </div>
+  </div>
+
+  <!-- ============ PAUSE ============ -->
+  <div id="pause" class="overlay hidden">
+    <div class="menu-box small">
+      <h2>PAUSED</h2>
+      <button id="btn-resume" class="bigbtn">RESUME</button>
+      <button id="btn-restart" class="smallbtn">RESTART MISSION</button>
+    </div>
+  </div>
+
+  <!-- ============ END ============ -->
+  <div id="end" class="overlay hidden">
+    <div class="menu-box">
+      <h1 id="end-title" class="title small">MISSION ACCOMPLISHED</h1>
+      <div id="end-stats"></div>
+      <button id="btn-again" class="bigbtn">PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <!-- loading -->
+  <div id="loading" class="overlay"><div class="load-box">
+    <div class="load-title">IRON DAWN</div>
+    <div class="load-bar"><div id="load-fill"></div></div>
+    <div id="load-text">Fabricating battlefield…</div>
+  </div></div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
