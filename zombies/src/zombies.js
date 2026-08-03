@@ -12,57 +12,233 @@ const powerups = [];
 export function initZombies(G) {
   const rng = makeRng(G.seed + 500);
   // shared materials (variation pool)
-  const TONES = [[100, 112, 86], [114, 105, 90], [90, 104, 95], [108, 100, 76]];
+  // corpse skin tones: pale olive, ashen tan, green rot, bruised gray-purple
+  const TONES = [[112, 118, 92], [122, 110, 90], [100, 110, 96], [112, 102, 106]];
   const skins = [0, 1, 2, 3].map(i => {
     const t = zombieSkinTexture({ seed: 71 + i * 7, tone: TONES[i] });
     return new THREE.MeshStandardMaterial({ map: t.map, bumpMap: t.bumpMap, bumpScale: 0.8, roughness: 0.92 });
   });
-  const cloths = [0, 1, 2, 3, 4, 5].map(i => {
-    const t = clothTexture({ seed: 81 + i * 11, base: [[60, 62, 58], [72, 58, 44], [48, 54, 68], [70, 44, 40], [56, 66, 52], [64, 60, 70]][i] });
-    return new THREE.MeshStandardMaterial({ map: t.map, roughness: 0.98 });
-  });
-  const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffa524, emissive: 0xff8a10, emissiveIntensity: 2.6 });
-
-  // zombie face texture: sunken sockets, gaunt cheeks, torn mouth — applied to the
-  // front (+z) face of the head box via a material array.
-  function faceTexture(tone, seed) {
-    const r = makeRng(seed);
-    const c = document.createElement('canvas'); c.width = c.height = 128;
+  // hands/claws: same skin maps tinted with dried-blood grime
+  const handMats = skins.map(s => new THREE.MeshStandardMaterial({
+    map: s.map, bumpMap: s.bumpMap, bumpScale: 0.8, roughness: 0.9, color: 0xb08a78,
+  }));
+  // WW2 villager cloth: muted, varied hues (no more uniform blue-gray), then
+  // grunged with fold shading, mud and old blood on a local canvas pass.
+  const CLOTH_BASES = [
+    [86, 84, 58],   // olive drab
+    [84, 88, 84],   // field gray
+    [96, 74, 52],   // worn brown
+    [73, 70, 66],   // charcoal
+    [92, 58, 50],   // faded burgundy
+    [112, 100, 76], // dusty tan
+    [62, 68, 86],   // worker navy (minority)
+    [70, 80, 58],   // loden green
+  ];
+  function grungyClothMat(i) {
+    const seed = 81 + i * 11;
+    const src = clothTexture({ seed, base: CLOTH_BASES[i] }).map.image;
+    const S = 256;
+    const c = document.createElement('canvas'); c.width = c.height = S;
     const x = c.getContext('2d');
-    x.fillStyle = `rgb(${tone[0]},${tone[1]},${tone[2]})`; x.fillRect(0, 0, 128, 128);
-    const shade = (px, py, rad, col, a) => {
-      const g = x.createRadialGradient(px, py, rad * 0.2, px, py, rad);
-      g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(1, `rgba(${col},0)`);
-      x.fillStyle = g; x.beginPath(); x.arc(px, py, rad, 0, 7); x.fill();
-    };
-    // gaunt cheek hollows + temple shading
-    shade(34, 74, 26, '30,26,30', 0.55); shade(94, 74, 26, '30,26,30', 0.55);
-    shade(64, 20, 40, '36,32,34', 0.4);
-    // deep eye sockets (eyes sit at ~(±30, 46) in this 128px face space)
-    shade(34, 46, 17, '10,8,10', 0.95); shade(94, 46, 17, '10,8,10', 0.95);
-    shade(34, 46, 9, '0,0,0', 1); shade(94, 46, 9, '0,0,0', 1);
-    // nose cavity
-    shade(64, 66, 8, '20,12,12', 0.8);
-    // torn mouth: dark gape + teeth
-    x.fillStyle = 'rgba(12,6,6,0.95)';
-    x.beginPath(); x.ellipse(64, 98, 24, 12 + r() * 6, 0, 0, 7); x.fill();
-    x.fillStyle = 'rgba(190,180,150,0.85)';
-    for (let i = 0; i < 7; i++) x.fillRect(46 + i * 5.4, 90, 3, 5 + r() * 3);
-    // blood from mouth corner
-    x.fillStyle = 'rgba(80,10,8,0.7)';
-    x.fillRect(46 + r() * 30, 104, 3 + r() * 3, 14 + r() * 10);
-    // scratches
-    x.strokeStyle = 'rgba(90,20,16,0.5)'; x.lineWidth = 1.5;
-    for (let i = 0; i < 3; i++) {
-      const sx = r() * 128, sy = r() * 60;
-      x.beginPath(); x.moveTo(sx, sy); x.lineTo(sx + r() * 20 - 10, sy + 20 + r() * 20); x.stroke();
+    x.drawImage(src, 0, 0);
+    const r = makeRng(seed + 3000);
+    // soft vertical fold shading so flat boxes read as hanging cloth
+    for (let f = 0; f < 6; f++) {
+      const fx = r() * S, wdt = r.range(12, 30);
+      const g = x.createLinearGradient(fx, 0, fx + wdt, 0);
+      g.addColorStop(0, 'rgba(0,0,0,0)');
+      g.addColorStop(0.5, `rgba(8,7,6,${r.range(0.12, 0.26).toFixed(2)})`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g; x.fillRect(fx, 0, wdt, S);
+      x.fillStyle = `rgba(255,250,235,${r.range(0.02, 0.05).toFixed(2)})`;
+      x.fillRect(Math.min(S - 2, fx + wdt), 0, 2, S);
+    }
+    // mud and grave dirt: soft smears (hard dots read as camo speckle at range)
+    for (let m = 0; m < 12; m++) {
+      const mx = r() * S, my = S * (0.3 + r() * 0.7), mr = r.range(7, 22);
+      const g = x.createRadialGradient(mx, my, 1, mx, my, mr);
+      g.addColorStop(0, `rgba(38,31,21,${r.range(0.16, 0.34).toFixed(2)})`);
+      g.addColorStop(1, 'rgba(38,31,21,0)');
+      x.fillStyle = g;
+      x.beginPath(); x.ellipse(mx, my, mr * 1.4, mr, r() * 3, 0, 7); x.fill();
+    }
+    const hem = x.createLinearGradient(0, S * 0.7, 0, S);
+    hem.addColorStop(0, 'rgba(16,13,9,0)'); hem.addColorStop(1, 'rgba(16,13,9,0.42)');
+    x.fillStyle = hem; x.fillRect(0, S * 0.7, S, S * 0.3);
+    // old blood: soaked blotches with drips + spatter (amount varies per variant)
+    const gore = r() < 0.5 ? r.int(1, 2) : r.int(3, 5);
+    for (let b = 0; b < gore; b++) {
+      const bx = r() * S, by = r() * S * 0.8, br = r.range(9, 30);
+      const g = x.createRadialGradient(bx, by, 1, bx, by, br);
+      g.addColorStop(0, `rgba(48,9,7,${r.range(0.5, 0.8).toFixed(2)})`);
+      g.addColorStop(0.7, `rgba(38,8,6,${r.range(0.25, 0.45).toFixed(2)})`);
+      g.addColorStop(1, 'rgba(38,8,6,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(bx, by, br, 0, 7); x.fill();
+      x.fillStyle = `rgba(40,8,6,${r.range(0.3, 0.55).toFixed(2)})`;
+      x.fillRect(bx - 1.5, by, 3, br * r.range(1.2, 2.4));
+    }
+    for (let d = 0; d < 9; d++) { // sparse spatter flicks
+      const dx = r() * S, dy = r() * S, da = r() * 3;
+      x.fillStyle = `rgba(52,10,8,${r.range(0.3, 0.6).toFixed(2)})`;
+      x.beginPath(); x.ellipse(dx, dy, r.range(1.5, 4.5), r.range(1, 2.2), da, 0, 7); x.fill();
     }
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
-    return t;
+    t.anisotropy = 8;
+    return new THREE.MeshStandardMaterial({ map: t, roughness: 0.97 });
   }
-  const faceMats = [0, 1, 2, 3].map(i =>
-    new THREE.MeshStandardMaterial({ map: faceTexture(TONES[i], 900 + i * 31), roughness: 0.9 }));
+  const cloths = CLOTH_BASES.map((_, i) => grungyClothMat(i));
+  const PANTS = [1, 2, 3, 5, 6, 7];   // muted trouser subset of the cloth pool
+  const JACKETS = [0, 1, 2, 3, 4, 5, 7]; // navy stays pants-only (too dark up top)
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffa524, emissive: 0xff8a10, emissiveIntensity: 2.3 });
+  const stumpMat = new THREE.MeshStandardMaterial({ color: 0x3a0f0b, roughness: 0.6 });
+  const bootMat = new THREE.MeshStandardMaterial({ color: 0x2a221a, roughness: 0.9 });
+  const hairMats = [0x151009, 0x211910, 0x2b2318, 0x4a4238].map(cN =>
+    new THREE.MeshStandardMaterial({ color: cN, roughness: 1 }));
+
+  // zombie face texture: mottled rot, asymmetric sunken sockets, skull nose,
+  // ragged mouth, blood — applied to the front (+z) face of the head box via a
+  // material array. Also reused as a bump map so the cavities catch light.
+  function faceTexture(tone, seed) {
+    const r = makeRng(seed);
+    const S = 256;
+    const c = document.createElement('canvas'); c.width = c.height = S;
+    const x = c.getContext('2d');
+    x.fillStyle = `rgb(${tone[0]},${tone[1]},${tone[2]})`; x.fillRect(0, 0, S, S);
+    const shade = (px, py, rad, col, a) => {
+      const g = x.createRadialGradient(px, py, rad * 0.15, px, py, rad);
+      g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(1, `rgba(${col},0)`);
+      x.fillStyle = g; x.beginPath(); x.arc(px, py, rad, 0, 7); x.fill();
+    };
+    // mottled decay: large soft blotches in sick hues, a few pale necrotic patches
+    const rots = ['52,58,40', '66,52,42', '52,42,56', '38,44,36', '84,88,66'];
+    for (let i = 0; i < 11; i++)
+      shade(r() * S, r() * S, r.range(18, 52), rots[r.int(0, rots.length - 1)], r.range(0.08, 0.2));
+    for (let i = 0; i < 4; i++)
+      shade(r() * S, r() * S, r.range(12, 30), '148,146,124', r.range(0.08, 0.16));
+    // bone-catchlight planes: cheekbones, brow tops, nose bridge (value contrast
+    // against the hollows so the face reads as a skull, not a flat card)
+    shade(70, 132, 22, '208,206,178', 0.16); shade(186, 132, 22, '208,206,178', 0.16);
+    shade(70, 66, 26, '200,198,172', 0.12); shade(186, 66, 26, '200,198,172', 0.12);
+    shade(128, 76, 18, '198,196,170', 0.1);
+    // gaunt structure: temple/cheek hollows, dark jaw, brow-ridge shadow band
+    shade(58, 152, 54, '24,20,24', 0.7); shade(198, 152, 54, '24,20,24', 0.7);
+    shade(128, 34, 76, '30,27,28', 0.45);
+    const jawG = x.createLinearGradient(0, S * 0.72, 0, S);
+    jawG.addColorStop(0, 'rgba(18,14,12,0)'); jawG.addColorStop(1, 'rgba(18,14,12,0.5)');
+    x.fillStyle = jawG; x.fillRect(0, S * 0.72, S, S * 0.28);
+    const browG = x.createLinearGradient(0, 58, 0, 96);
+    browG.addColorStop(0, 'rgba(20,15,13,0)'); browG.addColorStop(0.55, 'rgba(20,15,13,0.42)'); browG.addColorStop(1, 'rgba(20,15,13,0)');
+    x.fillStyle = browG; x.fillRect(8, 58, S - 16, 38);
+    // deep asymmetric sockets with bruised rims (eyes sit at ~(±60, 100) here)
+    const sockets = [[68 + r.range(-4, 4), 100 + r.range(-3, 3), r.range(26, 33)],
+      [188 + r.range(-4, 4), 100 + r.range(-3, 3), r.range(24, 33)]];
+    for (const [sx, sy, sr] of sockets) {
+      shade(sx, sy + 6, sr * 1.5, '46,32,44', 0.4);
+      shade(sx, sy, sr, '20,12,10', 0.95);
+      shade(sx, sy, sr * 0.55, '4,3,3', 1);
+    }
+    // weeping socket: dark tear-tracks down one cheek
+    if (r() < 0.6) {
+      const s = sockets[r() < 0.5 ? 0 : 1];
+      x.fillStyle = 'rgba(38,10,8,0.6)';
+      x.fillRect(s[0] - 2 + r.range(-4, 4), s[1] + 12, 3.5, r.range(28, 60));
+      x.fillStyle = 'rgba(30,8,6,0.4)';
+      x.fillRect(s[0] + 6, s[1] + 10, 2.5, r.range(16, 40));
+    }
+    // skull nose cavity + bone bridge glint
+    shade(128, 134, 15, '12,7,7', 0.95);
+    shade(122, 142, 7, '8,5,5', 1); shade(134, 142, 7, '8,5,5', 1);
+    x.fillStyle = 'rgba(160,158,136,0.14)'; x.fillRect(125, 102, 5, 26);
+    // torn cheek revealing side teeth (some variants)
+    if (r() < 0.45) {
+      const sd = r() < 0.5 ? -1 : 1;
+      const tcx = 128 + sd * 52, tcy = 176;
+      x.fillStyle = 'rgba(16,7,6,0.9)';
+      x.beginPath();
+      x.moveTo(tcx - 20 * sd, tcy - 14);
+      x.lineTo(tcx + 14 * sd, tcy - 22 + r() * 8);
+      x.lineTo(tcx + 22 * sd, tcy + 6);
+      x.lineTo(tcx - 2 * sd, tcy + 18);
+      x.lineTo(tcx - 24 * sd, tcy + 6);
+      x.closePath(); x.fill();
+      x.fillStyle = 'rgba(150,140,112,0.8)';
+      for (let i = 0; i < 3; i++) x.fillRect(tcx - 12 * sd + i * 8 * sd, tcy - 6, 5, 9);
+    }
+    // ragged mouth gape (off-center, torn wider at the corners)
+    const mx0 = 128 + r.range(-8, 8), my0 = 196 + r.range(-4, 4);
+    const mw = r.range(46, 58), mh = r.range(18, 26);
+    x.fillStyle = 'rgba(6,3,3,0.98)';
+    x.beginPath(); x.ellipse(mx0, my0, mw, mh, r.range(-0.08, 0.08), 0, 7); x.fill();
+    x.beginPath(); x.ellipse(mx0 - mw * 0.55, my0 + 2, mw * 0.4, mh * 0.6, 0.5, 0, 7); x.fill();
+    x.beginPath(); x.ellipse(mx0 + mw * 0.55, my0, mw * 0.35, mh * 0.55, -0.4, 0, 7); x.fill();
+    // sparse rotten teeth hanging into the gape — dim and gapped so it never
+    // reads as a grin
+    for (let i = 0; i < 6; i++) {
+      if (r() < 0.38) continue; // knocked out
+      const tw = r.range(4, 5.5), th = r.range(6.5, 11);
+      const tx = mx0 - mw * 0.5 + i * mw * 0.2 + r.range(-1.5, 1.5);
+      x.save(); x.translate(tx, my0 - mh * 0.5); x.rotate(r.range(-0.2, 0.2));
+      x.fillStyle = `rgba(${r.int(128, 152)},${r.int(118, 140)},${r.int(92, 112)},0.8)`;
+      x.fillRect(-tw / 2, 0, tw, th);
+      x.restore();
+    }
+    // gum shadow sinks the teeth roots back into the skull
+    x.fillStyle = 'rgba(28,10,9,0.8)';
+    x.fillRect(mx0 - mw * 0.62, my0 - mh * 0.58, mw * 1.24, 4.5);
+    for (let i = 0; i < 2; i++) { // lower snag teeth
+      if (r() < 0.45) continue;
+      x.fillStyle = 'rgba(112,102,80,0.7)';
+      x.fillRect(mx0 - mw * 0.25 + i * mw * 0.42, my0 + mh * 0.32, 4, -r.range(5, 9));
+    }
+    // gore running from the mouth + chin smear
+    for (let i = 0, ns = r.int(1, 2); i < ns; i++) {
+      const gx = mx0 + r.range(-mw * 0.6, mw * 0.6);
+      const gl = r.range(22, 50);
+      const gg = x.createLinearGradient(0, my0, 0, my0 + gl + 14);
+      gg.addColorStop(0, 'rgba(64,10,8,0.85)'); gg.addColorStop(1, 'rgba(64,10,8,0)');
+      x.fillStyle = gg; x.fillRect(gx, my0 + 4, r.range(3.5, 7), gl + 14);
+    }
+    shade(mx0, my0 + mh + 8, 20, '52,10,8', 0.5);
+    // blood spatter flecks, biased to one side
+    const spSide = r() < 0.5;
+    for (let i = 0; i < 15; i++) {
+      const px = spSide ? r.range(120, 250) : r.range(6, 136);
+      x.fillStyle = `rgba(${r.int(64, 96)},11,9,${r.range(0.3, 0.7).toFixed(2)})`;
+      x.beginPath(); x.arc(px, r() * S, r.range(1, 3.4), 0, 7); x.fill();
+    }
+    // scratches
+    x.lineWidth = 2;
+    for (let i = 0; i < 4; i++) {
+      x.strokeStyle = `rgba(70,22,16,${r.range(0.35, 0.6).toFixed(2)})`;
+      const sx = r() * S, sy = r() * S * 0.5;
+      x.beginPath(); x.moveTo(sx, sy);
+      x.lineTo(sx + r.range(-24, 24), sy + r.range(30, 64)); x.stroke();
+    }
+    // forehead gash (some variants): wide bruise stroke under a dark cut
+    if (r() < 0.4) {
+      const gy = r.range(22, 52), gx1 = r.range(50, 104);
+      const gx2 = gx1 + r.range(58, 86), gyb = gy + r.range(-8, 10);
+      x.strokeStyle = 'rgba(96,26,20,0.45)'; x.lineWidth = 8;
+      x.beginPath(); x.moveTo(gx1, gy); x.quadraticCurveTo((gx1 + gx2) / 2, gyb, gx2, gy + r.range(-4, 12)); x.stroke();
+      x.strokeStyle = 'rgba(26,8,7,0.9)'; x.lineWidth = 3.5;
+      x.stroke();
+    }
+    // edge vignette so the face doesn't read as a flat pasted billboard
+    // (kept light so it doesn't crush the socket/mouth contrast)
+    const vg = x.createRadialGradient(128, 118, 96, 128, 128, 182);
+    vg.addColorStop(0, 'rgba(14,11,12,0)'); vg.addColorStop(1, 'rgba(14,11,12,0.34)');
+    x.fillStyle = vg; x.fillRect(0, 0, S, S);
+    const map = new THREE.CanvasTexture(c);
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.anisotropy = 8;
+    const bump = new THREE.CanvasTexture(c); // luminance doubles as height
+    return { map, bump };
+  }
+  const faceMats = [0, 1, 2, 3, 4, 5, 6, 7].map(i => {
+    const t = faceTexture(TONES[i >> 1], 900 + (i >> 1) * 31 + (i & 1) * 211);
+    return new THREE.MeshStandardMaterial({ map: t.map, bumpMap: t.bump, bumpScale: 1.4, roughness: 0.88 });
+  });
   // tattered shirt-hem alpha texture (vertical rag strips)
   const tatterTex = (() => {
     const c = document.createElement('canvas'); c.width = 128; c.height = 32;
@@ -77,6 +253,98 @@ export function initZombies(G) {
     const t = new THREE.CanvasTexture(c);
     return t;
   })();
+  const tatterMats = cloths.map(cm => new THREE.MeshStandardMaterial({
+    map: cm.map, alphaMap: tatterTex, transparent: true, alphaTest: 0.5,
+    side: THREE.DoubleSide, roughness: 1,
+  }));
+
+  // torn-open wound decal: ragged blood-soaked rim, dark cavity, exposed ribs.
+  // Rendered as a plane floating just proud of the torso (alpha-tested, no sorting).
+  function woundTexture(seed) {
+    const r = makeRng(seed);
+    const S = 128;
+    const c = document.createElement('canvas'); c.width = c.height = S;
+    const x = c.getContext('2d');
+    x.clearRect(0, 0, S, S);
+    const cx = S / 2, cy = S / 2;
+    const pts = [];
+    const n = 12;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const rad = S * r.range(0.19, 0.42);
+      pts.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad * 1.2]);
+    }
+    const poly = (k) => {
+      x.beginPath();
+      x.moveTo(cx + (pts[0][0] - cx) * k, cy + (pts[0][1] - cy) * k);
+      for (const p of pts) x.lineTo(cx + (p[0] - cx) * k, cy + (p[1] - cy) * k);
+      x.closePath();
+    };
+    // irregular soak splotches bleeding into the cloth (a concentric ring
+    // reads as a printed badge — avoid that)
+    for (let i = 0; i < 10; i++) {
+      const a = r() * 7, d = S * r.range(0.16, 0.33);
+      const bx = cx + Math.cos(a) * d, by = cy + Math.sin(a) * d * 1.2;
+      const br = S * r.range(0.09, 0.19);
+      const g = x.createRadialGradient(bx, by, 1, bx, by, br);
+      g.addColorStop(0, 'rgba(60,11,8,0.85)');
+      g.addColorStop(1, 'rgba(60,11,8,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(bx, by, br, 0, 7); x.fill();
+    }
+    x.fillStyle = 'rgba(30,8,6,0.95)'; poly(1); x.fill();     // torn flesh rim
+    x.fillStyle = 'rgba(8,4,4,0.98)'; poly(0.8); x.fill();    // deep cavity
+    x.save(); poly(0.84); x.clip();
+    const broken = r.int(0, 3);
+    for (let i = 0, nr = r.int(3, 4); i < nr; i++) { // exposed ribs, one snapped
+      const ry = cy - S * 0.2 + i * S * 0.13;
+      x.strokeStyle = `rgba(${r.int(160, 186)},${r.int(146, 170)},${r.int(116, 138)},0.95)`;
+      x.lineWidth = r.range(5, 7);
+      const y0 = ry + r.range(-5, 5), y1 = ry + r.range(-5, 5);
+      if (i === broken) {
+        const gap = r.range(-S * 0.08, S * 0.08);
+        x.beginPath();
+        x.moveTo(cx - S * 0.32, y0);
+        x.quadraticCurveTo(cx - S * 0.12, ry + S * 0.05, cx + gap - S * 0.04, ry + r.range(0, 8));
+        x.stroke();
+        x.beginPath();
+        x.moveTo(cx + gap + S * 0.05, ry + r.range(-6, 4));
+        x.quadraticCurveTo(cx + S * 0.2, ry + S * 0.05, cx + S * 0.32, y1);
+        x.stroke();
+      } else {
+        x.beginPath();
+        x.moveTo(cx - S * 0.32, y0);
+        x.quadraticCurveTo(cx, ry + S * 0.07, cx + S * 0.32, y1);
+        x.stroke();
+      }
+    }
+    for (let i = 0; i < 8; i++) { // dark meat + glisten between ribs
+      x.fillStyle = `rgba(${r.int(60, 90)},${r.int(12, 20)},${r.int(10, 16)},0.8)`;
+      x.beginPath();
+      x.ellipse(cx + r.range(-S * 0.22, S * 0.22), cy + r.range(-S * 0.08, S * 0.28),
+        r.range(3, 9), r.range(2, 6), r() * 3, 0, 7);
+      x.fill();
+    }
+    x.restore();
+    for (let i = 0; i < 16; i++) { // spatter around the wound
+      const a = r() * 7, d = S * r.range(0.32, 0.48);
+      x.fillStyle = `rgba(58,10,8,${r.range(0.5, 0.9).toFixed(2)})`;
+      x.beginPath(); x.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d, r.range(1.2, 3.2), 0, 7); x.fill();
+    }
+    for (let i = 0; i < 4; i++) { // long drips running down the cloth
+      const dw = r.range(2, 4.5), dl = r.range(12, 38);
+      const dx = cx + r.range(-S * 0.22, S * 0.22);
+      const dg = x.createLinearGradient(0, cy + S * 0.12, 0, cy + S * 0.12 + dl);
+      dg.addColorStop(0, 'rgba(50,9,7,0.85)'); dg.addColorStop(1, 'rgba(50,9,7,0.3)');
+      x.fillStyle = dg;
+      x.fillRect(dx, cy + S * 0.12, dw, dl);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+  const woundMats = [905, 906, 907].map(s => new THREE.MeshStandardMaterial({
+    map: woundTexture(s), alphaTest: 0.4, roughness: 0.55,
+  }));
 
   const geo = {
     torso: new THREE.BoxGeometry(0.38, 0.52, 0.22),
@@ -89,8 +357,11 @@ export function initZombies(G) {
     thigh: new THREE.BoxGeometry(0.14, 0.38, 0.14),
     shin: new THREE.BoxGeometry(0.11, 0.36, 0.11),
     foot: new THREE.BoxGeometry(0.11, 0.08, 0.22),
-    eye: new THREE.SphereGeometry(0.022, 6, 5),
+    eye: new THREE.SphereGeometry(0.019, 6, 5),
     tatter: new THREE.CylinderGeometry(0.2, 0.24, 0.2, 8, 1, true),
+    brow: new THREE.BoxGeometry(0.19, 0.03, 0.04),
+    finger: new THREE.BoxGeometry(0.034, 0.155, 0.026).translate(0, -0.0775, 0),
+    wound: new THREE.PlaneGeometry(0.3, 0.34),
     hbHead: new THREE.BoxGeometry(0.3, 0.34, 0.32),
     hbTorso: new THREE.BoxGeometry(0.48, 0.78, 0.32),
     hbLegs: new THREE.BoxGeometry(0.42, 0.85, 0.32),
@@ -136,9 +407,11 @@ export function initZombies(G) {
     const g = new THREE.Group();
     const skinI = Math.floor(rng() * skins.length);
     const skin = skins[skinI];
-    const face = faceMats[skinI];
-    const cloth = cloths[Math.floor(rng() * cloths.length)];
-    const cloth2 = cloths[Math.floor(rng() * cloths.length)];
+    const handMat = handMats[skinI];
+    const face = faceMats[skinI * 2 + (rng() < 0.5 ? 0 : 1)];
+    const clothI = JACKETS[Math.floor(rng() * JACKETS.length)];
+    const cloth = cloths[clothI];
+    const cloth2 = cloths[PANTS[Math.floor(rng() * PANTS.length)]];
     const mk = (geoName, mat, x, y, z) => {
       const m = new THREE.Mesh(geo[geoName], mat);
       m.position.set(x, y, z);
@@ -148,45 +421,84 @@ export function initZombies(G) {
     const parts = {};
     parts.pelvis = mk('pelvis', cloth2, 0, 0.92, 0); g.add(parts.pelvis);
     parts.torso = mk('torso', cloth, 0, 0.38, 0); parts.pelvis.add(parts.torso);
+    // frame variance: no two ribcages the same (children inherit the squash)
+    parts.torso.scale.set(rng.range(0.92, 1.1), rng.range(0.97, 1.05), rng.range(0.94, 1.06));
     // tattered shirt hem hanging off the torso bottom
-    const tat = new THREE.Mesh(geo.tatter, new THREE.MeshStandardMaterial({
-      map: cloth.map, alphaMap: tatterTex, transparent: true, alphaTest: 0.5,
-      side: THREE.DoubleSide, roughness: 1,
-    }));
+    const tat = new THREE.Mesh(geo.tatter, tatterMats[clothI]);
     tat.position.y = -0.32; parts.torso.add(tat);
+    // torn-open wound: chest or gut, on a good chunk of the horde
+    if (rng() < 0.55) {
+      const wnd = new THREE.Mesh(geo.wound, woundMats[Math.floor(rng() * woundMats.length)]);
+      const gut = rng() < 0.35;
+      wnd.position.set(rng.range(-0.07, 0.07), gut ? -0.17 : rng.range(-0.02, 0.09), 0.115);
+      wnd.rotation.z = rng.range(-0.5, 0.5);
+      wnd.scale.setScalar(gut ? rng.range(0.62, 0.78) : rng.range(0.82, 1.0));
+      wnd.receiveShadow = true;
+      parts.torso.add(wnd);
+    }
     parts.neck = new THREE.Group(); parts.neck.position.set(0, 0.3, 0.02); parts.torso.add(parts.neck);
     // head: face texture on +z, skin elsewhere (BoxGeometry group order: ±x,±y,+z,-z)
     parts.head = new THREE.Mesh(geo.head, [skin, skin, skin, skin, face, skin]);
     parts.head.position.set(0, 0.13, 0.03);
+    parts.head.scale.setScalar(rng.range(0.95, 1.06));
     parts.head.castShadow = parts.head.receiveShadow = true;
     parts.neck.add(parts.head);
     parts.jaw = mk('jaw', skin, 0, -0.12, 0.04); parts.head.add(parts.jaw);
-    // neck stub + matted hair cap (most, not all)
+    // neck stub + brow ledge (real shadow over the eye sockets)
     const nk = mk('jaw', skin, 0, -0.14, -0.02); nk.scale.set(0.6, 1.6, 0.7); parts.head.add(nk);
-    if (rng() < 0.72) {
-      const hair = new THREE.Mesh(geo.jaw, new THREE.MeshStandardMaterial({ color: [0x1c1712, 0x2e2418, 0x3a3226][Math.floor(rng() * 3)], roughness: 1 }));
-      hair.scale.set(1.38, 0.75, 1.72); hair.position.set(0, 0.135, -0.01);
+    const brow = mk('brow', skin, 0, 0.066, 0.093); brow.rotation.x = 0.18; parts.head.add(brow);
+    // matted hair cap (most, not all)
+    if (rng() < 0.82) {
+      const hair = new THREE.Mesh(geo.jaw,
+        hairMats[rng() < 0.07 ? 3 : Math.floor(rng() * 3)]);
+      hair.scale.set(1.42, 0.95, 1.75); hair.position.set(0, 0.14, -0.015);
+      hair.rotation.z = rng.range(-0.08, 0.08);
       hair.castShadow = true; parts.head.add(hair);
     }
     const eL = new THREE.Mesh(geo.eye, eyeMat); eL.position.set(-0.047, 0.026, 0.1); parts.head.add(eL);
     const eR = new THREE.Mesh(geo.eye, eyeMat); eR.position.set(0.047, 0.026, 0.1); parts.head.add(eR);
+    let cuffDone = false; // at most one rolled-sleeve cuff per zombie (mesh budget)
     for (const side of ['L', 'R']) {
       const sx = side === 'L' ? -1 : 1;
-      const sh = new THREE.Group(); sh.position.set(sx * 0.245, 0.2, 0); parts.torso.add(sh);
+      const sh = new THREE.Group();
+      sh.position.set(sx * 0.245, 0.2 + rng.range(-0.025, 0.012), 0);
+      sh.scale.setScalar(rng.range(0.93, 1.06)); // uneven arm lengths
+      parts.torso.add(sh);
       parts['arm' + side] = sh;
-      const ua = mk('uarm', side === 'L' ? cloth : skin, 0, -0.15, 0); sh.add(ua);
+      // sleeves: mostly clothed, some bare (torn off / rolled to the shoulder)
+      const bare = rng() < 0.3;
+      const ua = mk('uarm', bare ? skin : cloth, 0, -0.15, 0); sh.add(ua);
+      if (bare && rng() < 0.6 && !cuffDone) { // rolled-sleeve cuff bunched at the shoulder
+        cuffDone = true;
+        const cuff = mk('uarm', cloth, 0, -0.06, 0);
+        cuff.scale.set(1.26, 0.36, 1.26); sh.add(cuff);
+      }
       const el = new THREE.Group(); el.position.set(0, -0.31, 0); sh.add(el);
       parts['fore' + side] = el;
-      const fa = mk('farm', skin, 0, -0.14, 0); el.add(fa);
-      const hd = mk('hand', skin, 0, -0.31, 0.015); hd.rotation.x = 0.35; el.add(hd);
+      const fa = mk('farm', !bare && rng() < 0.3 ? cloth : skin, 0, -0.14, 0); el.add(fa);
+      // clawed hand: narrow palm + two crooked fingers hooked forward
+      const hd = mk('hand', handMat, 0, -0.3, 0.015);
+      hd.rotation.x = 0.35 + rng.range(-0.1, 0.15);
+      hd.scale.set(0.72, 0.75, 0.9);
+      el.add(hd);
+      for (let fi = 0; fi < 2; fi++) {
+        const f = new THREE.Mesh(geo.finger, handMat);
+        f.position.set(sx * (fi === 0 ? 0.032 : -0.024), -0.06, 0.008);
+        f.rotation.set(0.42 + rng() * 0.6, 0, sx * (fi === 0 ? 0.28 : -0.17));
+        f.castShadow = true;
+        hd.add(f);
+      }
       const hip = new THREE.Group(); hip.position.set(sx * 0.1, -0.09, 0); parts.pelvis.add(hip);
       parts['leg' + side] = hip;
       const th = mk('thigh', cloth2, 0, -0.19, 0); hip.add(th);
+      th.scale.set(rng.range(0.92, 1.08), 1, rng.range(0.92, 1.08)); // limb girth jitter
       const kn = new THREE.Group(); kn.position.set(0, -0.39, 0); hip.add(kn);
       parts['knee' + side] = kn;
-      const sn = mk('shin', rng() < 0.4 ? skin : cloth2, 0, -0.17, 0); kn.add(sn);
+      // bare shins are mud-caked (grime tint), never bright skin; most wear
+      // scuffed dark boots — bright bare feet read as toy socks
+      const sn = mk('shin', rng() < 0.4 ? handMat : cloth2, 0, -0.17, 0); kn.add(sn);
       parts['shinMesh' + side] = sn;
-      const ft = mk('foot', skin, 0, -0.36, 0.05); kn.add(ft);
+      const ft = mk('foot', rng() < 0.85 ? bootMat : handMat, 0, -0.36, 0.05); kn.add(ft);
       parts['footMesh' + side] = ft;
     }
     return { g, parts };
@@ -211,6 +523,11 @@ export function initZombies(G) {
     g.scale.setScalar(z.scale);
     if (z.armMissing) {
       parts['arm' + z.armMissing].visible = false;
+      const st = new THREE.Mesh(geo.jaw, stumpMat); // ragged gore stump at the shoulder
+      st.scale.set(0.8, 0.9, 0.8);
+      st.position.set((z.armMissing === 'L' ? -1 : 1) * 0.245, 0.2, 0);
+      st.castShadow = true;
+      parts.torso.add(st);
     }
     if (z.partyHat) {
       const hat = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.22, 8),
@@ -273,10 +590,12 @@ export function initZombies(G) {
   // per-zombie pose asymmetry so no two shamble alike
   function poseVariance(r) {
     return {
-      armBaseL: -(1.05 + r() * 0.5), armBaseR: -(1.25 + r() * 0.45),
-      splayL: 0.05 + r() * 0.14, splayR: 0.04 + r() * 0.12,
-      foreBaseL: -(0.35 + r() * 0.4), foreBaseR: -(0.3 + r() * 0.4),
-      headTilt: (r() - 0.5) * 0.5, neckBase: -(0.05 + r() * 0.22),
+      // wider spread: some reach high, some drag an arm low at their side
+      armBaseL: -(0.6 + r() * 0.95), armBaseR: -(0.85 + r() * 0.85),
+      splayL: 0.05 + r() * 0.2, splayR: 0.04 + r() * 0.18,
+      foreBaseL: -(0.3 + r() * 0.5), foreBaseR: -(0.25 + r() * 0.5),
+      headTilt: (r() - 0.5) * 0.55, neckBase: -(0.05 + r() * 0.24),
+      leanZ: (r() - 0.5) * 0.11,
       deathSplay: { lx: -0.2 - r() * 0.6, rx: -0.1 - r() * 0.7, lz: 0.4 + r() * 0.7, rz: -(0.4 + r() * 0.7) },
     };
   }
@@ -759,10 +1078,12 @@ function animate(z, dt, t, G) {
     p.torso.rotation.x = 0.32 + ap * 0.3;
     p.armL.rotation.x = -1.15 - swing * 0.55;
     p.armR.rotation.x = -1.25 - swing * 0.5;
-    p.armL.rotation.z = -0.18; p.armR.rotation.z = 0.16;
+    p.armL.rotation.z = -0.1 - (z.splayL ?? 0.12) * 0.8;
+    p.armR.rotation.z = 0.08 + (z.splayR ?? 0.1) * 0.8;
     p.foreL.rotation.x = -0.55 + swing * 0.35;
     p.foreR.rotation.x = -0.5 + swing * 0.3;
     p.neck.rotation.x = -0.28;
+    p.neck.rotation.z = (z.headTilt ?? 0) * 0.7;
     p.jaw.rotation.x = 0.5;
     return;
   }
@@ -775,7 +1096,7 @@ function animate(z, dt, t, G) {
   p.kneeL.rotation.x = Math.max(0, -Math.sin(ph)) * (0.7 + sprint * 0.4);
   p.kneeR.rotation.x = Math.max(0, -Math.sin(ph + Math.PI)) * (0.7 + sprint * 0.4);
   p.pelvis.position.y = 0.92 + Math.abs(Math.sin(ph)) * 0.045 * (1 + sprint);
-  p.pelvis.rotation.z = Math.sin(ph) * 0.045;
+  p.pelvis.rotation.z = (z.leanZ ?? 0) + Math.sin(ph) * 0.045;
   p.torso.rotation.x = z.hunch + sprint * 0.3 + stag * 0.25;
   p.torso.rotation.z = Math.sin(ph) * 0.06;
   p.torso.rotation.y = Math.sin(ph * 0.5 + z.slot) * 0.05;
@@ -796,6 +1117,7 @@ function animate(z, dt, t, G) {
   }
   p.neck.rotation.x = (z.neckBase ?? -0.15) + Math.sin(ph * 0.53 + z.slot) * 0.1 + stag * -0.4;
   p.neck.rotation.z = (z.headTilt ?? 0) + Math.sin(ph * 0.31 + z.slot * 2) * 0.1;
+  p.neck.rotation.y = Math.sin(ph * 0.37 + z.slot * 2) * 0.22; // head wanders
   p.jaw.rotation.x = 0.18 + Math.max(0, Math.sin(t * 2.2 + z.slot * 3)) * 0.3;
 }
 

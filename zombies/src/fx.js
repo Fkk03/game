@@ -3,10 +3,15 @@
 // explosions, and the lightning director.
 import * as THREE from 'three';
 import { bloodSplatTexture, bulletHoleTexture } from './textures.js';
+import { makeRng } from './rng.js';
 
 // ---------- generic particle pool (Points + per-particle life/size/alpha) ----------
+// opts.rim:    hex color — tints the outer ring of each sprite (lighter rim so
+//              dark particles like blood still read against dark backgrounds)
+// opts.opacity: global alpha scale for the pool (subtle haze pools)
+// opts.fadeIn:  fraction of life spent ramping alpha up (smoke "forming")
 class Pool {
-  constructor(scene, max, { color = 0xffffff, size = 0.08, additive = false, gravity = -9, drag = 0.98, soft = true } = {}) {
+  constructor(scene, max, { color = 0xffffff, size = 0.08, additive = false, gravity = -9, drag = 0.98, soft = true, rim = null, opacity = 1, fadeIn = 0 } = {}) {
     this.max = max; this.gravity = gravity; this.drag = drag;
     this.pos = new Float32Array(max * 3);
     this.vel = new Float32Array(max * 3);
@@ -19,8 +24,10 @@ class Pool {
     this.aLife = new Float32Array(max);
     geo.setAttribute('aLife', new THREE.BufferAttribute(this.aLife, 1));
     geo.setAttribute('aSize', new THREE.BufferAttribute(this.sizes, 1));
+    const uniforms = { uColor: { value: new THREE.Color(color) }, uOpacity: { value: opacity } };
+    if (rim) uniforms.uRim = { value: new THREE.Color(rim) };
     const mat = new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: new THREE.Color(color) } },
+      uniforms,
       transparent: true,
       depthWrite: false,
       blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
@@ -34,13 +41,18 @@ class Pool {
           gl_Position = projectionMatrix * mv;
         }`,
       fragmentShader: /* glsl */`
-        uniform vec3 uColor; varying float vLife;
+        uniform vec3 uColor; uniform float uOpacity; varying float vLife;
+        ${rim ? 'uniform vec3 uRim;' : ''}
         void main() {
           vec2 c = gl_PointCoord - 0.5;
           float d = length(c);
           if (d > 0.5) discard;
-          float a = smoothstep(0.5, ${soft ? '0.05' : '0.42'}, d) * clamp(vLife, 0.0, 1.0);
-          gl_FragColor = vec4(uColor, a);
+          float a = smoothstep(0.5, ${soft ? '0.05' : '0.42'}, d) * clamp(vLife, 0.0, 1.0) * uOpacity;
+          ${fadeIn > 0 ? `a *= smoothstep(1.0, ${(1 - fadeIn).toFixed(2)}, vLife);` : ''}
+          ${rim
+            ? 'vec3 col = mix(uColor, uRim, smoothstep(0.28, 0.5, d));' // thin lighter fringe at the edge
+            : 'vec3 col = uColor;'}
+          gl_FragColor = vec4(col, a);
         }`,
     });
     this.points = new THREE.Points(geo, mat);
@@ -119,35 +131,74 @@ export function initFx(G) {
   const scene = G.scene;
   const F = G.fx = {};
 
-  F.blood = new Pool(scene, 700, { color: 0x6a0d08, size: 0.09, gravity: -11, drag: 0.96 });
-  F.bloodMist = new Pool(scene, 300, { color: 0x4a0a06, size: 0.3, gravity: -0.6, drag: 0.9 });
+  // blood: crisp dark droplets with a lighter rim so they read on dark walls/night
+  F.blood = new Pool(scene, 700, { color: 0x6e100a, size: 0.09, gravity: -11, drag: 0.96, soft: false, rim: 0xa63020 });
+  F.bloodMist = new Pool(scene, 300, { color: 0x4a0a06, size: 0.3, gravity: -0.6, drag: 0.9, rim: 0x86241a });
   F.spark = new Pool(scene, 300, { color: 0xffc060, size: 0.05, additive: true, gravity: -7, drag: 0.94 });
   F.ember = new Pool(scene, 260, { color: 0xff7a20, size: 0.05, additive: true, gravity: 0.9, drag: 0.985 });
   F.dust = new Pool(scene, 260, { color: 0x8a7a60, size: 0.5, gravity: -0.4, drag: 0.92 });
   F.dirt = new Pool(scene, 300, { color: 0x35291a, size: 0.12, gravity: -10, drag: 0.95 });
   F.smoke = new Pool(scene, 200, { color: 0x2c2a28, size: 1.1, gravity: 0.65, drag: 0.94 });
+  // lingering powder smoke at the muzzle: pale warm-grey, fades in as it forms
+  F.gunSmoke = new Pool(scene, 160, { color: 0x8d8880, size: 0.5, gravity: 0.32, drag: 0.9, opacity: 0.19, fadeIn: 0.07 });
   F.flash = new Pool(scene, 60, { color: 0xffd090, size: 0.9, additive: true, gravity: 0, drag: 0.8 });
 
   F.holes = new DecalPool(scene, 90, bulletHoleTexture(), 0.1);
   F.splats = new DecalPool(scene, 64, bloodSplatTexture({ seed: 91 }), 1);
 
   // ---------- tracers ----------
-  const tracerGeo = new THREE.CylinderGeometry(0.008, 0.008, 1, 5, 1, true);
-  tracerGeo.rotateX(Math.PI / 2); // align along z
+  // thin hot streak: HDR core (feeds bloom) with soft cylindrical falloff and a
+  // dim tail -> hot head gradient along the flight direction.
+  const tracerGeo = new THREE.CylinderGeometry(0.013, 0.013, 1, 6, 1, true);
+  tracerGeo.rotateX(Math.PI / 2); // align along z (uv.y = 1 at the +z / head end)
+  const TRACER_HOLD = 0.11;
+  const makeTracerMat = () => new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(0xffc078) }, uOp: { value: 0 } },
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: /* glsl */`
+      varying vec2 vUv; varying vec3 vN; varying vec3 vV; varying vec3 vAxis;
+      void main() {
+        vUv = uv;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vN = normalMatrix * normal;
+        vV = -mv.xyz;
+        vAxis = (modelViewMatrix * vec4(0.0, 0.0, 1.0, 0.0)).xyz;
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: /* glsl */`
+      uniform vec3 uColor; uniform float uOp;
+      varying vec2 vUv; varying vec3 vN; varying vec3 vV; varying vec3 vAxis;
+      void main() {
+        // round-off across the tube: bright center line, soft edges
+        float rad = pow(clamp(dot(normalize(vN), normalize(vV)), 0.0, 1.0), 1.3);
+        // dim tail -> hot head
+        float len = mix(0.22, 1.0, vUv.y * vUv.y);
+        // fade when viewed end-on (first person): overlapping additive
+        // fragments otherwise pile into a fireball at the impact end
+        float axial = abs(dot(normalize(vAxis), normalize(vV)));
+        float a = rad * len * uOp * (1.0 - 0.8 * smoothstep(0.7, 0.96, axial));
+        vec3 col = uColor * (0.75 + rad * 0.85); // hot core, restrained bloom
+        gl_FragColor = vec4(col, a);
+      }`,
+  });
   F.tracers = [];
   for (let i = 0; i < 40; i++) {
-    const m = new THREE.Mesh(tracerGeo, new THREE.MeshBasicMaterial({
-      color: 0xffc078, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false,
-    }));
+    const m = new THREE.Mesh(tracerGeo, makeTracerMat());
     m.visible = false; m.userData.noBlock = true;
     scene.add(m);
     F.tracers.push({ mesh: m, t: 0 });
   }
+  F.tracerHold = TRACER_HOLD;
   let tracerHead = 0;
 
   // ---------- casings ----------
+  // polished brass: low roughness + boosted env reflection + a faint warm
+  // emissive floor so tumbling shells glint instead of reading as black specks
   const caseGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.03, 6);
-  const caseMat = new THREE.MeshStandardMaterial({ color: 0xc8a24a, roughness: 0.3, metalness: 0.9 });
+  const caseMat = new THREE.MeshStandardMaterial({
+    color: 0xd8b258, roughness: 0.2, metalness: 0.85,
+    emissive: 0x6e4a14, emissiveIntensity: 1.1, envMapIntensity: 5,
+  });
   F.casings = new THREE.InstancedMesh(caseGeo, caseMat, 120);
   F.casings.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   F.casings.frustumCulled = false;
@@ -166,6 +217,64 @@ export function initFx(G) {
   const gibData = [];
   for (let i = 0; i < 90; i++) gibData.push({ p: new THREE.Vector3(0, -5, 0), v: new THREE.Vector3(), life: 0, s: 1 });
   let gibHead = 0;
+
+  // ---------- ambient dust motes (house interior) ----------
+  // tiny additive specks drifting slowly through the rooms; catch the warm
+  // barricade lamps and moon shafts. Seeded placement + pure-GPU drift keeps
+  // photo mode deterministic and per-frame cost at one uniform write.
+  {
+    const mrng = makeRng((G.seed ?? 1337) + 913);
+    const N = 520;
+    const mpos = new Float32Array(N * 3);
+    const mphase = new Float32Array(N);
+    const msize = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      mpos[i * 3] = mrng.range(-13.4, 13.4);       // house interior footprint
+      mpos[i * 3 + 1] = mrng.range(0.25, 2.8);
+      mpos[i * 3 + 2] = mrng.range(-17.5, -2.6);
+      mphase[i] = mrng.range(0, Math.PI * 2);
+      msize[i] = 0.032 + mrng() * 0.04;
+    }
+    const mgeo = new THREE.BufferGeometry();
+    mgeo.setAttribute('position', new THREE.BufferAttribute(mpos, 3));
+    mgeo.setAttribute('aPhase', new THREE.BufferAttribute(mphase, 1));
+    mgeo.setAttribute('aSize', new THREE.BufferAttribute(msize, 1));
+    const mmat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(0xe0d2b0) }, uAlpha: { value: 0.55 } },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: /* glsl */`
+        attribute float aPhase; attribute float aSize;
+        uniform float uTime; varying float vP;
+        void main() {
+          vP = aPhase;
+          vec3 p = position;
+          p.x += sin(uTime * 0.13 + aPhase * 3.7) * 0.3;
+          p.y += sin(uTime * 0.09 + aPhase * 5.1) * 0.16;
+          p.z += cos(uTime * 0.11 + aPhase * 2.9) * 0.3;
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          gl_PointSize = min(aSize * (240.0 / -mv.z), 7.0); // cap: no lens blobs
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform float uTime; uniform vec3 uColor; uniform float uAlpha;
+        varying float vP;
+        void main() {
+          vec2 c = gl_PointCoord - 0.5;
+          float d = length(c);
+          if (d > 0.5) discard;
+          // sharp-peaked twinkle: most motes stay dim, a few flare like dust
+          // crossing a light shaft
+          float s = 0.5 + 0.5 * sin(uTime * 0.7 + vP * 11.0);
+          float tw = 0.28 + 1.1 * s * s * s;
+          float a = smoothstep(0.5, 0.08, d) * uAlpha * tw;
+          gl_FragColor = vec4(uColor, a);
+        }`,
+    });
+    F.motes = new THREE.Points(mgeo, mmat);
+    F.motes.frustumCulled = false;
+    F.motes.userData.noBlock = true;
+    scene.add(F.motes);
+  }
 
   // ---------- barrel flames (shader) ----------
   const flameMat = new THREE.ShaderMaterial({
@@ -220,16 +329,24 @@ export function initFx(G) {
   E.on('muzzle', ({ pos, type }) => {
     for (let i = 0; i < 4; i++)
       F.flash.spawn(pos.x, pos.y, pos.z, rnd(1.4), rnd(1.4), rnd(1.4), 0.05, 0.5 + Math.random() * 0.5);
-    if (Math.random() < 0.4)
-      F.smoke.spawn(pos.x, pos.y + 0.03, pos.z, rnd(0.2), 0.4, rnd(0.2), 1.1, 0.35);
     if (type !== 'ray') {
-      // eject casing
+      const P = G.player;
+      // lingering powder smoke: two pale puffs that form, drift up, and hang ~2s
+      F.gunSmoke.spawn(pos.x, pos.y + 0.02, pos.z, rnd(0.22), 0.32 + Math.random() * 0.2, rnd(0.22), 1.5 + Math.random() * 0.6, 0.28 + Math.random() * 0.18);
+      F.gunSmoke.spawn(pos.x + rnd(0.06), pos.y + 0.06, pos.z + rnd(0.06), rnd(0.18), 0.5, rnd(0.18), 2.1 + Math.random() * 0.7, 0.42 + Math.random() * 0.22);
+      // hot flecks kicked forward out of the barrel
+      const fx = -Math.sin(P.yaw) * Math.cos(P.pitch), fy = -Math.sin(P.pitch), fz = -Math.cos(P.yaw) * Math.cos(P.pitch);
+      for (let i = 0; i < 2; i++)
+        F.spark.spawn(pos.x, pos.y, pos.z, fx * 7 + rnd(1.4), fy * 7 + 0.5 + rnd(1), fz * 7 + rnd(1.4), 0.2 + Math.random() * 0.12, 0.038);
+      // eject casing + a brass glint that rides with it
       const c = caseData[caseHead]; caseHead = (caseHead + 1) % caseData.length;
       c.p.copy(pos);
-      const P = G.player;
       c.v.set(-Math.cos(P.yaw) * 1.6 + rnd(0.6), 2.2 + Math.random(), Math.sin(P.yaw) * 1.6 + rnd(0.6));
       c.rv.set(rnd(12), rnd(12), rnd(12));
       c.life = 2.5;
+      F.spark.spawn(pos.x, pos.y, pos.z, c.v.x, c.v.y, c.v.z, 0.32 + Math.random() * 0.12, 0.042);
+    } else if (Math.random() < 0.4) {
+      F.smoke.spawn(pos.x, pos.y + 0.03, pos.z, rnd(0.2), 0.4, rnd(0.2), 1.1, 0.35);
     }
   });
   E.on('tracer', ({ from, to, color }) => {
@@ -237,13 +354,13 @@ export function initFx(G) {
     const tr = F.tracers[tracerHead]; tracerHead = (tracerHead + 1) % F.tracers.length;
     const m = tr.mesh;
     m.visible = true;
-    m.material.color.setHex(color ?? 0xffc078);
+    m.material.uniforms.uColor.value.setHex(color ?? 0xffc078).multiplyScalar(1.5); // mild HDR -> bloom
     const d = from.distanceTo(to);
     m.position.copy(from).lerp(to, 0.5);
     m.scale.set(1, 1, d);
     m.lookAt(to);
-    m.material.opacity = 0.55;
-    tr.t = 0.06;
+    m.material.uniforms.uOp.value = 0.95;
+    tr.t = TRACER_HOLD;
   });
   E.on('wallHit', ({ pos, normal, object }) => {
     const n = normal.clone();
@@ -332,15 +449,17 @@ export function initFx(G) {
 export function updateFx(G, dt, t) {
   const F = G.fx;
   F.blood.update(dt); F.bloodMist.update(dt); F.spark.update(dt); F.ember.update(dt);
-  F.dust.update(dt); F.dirt.update(dt); F.smoke.update(dt); F.flash.update(dt);
+  F.dust.update(dt); F.dirt.update(dt); F.smoke.update(dt); F.gunSmoke.update(dt); F.flash.update(dt);
   F.holes.update(dt); F.splats.update(dt);
   F.flameMat.uniforms.uTime.value = t;
+  F.motes.material.uniforms.uTime.value = t;
 
-  // tracers
+  // tracers: hold near-full brightness, then snap out (sqrt curve keeps stills hot)
   for (const tr of F.tracers) {
     if (!tr.mesh.visible) continue;
     tr.t -= dt;
-    tr.mesh.material.opacity = Math.max(0, tr.t / 0.06) * 0.55;
+    const k = Math.max(0, tr.t / F.tracerHold);
+    tr.mesh.material.uniforms.uOp.value = Math.sqrt(k) * 0.95;
     if (tr.t <= 0) tr.mesh.visible = false;
   }
 

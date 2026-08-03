@@ -323,6 +323,46 @@ export function initWorld(G) {
     b.castShadow = true;
     scene.add(b);
   }
+  // pitched gable panels + ridge caps over the flat slabs so the roofline reads
+  // as houses (not boxes) from the courtyard and the high overview. Dressing
+  // only: sits above the slabs, nothing collides, interiors unchanged.
+  // weathered slate — pale enough that moonlit slopes read from the overview
+  const slateMat = new THREE.MeshStandardMaterial({
+    map: M.conc.map, bumpMap: M.conc.bumpMap, bumpScale: 0.7,
+    roughnessMap: M.conc.roughnessMap, roughness: 0.9, color: 0x99a0a9,
+  });
+  function gable(cx, halfW, rise, zLen) {
+    const ang = Math.atan2(rise, halfW), slope = Math.hypot(halfW, rise);
+    for (const s of [-1, 1]) {
+      const p = new THREE.Mesh(uvBox(slope, 0.14, zLen), slateMat);
+      p.position.set(cx + s * halfW / 2, HH + 0.26 + rise / 2, -10);
+      p.rotation.z = -s * ang;
+      p.castShadow = p.receiveShadow = true;
+      p.userData.noBlock = true;
+      scene.add(p);
+    }
+    const cap = new THREE.Mesh(uvBox(0.32, 0.12, zLen), M.dark);
+    cap.position.set(cx, HH + 0.28 + rise, -10);
+    cap.castShadow = cap.receiveShadow = true;
+    cap.userData.noBlock = true;
+    scene.add(cap);
+  }
+  gable(-8.4, 5.5, 1.2, 16.6);   // room2 roof
+  gable(10.4, 3.5, 0.8, 16.6);   // room1 roof
+  // brick chimneys — silhouette landmarks on the roofline
+  for (const [cx, cz, h] of [[-12.7, -15.4, 2.6], [13.0, -4.3, 2.4]]) {
+    addBox(cx, cz, 1.0, h, 1.0, M.brickDark, { y0: 2.85, collide: false });
+    addBox(cx, cz, 1.24, 0.14, 1.24, M.dark, { y0: 2.85 + h, collide: false, shadow: false });
+  }
+  // collapsed rafters fallen across the roof hole
+  for (const [rx, rz, len, ry, rt] of [[2.0, -12.4, 4.6, 0.38, 0.16], [1.4, -6.2, 4.2, -0.45, -0.12]]) {
+    const raf = new THREE.Mesh(uvBox(len, 0.16, 0.2), M.woodOld);
+    raf.position.set(rx, HH + 0.4, rz);
+    raf.rotation.set(0, ry, rt);
+    raf.castShadow = raf.receiveShadow = true;
+    raf.userData.noBlock = true;
+    scene.add(raf);
+  }
 
   // courtyard flank walls (house to south wall)
   wallRun(14, -2, 6, false, 2.6, TH, M.brick, []);
@@ -419,9 +459,9 @@ export function initWorld(G) {
   // graveyard: headstones + mounds (zombie spawns)
   // weathered dark stone (conc map tinted down — bright speckle reads wrong at night)
   const graveMat = new THREE.MeshStandardMaterial({
-    map: M.conc.map, bumpMap: M.conc.bumpMap, bumpScale: 1.3, roughness: 0.95, color: 0x63645c,
+    map: M.conc.map, bumpMap: M.conc.bumpMap, bumpScale: 1.3, roughness: 0.95, color: 0x75766a,
   });
-  const moundMat = new THREE.MeshStandardMaterial({ color: 0x2e2418, roughness: 1 });
+  const moundMat = new THREE.MeshStandardMaterial({ color: 0x3a2b1a, roughness: 1 });
   const moundGeo = new THREE.SphereGeometry(0.9, 10, 6);
   for (let gx = 0; gx < 3; gx++) for (let gz = 0; gz < 3; gz++) {
     const cx = -23.5 + gx * 3.4, cz = -4 + gz * 5.4;
@@ -476,6 +516,142 @@ export function initWorld(G) {
     use: (G) => { if (!W.powerOn) setPower(G, true); lever.rotation.x = -0.8; },
   });
 
+  // ---------- static dressing (graveyard + alley street) ----------
+  // Own rng stream: existing layout stays byte-identical, everything below is
+  // non-gameplay set dressing (no spawn pads, windows, machines or doors move).
+  const drng = makeRng(G.seed + 777);
+
+  // ground patches — zone value separation that reads from the high overview:
+  // dark dug-earth burial plot in the graveyard, pale paved lane down the alley.
+  function groundPatch(cx, cz, sx, sz, tset, tint, opts = {}) {
+    const g = new THREE.PlaneGeometry(sx, sz);
+    const uv = g.attributes.uv;
+    const us = opts.uvScale ?? 0.5; // repeats/metre; ground tex bakes its own repeat -> pass 1/160
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * sx * us, uv.getY(i) * sz * us);
+    const p = new THREE.Mesh(g, new THREE.MeshStandardMaterial({
+      map: tset.map, bumpMap: tset.bumpMap, bumpScale: opts.bump ?? 1.2,
+      roughnessMap: tset.roughnessMap, roughness: 1, color: tint,
+      polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
+    }));
+    p.rotation.x = -Math.PI / 2;
+    if (opts.rotZ) p.rotation.z = opts.rotZ;
+    p.position.set(cx, opts.y ?? 0.012, cz);
+    p.receiveShadow = true;
+    p.userData.noBlock = true;
+    scene.add(p);
+    return p;
+  }
+  groundPatch(-20.3, 1.2, 10.2, 15.6, ground, 0x695a48, { uvScale: 1 / 160, bump: 1.6, rotZ: 0.02 });
+  groundPatch(20, 0.8, 5.4, 36.6, concFloor, 0xd2d2ca, { uvScale: 0.5, bump: 0.8 });
+
+  // broken wrought-iron cemetery fence: leaning pickets (one InstancedMesh) with
+  // top rails; the gaps are aimed so sightlines and grave paths stay clear.
+  const picketGeo = new THREE.BoxGeometry(0.05, 1, 0.05);
+  picketGeo.translate(0, 0.5, 0); // pivot at the ground
+  const fenceRuns = [
+    { x0: -17.1, z0: 5.2, x1: -17.1, z1: -2.6, gap: [0.06, 0.27] },  // east edge of the plot
+    { x0: -25.0, z0: -6.7, x1: -17.5, z1: -6.7, gap: [0.45, 0.64] }, // north edge, collapsed middle
+  ];
+  const dummy = new THREE.Object3D();
+  const picketMats = [];
+  for (const run of fenceRuns) {
+    const len = Math.hypot(run.x1 - run.x0, run.z1 - run.z0);
+    const n = Math.round(len / 0.42);
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      if (t > run.gap[0] && t < run.gap[1]) continue; // broken stretch
+      const edge = Math.min(Math.abs(t - run.gap[0]), Math.abs(t - run.gap[1]));
+      const wob = edge < 0.08 ? 0.22 : 0.08; // pickets lean harder near the break
+      dummy.position.set(
+        run.x0 + (run.x1 - run.x0) * t + drng.range(-0.03, 0.03), 0,
+        run.z0 + (run.z1 - run.z0) * t + drng.range(-0.03, 0.03));
+      dummy.rotation.set(drng.range(-wob, wob), drng.range(-0.2, 0.2), drng.range(-wob, wob));
+      dummy.scale.set(1, drng.range(0.74, 0.98), 1);
+      dummy.updateMatrix();
+      picketMats.push(dummy.matrix.clone());
+    }
+  }
+  const pickets = new THREE.InstancedMesh(picketGeo, M.metalRust, picketMats.length);
+  picketMats.forEach((m, i) => pickets.setMatrixAt(i, m));
+  pickets.castShadow = pickets.receiveShadow = true;
+  pickets.frustumCulled = false; // instance bounds spread wider than the base geo
+  scene.add(pickets);
+  // rails (skip the broken stretch; one snapped piece dips to the ground)
+  function rail(cx, cz, len, horizontal, y, sag = 0) {
+    const r = new THREE.Mesh(uvBox(horizontal ? len : 0.05, 0.06, horizontal ? 0.05 : len), M.metalRust);
+    r.position.set(cx, y, cz);
+    r.rotation.z = horizontal ? sag : 0;
+    r.rotation.x = horizontal ? 0 : sag;
+    r.castShadow = r.receiveShadow = true;
+    scene.add(r);
+    return r;
+  }
+  rail(-17.1, 5.0, 0.5, false, 0.72, 0.05);                // run1 stub before the gap
+  rail(-17.1, 0.25, 5.7, false, 0.7, -0.02);               // run1 long stretch
+  rail(-17.14, 3.6, 1.3, false, 0.42, 0.55);               // snapped piece dipping into the gap
+  rail(-23.3, -6.7, 3.4, true, 0.7, 0.03);                 // run2 west stretch
+  rail(-18.85, -6.7, 2.7, true, 0.68, -0.04);              // run2 east stretch
+  const fallenRail = rail(-20.9, -6.25, 1.6, true, 0.05, 0.02);
+  fallenRail.rotation.y = 0.5;                             // torn-out section on the ground
+
+  // leaning dead tree over the north fence — silhouettes above the west wall
+  (function leaningTree(cx, cz) {
+    const g = new THREE.Group();
+    g.position.set(cx, 0, cz);
+    g.rotation.set(-0.06, 0.9, -0.34); // heavy lean east, over the graves
+    const tm = new THREE.MeshStandardMaterial({ color: 0x221a12, roughness: 1 });
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.38, 4.8, 7), tm);
+    trunk.position.y = 2.4; trunk.castShadow = true; g.add(trunk);
+    for (let i = 0; i < 5; i++) {
+      const br = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.1, drng.range(1.5, 2.5), 5), tm);
+      br.position.y = drng.range(2.7, 4.4);
+      br.rotation.set(drng.range(-0.8, 0.8), i * 1.7, drng.range(0.5, 1.1));
+      br.castShadow = true; g.add(br);
+    }
+    scene.add(g);
+    addCollider(cx, cz, 0.7, 3, 0.7);
+  })(-24.5, -9.6);
+
+  // crypt: raised stone tomb against the west wall, lid shoved askew
+  (function crypt(cx, cz) {
+    addBox(cx, cz, 1.15, 0.6, 2.3, graveMat);
+    const lid = new THREE.Mesh(uvBox(1.3, 0.14, 2.45), graveMat);
+    lid.position.set(cx + 0.09, 0.71, cz - 0.06);
+    lid.rotation.set(0.03, 0.05, 0.06);
+    lid.castShadow = lid.receiveShadow = true; scene.add(lid);
+    const chunk = new THREE.Mesh(uvBox(0.5, 0.13, 0.6), graveMat);
+    chunk.position.set(cx + 0.78, 0.06, cz + 1.28);
+    chunk.rotation.set(0.06, 0.5, 0.12);
+    chunk.castShadow = chunk.receiveShadow = true; scene.add(chunk);
+    // memorial candle on the lid — small warm accent for the empty left frame
+    const cl = new THREE.PointLight(0xff9448, 2.6, 5.5, 2);
+    cl.position.set(cx + 0.1, 1.0, cz - 0.75);
+    scene.add(cl);
+    const cm = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 0.12, 6),
+      new THREE.MeshBasicMaterial({ color: 0xffc890 }));
+    cm.position.set(cx + 0.1, 0.84, cz - 0.75);
+    scene.add(cm);
+    W.lamps.push({ light: cl, mesh: cm, base: 2.6, flicker: true });
+  })(-24.45, 4.4);
+
+  // toppled headstone + wrought-iron cross markers between the rows
+  const fallenStone = new THREE.Mesh(uvBox(0.85, 1.1, 0.16), graveMat);
+  fallenStone.position.set(-18.7, 0.14, -0.7);
+  fallenStone.rotation.set(-Math.PI / 2 + 0.09, 0.35, 0);
+  fallenStone.castShadow = fallenStone.receiveShadow = true;
+  scene.add(fallenStone);
+  function ironCross(cx, cz, lean, ry) {
+    const g = new THREE.Group();
+    g.position.set(cx, 0, cz);
+    g.rotation.set(0.05, ry, lean);
+    const v = new THREE.Mesh(uvBox(0.08, 1.05, 0.08), M.metalRust); v.position.y = 0.52; g.add(v);
+    const h = new THREE.Mesh(uvBox(0.52, 0.08, 0.08), M.metalRust); h.position.y = 0.74; g.add(h);
+    g.traverse(o => { o.castShadow = o.receiveShadow = true; });
+    scene.add(g);
+  }
+  ironCross(-22.4, -1.3, 0.12, 0.5);
+  ironCross(-18.3, -4.9, -0.18, -0.3);
+
   // ---------- lighting ----------
   const moon = new THREE.DirectionalLight(0x9fb4d8, 3.4);
   moon.position.set(-30, 42, 30);
@@ -494,9 +670,12 @@ export function initWorld(G) {
   scene.add(amb);
   // faint sky-bounce fill from the opposite side (fake GI so moon-backfaced
   // surfaces don't crush to black)
-  const fill = new THREE.DirectionalLight(0x2a3850, 0.55);
+  const fill = new THREE.DirectionalLight(0x2a3850, 0.8);
   fill.position.set(28, 30, 30);
   scene.add(fill);
+  // main.js seeds FogExp2 at 0.026 — that density buries the far half of the map
+  // from any raised angle (overview/title). Thin it: night murk stays, forms read.
+  if (scene.fog) scene.fog.density = 0.016;
 
   // interior hanging bulbs (always on, flickery warm)
   function bulb(cx, cy, cz, color = 0xffb46a, intensity = 26) {
@@ -533,14 +712,18 @@ export function initWorld(G) {
 
   // ---------- distant environment (outside walls, in fog) ----------
   for (let i = 0; i < 14; i++) {
+    // draw every random first so the stream stays fixed, then place (or skip)
     const a = (i / 14) * Math.PI * 2 + rng.range(-0.2, 0.2);
     const d = rng.range(48, 70);
-    const bx = Math.cos(a) * d, bz = Math.sin(a) * d;
     const bw = rng.range(6, 14), bh = rng.range(7, 18);
+    const bd = rng.range(6, 12), sink = rng.range(0, 2), ry = rng() * 3;
+    // keep the SE sector empty — blocks there loomed under the overview camera
+    if (a > 0.42 && a < 1.58) continue;
+    const bx = Math.cos(a) * d, bz = Math.sin(a) * d;
     const b = new THREE.Mesh(boxGeo, M.silhouette);
-    b.scale.set(bw, bh, rng.range(6, 12));
-    b.position.set(bx, bh / 2 - rng.range(0, 2), bz);
-    b.rotation.y = rng() * 3;
+    b.scale.set(bw, bh, bd);
+    b.position.set(bx, bh / 2 - sink, bz);
+    b.rotation.y = ry;
     scene.add(b);
   }
   // distant fire glow on horizon (bloom catches it)
