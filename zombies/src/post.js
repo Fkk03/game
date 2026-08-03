@@ -11,10 +11,10 @@ const GradeShader = {
     tDiffuse: { value: null },
     uTime: { value: 0 },
     uVignette: { value: 0.3 },
-    uGrain: { value: 0.019 },
+    uGrain: { value: 0.017 },
     uCA: { value: 0.00035 },
     uHurt: { value: 0 },
-    uExposure: { value: 2.0 },
+    uExposure: { value: 2.1 },
   },
   vertexShader: /* glsl */`
     varying vec2 vUv;
@@ -45,16 +45,24 @@ const GradeShader = {
       col = mix(col, vec3(lum), 0.12);
       col += (1.0 - lum) * vec3(-0.012, 0.004, 0.03) * 1.4;   // teal shadows
       col += lum * vec3(0.03, 0.012, -0.015);                 // warm highlights
-      // contrast S-curve
-      col = clamp(col * col * (3.0 - 2.0 * col) * 0.28 + col * 0.78, 0.0, 1.0);
+      // filmic toe: rolls the deepest values down to true black while leaving
+      // mids nearly untouched (f(0)=0, f(1)=1, quadratic near 0)
+      col = max(col, vec3(0.0));
+      const float TOE = 0.045;
+      col = col * col * (1.0 + TOE) / (col + TOE);
+      // gentle S-curve for midtone contrast; endpoints fixed so highlights
+      // shoulder off softly instead of clipping
+      col = mix(col, col * col * (3.0 - 2.0 * col), 0.30);
       // hurt tint
       col = mix(col, vec3(col.r * 1.1, col.g * 0.25, col.b * 0.22), uHurt * 0.55);
       // vignette
       float v = 1.0 - r2 * uVignette * 2.6 * (1.0 + uHurt);
       col *= clamp(v, 0.0, 1.0);
-      // grain
-      float g = (hash(uv * vec2(1621.3, 913.7) + fract(uTime) * 61.7) - 0.5) * uGrain * (1.0 - lum * 0.6);
-      col += g;
+      // grain, shaped by final luminance: fades out in the deepest shadows
+      // (where it reads as noise and lifts blacks) and eases off in highlights
+      float glum = dot(col, vec3(0.299, 0.587, 0.114));
+      float g = (hash(uv * vec2(1621.3, 913.7) + fract(uTime) * 61.7) - 0.5) * uGrain;
+      col += g * smoothstep(0.006, 0.15, glum) * (1.0 - glum * 0.55);
       // linear -> sRGB
       col = pow(max(col, 0.0), vec3(1.0 / 2.2));
       gl_FragColor = vec4(col, 1.0);

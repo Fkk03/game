@@ -99,13 +99,48 @@
     animation: fogdrift 26s linear infinite alternate; filter: blur(6px); }
   @keyframes fogdrift { from { transform: translate3d(-4%, 1%, 0) scale(1); } to { transform: translate3d(5%, -2%, 0) scale(1.12); } }
   .hidden { display: none !important; }
-  .title { font-family: Georgia, serif; font-weight: 900; font-size: clamp(44px, 8vw, 96px); letter-spacing: 12px;
-    color: #efe7d2; z-index: 1; position: relative;
-    text-shadow: 0 0 14px rgba(230,220,190,.25), 0 0 44px rgba(170,26,16,.65), 0 5px 8px #000, 0 1px 0 #514a3a; }
-  .title em { color: #e03024; font-style: normal;
-    text-shadow: 0 0 10px rgba(255,60,40,.6), 0 0 46px rgba(220,30,20,.75), 0 5px 8px #000; }
-  .title::after { content: ''; display: block; height: 2px; margin: 18px 8px 0;
-    background: linear-gradient(90deg, transparent, rgba(216,176,74,.85) 18%, rgba(216,176,74,.85) 82%, transparent); }
+  /* military-stencil title: heavy system stack, per-letter paint-cut + jitter */
+  .title { font-family: 'Arial Black', Impact, Haettenschweiler, 'Franklin Gothic Medium',
+      'Liberation Sans', 'DejaVu Sans', sans-serif;
+    font-weight: 900; font-size: clamp(40px, 7.4vw, 88px); letter-spacing: .06em; word-spacing: .3em;
+    line-height: 1.05; color: #e8dfc6; z-index: 1; position: relative;
+    text-shadow: 0 4px 3px rgba(0,0,0,.9), 0 0 34px rgba(160,24,14,.55), 0 0 9px rgba(226,214,182,.14), 0 1px 0 rgba(70,62,46,.9); }
+  .title em { font-style: normal; color: #e03024;
+    text-shadow: 0 4px 3px rgba(0,0,0,.92), 0 0 30px rgba(230,40,24,.6), 0 0 9px rgba(255,90,60,.3); }
+  /* per-letter stencil plates: bone paint with a dark cut band, scratched by a
+     diagonal wear pattern; --cut varies the band height letter to letter */
+  .title .tl { display: inline-block; --cut: 47%; transform: scaleY(1.14);
+    background-image:
+      repeating-linear-gradient(112deg, rgba(0,0,0,0) 0 5px, rgba(30,24,16,.22) 5px 6.5px, rgba(0,0,0,0) 6.5px 12px),
+      linear-gradient(180deg, #faf3e0 0%, #efe6ca calc(var(--cut) - 3%), #1a140a calc(var(--cut) - 1%),
+        #27200f calc(var(--cut) + 4%), #e4d9b6 calc(var(--cut) + 6%), #c9bd97 90%, #b0a37c 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    /* NOTE: text-shadow must stay off the clipped spans (Chromium paints an
+       element's own text-shadow over background-clip:text fills) — depth and
+       glow come from drop-shadow filters instead */
+    text-shadow: none;
+    filter: drop-shadow(0 3px 2px rgba(0,0,0,.85)) drop-shadow(0 0 13px rgba(150,24,14,.5)); }
+  .title em .tl {
+    background-image:
+      repeating-linear-gradient(112deg, rgba(0,0,0,0) 0 5px, rgba(46,8,5,.30) 5px 6.5px, rgba(0,0,0,0) 6.5px 12px),
+      linear-gradient(180deg, #ff7050 0%, #ea3d2c calc(var(--cut) - 3%), #260b06 calc(var(--cut) - 1%),
+        #360f09 calc(var(--cut) + 4%), #d62a1a calc(var(--cut) + 6%), #a01b12 90%, #7c150d 100%);
+    filter: drop-shadow(0 3px 2px rgba(0,0,0,.9)) drop-shadow(0 0 12px rgba(230,40,24,.55)); }
+  /* worn hand-stamped jitter — small rotations/offsets, deterministic per slot */
+  .title .tl:nth-child(2n)   { transform: scaleY(1.14) rotate(.65deg) translateY(1px); --cut: 44%; }
+  .title .tl:nth-child(3n+1) { transform: scaleY(1.14) rotate(-.8deg) translateY(-1px); --cut: 50%; }
+  .title .tl:nth-child(5n+3) { transform: scaleY(1.14) rotate(1deg) translateY(1px); --cut: 43%; }
+  .title .tl:nth-child(7n+4) { transform: scaleY(1.12) rotate(-.5deg); --cut: 52%; }
+  /* grungier divider: slanted stencil dashes over a faint ember rule */
+  .title::after { content: ''; display: block; height: 4px; margin: 15px 10px 0;
+    background:
+      linear-gradient(90deg, rgba(150,30,14,0), rgba(150,30,14,.5) 28%, rgba(150,30,14,.5) 72%, rgba(150,30,14,0)) 0 100% / 100% 1px no-repeat,
+      repeating-linear-gradient(90deg, rgba(216,176,74,.8) 0 26px, rgba(216,176,74,.1) 26px 31px,
+        rgba(196,156,64,.6) 31px 78px, rgba(216,176,74,0) 78px 92px,
+        rgba(226,186,84,.72) 92px 140px, rgba(216,176,74,.16) 140px 146px);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    transform: skewX(-24deg); box-shadow: 0 3px 14px rgba(190,120,40,.12); }
   .subtitle2 { margin-top: 14px; letter-spacing: 9px; font-size: 14px; color: #b8ae94; z-index: 1; }
   .deploy { margin-top: 44px; font-size: 21px; letter-spacing: 6px; padding: 15px 48px; color: var(--bone);
     border: 1px solid rgba(216,176,74,.55); background: linear-gradient(rgba(30,12,9,.75), rgba(14,6,5,.85));
@@ -145,7 +180,7 @@
 </div>
 
 <div id="menu" class="overlay">
-  <div class="title">BLACKSITE <em>115</em></div>
+  <div class="title" aria-label="BLACKSITE 115"><span class="tl">B</span><span class="tl">L</span><span class="tl">A</span><span class="tl">C</span><span class="tl">K</span><span class="tl">S</span><span class="tl">I</span><span class="tl">T</span><span class="tl">E</span> <em><span class="tl">1</span><span class="tl">1</span><span class="tl">5</span></em></div>
   <div class="subtitle2">UNDEAD PROTOCOL — VERLASSEN</div>
   <button class="deploy" id="btn-deploy">CLICK TO DEPLOY</button>
   <div class="controls">
