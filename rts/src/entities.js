@@ -11,9 +11,11 @@
 //     -- buildings: buildProgress (0..1), powered, rally:{x,z}, queue:[],
 //        queueT, captureProgress, capturer }
 import * as THREE from 'three';
-import { G, V3, emit, clamp } from './core.js';
+import { G, V3, emit, clamp, SHOT_MODE } from './core.js';
 import { DEFS, ARMOR, VET_KILLS } from './data.js';
 import { buildMesh, buildRubble } from './meshes.js';
+import { LAYOUT } from './layout.js';
+import { orderMove } from './move.js';
 
 export function spawnUnit(defId, owner, x, z, yaw = 0) {
   const def = DEFS[defId];
@@ -84,10 +86,11 @@ export function kill(e, attacker = null) {
   const p = G.players[e.owner];
   if (p) p.stats.losses++;
   emit('entity:died', e, attacker);
-  // corpse / rubble handling
+  // corpse / rubble handling. fx.unitDeath/buildingDeath take ownership of
+  // the mesh (collapse/tip/burn animation) and remove it from the scene when
+  // done; without fx we remove it immediately.
   if (e.kind === 'building') {
     G.nav?.unblockFootprint(e);
-    G.fx?.buildingDeath?.(e);
     const rubble = buildRubble(e.def);
     if (rubble) {
       rubble.position.copy(e.pos);
@@ -95,14 +98,69 @@ export function kill(e, attacker = null) {
       G.scene.add(rubble);
       setTimeout(() => G.scene.remove(rubble), 45000);
     }
+    if (G.fx?.buildingDeath) G.fx.buildingDeath(e);
+    else G.scene.remove(e.mesh);
   } else {
-    G.fx?.unitDeath?.(e);
+    if (G.fx?.unitDeath) G.fx.unitDeath(e);
+    else G.scene.remove(e.mesh);
   }
-  G.scene.remove(e.mesh);
   // deferred array cleanup happens in sweepDead()
 }
 
+// ---------------------------------------------------------------------------
+// SHOT-MODE-only test scaffolding: `?shot=...&battle=1` stages two opposing
+// combined-arms squads near the player base so combat can be screenshotted
+// without AI/production. `battle=2` = ~100-unit stress fight (perf check).
+// Never active in a real game — requires SHOT_MODE. Invoked lazily from the
+// first sweepDead() tick so it runs after world/fx boot.
+let battleChecked = false;
+export function maybeSpawnTestBattle() {
+  if (battleChecked) return;
+  battleChecked = true;
+  if (!SHOT_MODE) return;
+  const lvl = parseInt(new URLSearchParams(location.search).get('battle') || '0', 10);
+  if (!lvl) return;
+  const b = LAYOUT.bases[0];
+  const nmx = 0.707, nmz = -0.707;            // toward map centre
+  const px = 0.707, pz = 0.707;               // line-abreast axis
+  const S = lvl >= 2 ? 6 : 2;                 // squad size multiplier
+  const gap = lvl >= 2 ? 4 : 5.5;
+  const rep = (ids, k) => { const o = []; for (let i = 0; i < k; i++) o.push(...ids); return o; };
+  const spawnRow = (owner, arr, ids, cx, cz) => {
+    ids.forEach((id, i) => {
+      const off = (i - (ids.length - 1) / 2) * gap;
+      arr.push(spawnUnit(id, owner, cx + px * off, cz + pz * off,
+        owner === 0 ? Math.atan2(nmx, nmz) : Math.atan2(-nmx, -nmz)));
+    });
+  };
+  const A = [], B = [];
+  const ax = b.x + nmx * 16, az = b.z + nmz * 16;
+  const bx = b.x + nmx * 78, bz = b.z + nmz * 78;
+  // Side A: Coalition combined arms (plus a captured quad so flak-vs-air shows)
+  spawnRow(0, A, rep(['crusader', 'crusader', 'humvee'], S), ax, az);
+  spawnRow(0, A, rep(['quad'], Math.max(1, S >> 1)), ax + px * 26, az + pz * 26);
+  spawnRow(0, A, rep(['ranger', 'ranger', 'missiledef', 'ranger'], S), ax - nmx * 8, az - nmz * 8);
+  spawnRow(0, A, rep(['tomahawk'], S), ax - nmx * 16, az - nmz * 16);
+  // Side B: Cartel horde + air
+  spawnRow(1, B, rep(['scorpion', 'scorpion', 'technical', 'quad'], S), bx, bz);
+  spawnRow(1, B, rep(['rebel', 'rpg', 'rebel', 'rebel'], S), bx + nmx * 8, bz + nmz * 8);
+  spawnRow(1, B, rep(['buggy'], S), bx + nmx * 16, bz + nmz * 16);
+  for (let i = 0; i < (lvl >= 2 ? 3 : 1); i++) {
+    B.push(spawnUnit('comanche', 1, bx + nmx * 24 + px * i * 9, bz + nmz * 24 + pz * i * 9, 0));
+  }
+  // static defenses so building weapons get exercised (patriot is also AA)
+  spawnBuilding('patriot', 0, b.x + px * 22 + nmx * 12, b.z + pz * 22 + nmz * 12, 0, { instant: true });
+  spawnBuilding('stinger', 1, bx + px * 24, bz + pz * 24, 0, { instant: true });
+  // opposing attack-move orders — the fight starts immediately
+  orderMove(A, bx, bz, { attackMove: true });
+  orderMove(B, ax, az, { attackMove: true });
+  // battle=3: additionally park a long-lived particle-cannon beam midfield
+  // so fx.beam can be screenshot-verified before powers.js wires it up
+  if (lvl >= 3) G.fx?.beam(b.x + nmx * 47, b.z + nmz * 47, 30);
+}
+
 export function sweepDead() {
+  maybeSpawnTestBattle();
   const rm = (arr) => {
     for (let i = arr.length - 1; i >= 0; i--) if (!arr[i].alive) arr.splice(i, 1);
   };
