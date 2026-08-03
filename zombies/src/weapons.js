@@ -287,7 +287,7 @@ function buildKnife(G) {
     new THREE.MeshStandardMaterial({ color: 0x241f18, roughness: 0.9 }));
   handle.position.set(0, -0.004, 0.005);
   g.add(blade, handle);
-  g.traverse(o => { o.frustumCulled = false; });
+  g.traverse(o => { o.frustumCulled = false; o.userData.noBlock = true; });
   return g;
 }
 

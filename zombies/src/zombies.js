@@ -277,6 +277,9 @@ export function initZombies(G) {
   // ---------- combat ----------
   const _p = new THREE.Vector3();
   function raycastShot(rc, st, G) {
+    // matrices are normally fresh from rendering; force-update so hit detection
+    // also works headless / same-tick as movement
+    G.scene.updateMatrixWorld();
     // static geometry stop distance
     const statics = rc.intersectObjects(G.staticRay, false).filter(h => !h.object.userData.noBlock);
     const staticD = statics.length ? statics[0].distance : Infinity;

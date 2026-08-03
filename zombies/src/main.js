@@ -78,6 +78,7 @@ scene.traverse((o) => {
   if (!o.isMesh || o.userData.noBlock) return;
   if (o.material?.transparent) return;
   if (o.isInstancedMesh) return;
+  for (let p = o.parent; p; p = p.parent) if (p === camera) return; // never viewmodel parts
   G.staticRay.push(o);
 });
 
@@ -130,7 +131,8 @@ window.__testAPI = {
     state: G.state, round: G.zombies.round, points: G.player.points,
     health: G.player.health, kills: G.player.kills,
     zombies: G.zombies.list.filter(z => !z.gone && z.state !== 'dead').length,
-    weapon: G.weapons.current().id, ammo: G.weapons.current().ammo,
+    chasing: G.zombies.list.filter(z => !z.gone && (z.state === 'chasing' || z.state === 'attacking')).length,
+    weapon: G.weapons.current().id, ammo: G.weapons.current().ammo, reserve: G.weapons.current().reserve,
   }),
   step: (n = 1, dt = 1 / 60) => { for (let i = 0; i < n; i++) { stepOnce(dt); } },
   shoot: () => { G.weapons.triggerEdge = true; G.weapons.triggerHeld = true; setTimeout(() => G.weapons.triggerHeld = false, 50); },
