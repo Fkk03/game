@@ -106,9 +106,93 @@ export function initWorld(G) {
     return m;
   }
 
+  // ---------- battle-damage dressing (broken wall tops, rubble) ----------
+  // Own rng stream so the main layout stream stays byte-identical.
+  const trng = makeRng(G.seed + 4041);
+  const dressParts = new Map(); // material -> [{sx,sy,sz,x,y,z,ry}]
+  const partsFor = (mat) => {
+    let a = dressParts.get(mat);
+    if (!a) dressParts.set(mat, a = []);
+    return a;
+  };
+  // Merge many small boxes into one mesh per material (single draw call).
+  // Each part keeps true uvBox texel density; ry = yaw, used for rubble.
+  function mergedBoxMesh(parts, mat) {
+    const pos = [], nor = [], uvA = [], idx = [];
+    for (const p of parts) {
+      const g = uvBox(p.sx, p.sy, p.sz);
+      const P = g.attributes.position, N = g.attributes.normal, U = g.attributes.uv;
+      const base = pos.length / 3;
+      const cc = Math.cos(p.ry ?? 0), ss = Math.sin(p.ry ?? 0);
+      for (let i = 0; i < P.count; i++) {
+        const x = P.getX(i), z = P.getZ(i), nx = N.getX(i), nz = N.getZ(i);
+        pos.push(p.x + x * cc + z * ss, p.y + P.getY(i), p.z - x * ss + z * cc);
+        nor.push(nx * cc + nz * ss, N.getY(i), -nx * ss + nz * cc);
+        uvA.push(U.getX(i), U.getY(i));
+      }
+      for (let i = 0; i < g.index.count; i++) idx.push(g.index.getX(i) + base);
+      g.dispose();
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uvA, 2));
+    g.setIndex(idx);
+    const m = new THREE.Mesh(g, mat);
+    m.castShadow = m.receiveShadow = true;
+    m.userData.noBlock = true; // dressing: full-height wall colliders still gate everything
+    scene.add(m);
+    return m;
+  }
+  // Ragged top band for a wall segment: stepped chunk columns quantized to
+  // brick courses (0.125m) so mortar lines stay continuous with the wall
+  // below; level-3 columns rebuild the original top line, level 0 is a bite
+  // clean through the band. Jambs / corners stay intact so apertures read
+  // built, not crumbled.
+  function raggedTop(fixed, a, b, horizontal, h, B, th, mat) {
+    const q = (v) => Math.round(v / 0.125) * 0.125;
+    const lvlH = [0, q(B * 0.4), q(B * 0.7), B];
+    const y0 = h - B;
+    let s = a, level = 3;
+    while (b - s > 0.05) {
+      let cw = Math.min(trng.range(0.45, 0.95), b - s);
+      if (b - s - cw < 0.3) cw = b - s; // no sliver columns at segment ends
+      let nl;
+      if (s - a < 0.55 || b - (s + cw) < 0.55) nl = 3;
+      else if (trng() < 0.2) nl = trng.int(0, 3); // sudden deep bite / stub
+      else nl = Math.min(3, Math.max(0, level + trng.int(-1, 1)));
+      if (nl === 0 && level === 0) nl = 1; // cap the width of full gaps
+      level = nl;
+      const hh = lvlH[level];
+      if (hh > 0.01) {
+        const proud = level === 3 ? 0 : trng.range(-0.025, 0.025);
+        const dep = level === 3 ? th : th + 0.05;
+        partsFor(mat).push(horizontal
+          ? { sx: cw, sy: hh, sz: dep, x: s + cw / 2, y: y0 + hh / 2, z: fixed + proud }
+          : { sx: dep, sy: hh, sz: cw, x: fixed + proud, y: y0 + hh / 2, z: s + cw / 2 });
+      }
+      s += cw;
+    }
+  }
+  // Low spill of broken masonry hugging a wall base (visual only, under knee height).
+  function rubblePile(cx, cz, mat, n = 6, spread = 0.5) {
+    for (let i = 0; i < n; i++) {
+      const s = trng.range(0.14, 0.34);
+      partsFor(mat).push({
+        sx: s * trng.range(1.0, 1.9), sy: s * trng.range(0.5, 0.85), sz: s,
+        x: cx + trng.range(-spread, spread),
+        y: 0.02 + s * trng.range(0.2, 0.4),
+        z: cz + trng.range(-spread, spread),
+        ry: trng.range(0, Math.PI),
+      });
+    }
+  }
+
   // Axis-aligned wall run with optional apertures (windows / door gaps).
   // horizontal=true: run along x at z; else along z at x.
-  function wallRun(fixed, from, to, horizontal, h, th, mat, gaps = []) {
+  // ragged > 0 draws full-height segments with a shell-bitten top band of that
+  // depth; colliders stay identical to the intact wall (gameplay untouched).
+  function wallRun(fixed, from, to, horizontal, h, th, mat, gaps = [], ragged = 0) {
     const segs = [];
     let cur = from;
     const sorted = [...gaps].sort((a, b) => a.at - b.at);
@@ -122,6 +206,13 @@ export function initWorld(G) {
     const put = (a, b, y0, sy, collide = true) => {
       const len = b - a, mid = (a + b) / 2;
       if (len <= 0.01 || sy <= 0.01) return null;
+      if (ragged > 0 && collide && y0 === 0 && sy === h && len > 2) {
+        const cx = horizontal ? mid : fixed, cz = horizontal ? fixed : mid;
+        const sx = horizontal ? len : th, sz = horizontal ? th : len;
+        addCollider(cx, cz, sx, sy, sz, { y0: 0 }); // same AABB an intact wall gets
+        raggedTop(fixed, a, b, horizontal, h, ragged, th, mat);
+        return addBox(cx, cz, sx, sy - ragged, sz, mat, { y0: 0, collide: false });
+      }
       return horizontal
         ? addBox(mid, fixed, len, sy, th, mat, { y0, collide })
         : addBox(fixed, mid, th, sy, len, mat, { y0, collide });
@@ -267,6 +358,49 @@ export function initWorld(G) {
   groundMesh.receiveShadow = true;
   scene.add(groundMesh);
 
+  // Outer terrain: at overview distances the mud map's big stains + puddle
+  // spec smear into giant blobs. Cover everything outside the walls with a
+  // calmer copy — the same image flattened toward its own average tone (so
+  // the tone matches at the seam, which hides under the wall lines).
+  {
+    const src = ground.map.image;
+    const av = document.createElement('canvas');
+    av.width = av.height = 16;
+    const avx = av.getContext('2d');
+    avx.drawImage(src, 0, 0, 16, 16);
+    const d = avx.getImageData(0, 0, 16, 16).data;
+    let ar = 0, ag = 0, ab = 0;
+    for (let i = 0; i < d.length; i += 4) { ar += d[i]; ag += d[i + 1]; ab += d[i + 2]; }
+    const np = d.length / 4;
+    const calm = document.createElement('canvas');
+    calm.width = calm.height = 512; // half-res copy also mips softer
+    const cx2 = calm.getContext('2d');
+    cx2.drawImage(src, 0, 0, 512, 512);
+    cx2.fillStyle = `rgba(${Math.round(ar / np)},${Math.round(ag / np)},${Math.round(ab / np)},0.62)`;
+    cx2.fillRect(0, 0, 512, 512);
+    const calmMap = new THREE.CanvasTexture(calm);
+    calmMap.wrapS = calmMap.wrapT = THREE.RepeatWrapping;
+    calmMap.colorSpace = THREE.SRGBColorSpace;
+    calmMap.anisotropy = 2; // low aniso = soft at grazing angles, not streaky
+    const calmBump = ground.bumpMap.clone();
+    calmBump.repeat.set(1, 1);
+    calmBump.needsUpdate = true;
+    const shp = new THREE.Shape().moveTo(-80, -80).lineTo(80, -80).lineTo(80, 80).lineTo(-80, 80);
+    const holePath = new THREE.Path().moveTo(-26, -20).lineTo(26, -20).lineTo(26, 18).lineTo(-26, 18);
+    shp.holes.push(holePath); // hole edges sit exactly on the wall centerlines
+    const ringGeo = new THREE.ShapeGeometry(shp);
+    const ruv = ringGeo.attributes.uv, rk = 26 / 160; // match inner tiling scale+phase
+    for (let i = 0; i < ruv.count; i++) ruv.setXY(i, (ruv.getX(i) + 80) * rk, (ruv.getY(i) + 80) * rk);
+    const ring = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({
+      map: calmMap, bumpMap: calmBump, bumpScale: 1.1, roughness: 1, // no puddle spec out here
+      polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
+    }));
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.04;
+    ring.receiveShadow = true;
+    scene.add(ring);
+  }
+
   // house floor slab
   const slab = new THREE.Mesh(uvBox(28.4, 0.12, 16.4), M.concFloor);
   slab.position.set(0, 0.055, -10);
@@ -281,37 +415,38 @@ export function initWorld(G) {
     { at: 8, width: 1.9, type: 'window', id: 'N1', out: -1, zone: 'A' },
     { at: -6, width: 1.9, type: 'window', id: 'N2', out: -1, zone: 'B' },
     { at: 20, width: 1.9, type: 'window', id: 'N3', out: -1, zone: 'C' },
-  ]);
+  ], 0.65);
   wallRun(20, -26, 26, true, PH, TH, M.brickDark, [
     { at: -7, width: 1.9, type: 'window', id: 'S1', out: 1, zone: 'A' },
     { at: 7, width: 1.9, type: 'window', id: 'S2', out: 1, zone: 'A' },
-  ]);
+  ], 0.65);
   wallRun(26, -18, 20, false, PH, TH, M.brick, [
     { at: 0, width: 1.9, type: 'window', id: 'E1', out: 1, zone: 'C' },
-  ]);
+  ], 0.65);
   wallRun(-26, -18, 20, false, PH, TH, M.brickDark, [
     { at: 0, width: 1.9, type: 'window', id: 'W1', out: -1, zone: 'D' },
-  ]);
-  // ruined parapet chunks on perimeter tops
+  ], 0.65);
+  // ruined parapet chunks, half-sunk into the ragged band so they read as
+  // still-attached stubs above the broken line (never floaters over a bite)
   for (let i = 0; i < 34; i++) {
     const side = rng.int(0, 3);
     const t = rng.range(-24, 24);
     const [px, pz] = side === 0 ? [t, -18] : side === 1 ? [t, 20] : side === 2 ? [26, t * 0.7] : [-26, t * 0.7];
-    addBox(px, pz, rng.range(0.5, 1.6), rng.range(0.2, 0.75), TH + 0.05, M.brickDark, { y0: PH, collide: false });
+    addBox(px, pz, rng.range(0.5, 1.6), rng.range(0.2, 0.75), TH + 0.05, M.brickDark, { y0: PH - 0.55, collide: false });
   }
 
   // ---------- house ----------
   const HH = 3.0;
   wallRun(-2, -14, 14, true, HH, 0.4, M.plaster, [                       // south face
     { at: 8, width: 2.2, type: 'gap' },  // open doorway
-  ]);
+  ], 0.625);
   wallRun(2, -18, -2, false, HH, 0.4, M.plaster, [                       // dividing wall
     { at: -10, width: 2.2, type: 'door', door: 'B' },
   ]);
-  wallRun(14, -18, -2, false, HH, 0.4, M.brick, []);                     // east face
+  wallRun(14, -18, -2, false, HH, 0.4, M.brick, [], 0.5);                // east face
   wallRun(-14, -18, -2, false, HH, 0.4, M.brick, [                       // west face
     { at: -10, width: 2.2, type: 'door', door: 'D2' },
-  ]);
+  ], 0.5);
   // roof: two slabs with a collapse hole over room1
   const roof1 = new THREE.Mesh(new THREE.BoxGeometry(11, 0.25, 16.6), M.woodOld);
   roof1.position.set(-8.4, HH + 0.13, -10); roof1.castShadow = roof1.receiveShadow = true;
@@ -370,16 +505,55 @@ export function initWorld(G) {
   }
 
   // courtyard flank walls (house to south wall)
-  wallRun(14, -2, 6, false, 2.6, TH, M.brick, []);
-  wallRun(14, 10, 20, false, 2.6, TH, M.brick, []);
-  wallRun(-14, -2, 6, false, 2.6, TH, M.brickDark, []);
-  wallRun(-14, 10, 20, false, 2.6, TH, M.brickDark, []);
+  wallRun(14, -2, 6, false, 2.6, TH, M.brick, [], 0.475);
+  wallRun(14, 10, 20, false, 2.6, TH, M.brick, [], 0.475);
+  wallRun(-14, -2, 6, false, 2.6, TH, M.brickDark, [], 0.475);
+  wallRun(-14, 10, 20, false, 2.6, TH, M.brickDark, [], 0.475);
   // gates in the flanks
   registerDoorGap('C', [14, 8], false, 4, TH);
   registerDoorGap('D', [-14, 8], false, 4, TH);
   // gate posts
   addBox(14, 5.8, 0.8, 3, 0.8, M.conc); addBox(14, 10.2, 0.8, 3, 0.8, M.conc);
   addBox(-14, 5.8, 0.8, 3, 0.8, M.conc); addBox(-14, 10.2, 0.8, 3, 0.8, M.conc);
+
+  // spill rubble where the walls are bitten worst (visual only, hugs bases)
+  rubblePile(-8.6, -1.32, M.brickDark, 7, 0.6);   // under the big shell bite
+  rubblePile(12.9, 3.9, M.brick, 6, 0.5);         // east flank base
+  rubblePile(-13.35, 17.6, M.brickDark, 6, 0.5);  // west flank base
+  rubblePile(25.25, -2.2, M.brick, 6, 0.5);       // alley, east perimeter base
+  rubblePile(-9.2, 19.25, M.brickDark, 5, 0.45);  // south wall base
+  rubblePile(5.5, -18.85, M.brick, 7, 0.6);       // outside north wall
+  rubblePile(-17.5, -18.95, M.brick, 6, 0.55);    // outside north wall, west
+  rubblePile(26.85, 13.5, M.brick, 6, 0.55);      // outside east wall
+  // build the merged damage batches (one mesh per material)
+  for (const [dMat, dPrts] of dressParts) mergedBoxMesh(dPrts, dMat);
+
+  // shell-hole bites in the plaster south face: a stepped cluster of dark
+  // recess slabs (broken outline, no neat rectangle) with moonlit brick
+  // sitting flush inside — spaced off the tiled peel pattern's rhythm
+  function shellBite(x, y, w, h) {
+    const slabs = [ // [dx, dy, sw, sh, dz] — offsets break the silhouette
+      [0, 0, w, h, -1.816],
+      [-w * 0.34, h * 0.2, w * 0.52, h * 0.55, -1.818],
+      [w * 0.31, -h * 0.24, w * 0.58, h * 0.5, -1.814],
+    ];
+    const parts = [];
+    for (const [dx, dy, sw, sh, dz] of slabs) {
+      const m = new THREE.Mesh(uvBox(sw, sh, 0.05), M.dark);
+      m.position.set(x + dx, y + dy, dz);
+      parts.push(m);
+    }
+    const br = new THREE.Mesh(uvBox(w * 0.55, h * 0.52, 0.08), M.brick);
+    br.position.set(x + w * 0.04, y - h * 0.05, -1.827);
+    parts.push(br);
+    for (const m of parts) {
+      m.castShadow = false; m.receiveShadow = true; m.userData.noBlock = true;
+      scene.add(m);
+    }
+  }
+  shellBite(-8.8, 1.75, 1.35, 0.95);
+  shellBite(3.3, 1.3, 0.95, 0.7);
+  shellBite(12.1, 2.2, 0.7, 0.55);
 
   // ---------- props ----------
   // sandbags (courtyard defensive ring)
