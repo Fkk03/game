@@ -95,6 +95,10 @@ python3 -m http.server 8080
 - **Albatross Gunship** (Coalition) — a heavy combat transport helicopter (3× health and
   damage): carries 20 soldiers, guns down infantry with its chin turret and fires rockets
   at armor — hits like a heavy tank, but lumbers across the map at gunship pace.
+  Up to **6 passengers fire from the gun ports** while riding — each with their own
+  weapon and range, so a load of Javelin troopers turns it into a flying anti-tank
+  battery — and an **active protection system deflects half of all incoming gunfire**
+  (rockets and flak still hit at full force).
   Select troops → right-click to board; Unload (F) deploys. Shot down = everyone dies
 - **Twin base defenses** — every faction fields two: the rapid-fire **Gatling Defense**
   ($800, ~700 range — shreds infantry, light vehicles and aircraft, barely dents heavy
@@ -133,11 +137,16 @@ python3 -m http.server 8080
 - **Armoured warfare** — every tank has **3× health**: Bulwark 1,860, Warlord 3,450,
   Aegis 3,450, Paragon 7,800. Armour columns now trade blows for a long time instead
   of melting, and veterancy plus 🛡 Armor upgrades stack on top of the new baseline
-- **Siege artillery, range 4,050** — the Longbow / Great Wall Gun / Doomsday Cannon
-  outranges every emplacement in the game more than threefold and shells bases from
-  well outside their reply. It stays slow and fragile, and it is **blind on its own**:
-  past its own sight it only auto-fires at targets your team can actually see, so bring
-  spotters — or right-click a target yourself and it will shell it at full reach
+- **Siege artillery, range 2,025** — the Longbow / Great Wall Gun / Doomsday Cannon
+  still outranges every emplacement in the game and shells bases from outside their
+  reply. It stays slow and fragile, and it is **blind on its own**: past its own sight
+  it only auto-fires at targets your team can actually see, so bring spotters — or
+  right-click a target yourself and it will shell it at full reach
+- **Super-heavy endgame armour** — two machines beyond the superheavies:
+  the **Citadel Landship / Iron Sovereign / Warlord Rig** ($25,000 — 24,000 hp, a
+  900-damage gun and infantry sponsons) and the **Leviathan Fortress / Thunder Throne /
+  Doomcrawler** ($100,000 — 75,000 hp, a 2,600-damage siege gun, quad AA sponsons and
+  armour that shrugs off small-arms fire). Both crawl; escort them or lose them
 - **Balanced air power** — aircraft deal 70% damage to units and only 30% to structures;
   jets are for battlefield strikes, not free base-deletion
 - **Kestrel/Hornet Multirole** — dogfighter + ground-attack in one airframe: 8 light
@@ -197,7 +206,7 @@ python3 -m http.server 8080
 | Right click | Move / Attack / Harvest / Repair / Set rally |
 | Shift + right click | Queue waypoints |
 | Shift + click (while placing) | Queue multiple construction sites |
-| Q W E R / A S D F / Z X C V | Command-grid hotkeys (shown on buttons) |
+| Q W E R / A S D F / Z X C V / G H K L | Command-grid hotkeys, 16 slots (shown on buttons) |
 | A / S / D | Attack-move · Stop · Guard area (with units selected) |
 | I | Cycle idle workers |
 | B / T / J | Global production panel: all barracks / factories / airfields (Shift-click = ×5) |

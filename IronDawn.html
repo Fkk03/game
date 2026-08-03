@@ -61,12 +61,12 @@ html,body { width:100%; height:100%; overflow:hidden; background:#0a0a08;
 
 /* ---------------- Bottom bar ---------------- */
 #bottombar {
-  left:0; right:0; bottom:0; height:190px;
+  left:0; right:0; bottom:0; height:206px;
   display:flex; gap:10px; padding:8px;
   background:linear-gradient(#22221bee, #141410ee);
   border-top:2px solid #4c4a36; box-shadow:0 -2px 8px #000a;
 }
-#minimap-wrap { width:200px; height:174px; border:2px solid #57543f; border-radius:4px;
+#minimap-wrap { width:200px; height:190px; border:2px solid #57543f; border-radius:4px;
   background:#000; overflow:hidden; position:relative; flex:none; }
 #minimap { width:196px; height:170px; cursor:crosshair; }
 
@@ -90,7 +90,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:#0a0a08;
   border:1px solid #3c3a2c; border-radius:4px; background:#191914cc; padding:6px; }
 #cmdtitle { font-size:12px; color:#a89; color:#b0a988; margin:0 0 5px 2px; min-height:15px;
   text-transform:uppercase; letter-spacing:1px; }
-#cmdgrid { display:grid; grid-template-columns:repeat(4, 1fr); grid-auto-rows:46px; gap:5px; }
+#cmdgrid { display:grid; grid-template-columns:repeat(4, 1fr); grid-auto-rows:36px; gap:4px; }
 .cmd-btn { position:relative; border:1px solid #6a6650; border-radius:5px;
   background:linear-gradient(#33322a,#26251e); color:#e8e2d0; cursor:pointer;
   font-size:11px; line-height:1.05; padding:2px; overflow:hidden;
@@ -672,9 +672,9 @@ const BUILDINGS = {
     icon: '🏭', cost: 2000, hp: 6600, size: 3, buildTime: 25, power: 3, armor: 'building',
     sight: 7, desc: 'Builds vehicles.',
     trainsByFaction: {
-      coalition: ['bulwark', 'viper', 'aegis', 'thunder', 'goliath', 'siege', 'detector'],
-      dynasty: ['warlord', 'flak', 'aegis', 'salamander', 'goliath', 'siege', 'detector'],
-      cartel: ['jackal', 'guntruck', 'aegis', 'barrage', 'demorig', 'goliath', 'siege', 'detector'],
+      coalition: ['bulwark', 'viper', 'aegis', 'thunder', 'goliath', 'citadel', 'leviathan', 'siege', 'detector'],
+      dynasty: ['warlord', 'flak', 'aegis', 'salamander', 'goliath', 'citadel', 'leviathan', 'siege', 'detector'],
+      cartel: ['jackal', 'guntruck', 'aegis', 'barrage', 'demorig', 'goliath', 'citadel', 'leviathan', 'siege', 'detector'],
     },
   },
   airfield: {
@@ -752,12 +752,29 @@ const UNITS = {
     desc: 'End-game superheavy tank. Triple the cost, quadruple the punch.',
     weapon: { dmg: 300, dtype: 'cannon', range: 245, cd: 2.4, projectile: 'shell', splash: 50, aa: false, ga: true },
   },
+  citadel: {
+    name: { coalition: 'Citadel Landship', dynasty: 'Iron Sovereign', cartel: 'Warlord Rig' },
+    icon: '🏰', cost: 25000, hp: 24000, speed: 44, sight: 8, radius: 28,
+    armor: 'heavy', buildTime: 45, chassis: 'heavytank',
+    desc: 'End-game landship. Three times a superheavy in armour and firepower, with a sponson gun for infantry that stray too close. Ponderously slow.',
+    weapon: { dmg: 900, dtype: 'cannon', range: 300, cd: 2.6, projectile: 'shell', splash: 90, aa: false, ga: true },
+    gunWeapon: { dmg: 26, dtype: 'gatling', range: 230, cd: 0.12, projectile: 'bullet', aa: false, ga: true },
+  },
+  leviathan: {
+    name: { coalition: 'Leviathan Fortress', dynasty: 'Thunder Throne', cartel: 'Doomcrawler' },
+    icon: '🐘', cost: 100000, hp: 75000, speed: 34, sight: 9, radius: 34,
+    armor: 'heavy', buildTime: 120, chassis: 'heavytank',
+    desc: 'A mobile fortress and the heaviest machine ever fielded. Siege-grade main gun, quad sponson mounts, and armour that shrugs off a whole defensive line. Crawls — escort it.',
+    resist: { bullet: 0.4, gatling: 0.4 },
+    weapon: { dmg: 2600, dtype: 'cannon', range: 380, cd: 3.0, projectile: 'shell', splash: 150, aa: false, ga: true },
+    gunWeapon: { dmg: 40, dtype: 'gatling', range: 260, cd: 0.08, projectile: 'bullet', aa: true, ga: true },
+  },
   siege: {
     name: { coalition: 'Longbow Siege Platform', dynasty: 'Great Wall Gun', cartel: 'Doomsday Cannon' },
     icon: '☄️', cost: 2800, hp: 420, speed: 45, sight: 7, radius: 19,
     armor: 'light', buildTime: 24, chassis: 'mlrs',
-    desc: 'Extreme-range siege artillery (range 4050 — many times its own sight; it is blind without spotters). Slow and fragile.',
-    weapon: { dmg: 340, dtype: 'explosive', range: 4050, minRange: 260, cd: 8, projectile: 'arty', splash: 75, aa: false, ga: true },
+    desc: 'Extreme-range siege artillery (range 2025 — far beyond its own sight; it is blind without spotters). Slow and fragile.',
+    weapon: { dmg: 340, dtype: 'explosive', range: 2025, minRange: 260, cd: 8, projectile: 'arty', splash: 75, aa: false, ga: true },
   },
   aegis: {
     name: { coalition: 'Aegis Storm Tank', dynasty: 'Dragonhail Tank', cartel: 'Sky Reaper' },
@@ -776,8 +793,9 @@ const UNITS = {
   albatross: {
     name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 2850, speed: 262, sight: 8, radius: 19,
     armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true,
-    capacity: 20,
-    desc: 'Coalition gunship-transport. Carries up to 20 soldiers, guns down infantry with its chin turret and fires rockets at armor — triple-strength airframe: 3× the health, damage and speed. Unload (F) deploys the troops.',
+    capacity: 20, gunPorts: 6,
+    resist: { bullet: 0.5, gatling: 0.5 },
+    desc: 'Coalition gunship-transport. Carries up to 20 soldiers, guns down infantry with its chin turret and fires rockets at armor. Up to 6 soldiers fire from the gun ports while aboard, and an active protection system deflects half of all incoming gunfire. Unload (F) deploys the troops.',
     weapon: { dmg: 330, dtype: 'rocket', range: 240, cd: 2.0, projectile: 'missile', splash: 26, aa: false, ga: true },
     gunWeapon: { dmg: 33, dtype: 'gatling', range: 220, cd: 0.1, projectile: 'bullet', aa: false, ga: true },
   },
@@ -2777,6 +2795,36 @@ class Unit {
       return false;
     };
 
+    /* Troops shoot out of the gun ports while riding. Only `gunPorts` of them can
+       reach a firing position at once, so a full load is not a flying fortress —
+       each gunner uses its own weapon, cooldown and range, and earns its own kills. */
+    if (def.gunPorts && this.cargo && this.cargo.length) {
+      let ports = def.gunPorts;
+      for (const id of this.cargo) {
+        if (ports <= 0) break;
+        const g = game.byId.get(id);
+        if (!g || g.dead || !g.def.weapon) continue;
+        ports--;
+        g.x = this.x; g.y = this.y;                 // ride along so shots come from the cabin
+        if (g.cool > 0) { g.cool -= dt; continue; }
+        // throttle the search: with no target in reach this would otherwise sweep the
+        // entity list every frame for every gunner
+        g.portScanT = (g.portScanT || 0) - dt;
+        if (g.portScanT > 0) continue;
+        g.portScanT = 0.35;
+        const gw = g.def.weapon;
+        let best = null, bd = Infinity;
+        for (const e of game.ents) {
+          if (e.dead || e.kind !== 'unit' || !isEnemy(this, e)) continue;
+          if (!weaponCanHit(gw, e)) continue;
+          if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
+          const dd = U.dist(this.x, this.y, e.x, e.y);
+          if (dd < gw.range && dd < bd) { bd = dd; best = e; }
+        }
+        if (best) { g.cool = gw.cd; fireWeapon(g, gw, best); }
+      }
+    }
+
     switch (o.type) {
       case 'move':
         if (fly(o.x, o.y, def.speed) < 14) this.nextOrder();
@@ -4372,6 +4420,8 @@ const RENDER = (() => {
         case 'jackal': drawJackal(u, c1, c2); break;
         case 'warlord': drawWarlord(u, c1, c2); break;
         case 'goliath': drawGoliath(u, c1, c2); break;
+        case 'citadel': drawCitadel(u, c1, c2); break;
+        case 'leviathan': drawLeviathan(u, c1, c2); break;
         case 'viper': drawViper(u, c1, c2); break;
         case 'aegis': drawAegis(u, c1, c2); break;
         case 'flak': drawFlakTruck(u, c1, c2); break;
@@ -4733,6 +4783,86 @@ const RENDER = (() => {
     // twin antennas
     ctx.strokeStyle = '#1c1a14'; ctx.lineWidth = 0.9;
     ctx.beginPath(); ctx.moveTo(-8, -6); ctx.lineTo(-15, -12); ctx.moveTo(-9, -4); ctx.lineTo(-17, -7); ctx.stroke();
+    ctx.restore();
+  }
+
+  /* Citadel — landship: double-width tracks, stepped casemate, sponson gun */
+  function drawCitadel(u, c1, c2) {
+    tankTreads(u, 40, 30, 6);
+    hullPlate(40, 30, c1, c2, 4);
+    // stepped armour glacis
+    ctx.fillStyle = U.shade(c1, 1.12);
+    ctx.beginPath();
+    ctx.moveTo(20, -9); ctx.lineTo(13, -13); ctx.lineTo(-14, -13);
+    ctx.lineTo(-14, 13); ctx.lineTo(13, 13); ctx.lineTo(20, 9);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = c2; ctx.lineWidth = 1; ctx.stroke();
+    // sponson machine-gun blisters
+    ctx.fillStyle = U.shade(c2, 0.8);
+    for (const sy of [-11, 11]) { roundRect(2, sy - 3, 9, 6, 2); ctx.fill(); }
+    ctx.fillStyle = '#22201a';
+    for (const sy of [-11, 11]) ctx.fillRect(10, sy - 0.9, 8, 1.8);
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    // massive octagonal turret
+    const rec = (u.recoil = Math.max(0, (u.recoil || 0) - 0.06));
+    ctx.fillStyle = U.shade(c1, 1.3); ctx.strokeStyle = c2; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(11, -6); ctx.lineTo(5, -11); ctx.lineTo(-9, -11); ctx.lineTo(-14, -6);
+    ctx.lineTo(-14, 6); ctx.lineTo(-9, 11); ctx.lineTo(5, 11); ctx.lineTo(11, 6);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,246,220,0.2)';
+    ctx.beginPath(); ctx.arc(-3, -4, 4.2, 0, 7); ctx.fill();
+    // one enormous gun with a double muzzle brake
+    ctx.fillStyle = '#22201a';
+    ctx.fillRect(8 - rec * 6, -3, 30, 6);
+    ctx.fillStyle = '#3a362c';
+    ctx.fillRect(32 - rec * 6, -4.4, 4, 8.8);
+    ctx.fillRect(25 - rec * 6, -4, 3, 8);
+    ctx.restore();
+  }
+
+  /* Leviathan — mobile fortress: quad tracks, two-tier citadel, siege gun + AA sponsons */
+  function drawLeviathan(u, c1, c2) {
+    // four track units
+    ctx.fillStyle = '#141209';
+    for (const ty of [-19, -7, 7, 19]) roundRect(-25, ty - 4, 50, 8, 2), ctx.fill();
+    ctx.fillStyle = 'rgba(255,246,220,0.06)';
+    for (const ty of [-19, -7, 7, 19]) ctx.fillRect(-25, ty - 4, 50, 2);
+    hullPlate(48, 34, c1, c2, 4);
+    // raised citadel deck
+    ctx.fillStyle = U.shade(c1, 1.15);
+    roundRect(-16, -15, 34, 30, 5); ctx.fill();
+    ctx.strokeStyle = c2; ctx.lineWidth = 1.2; ctx.stroke();
+    // deck vents and rails
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    for (const vy of [-11, 8]) ctx.fillRect(-14, vy, 12, 4);
+    // AA sponsons at the corners
+    ctx.fillStyle = U.shade(c2, 0.75);
+    for (const sx of [-12, 12]) for (const sy of [-16, 16]) {
+      ctx.beginPath(); ctx.arc(sx, sy, 4.4, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = '#1e1c16';
+    for (const sx of [-12, 12]) for (const sy of [-16, 16]) ctx.fillRect(sx, sy - 0.8, 9, 1.6);
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    const rec = (u.recoil = Math.max(0, (u.recoil || 0) - 0.05));
+    // two-tier turret
+    ctx.fillStyle = U.shade(c1, 1.35); ctx.strokeStyle = c2; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.arc(0, 0, 15, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = U.shade(c1, 1.5);
+    ctx.beginPath(); ctx.arc(-1, -1, 9, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,246,220,0.24)';
+    ctx.beginPath(); ctx.arc(-4, -5, 4.5, 0, 7); ctx.fill();
+    // siege-calibre barrel
+    ctx.fillStyle = '#1a1813';
+    ctx.fillRect(10 - rec * 8, -4.2, 40, 8.4);
+    ctx.fillStyle = '#3a362c';
+    ctx.fillRect(44 - rec * 8, -6, 6, 12);
+    ctx.fillRect(34 - rec * 8, -5.2, 3.5, 10.4);
+    // commander cupola
+    ctx.fillStyle = U.shade(c2, 0.9);
+    ctx.beginPath(); ctx.arc(-9, 6, 3.4, 0, 7); ctx.fill();
     ctx.restore();
   }
 
@@ -7478,7 +7608,7 @@ const INPUT = (() => {
   let lastGroupKey = '', lastGroupT = 0;
   const keys = {};
 
-  const GRID_KEYS = ['q', 'w', 'e', 'r', 'a', 's', 'd', 'f', 'z', 'x', 'c', 'v'];
+  const GRID_KEYS = ['q', 'w', 'e', 'r', 'a', 's', 'd', 'f', 'z', 'x', 'c', 'v', 'g', 'h', 'k', 'l'];
 
   function init(canvas) {
     canvas.addEventListener('mousemove', e => {
@@ -8056,10 +8186,10 @@ const UI = (() => {
     $('btn-menu').onclick = () => togglePause();
     $('btn-sound').onclick = () => toggleSound();
 
-    /* command grid buttons (12) */
+    /* command grid buttons (16) */
     const grid = $('cmdgrid');
-    const KEY_LABELS = ['Q', 'W', 'E', 'R', 'A', 'S', 'D', 'F', 'Z', 'X', 'C', 'V'];
-    for (let i = 0; i < 12; i++) {
+    const KEY_LABELS = ['Q', 'W', 'E', 'R', 'A', 'S', 'D', 'F', 'Z', 'X', 'C', 'V', 'G', 'H', 'K', 'L'];
+    for (let i = 0; i < 16; i++) {
       const b = document.createElement('button');
       b.className = 'cmd-btn disabled';
       b.dataset.idx = i;
@@ -8457,12 +8587,12 @@ const UI = (() => {
 
   function refreshCmd() {
     const sel = INPUT.selection.filter(e => e.owner === 0 && !e.dead);
-    curCmds = new Array(12).fill(null);
+    curCmds = new Array(16).fill(null);
     const title = $('cmdtitle');
     const p = game.players[0];
 
     for (const b of cmdButtons) { b.className = 'cmd-btn disabled';
-      b.innerHTML = `<span class="hk">${['Q','W','E','R','A','S','D','F','Z','X','C','V'][b.dataset.idx]}</span>`; }
+      b.innerHTML = `<span class="hk">${['Q','W','E','R','A','S','D','F','Z','X','C','V','G','H','K','L'][b.dataset.idx]}</span>`; }
 
     if (sel.length && globalProd) globalProd = null;   // picking something closes the global panel
     updateProdTabs();
@@ -8471,7 +8601,7 @@ const UI = (() => {
       const kind = globalProd;
       const list = prodBuildings(kind);
       title.textContent = `ALL ${bName(kind, p.faction)}s (${list.length}) — orders auto-split · Shift-click ×5`;
-      bTrains(kind, p.faction).forEach((uk, i) => { if (i < 8) curCmds[i] = { type: 'gtrain', key: uk, bkind: kind }; });
+      bTrains(kind, p.faction).forEach((uk, i) => { if (i < 16) curCmds[i] = { type: 'gtrain', key: uk, bkind: kind }; });
       paintCmds(p);
       return;
     }
@@ -8488,7 +8618,7 @@ const UI = (() => {
       title.textContent = FACTIONS[p.faction].dozerName + ' — construction';
       const keys = FACTIONS[p.faction].buildings.filter(k => k !== 'superweapon' || game.swAllowed !== false);
       keys.forEach((bk, i) => {
-        if (i >= 12) return;
+        if (i >= 16) return;
         curCmds[i] = { type: 'place', key: bk };
       });
     } else if (units.length) {
@@ -8516,17 +8646,17 @@ const UI = (() => {
         curCmds[7] = { type: 'cancelsite' }; // F
       } else {
         const trains = bTrains(building.key, p.faction);
-        trains.forEach((uk, i) => { if (i < 8) curCmds[i] = { type: 'train', key: uk, building }; });
+        trains.forEach((uk, i) => { if (i < 12) curCmds[i] = { type: 'train', key: uk, building }; });
         // purchasable upgrades fill the free slots after the unit list
-        let slot = Math.min(trains.length, 8);
+        let slot = Math.min(trains.length, 12);
         for (const up of (UPGRADES[building.key] || [])) {
           if (building.upgrades[up.key]) continue;
-          while (slot < 11 && curCmds[slot]) slot++;
-          if (slot >= 11) break;
+          while (slot < 15 && curCmds[slot]) slot++;
+          if (slot >= 15) break;
           curCmds[slot] = { type: 'upgrade', up, building };
           slot++;
         }
-        curCmds[11] = { type: 'sell' };      // V
+        curCmds[15] = { type: 'sell' };      // L
       }
     }
 

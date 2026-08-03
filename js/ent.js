@@ -767,6 +767,36 @@ class Unit {
       return false;
     };
 
+    /* Troops shoot out of the gun ports while riding. Only `gunPorts` of them can
+       reach a firing position at once, so a full load is not a flying fortress —
+       each gunner uses its own weapon, cooldown and range, and earns its own kills. */
+    if (def.gunPorts && this.cargo && this.cargo.length) {
+      let ports = def.gunPorts;
+      for (const id of this.cargo) {
+        if (ports <= 0) break;
+        const g = game.byId.get(id);
+        if (!g || g.dead || !g.def.weapon) continue;
+        ports--;
+        g.x = this.x; g.y = this.y;                 // ride along so shots come from the cabin
+        if (g.cool > 0) { g.cool -= dt; continue; }
+        // throttle the search: with no target in reach this would otherwise sweep the
+        // entity list every frame for every gunner
+        g.portScanT = (g.portScanT || 0) - dt;
+        if (g.portScanT > 0) continue;
+        g.portScanT = 0.35;
+        const gw = g.def.weapon;
+        let best = null, bd = Infinity;
+        for (const e of game.ents) {
+          if (e.dead || e.kind !== 'unit' || !isEnemy(this, e)) continue;
+          if (!weaponCanHit(gw, e)) continue;
+          if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
+          const dd = U.dist(this.x, this.y, e.x, e.y);
+          if (dd < gw.range && dd < bd) { bd = dd; best = e; }
+        }
+        if (best) { g.cool = gw.cd; fireWeapon(g, gw, best); }
+      }
+    }
+
     switch (o.type) {
       case 'move':
         if (fly(o.x, o.y, def.speed) < 14) this.nextOrder();

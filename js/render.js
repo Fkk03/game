@@ -516,6 +516,8 @@ const RENDER = (() => {
         case 'jackal': drawJackal(u, c1, c2); break;
         case 'warlord': drawWarlord(u, c1, c2); break;
         case 'goliath': drawGoliath(u, c1, c2); break;
+        case 'citadel': drawCitadel(u, c1, c2); break;
+        case 'leviathan': drawLeviathan(u, c1, c2); break;
         case 'viper': drawViper(u, c1, c2); break;
         case 'aegis': drawAegis(u, c1, c2); break;
         case 'flak': drawFlakTruck(u, c1, c2); break;
@@ -877,6 +879,86 @@ const RENDER = (() => {
     // twin antennas
     ctx.strokeStyle = '#1c1a14'; ctx.lineWidth = 0.9;
     ctx.beginPath(); ctx.moveTo(-8, -6); ctx.lineTo(-15, -12); ctx.moveTo(-9, -4); ctx.lineTo(-17, -7); ctx.stroke();
+    ctx.restore();
+  }
+
+  /* Citadel — landship: double-width tracks, stepped casemate, sponson gun */
+  function drawCitadel(u, c1, c2) {
+    tankTreads(u, 40, 30, 6);
+    hullPlate(40, 30, c1, c2, 4);
+    // stepped armour glacis
+    ctx.fillStyle = U.shade(c1, 1.12);
+    ctx.beginPath();
+    ctx.moveTo(20, -9); ctx.lineTo(13, -13); ctx.lineTo(-14, -13);
+    ctx.lineTo(-14, 13); ctx.lineTo(13, 13); ctx.lineTo(20, 9);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = c2; ctx.lineWidth = 1; ctx.stroke();
+    // sponson machine-gun blisters
+    ctx.fillStyle = U.shade(c2, 0.8);
+    for (const sy of [-11, 11]) { roundRect(2, sy - 3, 9, 6, 2); ctx.fill(); }
+    ctx.fillStyle = '#22201a';
+    for (const sy of [-11, 11]) ctx.fillRect(10, sy - 0.9, 8, 1.8);
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    // massive octagonal turret
+    const rec = (u.recoil = Math.max(0, (u.recoil || 0) - 0.06));
+    ctx.fillStyle = U.shade(c1, 1.3); ctx.strokeStyle = c2; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(11, -6); ctx.lineTo(5, -11); ctx.lineTo(-9, -11); ctx.lineTo(-14, -6);
+    ctx.lineTo(-14, 6); ctx.lineTo(-9, 11); ctx.lineTo(5, 11); ctx.lineTo(11, 6);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,246,220,0.2)';
+    ctx.beginPath(); ctx.arc(-3, -4, 4.2, 0, 7); ctx.fill();
+    // one enormous gun with a double muzzle brake
+    ctx.fillStyle = '#22201a';
+    ctx.fillRect(8 - rec * 6, -3, 30, 6);
+    ctx.fillStyle = '#3a362c';
+    ctx.fillRect(32 - rec * 6, -4.4, 4, 8.8);
+    ctx.fillRect(25 - rec * 6, -4, 3, 8);
+    ctx.restore();
+  }
+
+  /* Leviathan — mobile fortress: quad tracks, two-tier citadel, siege gun + AA sponsons */
+  function drawLeviathan(u, c1, c2) {
+    // four track units
+    ctx.fillStyle = '#141209';
+    for (const ty of [-19, -7, 7, 19]) roundRect(-25, ty - 4, 50, 8, 2), ctx.fill();
+    ctx.fillStyle = 'rgba(255,246,220,0.06)';
+    for (const ty of [-19, -7, 7, 19]) ctx.fillRect(-25, ty - 4, 50, 2);
+    hullPlate(48, 34, c1, c2, 4);
+    // raised citadel deck
+    ctx.fillStyle = U.shade(c1, 1.15);
+    roundRect(-16, -15, 34, 30, 5); ctx.fill();
+    ctx.strokeStyle = c2; ctx.lineWidth = 1.2; ctx.stroke();
+    // deck vents and rails
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    for (const vy of [-11, 8]) ctx.fillRect(-14, vy, 12, 4);
+    // AA sponsons at the corners
+    ctx.fillStyle = U.shade(c2, 0.75);
+    for (const sx of [-12, 12]) for (const sy of [-16, 16]) {
+      ctx.beginPath(); ctx.arc(sx, sy, 4.4, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = '#1e1c16';
+    for (const sx of [-12, 12]) for (const sy of [-16, 16]) ctx.fillRect(sx, sy - 0.8, 9, 1.6);
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    const rec = (u.recoil = Math.max(0, (u.recoil || 0) - 0.05));
+    // two-tier turret
+    ctx.fillStyle = U.shade(c1, 1.35); ctx.strokeStyle = c2; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.arc(0, 0, 15, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = U.shade(c1, 1.5);
+    ctx.beginPath(); ctx.arc(-1, -1, 9, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,246,220,0.24)';
+    ctx.beginPath(); ctx.arc(-4, -5, 4.5, 0, 7); ctx.fill();
+    // siege-calibre barrel
+    ctx.fillStyle = '#1a1813';
+    ctx.fillRect(10 - rec * 8, -4.2, 40, 8.4);
+    ctx.fillStyle = '#3a362c';
+    ctx.fillRect(44 - rec * 8, -6, 6, 12);
+    ctx.fillRect(34 - rec * 8, -5.2, 3.5, 10.4);
+    // commander cupola
+    ctx.fillStyle = U.shade(c2, 0.9);
+    ctx.beginPath(); ctx.arc(-9, 6, 3.4, 0, 7); ctx.fill();
     ctx.restore();
   }
 
