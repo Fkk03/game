@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRON DAWN: DESERT COMMAND — RTS</title>
+<link rel="stylesheet" href="css/rts.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/three.module.js",
+    "three/addons/": "./vendor/three/addons/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="game-wrap">
+  <canvas id="game"></canvas>
+  <div id="selbox"></div>
+  <div id="cursor" class="hidden">⊹</div>
+
+  <!-- ============ TOP BAR ============ -->
+  <div id="topbar" class="hud hidden">
+    <div class="tb-group"><span class="tb-icon">$</span><span id="money">0</span>
+      <div id="moneyrates"><span id="rate-in">+0</span><span id="rate-out">-0</span></div></div>
+    <div class="tb-group" id="powergroup"><span class="tb-icon">⚡</span>
+      <div id="powerbar"><div id="powerfill"></div></div><span id="powertext">0/0</span></div>
+    <div class="tb-group"><span class="tb-icon">★</span>
+      <div id="xpbar"><div id="xpfill"></div></div>
+      <span id="rankstars"></span><span id="ptsleft"></span></div>
+    <div class="tb-group" id="powers"></div>
+    <div class="tb-spacer"></div>
+    <div class="tb-group" id="swtimers"></div>
+    <div class="tb-group" id="domscore"></div>
+    <div class="tb-group"><span id="clock">00:00</span></div>
+    <button class="tb-btn" id="btn-score">TAB</button>
+    <button class="tb-btn" id="btn-help">?</button>
+    <button class="tb-btn" id="btn-menu">MENU</button>
+  </div>
+
+  <!-- ============ SCOREBOARD ============ -->
+  <div id="scoreboard" class="hud hidden">
+    <div id="sb-head">BATTLE STATISTICS <span class="sb-hint">— hold TAB</span></div>
+    <div class="sb-cols"><span>COMMANDER</span><span>KILLS</span><span>ARMY</span><span>CASH</span></div>
+    <div id="sb-rows"></div>
+  </div>
+
+  <!-- ============ FEED / ANNOUNCE / IDLE / TABS ============ -->
+  <div id="feed" class="hud"></div>
+  <div id="announce"></div>
+  <div id="idleworker" class="hud hidden">🔧<span id="iw-count">0</span></div>
+  <div id="prodtabs" class="hud hidden"></div>
+
+  <!-- ============ BOTTOM BAR ============ -->
+  <div id="bottombar" class="hud hidden">
+    <div id="minimap-wrap"><canvas id="minimap" width="196" height="170"></canvas></div>
+    <div id="selpanel">
+      <div id="selinfo"></div>
+      <div id="selgrid"></div>
+    </div>
+    <div id="cmdpanel">
+      <div id="cmdtitle"></div>
+      <div id="cmdgrid"></div>
+    </div>
+  </div>
+
+  <div id="tooltip" class="hidden"></div>
+
+  <!-- ============ MAIN MENU ============ -->
+  <div id="menu" class="overlay">
+    <div class="menu-box">
+      <h1 class="title">IRON DAWN</h1>
+      <div class="subtitle">DESERT COMMAND — a real-time strategy skirmish</div>
+      <div class="menu-row">
+        <div class="menu-section">
+          <div class="menu-label">YOUR FACTION</div>
+          <div class="cards" id="faction-cards">
+            <div class="f-card sel" data-faction="coalition">
+              <div class="f-flag">🦅</div><div class="f-name">COALITION</div>
+              <div class="f-desc">High-tech armour, air power and the Particle Cannon. Costly, but every unit punches above its weight.</div>
+            </div>
+            <div class="f-card" data-faction="cartel">
+              <div class="f-flag">🦂</div><div class="f-name">SCORPION CARTEL</div>
+              <div class="f-desc">Cheap swarms, tunnels, salvage and the dreaded Scud Storm. Numbers are a weapon. Needs no power.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="menu-row">
+        <div class="menu-section">
+          <div class="menu-label">ENEMY DIFFICULTY</div>
+          <div class="pills" id="diff-pills">
+            <div class="pill" data-diff="easy">Easy</div>
+            <div class="pill sel" data-diff="normal">Normal</div>
+            <div class="pill" data-diff="hard">Hard</div>
+            <div class="pill" data-diff="brutal">Brutal</div>
+          </div>
+        </div>
+        <div class="menu-section">
+          <div class="menu-label">STARTING FUNDS</div>
+          <div class="pills" id="cash-pills">
+            <div class="pill" data-cash="5000">$5 000</div>
+            <div class="pill sel" data-cash="10000">$10 000</div>
+            <div class="pill" data-cash="20000">$20 000</div>
+          </div>
+        </div>
+      </div>
+      <button id="btn-play" class="bigbtn">COMMENCE OPERATION</button>
+      <button id="btn-howto" class="smallbtn">FIELD MANUAL</button>
+      <div class="fineprint">An original fan homage to early-2000s desert-war RTS classics.<br>
+        All assets procedural — nothing extracted from any commercial game.</div>
+    </div>
+  </div>
+
+  <!-- ============ HELP ============ -->
+  <div id="help" class="overlay hidden">
+    <div class="menu-box wide">
+      <h2>FIELD MANUAL</h2>
+      <div class="help-cols">
+        <div>
+          <h3>CONTROLS</h3>
+          <table class="keys">
+            <tr><td>L.Mouse</td><td>Select / drag-select · confirm orders</td></tr>
+            <tr><td>R.Mouse</td><td>Move / attack / gather (context)</td></tr>
+            <tr><td>WASD / edge</td><td>Scroll the battlefield</td></tr>
+            <tr><td>Q / E</td><td>Rotate camera</td></tr>
+            <tr><td>Wheel</td><td>Zoom</td></tr>
+            <tr><td>Ctrl+1–9</td><td>Assign control group</td></tr>
+            <tr><td>1–9</td><td>Recall control group</td></tr>
+            <tr><td>A + click</td><td>Attack-move</td></tr>
+            <tr><td>S</td><td>Stop</td></tr>
+            <tr><td>H</td><td>Jump to base</td></tr>
+            <tr><td>. (period)</td><td>Cycle idle workers</td></tr>
+            <tr><td>Tab (hold)</td><td>Battle statistics</td></tr>
+            <tr><td>F1</td><td>This manual</td></tr>
+          </table>
+        </div>
+        <div>
+          <h3>HOW TO WIN</h3>
+          <ul class="howto">
+            <li><b>Build your economy.</b> Supply trucks shuttle crates from supply docks to your Supply Center. Capture oil derricks with infantry for bonus income.</li>
+            <li><b>Watch your power</b> (Coalition). Low power halves production speed and disables defenses. The Cartel needs no power.</li>
+            <li><b>Earn General's promotions.</b> Combat experience unlocks powers — airstrikes, ambushes, artillery barrages.</li>
+            <li><b>Race the superweapons.</b> Particle Cannon and Scud Storm timers are shown up top. Destroy them before they fire.</li>
+            <li><b>Destroy every enemy structure</b> to win. Lose all of yours and the desert keeps your name.</li>
+          </ul>
+        </div>
+      </div>
+      <button id="btn-help-close" class="bigbtn">RETURN</button>
+    </div>
+  </div>
+
+  <!-- ============ PAUSE ============ -->
+  <div id="pause" class="overlay hidden">
+    <div class="menu-box small">
+      <h2>OPERATION PAUSED</h2>
+      <button id="btn-resume" class="bigbtn">RESUME</button>
+      <button id="btn-restart" class="smallbtn">RESTART OPERATION</button>
+    </div>
+  </div>
+
+  <!-- ============ END ============ -->
+  <div id="end" class="overlay hidden">
+    <div class="menu-box">
+      <h1 id="endtitle" class="title">VICTORY</h1>
+      <div id="endstats"></div>
+      <button id="btn-again" class="bigbtn">PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <!-- loading -->
+  <div id="loading" class="overlay"><div class="menu-box small">
+    <div class="title" style="font-size:34px; letter-spacing:6px;">IRON DAWN</div>
+    <div class="subtitle" id="load-text">Mobilizing forces…</div>
+    <div id="powerbar" style="width:100%; height:10px;"><div id="load-fill" style="height:100%; width:0%; background:#ffd76a;"></div></div>
+  </div></div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
