@@ -727,7 +727,11 @@ function captureJob(p) {
   for (const c of ai.captures) {
     const dd = dist2d(c.u.pos.x, c.u.pos.z, c.d.pos.x, c.d.pos.z);
     if (dd < 14) {
-      if (!c.u.order || c.u.order.type !== 'capture') c.u.order = { type: 'capture', target: c.d };
+      // same order shape input.js uses, so the capture executor (economy/sim
+      // agent) drives our infantry the moment that feature lands
+      if (!c.u.order || c.u.order.type !== 'capture') {
+        c.u.order = { type: 'capture', target: c.d, x: c.d.pos.x, z: c.d.pos.z };
+      }
     } else if (isIdle(c.u)) {
       move.orderMove([c.u], c.d.pos.x + 6, c.d.pos.z + 6);
     }

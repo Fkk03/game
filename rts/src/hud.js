@@ -211,7 +211,10 @@ export class HUD {
     this.tooltip.classList.add('hidden');
     this.selgrid.innerHTML = '';
     this.cardRefs = [];
-    if (!sel.length) { this.selinfo.innerHTML = ''; return; }
+    if (!sel.length) {
+      this.selinfo.innerHTML = '<span class="dimhint">No selection — left-drag to select forces, right-click to order</span>';
+      return;
+    }
     const MAX = 24;
     for (const ent of sel.slice(0, MAX)) {
       const c = document.createElement('div');
@@ -254,7 +257,7 @@ export class HUD {
   }
   updateSelInfo() {
     const sel = G.sel.filter(s => s.alive);
-    if (!sel.length) { this.selinfo.innerHTML = ''; return; }
+    if (!sel.length) return;   // empty-state hint set by rebuildSelection
     if (sel.length === 1) {
       const e = sel[0];
       let extra = `HP ${Math.ceil(e.hp)}/${e.maxHp}`;

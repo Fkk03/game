@@ -18,10 +18,11 @@
 //   - Veterancy: +10% damage per chevron. Upgrades via production.dmgMult.
 //   - Vehicles with def.crush flatten enemy infantry they drive over.
 import * as THREE from 'three';
-import { G, makeRng, dist2d, angleTo, turnToward } from './core.js';
+import { G, emit, makeRng, dist2d, angleTo, turnToward } from './core.js';
 import { applyDamage, kill } from './entities.js';
 import { unitsNear } from './move.js';
 import { dmgMult } from './production.js';
+import { buildMesh } from './meshes.js';
 
 const rng = makeRng(1717);
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -317,6 +318,68 @@ function stepFighter(e, dt) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// capture orders: order={type:'capture', target} (issued by input.js / ai.js).
+// canCapture infantry walk to the capturable building, channel ~10s within
+// ~6m (progress on target.captureProgress, holder in target.capturer; resets
+// if the capturer dies/leaves), then the building flips to their owner and
+// the mesh is rebuilt so the accent re-tints. Economy pays def.income by
+// owner, so income follows automatically.
+const CAPTURE_TIME = 10;
+const CAPTURE_RANGE = 6;
+
+function completeCapture(u, t) {
+  t.capturer = null;
+  t.captureProgress = 0;
+  t.owner = u.owner;
+  const old = t.mesh;
+  const fresh = buildMesh(t.def, t.owner);
+  fresh.position.copy(t.pos);
+  fresh.rotation.y = t.yaw;
+  fresh.scale.copy(old.scale);
+  G.scene.remove(old);
+  G.scene.add(fresh);
+  t.mesh = fresh;
+  G.fx?.vetFlash?.(t);
+  emit('feed', `${t.def.name} captured`, 'gold');
+  u.order = { type: 'idle' };
+}
+
+function stepCapture(u, dt) {
+  const t = u.order.target;
+  // invalid order → drop it (and free the channel if we held it)
+  if (!t || !t.alive || !t.def.capturable || t.owner === u.owner || !u.def.canCapture) {
+    if (t && t.capturer === u) { t.capturer = null; t.captureProgress = 0; }
+    u.order = { type: 'idle' };
+    u.path = null;
+    return;
+  }
+  // stale holder (died, wandered off, changed orders) → reset the channel
+  if (t.capturer && (!t.capturer.alive || t.capturer.order?.type !== 'capture' ||
+      t.capturer.order.target !== t)) {
+    t.capturer = null;
+    t.captureProgress = 0;
+  }
+  const d = dist2d(u.pos.x, u.pos.z, t.pos.x, t.pos.z) - t.radius;
+  if (d > CAPTURE_RANGE) {
+    if (t.capturer === u) { t.capturer = null; t.captureProgress = 0; }
+    u.repathT = (u.repathT ?? 0) - dt;
+    if (!u.path && u.repathT <= 0) {
+      u.repathT = 0.8;
+      u.path = pathTo(u, t.pos.x, t.pos.z);
+      u.pathI = 0;
+    }
+    return;
+  }
+  // in range: channel (one capturer at a time; extras stand guard)
+  u.path = null;
+  u.yaw = turnToward(u.yaw, angleTo(u.pos.x, u.pos.z, t.pos.x, t.pos.z), u.def.turnRate * dt);
+  if (t.capturer && t.capturer !== u) return;
+  if (t.capturer !== u) { t.capturer = u; t.captureProgress = 0; }
+  t.captureProgress = Math.min(1, (t.captureProgress || 0) + dt / CAPTURE_TIME);
+  if (t.captureProgress >= 1) completeCapture(u, t);
+}
+
 // enemy infantry under a moving crush-capable vehicle die instantly
 const _crushNear = [];
 function crushInfantry() {
@@ -343,6 +406,9 @@ export function tickCombat(dt) {
     if (!e.alive || !e.def.weapon) continue;
     if (e.kind === 'building' && ((e.buildProgress ?? 1) < 1 || e.powered === false)) continue;
     stepFighter(e, dt);
+  }
+  for (const u of G.units) {
+    if (u.alive && u.order?.type === 'capture') stepCapture(u, dt);
   }
   crushInfantry();
 }
