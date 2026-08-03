@@ -27,7 +27,14 @@ function rawHeight(x, z) {
   // border mountains: rise sharply near the map edge to wall the world in
   const ex = Math.max(Math.abs(x), Math.abs(z)) / HALF;   // 0 centre → 1 edge
   const wall = Math.pow(clamp((ex - 0.82) / 0.18, 0, 1), 2.2);
-  h += wall * (30 + fbm(nx * 6, nz * 6) * 14);
+  let mh = wall * (30 + fbm(nx * 6, nz * 6) * 14);
+  if (mh > 4) {
+    // terrace the wall into stepped benches so the border reads as rocky mesas
+    const step = 8, k = mh / step, fk = Math.floor(k), fr = k - fk;
+    const s = clamp((fr - 0.5) * 2.4 + 0.5, 0, 1);
+    mh = mh * 0.4 + (fk + s * s * (3 - 2 * s)) * step * 0.6;
+  }
+  h += mh;
   // a long ridge across the middle-east for drama
   const rd = Math.abs((x - z * 0.35) - 260) / 90;
   h += Math.max(0, 1 - rd) * 9 * (0.6 + fbm(nx * 5 + 3, nz * 5 + 3) * 0.4);
@@ -158,23 +165,68 @@ function paintGround() {
     x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
   }
 
-  // slope-derived rock shading
+  // large-scale warm/cool colour drift + slope/altitude rock underpaint,
+  // computed at height-grid resolution then upscaled (soft and painterly)
   const N = GRID + 1;
+  {
+    const S = GRID;
+    const cell = WORLD_SIZE / GRID;
+    const tc = document.createElement('canvas');
+    tc.width = tc.height = S;
+    const tcx = tc.getContext('2d');
+    const img = tcx.createImageData(S, S);
+    const d = img.data;
+    for (let iz = 0; iz < S; iz++) {
+      for (let ix = 0; ix < S; ix++) {
+        const nx = ix / S - 0.5, nz = iz / S - 0.5;
+        const i0 = Math.max(ix - 1, 0), i1 = Math.min(ix + 1, GRID);
+        const j0 = Math.max(iz - 1, 0), j1 = Math.min(iz + 1, GRID);
+        const h = heights[iz * N + ix];
+        const sx = (heights[iz * N + i1] - heights[iz * N + i0]) / ((i1 - i0) * cell);
+        const sz = (heights[j1 * N + ix] - heights[j0 * N + ix]) / ((j1 - j0) * cell);
+        const slope = Math.hypot(sx, sz);
+        // warm gold ↔ cool taupe drift across the dune field
+        const t = fbm(nx * 2.3 + 17, nz * 2.3 + 17);
+        const warm = clamp(0.5 + t * 0.42, 0, 1);
+        let r = 158 + warm * 66;
+        let g = 148 + warm * 36;
+        let b = 138 - warm * 20;
+        let a = 0.3;
+        // rock exposure: slope-driven (mesa risers) with a milder altitude term,
+        // so terrace benches keep a drape of sand between rocky steps
+        let rock = clamp((slope - 0.38) / 0.42, 0, 1);
+        rock = rock * rock * (3 - 2 * rock);
+        rock = Math.max(rock, clamp((h - 17) / 14, 0, 1) * 0.55);
+        if (rock > 0.01) {
+          // strata banding keyed to altitude → mesa layers
+          const band = 0.5 + 0.5 * Math.sin(h * 1.15 + fbm(nx * 7 + 3, nz * 7 + 3) * 1.8);
+          const rr = 92 + band * 71, rg = 77 + band * 61, rb = 63 + band * 44;
+          r = r * (1 - rock) + rr * rock;
+          g = g * (1 - rock) + rg * rock;
+          b = b * (1 - rock) + rb * rock;
+          a = a * (1 - rock) + 0.92 * rock;
+        }
+        const k4 = (iz * S + ix) * 4;
+        d[k4] = r; d[k4 + 1] = g; d[k4 + 2] = b; d[k4 + 3] = a * 255;
+      }
+    }
+    tcx.putImageData(img, 0, 0);
+    x.imageSmoothingEnabled = true;
+    x.drawImage(tc, 0, 0, TEX, TEX);
+  }
+
+  // crisp crag speckle on the steepest ground, over the soft underpaint
   for (let iz = 1; iz < GRID; iz++) {
     for (let ix = 1; ix < GRID; ix++) {
       const h = heights[iz * N + ix];
       const dx = heights[iz * N + ix + 1] - heights[iz * N + ix - 1];
       const dz = heights[(iz + 1) * N + ix] - heights[(iz - 1) * N + ix];
       const slope = Math.hypot(dx, dz) / (2 * WORLD_SIZE / GRID);
-      if (slope > 0.35 || h > 18) {
-        const px = ix / GRID * TEX, py = iz / GRID * TEX;
-        const a = clamp((slope - 0.3) * 0.9 + (h > 18 ? 0.35 : 0), 0, 0.75);
-        x.fillStyle = `rgba(112,96,76,${a})`;
-        x.beginPath(); x.arc(px, py, 5 + slope * 6, 0, 7); x.fill();
-        if (slope > 0.7) {
-          x.fillStyle = `rgba(84,72,58,${a * 0.8})`;
-          x.beginPath(); x.arc(px + rng() * 4 - 2, py + rng() * 4 - 2, 3, 0, 7); x.fill();
-        }
+      if (slope > 0.55 || h > 20) {
+        const px = ix / GRID * TEX + rng() * 6 - 3, py = iz / GRID * TEX + rng() * 6 - 3;
+        const a = clamp((slope - 0.5) * 0.55 + (h > 20 ? 0.18 : 0), 0, 0.5);
+        x.fillStyle = rng() < 0.3 ? `rgba(138,104,74,${a})` : `rgba(88,74,58,${a})`;
+        x.beginPath(); x.arc(px, py, 2 + slope * 4 + rng() * 2, 0, 7); x.fill();
       }
     }
   }
@@ -183,8 +235,8 @@ function paintGround() {
   for (const f of [LAYOUT.base, LAYOUT.village, LAYOUT.oilfield, LAYOUT.lz]) {
     const px = w2t(f.x), py = w2t(f.z), pr = f.r / WORLD_SIZE * TEX;
     const g = x.createRadialGradient(px, py, pr * 0.2, px, py, pr);
-    g.addColorStop(0, 'rgba(168,138,96,0.55)');
-    g.addColorStop(1, 'rgba(168,138,96,0)');
+    g.addColorStop(0, 'rgba(186,156,112,0.45)');
+    g.addColorStop(1, 'rgba(186,156,112,0)');
     x.fillStyle = g;
     x.beginPath(); x.arc(px, py, pr, 0, 7); x.fill();
   }
@@ -217,12 +269,13 @@ function paintGround() {
       x.stroke();
     };
     const W = 8 / WORLD_SIZE * TEX;
-    stroke(W * 1.5, 'rgba(150,122,84,0.5)');   // soft shoulder
-    stroke(W, 'rgba(172,144,102,0.95)');        // packed track
-    stroke(W * 0.8, 'rgba(186,158,116,0.9)');
-    // ruts
-    for (const off of [-W * 0.24, W * 0.24]) {
-      x.strokeStyle = 'rgba(120,96,64,0.55)'; x.lineWidth = W * 0.12;
+    stroke(W * 1.8, 'rgba(158,128,88,0.28)');   // wide dusty verge
+    stroke(W * 1.12, 'rgba(122,97,64,0.5)');    // crisp darker edge line
+    stroke(W, 'rgba(205,178,136,0.95)');        // packed dirt, lighter than sand
+    stroke(W * 0.6, 'rgba(220,197,155,0.85)');  // sun-bleached crown
+    // crisp tire ruts
+    for (const off of [-W * 0.27, W * 0.27]) {
+      x.strokeStyle = 'rgba(126,100,66,0.8)'; x.lineWidth = W * 0.10;
       x.beginPath();
       for (let i = 0; i < pts.length; i++) {
         const [px, py] = pts[i];
@@ -290,9 +343,18 @@ function injectDetail(mat) {
         '#include <map_pars_fragment>\nuniform sampler2D detailMap;')
       .replace('#include <map_fragment>',
         `#include <map_fragment>
-         vec3 det = texture2D(detailMap, vMapUv * 90.0).rgb;
+         // two detail octaves at different scale/rotation, chosen per-region by a
+         // low-frequency mask so the tiling never lines up
+         vec3 det1 = texture2D(detailMap, vMapUv * 90.0).rgb;
+         mat2 dRot = mat2(0.7986, -0.6018, 0.6018, 0.7986);
+         vec3 det2 = texture2D(detailMap, dRot * vMapUv * 41.3 + vec2(0.37, 0.71)).rgb;
+         float dMask = texture2D(detailMap, dRot * vMapUv * 4.7 + vec2(0.13, 0.57)).g;
+         vec3 det = mix(det1, det2, clamp((dMask - 0.62) * 8.0 + 0.5, 0.0, 1.0));
          float dl = dot(det, vec3(0.333));
-         diffuseColor.rgb *= mix(vec3(1.0), det / max(dl, 0.001) * (0.55 + dl * 0.65), 0.55);`);
+         // fade detail out with distance — repetition is a mid-range artifact
+         float dFade = 1.0 - smoothstep(18.0, 110.0, length(vViewPosition));
+         float dStr = 0.55 * mix(0.15, 1.0, dFade);
+         diffuseColor.rgb *= mix(vec3(1.0), det / max(dl, 0.001) * (0.55 + dl * 0.65), dStr);`);
   };
 }
 

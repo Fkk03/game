@@ -30,7 +30,7 @@ async function boot() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.08;
+  renderer.toneMappingExposure = 1.02;
   G.renderer = renderer;
 
   G.scene = new THREE.Scene();
@@ -76,9 +76,29 @@ function setupComposer() {
   composer.addPass(new RenderPass(G.scene, G.camera));
   const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.32, 0.6, 0.86);
   composer.addPass(bloom);
+  // warm desert grade: runs in linear HDR space (before OutputPass tone-maps)
+  const GradeShader = {
+    uniforms: { tDiffuse: { value: null } },
+    vertexShader: /* glsl */`
+      varying vec2 vUv;
+      void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: /* glsl */`
+      uniform sampler2D tDiffuse;
+      varying vec2 vUv;
+      void main(){
+        vec4 c = texture2D(tDiffuse, vUv);
+        vec3 col = max(c.rgb, 0.0);
+        col = pow(col, vec3(1.045));           // deepen shadows / add contrast
+        col *= vec3(1.035, 1.0, 0.945);        // golden-hour warm tint
+        float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
+        col = mix(vec3(l), col, 1.08);         // saturation push
+        gl_FragColor = vec4(col, c.a);
+      }`,
+  };
+  composer.addPass(new ShaderPass(GradeShader));
   const vign = new ShaderPass(VignetteShader);
-  vign.uniforms.offset.value = 0.92;
-  vign.uniforms.darkness.value = 1.12;
+  vign.uniforms.offset.value = 0.96;
+  vign.uniforms.darkness.value = 1.02;
   composer.addPass(vign);
   composer.addPass(new OutputPass());
   G.composer = composer;

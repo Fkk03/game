@@ -5,10 +5,53 @@ import { gunMetal } from './textures.js';
 
 const BASE_FOV = 75, ADS_FOV = 52;
 
+// ---------------------------------------------------------------- viewmodel materials
+// Explicit light two-tone gunmetal + polymer. Scene has no env map, so metalness must
+// stay low-ish and base colors mid-toned or the viewmodel renders as a black silhouette.
 const gm = () => new THREE.MeshStandardMaterial({ map: gunMetal(), roughness: 0.55, metalness: 0.6 });
 const blk = () => new THREE.MeshStandardMaterial({ color: 0x1f2022, roughness: 0.7, metalness: 0.3 });
 const wood = () => new THREE.MeshStandardMaterial({ color: 0x6b4a2a, roughness: 0.85 });
 const olive = () => new THREE.MeshStandardMaterial({ color: 0x4a4f3a, roughness: 0.8, metalness: 0.2 });
+
+const vmSteel = () => new THREE.MeshStandardMaterial({
+  // gunMetal() texture is near-black (#2e2f30); a >1 color multiplier lifts it to a
+  // readable mid gunmetal while keeping the machining detail.
+  map: gunMetal(), color: new THREE.Color(1.85, 1.9, 2.05),
+  roughness: 0.62, metalness: 0.3,
+});
+const vmSteelDk = () => new THREE.MeshStandardMaterial({ color: 0x5a616c, roughness: 0.55, metalness: 0.4 });
+const vmPoly = () => new THREE.MeshStandardMaterial({ color: 0x686a56, roughness: 0.85, metalness: 0.04 });
+const vmPolyDk = () => new THREE.MeshStandardMaterial({ color: 0x4d5044, roughness: 0.9, metalness: 0.04 });
+const vmWood = () => new THREE.MeshStandardMaterial({ color: 0x7d5027, roughness: 0.8 });
+const vmGlove = () => new THREE.MeshStandardMaterial({ color: 0x60513a, roughness: 0.95 });
+const vmGloveDk = () => new THREE.MeshStandardMaterial({ color: 0x40352a, roughness: 0.95 });
+const vmSleeve = () => new THREE.MeshStandardMaterial({ color: 0x827748, roughness: 1.0 });
+const vmSkin = () => new THREE.MeshStandardMaterial({ color: 0x9a7048, roughness: 0.9 });
+
+let _magTex = null;
+function magTex() {
+  if (_magTex) return _magTex;
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  const x = c.getContext('2d');
+  x.fillStyle = '#8b9083';
+  x.fillRect(0, 0, 64, 64);
+  for (let y = 0; y < 64; y += 9) {          // stamped press ribs
+    x.fillStyle = 'rgba(255,255,255,0.3)'; x.fillRect(0, y, 64, 2);
+    x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(0, y + 2, 64, 3);
+  }
+  x.globalAlpha = 0.25;                       // wear scratches
+  x.strokeStyle = '#2f322c';
+  for (let i = 0; i < 10; i++) {
+    const sx = (i * 23) % 64, sy = (i * 41) % 64;
+    x.beginPath(); x.moveTo(sx, sy); x.lineTo(sx + 18, sy + ((i % 3) - 1) * 9); x.stroke();
+  }
+  x.globalAlpha = 1;
+  _magTex = new THREE.CanvasTexture(c);
+  _magTex.colorSpace = THREE.SRGBColorSpace;
+  return _magTex;
+}
+const vmMag = () => new THREE.MeshStandardMaterial({ map: magTex(), roughness: 0.55, metalness: 0.3 });
 
 function vbox(w, h, d, mat, x = 0, y = 0, z = 0) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -20,62 +63,202 @@ function vcyl(r1, r2, h, mat, x = 0, y = 0, z = 0, seg = 12) {
   m.position.set(x, y, z);
   return m;
 }
+// cylinder between two local-space points (forearms, thumb, etc.)
+function vtube(ax, ay, az, bx, by, bz, ra, rb, mat, seg = 10) {
+  const a = new THREE.Vector3(ax, ay, az), b = new THREE.Vector3(bx, by, bz);
+  const d = b.clone().sub(a), len = d.length();
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rb, ra, len, seg), mat);
+  m.position.copy(a).addScaledVector(d, 0.5);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+  return m;
+}
+
+// ---------------------------------------------------------------- first-person arms
+// Rolled-sleeve forearm: bare skin at the wrist, fat rolled cuff, khaki sleeve running
+// off the bottom of the screen. wrist→elbow given in weapon-local space.
+function addForearm(g, wx, wy, wz, ex, ey, ez) {
+  const skin = vmSkin(), sleeve = vmSleeve();
+  const lerp = (t) => [wx + (ex - wx) * t, wy + (ey - wy) * t, wz + (ez - wz) * t];
+  const [ax, ay, az] = lerp(0.14), [bx, by, bz] = lerp(0.27), [cx, cy, cz] = lerp(0.22);
+  g.add(vtube(wx, wy, wz, ax, ay, az, 0.024, 0.027, skin));         // bare wrist peek
+  g.add(vtube(ax, ay, az, bx, by, bz, 0.038, 0.04, sleeve));        // rolled cuff
+  g.add(vtube(cx, cy, cz, ex, ey, ez, 0.037, 0.034, sleeve));       // sleeve to elbow
+}
+
+// Right hand wrapped around a pistol grip at (px,py,pz), grip raked back by `rake`.
+function addGripHand(g, px, py, pz, rake) {
+  const glove = vmGlove(), dk = vmGloveDk();
+  const wrap = new THREE.Group();
+  wrap.position.set(px, py, pz);
+  wrap.rotation.x = rake;
+  wrap.add(vbox(0.03, 0.075, 0.052, glove, 0.03, -0.005, 0.005));   // palm, right side
+  wrap.add(vbox(0.055, 0.068, 0.028, glove, 0.004, -0.012, -0.038)); // fingers, front
+  for (let i = 0; i < 3; i++) {                                     // finger seams
+    wrap.add(vbox(0.056, 0.004, 0.03, dk, 0.004, 0.008 - i * 0.02, -0.039));
+  }
+  wrap.add(vbox(0.03, 0.022, 0.05, dk, 0.026, 0.038, 0.0));         // knuckle pad
+  g.add(wrap);
+  // thumb wrapping over the left
+  g.add(vtube(px - 0.024, py + 0.045, pz + 0.01, px - 0.01, py + 0.01, pz - 0.03,
+    0.011, 0.009, vmGlove()));
+}
 
 function buildCarbine() {
   const g = new THREE.Group();
-  const metal = gm(), black = blk();
-  g.add(vbox(0.055, 0.075, 0.34, metal, 0, 0, 0));                 // receiver
-  const barrel = vcyl(0.014, 0.014, 0.34, black, 0, 0.012, -0.42, 10);
+  const steel = vmSteel(), steelDk = vmSteelDk(), poly = vmPoly(), polyDk = vmPolyDk();
+
+  // receiver: light gunmetal upper, darker lower
+  g.add(vbox(0.058, 0.052, 0.30, steel, 0, 0.022, 0.02));
+  g.add(vbox(0.054, 0.048, 0.24, steelDk, 0, -0.02, 0.05));
+  // left-flank detail (the side the player sees): bolt catch, selector, pins
+  g.add(vbox(0.005, 0.02, 0.05, polyDk, -0.03, 0.014, 0.0));
+  g.add(vbox(0.006, 0.012, 0.032, steel, -0.03, -0.008, 0.1));
+  g.add(vbox(0.005, 0.024, 0.016, steelDk, -0.03, -0.01, -0.02));
+  // top rail with picatinny notches
+  g.add(vbox(0.022, 0.012, 0.36, steelDk, 0, 0.054, -0.04));
+  for (let i = 0; i < 8; i++) {
+    g.add(vbox(0.026, 0.006, 0.016, steel, 0, 0.059, -0.19 + i * 0.044));
+  }
+  // handguard: olive polymer with dark rib rings + vent slots
+  g.add(vbox(0.056, 0.062, 0.24, poly, 0, 0.0, -0.30));
+  for (let i = 0; i < 4; i++) {
+    g.add(vbox(0.06, 0.066, 0.011, polyDk, 0, 0.0, -0.205 - i * 0.058));
+  }
+  g.add(vbox(0.004, 0.012, 0.15, polyDk, -0.029, 0.016, -0.30));
+  // barrel + gas block + A2 front sight
+  const barrel = vcyl(0.013, 0.013, 0.2, steelDk, 0, 0.012, -0.52, 10);
   barrel.rotation.x = Math.PI / 2;
   g.add(barrel);
-  g.add(vbox(0.05, 0.055, 0.26, black, 0, 0.005, -0.30));          // handguard
-  // rail + front sight
-  g.add(vbox(0.018, 0.02, 0.30, black, 0, 0.052, -0.18));
-  g.add(vbox(0.012, 0.05, 0.012, black, 0, 0.07, -0.40));
-  // rear sight / carry
-  g.add(vbox(0.03, 0.035, 0.05, black, 0, 0.062, 0.06));
-  // stock
-  g.add(vbox(0.045, 0.065, 0.22, black, 0, -0.005, 0.26));
-  g.add(vbox(0.05, 0.09, 0.05, black, 0, -0.01, 0.36));
-  // grip
-  const grip = vbox(0.04, 0.11, 0.05, black, 0, -0.085, 0.08);
-  grip.rotation.x = 0.35;
-  g.add(grip);
-  // magazine (curved: two segments)
-  const m1 = vbox(0.042, 0.11, 0.07, metal, 0, -0.09, -0.05);
-  m1.rotation.x = 0.12;
-  g.add(m1);
-  const m2 = vbox(0.042, 0.09, 0.065, metal, 0, -0.175, -0.07);
-  m2.rotation.x = 0.42;
-  g.add(m2);
-  // muzzle device
-  const mz = vcyl(0.018, 0.018, 0.06, black, 0, 0.012, -0.61, 8);
+  g.add(vbox(0.026, 0.032, 0.028, steelDk, 0, 0.042, -0.55));
+  g.add(vbox(0.007, 0.04, 0.007, steel, 0, 0.07, -0.55));           // front post
+  const wL = vbox(0.006, 0.042, 0.02, steelDk, -0.014, 0.062, -0.55);
+  wL.rotation.z = 0.14; g.add(wL);
+  const wR = vbox(0.006, 0.042, 0.02, steelDk, 0.014, 0.062, -0.55);
+  wR.rotation.z = -0.14; g.add(wR);
+  // birdcage flash hider
+  const mz = vcyl(0.016, 0.014, 0.09, steelDk, 0, 0.012, -0.665, 10);
   mz.rotation.x = Math.PI / 2;
   g.add(mz);
-  g.userData.muzzle = new THREE.Vector3(0, 0.012, -0.64);
+  for (const zz of [-0.628, -0.702]) {
+    const ring = vcyl(0.018, 0.018, 0.012, steel, 0, 0.012, zz, 10);
+    ring.rotation.x = Math.PI / 2;
+    g.add(ring);
+  }
+  // rear sight: block, ears, aperture ring
+  g.add(vbox(0.032, 0.014, 0.036, steelDk, 0, 0.062, 0.135));
+  g.add(vbox(0.007, 0.026, 0.032, steelDk, -0.014, 0.078, 0.135));
+  g.add(vbox(0.007, 0.026, 0.032, steelDk, 0.014, 0.078, 0.135));
+  const ap = new THREE.Mesh(new THREE.TorusGeometry(0.011, 0.0035, 8, 14), vmSteel());
+  ap.position.set(0, 0.083, 0.135);
+  g.add(ap);
+  // buffer tube + adjustable stock
+  const bt = vcyl(0.019, 0.019, 0.14, polyDk, 0, 0.014, 0.22, 10);
+  bt.rotation.x = Math.PI / 2;
+  g.add(bt);
+  g.add(vbox(0.046, 0.07, 0.13, poly, 0, -0.002, 0.315));
+  g.add(vbox(0.05, 0.084, 0.02, polyDk, 0, -0.004, 0.39));
+  // grip + trigger guard + trigger
+  const grip = vbox(0.036, 0.1, 0.048, poly, 0, -0.082, 0.115);
+  grip.rotation.x = 0.35;
+  g.add(grip);
+  g.add(vbox(0.007, 0.006, 0.06, steelDk, 0, -0.068, 0.055));
+  g.add(vbox(0.006, 0.024, 0.007, steel, 0, -0.052, 0.06));
+  // curved magazine, ribbed texture, polymer base plate
+  const m1 = vbox(0.04, 0.1, 0.062, vmMag(), 0, -0.08, -0.03);
+  m1.rotation.x = 0.14;
+  g.add(m1);
+  const m2 = vbox(0.04, 0.088, 0.058, vmMag(), 0, -0.16, -0.055);
+  m2.rotation.x = 0.45;
+  g.add(m2);
+  const bp = vbox(0.044, 0.016, 0.064, polyDk, 0, -0.2, -0.075);
+  bp.rotation.x = 0.45;
+  g.add(bp);
+
+  // ---- hands: right on the grip, left cradling the handguard
+  addGripHand(g, 0, -0.082, 0.115, 0.35);
+  addForearm(g, 0.035, -0.13, 0.16, 0.3, -0.48, 0.55);
+  const glove = vmGlove(), gDk = vmGloveDk();
+  g.add(vbox(0.05, 0.03, 0.08, glove, -0.008, -0.052, -0.30));      // left palm under
+  const lf = vbox(0.022, 0.058, 0.068, glove, -0.036, -0.014, -0.30);
+  lf.rotation.z = 0.12;
+  g.add(lf);
+  g.add(vbox(0.02, 0.016, 0.064, glove, -0.029, 0.022, -0.30));     // fingertips on top edge
+  for (const zz of [-0.321, -0.30, -0.279]) {                        // finger seams (proud, so they read)
+    const seam = vbox(0.028, 0.062, 0.005, gDk, -0.037, -0.014, zz);
+    seam.rotation.z = 0.12;
+    g.add(seam);
+  }
+  g.add(vbox(0.024, 0.024, 0.03, gDk, -0.04, -0.018, -0.345));      // knuckle pad
+  g.add(vtube(0.026, -0.04, -0.26, 0.028, 0.005, -0.315, 0.011, 0.009, vmGlove())); // thumb
+  addForearm(g, -0.004, -0.08, -0.27, 0.12, -0.44, 0.1);
+
+  g.userData.muzzle = new THREE.Vector3(0, 0.012, -0.72);
+  g.userData.baseRot = new THREE.Euler(0.045, -0.075, 0.04);
+  g.rotation.copy(g.userData.baseRot);
   return g;
 }
 
 function buildRPG() {
   const g = new THREE.Group();
-  const tube = vcyl(0.045, 0.045, 0.85, olive(), 0, 0, -0.1, 12);
+  const steel = vmSteel(), steelDk = vmSteelDk(), poly = vmPoly();
+  const oliveLt = new THREE.MeshStandardMaterial({ color: 0x767a5e, roughness: 0.7, metalness: 0.1 });
+  const oliveDk = new THREE.MeshStandardMaterial({ color: 0x59604a, roughness: 0.75 });
+  // launch tube: light olive, wooden heat shield around the shoulder rest
+  const tube = vcyl(0.045, 0.045, 0.85, oliveLt, 0, 0, -0.1, 14);
   tube.rotation.x = Math.PI / 2;
   g.add(tube);
-  const flare = vcyl(0.075, 0.045, 0.14, olive(), 0, 0, 0.38, 12);
+  const shield = vcyl(0.055, 0.055, 0.2, vmWood(), 0, 0, 0.14, 14);
+  shield.rotation.x = Math.PI / 2;
+  g.add(shield);
+  for (const zz of [0.05, 0.23]) {                                   // shield retaining rings
+    const ring = vcyl(0.058, 0.058, 0.012, steelDk, 0, 0, zz, 14);
+    ring.rotation.x = Math.PI / 2;
+    g.add(ring);
+  }
+  const flare = vcyl(0.078, 0.048, 0.14, oliveLt, 0, 0, 0.38, 14);
   flare.rotation.x = Math.PI / 2;
   g.add(flare);
-  // warhead
-  const wh = vcyl(0.052, 0.09, 0.16, olive(), 0, 0, -0.60, 10);
+  const flareLip = vcyl(0.082, 0.082, 0.014, steelDk, 0, 0, 0.445, 14);
+  flareLip.rotation.x = Math.PI / 2;
+  g.add(flareLip);
+  // warhead: fat dark-olive bulb so the RPG silhouette is unmistakable even when the
+  // tube is foreshortened nearly axis-on (the usual hip-hold view)
+  const wh = vcyl(0.06, 0.115, 0.17, oliveDk, 0, 0, -0.60, 12);
   wh.rotation.x = Math.PI / 2;
   g.add(wh);
-  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.052, 0.22, 10), gm());
+  const band = vcyl(0.065, 0.065, 0.02, steel, 0, 0, -0.52, 12);
+  band.rotation.x = Math.PI / 2;
+  g.add(band);
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.28, 12),
+    new THREE.MeshStandardMaterial({ color: 0x59604a, roughness: 0.75 }));
   tip.rotation.x = -Math.PI / 2;
-  tip.position.set(0, 0, -0.79);
+  tip.position.set(0, 0, -0.82);
   g.add(tip);
-  g.add(vbox(0.035, 0.1, 0.05, wood(), 0, -0.11, 0.05));
-  g.add(vbox(0.035, 0.09, 0.045, wood(), 0, -0.10, 0.22));
-  g.add(vbox(0.02, 0.05, 0.09, gm(), 0, 0.07, 0.05)); // sight
-  g.userData.muzzle = new THREE.Vector3(0, 0, -0.9);
+  const fuze = vcyl(0.014, 0.011, 0.035, steel, 0, 0, -0.945, 8);  // steel fuze cap
+  fuze.rotation.x = Math.PI / 2;
+  g.add(fuze);
+  // grips: wooden front, polymer rear w/ trigger housing
+  g.add(vbox(0.034, 0.1, 0.05, vmWood(), 0, -0.1, 0.03));
+  const rg = vbox(0.034, 0.095, 0.046, poly, 0, -0.095, 0.21);
+  rg.rotation.x = 0.25;
+  g.add(rg);
+  g.add(vbox(0.03, 0.045, 0.075, steelDk, 0, -0.062, 0.19));        // trigger housing
+  g.add(vbox(0.006, 0.022, 0.007, steel, 0, -0.078, 0.16));         // trigger
+  // iron sights: front flip post + rear leaf on the left flank, seated into the tube
+  g.add(vbox(0.008, 0.06, 0.01, steelDk, -0.018, 0.062, -0.33));
+  g.add(vbox(0.006, 0.014, 0.006, steel, -0.018, 0.098, -0.33));
+  g.add(vbox(0.01, 0.09, 0.014, steelDk, -0.018, 0.055, 0.1));
+  g.add(vbox(0.024, 0.016, 0.006, steel, -0.018, 0.106, 0.1));
+
+  // hands: right on rear grip, left on front grip
+  addGripHand(g, 0, -0.095, 0.21, 0.25);
+  addForearm(g, 0.035, -0.145, 0.26, 0.3, -0.5, 0.6);
+  addGripHand(g, 0, -0.1, 0.03, 0.08);
+  addForearm(g, 0.02, -0.155, 0.07, 0.08, -0.55, 0.35);
+
+  g.userData.muzzle = new THREE.Vector3(0, 0, -0.98);
+  g.userData.baseRot = new THREE.Euler(0.06, -0.24, 0.03);
+  g.rotation.copy(g.userData.baseRot);
   return g;
 }
 
@@ -104,7 +287,8 @@ export class Weapons {
     this.rig = new THREE.Group();          // attached to camera
     G.camera.add(this.rig);
     // dedicated fill so the viewmodel never goes silhouette-black
-    const fill = new THREE.PointLight(0xfff2dd, 8, 4, 1.2);
+    // (kept modest — with the lighter viewmodel materials, 8 blows the steel to white)
+    const fill = new THREE.PointLight(0xfff2dd, 4.5, 4, 1.2);
     fill.position.set(0.3, 0.4, 0.3);
     G.camera.add(fill);
     this.models = { carbine: buildCarbine(), rpg: buildRPG() };
@@ -114,7 +298,9 @@ export class Weapons {
       this.rig.add(this.models[k]);
     }
     this.current = 'carbine';
-    this.models.carbine.visible = true;
+    // screenshot-harness affordance: &vm=rpg shows the RPG viewmodel in shot mode
+    if (SHOT_MODE && new URLSearchParams(location.search).get('vm') === 'rpg') this.current = 'rpg';
+    this.models[this.current].visible = true;
     this.ammo = {
       carbine: { mag: 30, reserve: 180 },
       rpg: { mag: 1, reserve: 6 },
@@ -123,6 +309,7 @@ export class Weapons {
     this.cooldown = 0;
     this.reloading = 0;
     this.ads = false;
+    this.adsBlend = 0;                     // 0 hip (baked cant) → 1 aimed (straight)
     this.raise = 1;                        // 0 lowered → 1 raised
     this.swayX = 0; this.swayY = 0;
     this.kick = 0;
@@ -134,7 +321,7 @@ export class Weapons {
 
     const basePos = new THREE.Vector3(0.22, -0.21, -0.45);
     this.basePos = basePos;
-    this.adsPos = new THREE.Vector3(0, -0.115, -0.32);
+    this.adsPos = new THREE.Vector3(0, -0.083, -0.30);   // rear aperture on screen center
     this.rig.position.copy(basePos);
 
     if (!SHOT_MODE) {
@@ -350,6 +537,14 @@ export class Weapons {
     const targetFov = this.ads ? ADS_FOV : (p.sprinting ? BASE_FOV + 6 : BASE_FOV);
     cam.fov = damp(cam.fov, targetFov, 10, dt);
     cam.updateProjectionMatrix();
+
+    // hip pose keeps a baked cant; ADS straightens the model so the irons line up
+    this.adsBlend = damp(this.adsBlend, this.ads ? 1 : 0, 12, dt);
+    const mdl = this.models[this.current];
+    if (mdl.userData.baseRot) {
+      const br = mdl.userData.baseRot, k = 1 - this.adsBlend;
+      mdl.rotation.set(br.x * k, br.y * k, br.z * k);
+    }
 
     const tp = this.ads ? this.adsPos : this.basePos;
     this.rig.position.x = damp(this.rig.position.x, tp.x, 12, dt);
