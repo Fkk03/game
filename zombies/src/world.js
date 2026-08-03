@@ -36,13 +36,15 @@ export function initWorld(G) {
   const brick = brickTexture({ seed: 11 });
   const brickDark = brickTexture({ seed: 12, base: [72, 56, 48] });
   const conc = concreteTexture({ seed: 21 });
-  const concFloor = concreteTexture({ seed: 22, base: 96 });
+  const concFloor = concreteTexture({ seed: 22, base: 68, tint: [1, 0.98, 0.94] });
   const wood = woodTexture({ seed: 31 });
   const woodOld = woodTexture({ seed: 32, base: [70, 52, 36] });
   const metal = metalTexture({ seed: 41 });
   const metalRust = metalTexture({ seed: 42, rust: 0.8, base: [80, 72, 64] });
   const ground = groundTexture({ seed: 51 });
   const plaster = plasterTexture({ seed: 61 });
+  // plaster reads at 4m per repeat (larger, calmer features on big walls)
+  for (const t of [plaster.map, plaster.bumpMap, plaster.roughnessMap]) t.repeat.set(0.5, 0.5);
 
   const std = (t, extra = {}) => new THREE.MeshStandardMaterial({
     map: t.map, bumpMap: t.bumpMap, bumpScale: extra.bumpScale ?? 1.2,

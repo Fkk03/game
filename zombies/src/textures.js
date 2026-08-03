@@ -362,12 +362,10 @@ export function plasterTexture({ w = 512, h = 512, seed = 61, base = [97, 89, 77
       x.lineTo(px + Math.cos(a) * rs[s], py + Math.sin(a) * rs[s]);
     }
     x.closePath(); x.clip();
-    x.fillStyle = '#54402f'; x.fillRect(px - 60, py - 60, 120, 120);
-    x.fillStyle = 'rgba(40,34,28,0.8)';
-    for (let b = 0; b < 5; b++) x.fillRect(px - 60, py - 58 + b * 24, 120, 3);
-    for (let b = 0; b < 8; b++) { // brick joints
-      x.fillRect(px - 60 + ((b % 2) * 20) + Math.floor(b / 2) * 38, py - 58 + (b % 4) * 24, 3, 22);
-    }
+    // chipped depression: darker plaster, not exposed brick (reads calmer when tiled)
+    x.fillStyle = 'rgba(52,46,38,0.55)'; x.fillRect(px - 60, py - 60, 120, 120);
+    x.fillStyle = 'rgba(30,26,20,0.3)';
+    for (let b = 0; b < 4; b++) x.fillRect(px - 60, py - 58 + b * 30, 120, 2);
     x.restore();
   }
   cracks(x, w, h, rng, 4);

@@ -743,15 +743,16 @@ function animate(z, dt, t, G) {
   }
 
   if (z.state === 'attacking' || pose === 'attack') {
+    // raise to shoulder height, then slash forward-down at the player
     const ap = z.state === 'attacking' ? Math.min(1, z.atkT / 0.75) : 0.4;
-    const swing = ap < 0.42 ? -(ap / 0.42) : -(1 - (ap - 0.42) / 0.58);
-    p.torso.rotation.x = 0.3 + ap * 0.35;
-    p.armL.rotation.x = -2.4 - swing * 1.1;
-    p.armR.rotation.x = -2.4 - swing * 1.1;
-    p.armL.rotation.z = -0.3; p.armR.rotation.z = 0.3;
-    p.foreL.rotation.x = -0.6 + swing * 0.4;
-    p.foreR.rotation.x = -0.6 + swing * 0.4;
-    p.neck.rotation.x = -0.3;
+    const swing = ap < 0.42 ? (ap / 0.42) : (1 - (ap - 0.42) / 0.58); // 0->1->0
+    p.torso.rotation.x = 0.32 + ap * 0.3;
+    p.armL.rotation.x = -1.15 - swing * 0.55;
+    p.armR.rotation.x = -1.25 - swing * 0.5;
+    p.armL.rotation.z = -0.18; p.armR.rotation.z = 0.16;
+    p.foreL.rotation.x = -0.55 + swing * 0.35;
+    p.foreR.rotation.x = -0.5 + swing * 0.3;
+    p.neck.rotation.x = -0.28;
     p.jaw.rotation.x = 0.5;
     return;
   }
