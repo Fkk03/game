@@ -83,8 +83,8 @@ export function initPhotoMode(G, preset) {
       Z.spawnPosed(-19, 2, Math.atan2(-15.2 + 19, 6.5 - 2), 'walk', 1.1);
       onPrime = (i) => {
         if (i > 40) {
-          G.skyUniforms.uLightning.value = 0.75;
-          G.moon.intensity = 5.2;
+          G.skyUniforms.uLightning.value = 0.4;
+          G.moon.intensity = 4.4;
         }
         if (i === 50) {
           for (let k = 0; k < 2; k++) G.events.emit('graveRise', graves[k * 2] ?? graves[k]);

@@ -49,7 +49,8 @@ export function initWorld(G) {
     roughnessMap: t.roughnessMap, roughness: 1, metalness: extra.metalness ?? 0, ...extra,
   });
   const M = G.mats = {
-    brick: std(brick), brickDark: std(brickDark), conc: std(conc), concFloor: std(concFloor),
+    brick: std(brick, { bumpScale: 0.65 }), brickDark: std(brickDark, { bumpScale: 0.65 }),
+    conc: std(conc), concFloor: std(concFloor),
     wood: std(wood), woodOld: std(woodOld),
     metal: std(metal, { metalness: 0.55, bumpScale: 0.6 }),
     metalRust: std(metalRust, { metalness: 0.3, bumpScale: 0.8 }),
@@ -61,6 +62,23 @@ export function initWorld(G) {
 
   // ---------- helpers ----------
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+  // Box with world-space UVs (~1 texture repeat per 2m) so textures never stretch
+  // across long walls. Face order in BoxGeometry: +x,-x,+y,-y,+z,-z.
+  function uvBox(sx, sy, sz, s = 0.5) {
+    const g = new THREE.BoxGeometry(sx, sy, sz);
+    const uv = g.attributes.uv;
+    const scales = [
+      [sz * s, sy * s], [sz * s, sy * s],
+      [sx * s, sz * s], [sx * s, sz * s],
+      [sx * s, sy * s], [sx * s, sy * s],
+    ];
+    for (let f = 0; f < 6; f++)
+      for (let v = 0; v < 4; v++) {
+        const i = f * 4 + v;
+        uv.setXY(i, uv.getX(i) * scales[f][0], uv.getY(i) * scales[f][1]);
+      }
+    return g;
+  }
   function addCollider(cx, cz, sx, sy, sz, opts = {}) {
     const c = {
       min: V3(cx - sx / 2, opts.y0 ?? 0, cz - sz / 2),
@@ -71,8 +89,7 @@ export function initWorld(G) {
     return c;
   }
   function addBox(cx, cz, sx, sy, sz, mat, opts = {}) {
-    const m = new THREE.Mesh(boxGeo, mat);
-    m.scale.set(sx, sy, sz);
+    const m = new THREE.Mesh(uvBox(sx, sy, sz), mat);
     m.position.set(cx, (opts.y0 ?? 0) + sy / 2, cz);
     if (opts.rotY) m.rotation.y = opts.rotY;
     m.castShadow = opts.shadow !== false;
@@ -138,6 +155,15 @@ export function initWorld(G) {
       f.castShadow = f.receiveShadow = true;
       group.add(f);
     }
+    // dim warm lamp above each barricade (interior side) — lights incoming zombies
+    const wl = new THREE.PointLight(0xff9a45, 5, 6.5, 2);
+    wl.position.set(0.72, 2.14, 0.55);
+    group.add(wl);
+    const wlb = new THREE.Mesh(new THREE.SphereGeometry(0.042, 6, 5), new THREE.MeshBasicMaterial({ color: 0xffc890 }));
+    wlb.position.copy(wl.position);
+    group.add(wlb);
+    W.lamps.push({ light: wl, mesh: wlb, base: 5, flicker: true });
+
     const win = {
       id, pos: V3(x, 0, z), dir,
       inside: V3(x - dir.x * 1.6, 0, z - dir.z * 1.6),
@@ -235,7 +261,7 @@ export function initWorld(G) {
   scene.add(groundMesh);
 
   // house floor slab
-  const slab = new THREE.Mesh(new THREE.BoxGeometry(28.4, 0.12, 16.4), M.concFloor);
+  const slab = new THREE.Mesh(uvBox(28.4, 0.12, 16.4), M.concFloor);
   slab.position.set(0, 0.055, -10);
   slab.receiveShadow = true;
   scene.add(slab);
@@ -446,9 +472,9 @@ export function initWorld(G) {
   });
 
   // ---------- lighting ----------
-  const moon = new THREE.DirectionalLight(0x9fb4d8, 2.6);
+  const moon = new THREE.DirectionalLight(0x9fb4d8, 3.4);
   moon.position.set(-30, 42, 30);
-  G.moonBase = 2.6;
+  G.moonBase = 3.4;
   moon.castShadow = true;
   moon.shadow.mapSize.set(2048, 2048);
   moon.shadow.camera.left = -42; moon.shadow.camera.right = 42;
@@ -458,8 +484,8 @@ export function initWorld(G) {
   moon.shadow.normalBias = 0.5;
   scene.add(moon);
   G.moon = moon;
-  scene.add(new THREE.HemisphereLight(0x33445e, 0x1c150e, 1.35));
-  const amb = new THREE.AmbientLight(0x252a38, 0.85);
+  scene.add(new THREE.HemisphereLight(0x33445e, 0x1c150e, 1.05));
+  const amb = new THREE.AmbientLight(0x252a38, 0.55);
   scene.add(amb);
   // faint sky-bounce fill from the opposite side (fake GI so moon-backfaced
   // surfaces don't crush to black)
@@ -576,6 +602,45 @@ export function initWorld(G) {
   W.mysteryBox = { pos: V3(19, 0, -8), rotY: 0.2 };
   W.paP = { pos: V3(-19, 0, -16.6), rotY: 0 };
 
+  // ---------- fake contact-shadow AO strips along wall bases ----------
+  const aoCanvas = document.createElement('canvas');
+  aoCanvas.width = 64; aoCanvas.height = 8;
+  {
+    const ax = aoCanvas.getContext('2d');
+    const g = ax.createLinearGradient(0, 0, 0, 8);
+    g.addColorStop(0, 'rgba(0,0,0,0.62)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ax.fillStyle = g; ax.fillRect(0, 0, 64, 8);
+  }
+  const aoTex = new THREE.CanvasTexture(aoCanvas);
+  const aoMat = new THREE.MeshBasicMaterial({ map: aoTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 });
+  // strip lying on the ground: runs from (x0,z0) to (x1,z1) along a wall face,
+  // fading outward on the side given by (nx,nz).
+  function aoStrip(x0, z0, x1, z1, nx, nz, wdt = 0.75) {
+    const len = Math.hypot(x1 - x0, z1 - z0);
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(len, wdt), aoMat);
+    p.rotation.x = -Math.PI / 2;
+    p.rotation.z = -Math.atan2(z1 - z0, x1 - x0);
+    p.position.set((x0 + x1) / 2 + nx * wdt / 2, 0.02, (z0 + z1) / 2 + nz * wdt / 2);
+    p.userData.noBlock = true;
+    p.renderOrder = 1;
+    scene.add(p);
+  }
+  aoStrip(-26, -17.7, 26, -17.7, 0, 1);       // north wall inner
+  aoStrip(-26, 19.7, 26, 19.7, 0, -1);        // south wall inner
+  aoStrip(25.7, -18, 25.7, 20, -1, 0);        // east inner
+  aoStrip(-25.7, -18, -25.7, 20, 1, 0);       // west inner
+  aoStrip(-14, -1.75, 14, -1.75, 0, 1);       // house south face (courtyard side)
+  aoStrip(-14, -2.25, 14, -2.25, 0, -1);      // house south face (interior side)
+  aoStrip(2.25, -18, 2.25, -2, 1, 0);         // dividing wall (room1 side)
+  aoStrip(1.75, -18, 1.75, -2, -1, 0);        // dividing wall (room2 side)
+  aoStrip(13.75, -18, 13.75, -2, -1, 0);      // house east face inner
+  aoStrip(14.25, -18, 14.25, -2, 1, 0);       // house east face (alley side)
+  aoStrip(-13.75, -18, -13.75, -2, 1, 0);     // house west face inner
+  aoStrip(-14.25, -18, -14.25, -2, -1, 0);    // house west face (graveyard side)
+  aoStrip(13.75, -2, 13.75, 20, -1, 0);       // east flank (courtyard side)
+  aoStrip(-13.75, -2, -13.75, 20, 1, 0);      // west flank (courtyard side)
+
   // graffiti decals
   function deca(txt, x, y, z, rotY, opts = {}) {
     const p = new THREE.Mesh(new THREE.PlaneGeometry(opts.wpx ?? 3, (opts.wpx ?? 3) / 2),
@@ -673,9 +738,9 @@ function buildSky(G) {
       void main() {
         vec3 d = normalize(vDir);
         float h = max(d.y, 0.0);
-        // night gradient: sickly green-teal horizon -> deep blue-black zenith
-        vec3 col = mix(vec3(0.045, 0.065, 0.055), vec3(0.008, 0.012, 0.028), pow(h, 0.55));
-        col += vec3(0.05, 0.035, 0.02) * pow(max(1.0 - h, 0.0), 6.0); // horizon haze
+        // night gradient: cold blue horizon -> deep blue-black zenith
+        vec3 col = mix(vec3(0.036, 0.046, 0.06), vec3(0.008, 0.012, 0.028), pow(h, 0.55));
+        col += vec3(0.045, 0.03, 0.014) * pow(max(1.0 - h, 0.0), 7.0); // faint warm haze
         // stars
         vec2 sp = d.xz / (d.y + 0.35);
         float star = step(0.9975, hash(floor(sp * 220.0)));

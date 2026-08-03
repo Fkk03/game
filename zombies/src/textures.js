@@ -31,14 +31,25 @@ function grime(ctx, w, h, rng, { passes = 3, dark = 0.14, light = 0.06, scale = 
   }
 }
 
+// Draw a radial blob wrapped at tile edges (9 positions) so textures stay seamless.
+function blob9(ctx, w, h, x, y, r, paint) {
+  for (const ox of [-w, 0, w]) for (const oy of [-h, 0, h]) {
+    if (x + ox + r < 0 || x + ox - r > w || y + oy + r < 0 || y + oy - r > h) continue;
+    paint(x + ox, y + oy);
+  }
+}
+
 function stains(ctx, w, h, rng, count = 5, color = '20,14,8', maxA = 0.22) {
   for (let i = 0; i < count; i++) {
     const x = rng() * w, y = rng() * h, r = rng.range(w * 0.06, w * 0.24);
-    const g = ctx.createRadialGradient(x, y, r * 0.15, x, y, r);
-    g.addColorStop(0, `rgba(${color},${(rng() * maxA).toFixed(3)})`);
-    g.addColorStop(1, `rgba(${color},0)`);
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+    const a = (rng() * maxA).toFixed(3);
+    blob9(ctx, w, h, x, y, r, (px, py) => {
+      const g = ctx.createRadialGradient(px, py, r * 0.45, px, py, r);
+      g.addColorStop(0, `rgba(${color},${a})`);
+      g.addColorStop(1, `rgba(${color},0)`);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.fill();
+    });
   }
 }
 
@@ -85,7 +96,7 @@ function makeHeightRough(w, h, paint) {
 export function brickTexture({ w = 512, h = 512, seed = 11, base = [96, 62, 50], repeat = [1, 1] } = {}) {
   const rng = makeRng(seed);
   const [c, x] = cv(w, h);
-  const bw = 64, bh = 30, mortar = 5;
+  const bw = 59, bh = 27, mortar = 5; // cell sizes divide 512 -> seamless tiling
   x.fillStyle = '#3c3733'; x.fillRect(0, 0, w, h); // mortar
   const rows = Math.ceil(h / (bh + mortar));
   const heights = [];
@@ -93,16 +104,16 @@ export function brickTexture({ w = 512, h = 512, seed = 11, base = [96, 62, 50],
     const off = (r % 2) * (bw / 2);
     for (let i = -1; i < Math.ceil(w / (bw + mortar)) + 1; i++) {
       const bx = i * (bw + mortar) + off, by = r * (bh + mortar);
-      const tint = rng.range(0.72, 1.18);
-      const rr = Math.floor(base[0] * tint + rng.range(-12, 12));
-      const gg = Math.floor(base[1] * tint + rng.range(-9, 9));
-      const bb = Math.floor(base[2] * tint + rng.range(-8, 8));
+      const tint = rng.range(0.86, 1.1);
+      const rr = Math.floor(base[0] * tint + rng.range(-7, 7));
+      const gg = Math.floor(base[1] * tint + rng.range(-5, 5));
+      const bb = Math.floor(base[2] * tint + rng.range(-5, 5));
       x.fillStyle = `rgb(${rr},${gg},${bb})`;
       x.fillRect(bx, by, bw, bh);
       // per-brick shading: darker bottom edge, lighter top
-      x.fillStyle = 'rgba(0,0,0,0.28)'; x.fillRect(bx, by + bh - 3, bw, 3);
-      x.fillStyle = 'rgba(255,255,240,0.09)'; x.fillRect(bx, by, bw, 2);
-      if (rng() < 0.14) { x.fillStyle = 'rgba(20,16,12,0.35)'; x.fillRect(bx, by, bw, bh); } // burnt brick
+      x.fillStyle = 'rgba(0,0,0,0.22)'; x.fillRect(bx, by + bh - 3, bw, 3);
+      x.fillStyle = 'rgba(255,255,240,0.07)'; x.fillRect(bx, by, bw, 2);
+      if (rng() < 0.07) { x.fillStyle = 'rgba(20,16,12,0.28)'; x.fillRect(bx, by, bw, bh); } // burnt brick
       heights.push([bx, by]);
     }
   }
@@ -119,7 +130,8 @@ export function brickTexture({ w = 512, h = 512, seed = 11, base = [96, 62, 50],
         const bx = i * (bw + mortar) + off, by = r * (bh + mortar);
         const v = Math.floor(r2.range(150, 210));
         hx.fillStyle = `rgb(${v},${v},${v})`; hx.fillRect(bx, by, bw, bh);
-        rx.fillStyle = `rgb(${Math.floor(r2.range(160, 205))},0,0)`; rx.fillRect(bx, by, bw, bh);
+        const rv = Math.floor(r2.range(185, 215));
+        rx.fillStyle = `rgb(${rv},${rv},${rv})`; rx.fillRect(bx, by, bw, bh);
       }
     }
   });
@@ -250,43 +262,57 @@ export function metalTexture({ w = 256, h = 256, seed = 41, base = [88, 90, 94],
   return { map: tex(c, { repeat }), bumpMap, roughnessMap };
 }
 
-export function groundTexture({ w = 1024, h = 1024, seed = 51, repeat = [7, 7] } = {}) {
+export function groundTexture({ w = 1024, h = 1024, seed = 51, repeat = [26, 26] } = {}) {
   const rng = makeRng(seed);
   const [c, x] = cv(w, h);
-  // mud base
-  x.fillStyle = '#3d3428'; x.fillRect(0, 0, w, h);
-  grime(x, w, h, rng, { passes: 5, dark: 0.2, light: 0.05, scale: 4 });
-  // dirt clumps / ruts
-  for (let i = 0; i < 260; i++) {
-    const px = rng() * w, py = rng() * h, pr = rng.range(4, 26);
+  // mud base with large soft tonal variation first (reads at distance)
+  x.fillStyle = '#41372a'; x.fillRect(0, 0, w, h);
+  for (let i = 0; i < 40; i++) {
+    const px = rng() * w, py = rng() * h, pr = rng.range(90, 260);
+    const dark = rng() < 0.55;
+    const col = dark ? `rgba(20,16,10,${rng.range(0.08, 0.2)})` : `rgba(110,94,66,${rng.range(0.05, 0.14)})`;
+    blob9(x, w, h, px, py, pr, (qx, qy) => {
+      const g = x.createRadialGradient(qx, qy, pr * 0.25, qx, qy, pr);
+      g.addColorStop(0, col);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(qx, qy, pr, 0, 7); x.fill();
+    });
+  }
+  grime(x, w, h, rng, { passes: 2, dark: 0.1, light: 0.04, scale: 5 });
+  // dirt clumps / small stones (soft, no outlines)
+  for (let i = 0; i < 160; i++) {
+    const px = rng() * w, py = rng() * h, pr = rng.range(3, 14);
     const g = x.createRadialGradient(px, py, 1, px, py, pr);
     const dark = rng() < 0.6;
-    g.addColorStop(0, dark ? `rgba(18,14,9,${rng.range(0.2, 0.5)})` : `rgba(96,82,58,${rng.range(0.12, 0.3)})`);
+    g.addColorStop(0, dark ? `rgba(22,17,11,${rng.range(0.15, 0.4)})` : `rgba(104,90,64,${rng.range(0.1, 0.24)})`);
     g.addColorStop(1, 'rgba(0,0,0,0)');
     x.fillStyle = g; x.beginPath(); x.arc(px, py, pr, 0, 7); x.fill();
   }
-  // scattered cobble patches
-  for (let p = 0; p < 7; p++) {
-    const cx0 = rng() * w, cy0 = rng() * h, cr = rng.range(60, 150);
-    for (let s = 0; s < 42; s++) {
-      const a = rng() * 7, d = Math.sqrt(rng()) * cr;
-      const sx = cx0 + Math.cos(a) * d, sy = cy0 + Math.sin(a) * d;
-      const sw = rng.range(9, 20), sh = rng.range(7, 15);
-      const v = Math.floor(rng.range(72, 108));
-      x.fillStyle = `rgb(${v},${v - 4},${v - 8})`;
-      x.beginPath();
-      x.ellipse(sx, sy, sw / 2, sh / 2, rng() * 3, 0, 7); x.fill();
-      x.strokeStyle = 'rgba(0,0,0,0.4)'; x.lineWidth = 1; x.stroke();
+  // wheel ruts: two long soft dark tracks with highlights between
+  for (let r = 0; r < 2; r++) {
+    const y0 = h * (0.3 + r * 0.34);
+    x.strokeStyle = 'rgba(16,12,8,0.28)';
+    x.lineWidth = 26;
+    x.beginPath();
+    x.moveTo(0, y0);
+    for (let sx0 = 0; sx0 <= w; sx0 += w / 6) x.lineTo(sx0, y0 + Math.sin(sx0 * 0.01 + r) * 22);
+    x.stroke();
+    x.strokeStyle = 'rgba(120,104,74,0.12)';
+    x.lineWidth = 10;
+    x.stroke();
+  }
+  // sparse dead grass tufts (clustered, not uniform)
+  for (let cl = 0; cl < 40; cl++) {
+    const cx0 = rng() * w, cy0 = rng() * h;
+    const n = rng.int(4, 14);
+    for (let i = 0; i < n; i++) {
+      x.strokeStyle = `rgba(${Math.floor(rng.range(86, 118))},${Math.floor(rng.range(74, 96))},44,${rng.range(0.25, 0.5)})`;
+      x.lineWidth = 1;
+      const gx = cx0 + rng.range(-14, 14), gy = cy0 + rng.range(-10, 10);
+      x.beginPath(); x.moveTo(gx, gy); x.lineTo(gx + rng.range(-4, 4), gy - rng.range(4, 11)); x.stroke();
     }
   }
-  // sparse dead grass
-  for (let i = 0; i < 700; i++) {
-    x.strokeStyle = `rgba(${Math.floor(rng.range(80, 120))},${Math.floor(rng.range(70, 96))},40,${rng.range(0.2, 0.55)})`;
-    x.lineWidth = 0.8;
-    const gx = rng() * w, gy = rng() * h;
-    x.beginPath(); x.moveTo(gx, gy); x.lineTo(gx + rng.range(-4, 4), gy - rng.range(3, 9)); x.stroke();
-  }
-  stains(x, w, h, rng, 8, '12,10,7', 0.35);
+  stains(x, w, h, rng, 6, '14,11,7', 0.28);
   const { bumpMap, roughnessMap } = makeHeightRough(w, h, (hx, rx) => {
     hx.fillStyle = '#7a7a7a'; hx.fillRect(0, 0, w, h);
     const r2 = makeRng(seed + 7);
@@ -305,33 +331,48 @@ export function groundTexture({ w = 1024, h = 1024, seed = 51, repeat = [7, 7] }
   return { map: tex(c, { repeat }), bumpMap, roughnessMap };
 }
 
-export function plasterTexture({ w = 512, h = 512, seed = 61, base = [168, 158, 138], repeat = [1, 1] } = {}) {
+export function plasterTexture({ w = 512, h = 512, seed = 61, base = [97, 89, 77], repeat = [1, 1] } = {}) {
   const rng = makeRng(seed);
   const [c, x] = cv(w, h);
   x.fillStyle = `rgb(${base[0]},${base[1]},${base[2]})`; x.fillRect(0, 0, w, h);
-  grime(x, w, h, rng, { passes: 3, dark: 0.12, light: 0.05 });
-  // peeled patches revealing brick beneath
-  for (let i = 0; i < 5; i++) {
-    const px = rng() * w, py = rng() * h;
+  // large soft tonal mottling (aged plaster), then only fine low-contrast grime
+  for (let i = 0; i < 26; i++) {
+    const px = rng() * w, py = rng() * h, pr = rng.range(60, 180);
+    const dark = rng() < 0.6;
+    const col = dark ? `rgba(40,34,26,${rng.range(0.04, 0.12)})` : `rgba(255,250,235,${rng.range(0.03, 0.08)})`;
+    blob9(x, w, h, px, py, pr, (qx, qy) => {
+      const g = x.createRadialGradient(qx, qy, pr * 0.2, qx, qy, pr);
+      g.addColorStop(0, col);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(qx, qy, pr, 0, 7); x.fill();
+    });
+  }
+  grime(x, w, h, rng, { passes: 2, dark: 0.07, light: 0.03 });
+  // one believable peeled patch revealing brick, kept away from tile edges
+  for (let i = 0; i < 1; i++) {
+    const px = rng.range(w * 0.25, w * 0.75), py = rng.range(h * 0.55, h * 0.8);
     x.save();
     x.beginPath();
     let a0 = rng() * 7;
-    x.moveTo(px + Math.cos(a0) * 30, py + Math.sin(a0) * 30);
-    for (let s = 1; s <= 8; s++) {
-      const a = a0 + (s / 8) * Math.PI * 2, r = rng.range(18, 52);
-      x.lineTo(px + Math.cos(a) * r, py + Math.sin(a) * r);
+    const rs = [];
+    for (let s = 0; s <= 10; s++) rs.push(rng.range(24, 46));
+    x.moveTo(px + Math.cos(a0) * rs[0], py + Math.sin(a0) * rs[0]);
+    for (let s = 1; s <= 10; s++) {
+      const a = a0 + (s / 10) * Math.PI * 2;
+      x.lineTo(px + Math.cos(a) * rs[s], py + Math.sin(a) * rs[s]);
     }
     x.closePath(); x.clip();
-    x.fillStyle = '#4e372c'; x.fillRect(px - 60, py - 60, 120, 120);
-    x.fillStyle = '#3c3733';
-    for (let b = 0; b < 5; b++) x.fillRect(px - 60, py - 60 + b * 24, 120, 4);
+    x.fillStyle = '#54402f'; x.fillRect(px - 60, py - 60, 120, 120);
+    x.fillStyle = 'rgba(40,34,28,0.8)';
+    for (let b = 0; b < 5; b++) x.fillRect(px - 60, py - 58 + b * 24, 120, 3);
+    for (let b = 0; b < 8; b++) { // brick joints
+      x.fillRect(px - 60 + ((b % 2) * 20) + Math.floor(b / 2) * 38, py - 58 + (b % 4) * 24, 3, 22);
+    }
     x.restore();
-    x.strokeStyle = 'rgba(0,0,0,0.5)'; x.lineWidth = 2;
-    x.beginPath(); x.arc(px, py, 38, 0, 7); x.stroke();
   }
-  cracks(x, w, h, rng, 6);
-  dripStreaks(x, w, h, rng, 9);
-  stains(x, w, h, rng, 5);
+  cracks(x, w, h, rng, 4);
+  dripStreaks(x, w, h, rng, 7);
+  stains(x, w, h, rng, 3, '30,24,16', 0.07);
   const { bumpMap, roughnessMap } = makeHeightRough(w, h, (hx, rx) => {
     hx.fillStyle = '#9a9a9a'; hx.fillRect(0, 0, w, h);
     rx.fillStyle = '#c0c0c0'; rx.fillRect(0, 0, w, h);

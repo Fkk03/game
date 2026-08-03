@@ -12,8 +12,9 @@ const powerups = [];
 export function initZombies(G) {
   const rng = makeRng(G.seed + 500);
   // shared materials (variation pool)
+  const TONES = [[100, 112, 86], [114, 105, 90], [90, 104, 95], [108, 100, 76]];
   const skins = [0, 1, 2, 3].map(i => {
-    const t = zombieSkinTexture({ seed: 71 + i * 7, tone: [[126, 138, 108], [140, 130, 112], [112, 128, 118], [134, 124, 96]][i] });
+    const t = zombieSkinTexture({ seed: 71 + i * 7, tone: TONES[i] });
     return new THREE.MeshStandardMaterial({ map: t.map, bumpMap: t.bumpMap, bumpScale: 0.8, roughness: 0.92 });
   });
   const cloths = [0, 1, 2, 3, 4, 5].map(i => {
@@ -21,21 +22,78 @@ export function initZombies(G) {
     return new THREE.MeshStandardMaterial({ map: t.map, roughness: 0.98 });
   });
   const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffa524, emissive: 0xff8a10, emissiveIntensity: 2.6 });
+
+  // zombie face texture: sunken sockets, gaunt cheeks, torn mouth — applied to the
+  // front (+z) face of the head box via a material array.
+  function faceTexture(tone, seed) {
+    const r = makeRng(seed);
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const x = c.getContext('2d');
+    x.fillStyle = `rgb(${tone[0]},${tone[1]},${tone[2]})`; x.fillRect(0, 0, 128, 128);
+    const shade = (px, py, rad, col, a) => {
+      const g = x.createRadialGradient(px, py, rad * 0.2, px, py, rad);
+      g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(1, `rgba(${col},0)`);
+      x.fillStyle = g; x.beginPath(); x.arc(px, py, rad, 0, 7); x.fill();
+    };
+    // gaunt cheek hollows + temple shading
+    shade(34, 74, 26, '30,26,30', 0.55); shade(94, 74, 26, '30,26,30', 0.55);
+    shade(64, 20, 40, '36,32,34', 0.4);
+    // deep eye sockets (eyes sit at ~(±30, 46) in this 128px face space)
+    shade(34, 46, 17, '10,8,10', 0.95); shade(94, 46, 17, '10,8,10', 0.95);
+    shade(34, 46, 9, '0,0,0', 1); shade(94, 46, 9, '0,0,0', 1);
+    // nose cavity
+    shade(64, 66, 8, '20,12,12', 0.8);
+    // torn mouth: dark gape + teeth
+    x.fillStyle = 'rgba(12,6,6,0.95)';
+    x.beginPath(); x.ellipse(64, 98, 24, 12 + r() * 6, 0, 0, 7); x.fill();
+    x.fillStyle = 'rgba(190,180,150,0.85)';
+    for (let i = 0; i < 7; i++) x.fillRect(46 + i * 5.4, 90, 3, 5 + r() * 3);
+    // blood from mouth corner
+    x.fillStyle = 'rgba(80,10,8,0.7)';
+    x.fillRect(46 + r() * 30, 104, 3 + r() * 3, 14 + r() * 10);
+    // scratches
+    x.strokeStyle = 'rgba(90,20,16,0.5)'; x.lineWidth = 1.5;
+    for (let i = 0; i < 3; i++) {
+      const sx = r() * 128, sy = r() * 60;
+      x.beginPath(); x.moveTo(sx, sy); x.lineTo(sx + r() * 20 - 10, sy + 20 + r() * 20); x.stroke();
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+  const faceMats = [0, 1, 2, 3].map(i =>
+    new THREE.MeshStandardMaterial({ map: faceTexture(TONES[i], 900 + i * 31), roughness: 0.9 }));
+  // tattered shirt-hem alpha texture (vertical rag strips)
+  const tatterTex = (() => {
+    const c = document.createElement('canvas'); c.width = 128; c.height = 32;
+    const x = c.getContext('2d');
+    x.clearRect(0, 0, 128, 32);
+    const r = makeRng(777);
+    x.fillStyle = '#fff';
+    for (let i = 0; i < 16; i++) {
+      const w0 = 4 + r() * 6, x0 = i * 8;
+      x.fillRect(x0, 0, w0, 12 + r() * 20);
+    }
+    const t = new THREE.CanvasTexture(c);
+    return t;
+  })();
+
   const geo = {
-    torso: new THREE.BoxGeometry(0.42, 0.55, 0.24),
-    pelvis: new THREE.BoxGeometry(0.36, 0.22, 0.22),
-    head: new THREE.BoxGeometry(0.24, 0.28, 0.26),
-    jaw: new THREE.BoxGeometry(0.18, 0.08, 0.16),
-    uarm: new THREE.BoxGeometry(0.11, 0.34, 0.11),
-    farm: new THREE.BoxGeometry(0.095, 0.32, 0.095),
-    hand: new THREE.BoxGeometry(0.1, 0.14, 0.05),
-    thigh: new THREE.BoxGeometry(0.15, 0.4, 0.15),
-    shin: new THREE.BoxGeometry(0.12, 0.38, 0.12),
-    foot: new THREE.BoxGeometry(0.12, 0.09, 0.24),
-    eye: new THREE.SphereGeometry(0.025, 6, 5),
-    hbHead: new THREE.BoxGeometry(0.32, 0.36, 0.34),
-    hbTorso: new THREE.BoxGeometry(0.5, 0.8, 0.34),
-    hbLegs: new THREE.BoxGeometry(0.44, 0.85, 0.34),
+    torso: new THREE.BoxGeometry(0.38, 0.52, 0.22),
+    pelvis: new THREE.BoxGeometry(0.33, 0.2, 0.2),
+    head: new THREE.BoxGeometry(0.2, 0.24, 0.22),
+    jaw: new THREE.BoxGeometry(0.15, 0.07, 0.13),
+    uarm: new THREE.BoxGeometry(0.095, 0.32, 0.095),
+    farm: new THREE.BoxGeometry(0.08, 0.3, 0.08),
+    hand: new THREE.BoxGeometry(0.095, 0.15, 0.05),
+    thigh: new THREE.BoxGeometry(0.14, 0.38, 0.14),
+    shin: new THREE.BoxGeometry(0.11, 0.36, 0.11),
+    foot: new THREE.BoxGeometry(0.11, 0.08, 0.22),
+    eye: new THREE.SphereGeometry(0.022, 6, 5),
+    tatter: new THREE.CylinderGeometry(0.2, 0.24, 0.2, 8, 1, true),
+    hbHead: new THREE.BoxGeometry(0.3, 0.34, 0.32),
+    hbTorso: new THREE.BoxGeometry(0.48, 0.78, 0.32),
+    hbLegs: new THREE.BoxGeometry(0.42, 0.85, 0.32),
   };
 
   const Z = G.zombies = {
@@ -76,7 +134,9 @@ export function initZombies(G) {
 
   function buildBody() {
     const g = new THREE.Group();
-    const skin = skins[Math.floor(rng() * skins.length)];
+    const skinI = Math.floor(rng() * skins.length);
+    const skin = skins[skinI];
+    const face = faceMats[skinI];
     const cloth = cloths[Math.floor(rng() * cloths.length)];
     const cloth2 = cloths[Math.floor(rng() * cloths.length)];
     const mk = (geoName, mat, x, y, z) => {
@@ -88,28 +148,38 @@ export function initZombies(G) {
     const parts = {};
     parts.pelvis = mk('pelvis', cloth2, 0, 0.92, 0); g.add(parts.pelvis);
     parts.torso = mk('torso', cloth, 0, 0.38, 0); parts.pelvis.add(parts.torso);
-    parts.neck = new THREE.Group(); parts.neck.position.set(0, 0.32, 0); parts.torso.add(parts.neck);
-    parts.head = mk('head', skin, 0, 0.14, 0); parts.neck.add(parts.head);
-    parts.jaw = mk('jaw', skin, 0, -0.13, 0.03); parts.head.add(parts.jaw);
-    const eL = new THREE.Mesh(geo.eye, eyeMat); eL.position.set(-0.06, 0.03, 0.13); parts.head.add(eL);
-    const eR = new THREE.Mesh(geo.eye, eyeMat); eR.position.set(0.06, 0.03, 0.13); parts.head.add(eR);
+    // tattered shirt hem hanging off the torso bottom
+    const tat = new THREE.Mesh(geo.tatter, new THREE.MeshStandardMaterial({
+      map: cloth.map, alphaMap: tatterTex, transparent: true, alphaTest: 0.5,
+      side: THREE.DoubleSide, roughness: 1,
+    }));
+    tat.position.y = -0.32; parts.torso.add(tat);
+    parts.neck = new THREE.Group(); parts.neck.position.set(0, 0.3, 0.02); parts.torso.add(parts.neck);
+    // head: face texture on +z, skin elsewhere (BoxGeometry group order: ±x,±y,+z,-z)
+    parts.head = new THREE.Mesh(geo.head, [skin, skin, skin, skin, face, skin]);
+    parts.head.position.set(0, 0.13, 0.03);
+    parts.head.castShadow = parts.head.receiveShadow = true;
+    parts.neck.add(parts.head);
+    parts.jaw = mk('jaw', skin, 0, -0.12, 0.04); parts.head.add(parts.jaw);
+    const eL = new THREE.Mesh(geo.eye, eyeMat); eL.position.set(-0.047, 0.026, 0.1); parts.head.add(eL);
+    const eR = new THREE.Mesh(geo.eye, eyeMat); eR.position.set(0.047, 0.026, 0.1); parts.head.add(eR);
     for (const side of ['L', 'R']) {
       const sx = side === 'L' ? -1 : 1;
-      const sh = new THREE.Group(); sh.position.set(sx * 0.27, 0.24, 0); parts.torso.add(sh);
+      const sh = new THREE.Group(); sh.position.set(sx * 0.245, 0.2, 0); parts.torso.add(sh);
       parts['arm' + side] = sh;
-      const ua = mk('uarm', side === 'L' ? cloth : skin, 0, -0.16, 0); sh.add(ua);
-      const el = new THREE.Group(); el.position.set(0, -0.33, 0); sh.add(el);
+      const ua = mk('uarm', side === 'L' ? cloth : skin, 0, -0.15, 0); sh.add(ua);
+      const el = new THREE.Group(); el.position.set(0, -0.31, 0); sh.add(el);
       parts['fore' + side] = el;
-      const fa = mk('farm', skin, 0, -0.15, 0); el.add(fa);
-      const hd = mk('hand', skin, 0, -0.34, 0.01); el.add(hd);
-      const hip = new THREE.Group(); hip.position.set(sx * 0.11, -0.1, 0); parts.pelvis.add(hip);
+      const fa = mk('farm', skin, 0, -0.14, 0); el.add(fa);
+      const hd = mk('hand', skin, 0, -0.31, 0.015); hd.rotation.x = 0.35; el.add(hd);
+      const hip = new THREE.Group(); hip.position.set(sx * 0.1, -0.09, 0); parts.pelvis.add(hip);
       parts['leg' + side] = hip;
-      const th = mk('thigh', cloth2, 0, -0.2, 0); hip.add(th);
-      const kn = new THREE.Group(); kn.position.set(0, -0.41, 0); hip.add(kn);
+      const th = mk('thigh', cloth2, 0, -0.19, 0); hip.add(th);
+      const kn = new THREE.Group(); kn.position.set(0, -0.39, 0); hip.add(kn);
       parts['knee' + side] = kn;
-      const sn = mk('shin', rng() < 0.4 ? skin : cloth2, 0, -0.18, 0); kn.add(sn);
+      const sn = mk('shin', rng() < 0.4 ? skin : cloth2, 0, -0.17, 0); kn.add(sn);
       parts['shinMesh' + side] = sn;
-      const ft = mk('foot', skin, 0, -0.38, 0.05); kn.add(ft);
+      const ft = mk('foot', skin, 0, -0.36, 0.05); kn.add(ft);
       parts['footMesh' + side] = ft;
     }
     return { g, parts };
@@ -128,6 +198,7 @@ export function initZombies(G) {
       scale: rng.range(0.92, 1.1), hunch: rng.range(0.15, 0.42),
       headless: false, partyHat: rng() < 0.012,
       armMissing: rng() < 0.08 ? (rng() < 0.5 ? 'L' : 'R') : null,
+      ...poseVariance(rng),
     };
     z.speed = { walk: rng.range(0.85, 1.15), jog: rng.range(2.0, 2.5), sprint: rng.range(3.6, 4.3) }[z.speedClass];
     g.scale.setScalar(z.scale);
@@ -182,6 +253,7 @@ export function initZombies(G) {
       attackCd: 0, crawler: !!opts.crawler, headless: false, slot: 0,
       scale: opts.scale ?? 1, hunch: opts.hunch ?? 0.3, hitboxes: [],
       window: null, path: null,
+      ...poseVariance(rng),
     };
     g.scale.setScalar(z.scale);
     g.position.set(x, opts.y ?? 0, zpos);
@@ -189,6 +261,17 @@ export function initZombies(G) {
     G.scene.add(g);
     zombies.push(z);
     return z;
+  }
+
+  // per-zombie pose asymmetry so no two shamble alike
+  function poseVariance(r) {
+    return {
+      armBaseL: -(1.05 + r() * 0.5), armBaseR: -(1.25 + r() * 0.45),
+      splayL: 0.05 + r() * 0.14, splayR: 0.04 + r() * 0.12,
+      foreBaseL: -(0.35 + r() * 0.4), foreBaseR: -(0.3 + r() * 0.4),
+      headTilt: (r() - 0.5) * 0.5, neckBase: -(0.05 + r() * 0.22),
+      deathSplay: { lx: -0.2 - r() * 0.6, rx: -0.1 - r() * 0.7, lz: 0.4 + r() * 0.7, rz: -(0.4 + r() * 0.7) },
+    };
   }
 
   // ---------- combat ----------
@@ -609,9 +692,17 @@ function animate(z, dt, t, G) {
   const p = z.parts, ph = z.phase;
   const stag = z.staggerT > 0 ? 1 : 0;
   if (z.state === 'dying' || z.state === 'dead') {
-    // limp arms
-    p.armL.rotation.x = lerpTo(p.armL.rotation.x, 0.2, dt * 6);
-    p.armR.rotation.x = lerpTo(p.armR.rotation.x, 0.2, dt * 6);
+    // limbs splay loose as the body drops
+    const ds = z.deathSplay ?? { lx: -0.4, rx: -0.3, lz: 0.7, rz: -0.7 };
+    p.armL.rotation.x = lerpTo(p.armL.rotation.x, ds.lx, dt * 7);
+    p.armR.rotation.x = lerpTo(p.armR.rotation.x, ds.rx, dt * 7);
+    p.armL.rotation.z = lerpTo(p.armL.rotation.z, ds.lz, dt * 7);
+    p.armR.rotation.z = lerpTo(p.armR.rotation.z, ds.rz, dt * 7);
+    p.foreL.rotation.x = lerpTo(p.foreL.rotation.x, -0.15, dt * 7);
+    p.foreR.rotation.x = lerpTo(p.foreR.rotation.x, -0.2, dt * 7);
+    p.legL.rotation.x = lerpTo(p.legL.rotation.x, (z.deathSplay?.lz ?? 0.4) * 0.4, dt * 5);
+    p.legR.rotation.x = lerpTo(p.legR.rotation.x, -(z.deathSplay?.rz ?? 0.4) * 0.3, dt * 5);
+    p.neck.rotation.z = lerpTo(p.neck.rotation.z, (z.headTilt ?? 0.2) * 2, dt * 5);
     return;
   }
   const pose = z.state === 'posed' ? z.pose : null;
@@ -680,17 +771,20 @@ function animate(z, dt, t, G) {
   if (sprint) {
     p.armL.rotation.x = -0.6 + Math.sin(ph + Math.PI) * 0.9;
     p.armR.rotation.x = -0.6 + Math.sin(ph) * 0.9;
+    p.armL.rotation.z = 0.12; p.armR.rotation.z = -0.12;
     p.foreL.rotation.x = -0.9; p.foreR.rotation.x = -0.9;
   } else {
-    // classic shamble: arms out front, slight independent bob
-    p.armL.rotation.x = -1.35 + Math.sin(ph * 0.9 + 1) * 0.14 + stag * 0.5;
-    p.armR.rotation.x = -1.5 + Math.sin(ph * 1.1) * 0.14 + stag * 0.5;
-    p.armL.rotation.z = -0.12; p.armR.rotation.z = 0.1;
-    p.foreL.rotation.x = -0.28 + Math.sin(ph * 0.7) * 0.1;
-    p.foreR.rotation.x = -0.2 + Math.cos(ph * 0.8) * 0.1;
+    // classic shamble: asymmetric forward reach, elbows bent, arms splayed
+    // outward so the silhouette reads even head-on
+    p.armL.rotation.x = (z.armBaseL ?? -1.2) + Math.sin(ph * 0.9 + 1) * 0.13 + stag * 0.5;
+    p.armR.rotation.x = (z.armBaseR ?? -1.45) + Math.sin(ph * 1.1) * 0.13 + stag * 0.5;
+    p.armL.rotation.z = -(z.splayL ?? 0.12);
+    p.armR.rotation.z = (z.splayR ?? 0.1);
+    p.foreL.rotation.x = (z.foreBaseL ?? -0.45) + Math.sin(ph * 0.7) * 0.14;
+    p.foreR.rotation.x = (z.foreBaseR ?? -0.35) + Math.cos(ph * 0.8) * 0.14;
   }
-  p.neck.rotation.x = -0.18 + Math.sin(ph * 0.53 + z.slot) * 0.1 + stag * -0.4;
-  p.neck.rotation.z = Math.sin(ph * 0.31 + z.slot * 2) * 0.14;
+  p.neck.rotation.x = (z.neckBase ?? -0.15) + Math.sin(ph * 0.53 + z.slot) * 0.1 + stag * -0.4;
+  p.neck.rotation.z = (z.headTilt ?? 0) + Math.sin(ph * 0.31 + z.slot * 2) * 0.1;
   p.jaw.rotation.x = 0.18 + Math.max(0, Math.sin(t * 2.2 + z.slot * 3)) * 0.3;
 }
 

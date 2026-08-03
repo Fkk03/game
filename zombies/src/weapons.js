@@ -59,6 +59,11 @@ export function initWeapons(G) {
   G.scene.add(S.flashLight);
   S.flashT = 0;
 
+  // subtle warm fill parented to the camera so the viewmodel always reads
+  const vmFill = new THREE.PointLight(0xffe2b8, 3.4, 2.6, 2);
+  vmFill.position.set(0.28, 0.14, -0.08);
+  G.camera.add(vmFill);
+
   buildMysteryBox(G, S);
   buildPaP(G, S);
 
@@ -146,17 +151,42 @@ export function initWeapons(G) {
 // ---------- viewmodel construction ----------
 function metalMat(G, color = 0x2b2d30, extra = {}) {
   return new THREE.MeshStandardMaterial({
-    color, roughness: extra.roughness ?? 0.42, metalness: extra.metalness ?? 0.8,
-    map: G.mats?.metal?.map ?? null, bumpMap: null, ...extra,
+    color, roughness: extra.roughness ?? 0.34, metalness: extra.metalness ?? 0.85,
+    ...extra,
   });
+}
+
+// 4-point star flash texture (shared)
+let _starTex = null;
+function starTexture() {
+  if (_starTex) return _starTex;
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(64, 64, 2, 64, 64, 30);
+  g.addColorStop(0, 'rgba(255,255,230,1)');
+  g.addColorStop(0.4, 'rgba(255,190,90,0.85)');
+  g.addColorStop(1, 'rgba(255,140,40,0)');
+  x.fillStyle = g; x.beginPath(); x.arc(64, 64, 30, 0, 7); x.fill();
+  x.translate(64, 64);
+  for (let i = 0; i < 4; i++) {
+    const lg = x.createLinearGradient(0, 0, 62, 0);
+    lg.addColorStop(0, 'rgba(255,230,170,0.95)');
+    lg.addColorStop(1, 'rgba(255,150,50,0)');
+    x.fillStyle = lg;
+    x.beginPath(); x.moveTo(0, -4.5); x.lineTo(62, 0); x.lineTo(0, 4.5); x.closePath(); x.fill();
+    x.rotate(Math.PI / 2);
+  }
+  _starTex = new THREE.CanvasTexture(c);
+  _starTex.colorSpace = THREE.SRGBColorSpace;
+  return _starTex;
 }
 
 function buildViewmodel(id, G) {
   const g = new THREE.Group();
-  const dark = metalMat(G, 0x232528);
-  const mid = metalMat(G, 0x35383c, { roughness: 0.5 });
-  const wood = new THREE.MeshStandardMaterial({ color: 0x5a4028, roughness: 0.7, map: G.mats?.wood?.map });
-  const grip = new THREE.MeshStandardMaterial({ color: 0x1c1a18, roughness: 0.85 });
+  const dark = metalMat(G, 0x24272c, { roughness: 0.4 });
+  const mid = metalMat(G, 0x363b42, { roughness: 0.46 });
+  const wood = new THREE.MeshStandardMaterial({ color: 0x6a4c30, roughness: 0.6, map: G.mats?.wood?.map });
+  const grip = new THREE.MeshStandardMaterial({ color: 0x27231e, roughness: 0.8 });
   const box = (mat, sx, sy, sz, x, y, z, rx = 0, ry = 0, rz = 0) => {
     const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), mat);
     m.position.set(x, y, z); m.rotation.set(rx, ry, rz);
@@ -219,12 +249,31 @@ function buildViewmodel(id, G) {
     parts.muzzle = new THREE.Vector3(0, 0.02, -0.34);
   }
   // gloved hands (simple, low in frame)
-  const glove = new THREE.MeshStandardMaterial({ color: 0x2a2620, roughness: 0.9 });
+  const glove = new THREE.MeshStandardMaterial({ color: 0x35302a, roughness: 0.85 });
   const h1 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 0.09), glove);
   h1.position.set(0.005, -0.075, 0.075); h1.rotation.z = 0.2; g.add(h1);
   if (id !== 'kestrel') {
     const h2 = h1.clone(); h2.position.set(-0.01, -0.045, -0.12); h2.rotation.set(0.2, 0.1, -0.15); g.add(h2);
   }
+  // star muzzle flash (two crossed sprites at the muzzle, shown ~2 frames)
+  if (parts.muzzle) {
+    const fg = new THREE.Group();
+    fg.position.copy(parts.muzzle);
+    const fmat = new THREE.MeshBasicMaterial({
+      map: starTexture(), transparent: true, blending: THREE.AdditiveBlending,
+      depthWrite: false, color: id === 'raygun' ? 0x60ff90 : 0xffffff,
+    });
+    const f1 = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.34), fmat);
+    const f2 = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.26), fmat);
+    f2.rotation.z = 0.7; f2.position.z = -0.02;
+    const f3 = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.3), fmat);
+    f3.rotation.y = Math.PI / 2; // side-visible blade
+    fg.add(f1, f2, f3);
+    fg.visible = false;
+    g.add(fg);
+    parts.flash = fg;
+  }
+  g.scale.setScalar(0.82);
   g.traverse(o => { o.frustumCulled = false; o.castShadow = false; o.receiveShadow = false; o.userData.noBlock = true; });
   return g;
 }
@@ -256,9 +305,9 @@ function buildMysteryBox(G, S) {
   const rim = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.05, 0.84),
     new THREE.MeshStandardMaterial({ color: 0x66aaff, emissive: 0x3366ff, emissiveIntensity: 1.6 }));
   rim.position.y = 0.8;
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.26, 9, 10, 1, true),
-    new THREE.MeshBasicMaterial({ color: 0x5588ff, transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  beam.position.y = 4.8;
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.2, 7, 10, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0x4477ee, transparent: true, opacity: 0.04, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  beam.position.y = 3.8;
   const qm = new THREE.PointLight(0x4477ff, 3, 7, 2); qm.position.y = 1.4;
   g.add(body, lidPivot, rim, beam, qm);
   body.castShadow = body.receiveShadow = true;
@@ -352,7 +401,11 @@ export function updateWeapons(G, dt, t) {
   // timers
   S.fireCd -= dt; S.knifeCd -= dt; S.swapT = Math.max(0, S.swapT - dt);
   S.flashT -= dt;
-  if (S.flashT <= 0) S.flashLight.intensity = 0;
+  if (S.flashT <= 0) {
+    S.flashLight.intensity = 0;
+    const fl = S.models[w.id]?.userData?.flash;
+    if (fl) fl.visible = false;
+  }
   S.kickPos *= Math.pow(0.001, dt); S.kickRot *= Math.pow(0.002, dt);
 
   // reload
@@ -420,9 +473,16 @@ function fire(G, S, w, st, t) {
   P.pitch += st.kick * (0.5 + Math.random() * 0.4);
   P.yaw += st.kick * (Math.random() - 0.5) * 0.4;
   S.flashLight.position.copy(muzzleWorld(G, S));
-  S.flashLight.intensity = st.type === 'ray' ? 6 : 14;
+  S.flashLight.intensity = st.type === 'ray' ? 8 : 18;
   S.flashLight.color.setHex(st.type === 'ray' ? 0x40ff70 : 0xffb050);
-  S.flashT = 0.045;
+  S.flashT = 0.055;
+  const fl = S.models[w.id]?.userData?.flash;
+  if (fl) {
+    fl.visible = true;
+    fl.rotation.z = Math.random() * Math.PI;
+    const sc = 0.85 + Math.random() * 0.5;
+    fl.scale.setScalar(st.type === 'shotgun' ? sc * 1.5 : sc);
+  }
   G.events.emit('muzzle', { pos: muzzleWorld(G, S), type: st.type });
   G.events.emit('shotFired', { pos: P.pos.clone(), weapon: w.id, loud: st.type !== 'ray' });
   G.events.emit('ammoChanged');
@@ -509,8 +569,8 @@ function updateGrenades(G, dt) {
 }
 
 // ---------- viewmodel animation ----------
-const HIP = { pos: new THREE.Vector3(0.17, -0.155, -0.33), rot: new THREE.Euler(0, 0.02, 0) };
-const ADS = { pos: new THREE.Vector3(0, -0.078, -0.24), rot: new THREE.Euler(0, 0, 0) };
+const HIP = { pos: new THREE.Vector3(0.2, -0.17, -0.36), rot: new THREE.Euler(0, 0.02, 0) };
+const ADS = { pos: new THREE.Vector3(0, -0.066, -0.26), rot: new THREE.Euler(0, 0, 0) };
 const _vp = new THREE.Vector3(); const _tv = new THREE.Vector3();
 
 function updateViewmodel(G, S, w, st, dt, t) {

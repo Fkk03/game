@@ -41,6 +41,16 @@ document.getElementById('app').appendChild(renderer.domElement);
 const scene = G.scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x0a0e12, 0.026);
 
+// low-intensity IBL so metals (guns, casings, machines) have something to
+// reflect — without this, high-metalness surfaces render black
+{
+  const { RoomEnvironment } = await import('three/addons/environments/RoomEnvironment.js');
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environmentIntensity = 0.055;
+  pmrem.dispose();
+}
+
 const camera = G.camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 400);
 camera.rotation.order = 'YXZ';
 scene.add(camera);
