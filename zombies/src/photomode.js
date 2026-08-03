@@ -104,6 +104,13 @@ export function initPhotoMode(G, preset) {
       stageHud(6, 950);
       break;
     }
+    case 7: { // title screen over a static backdrop (state stays PHOTO)
+      document.getElementById('menu').classList.remove('hidden');
+      G.camera.position.set(18, 8, 24);
+      G.camera.lookAt(0, 1.5, -4);
+      primeFrames = 40;
+      break;
+    }
     case 6: { // high overview of the whole map
       G.camera.position.set(30, 27, 32);
       G.camera.lookAt(0, 0, -2);
