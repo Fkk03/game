@@ -95,9 +95,10 @@ python3 -m http.server 8080
 - **Albatross Gunship** (Coalition) — a heavy combat transport helicopter (3× health and
   damage): carries 20 soldiers, guns down infantry with its chin turret and fires rockets
   at armor — hits like a heavy tank, but lumbers across the map at gunship pace.
-  Up to **6 passengers fire from the gun ports** while riding — each with their own
-  weapon and range, so a load of Javelin troopers turns it into a flying anti-tank
-  battery — and an **active protection system deflects half of all incoming gunfire**
+  **Every one of the 20 passengers fires from a gun port** while riding — each with
+  their own weapon, range and kill count, so a full load of Javelin troopers turns it
+  into a flying anti-tank battery — and an **active protection system deflects half
+  of all incoming gunfire**
   (rockets and flak still hit at full force).
   Select troops → right-click to board; Unload (F) deploys. Shot down = everyone dies
 - **Twin base defenses** — every faction fields two: the rapid-fire **Gatling Defense**
@@ -142,6 +143,16 @@ python3 -m http.server 8080
   reply. It stays slow and fragile, and it is **blind on its own**: past its own sight
   it only auto-fires at targets your team can actually see, so bring spotters — or
   right-click a target yourself and it will shell it at full reach
+- **Fortress artillery** (**$160,000**, 100× an Artillery Defense) — the Bastion Gun /
+  Colossus Cannon / Titan Gun: a siege piece on a hardened 2-tile emplacement with
+  60,000 health, a 9,000-damage shell, a 220 blast and **2,600 range** — twice the
+  reach of any other emplacement. It can't touch aircraft, is blind inside 400, and
+  eats 12 power. Takes its own firepower / range / armour upgrades
+- **Longbow Annihilator / Great Wall Sovereign / Doomsday Colossus** (**$140,000**,
+  50× a siege platform) — end-game mobile artillery with **3,200 range**, the longest
+  in the game: it out-ranges even the fortress gun and can dismantle one without
+  taking a shot back. 9,000 health, a 6,000-damage shell with a 260 blast, helpless
+  inside 500, blind past its own sight, and it crawls at speed 30
 - **Super-heavy endgame armour** — two machines beyond the superheavies:
   the **Citadel Landship / Iron Sovereign / Warlord Rig** ($25,000 — 24,000 hp, a
   900-damage gun and infantry sponsons) and the **Leviathan Fortress / Thunder Throne /
@@ -157,7 +168,7 @@ python3 -m http.server 8080
   before they can line up a second pass
 - **Spy war** — unarmed stealth spy planes with enormous sight, completely undetectable
   and untouchable: no weapon in the game can target or harm a pure recon plane
-- **Obsidian Strategic Bomber** (Coalition only, **max 5**, $100,000) — a cloaked
+- **Obsidian Strategic Bomber** (Coalition only, **max 10**, $100,000) — a cloaked
   flying wing carrying **one** nuclear payload. The bomb does 22,500 damage in a
   400-radius blast — the largest detonation in the game, wider than a Nuclear
   Missile — and unlike every other aircraft it hits structures at *full* force
@@ -206,7 +217,7 @@ python3 -m http.server 8080
 | Right click | Move / Attack / Harvest / Repair / Set rally |
 | Shift + right click | Queue waypoints |
 | Shift + click (while placing) | Queue multiple construction sites |
-| Q W E R / A S D F / Z X C V / G H K L | Command-grid hotkeys, 16 slots (shown on buttons) |
+| Q W E R / A S D F / Z X C V / G H K L / Y U N O | Command-grid hotkeys, 20 slots (shown on buttons) |
 | A / S / D | Attack-move · Stop · Guard area (with units selected) |
 | I | Cycle idle workers |
 | B / T / J | Global production panel: all barracks / factories / airfields (Shift-click = ×5) |

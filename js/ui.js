@@ -62,10 +62,11 @@ const UI = (() => {
     $('btn-menu').onclick = () => togglePause();
     $('btn-sound').onclick = () => toggleSound();
 
-    /* command grid buttons (16) */
+    /* command grid buttons (20) */
     const grid = $('cmdgrid');
-    const KEY_LABELS = ['Q', 'W', 'E', 'R', 'A', 'S', 'D', 'F', 'Z', 'X', 'C', 'V', 'G', 'H', 'K', 'L'];
-    for (let i = 0; i < 16; i++) {
+    const KEY_LABELS = ['Q', 'W', 'E', 'R', 'A', 'S', 'D', 'F', 'Z', 'X', 'C', 'V',
+      'G', 'H', 'K', 'L', 'Y', 'U', 'N', 'O'];
+    for (let i = 0; i < 20; i++) {
       const b = document.createElement('button');
       b.className = 'cmd-btn disabled';
       b.dataset.idx = i;
@@ -463,12 +464,12 @@ const UI = (() => {
 
   function refreshCmd() {
     const sel = INPUT.selection.filter(e => e.owner === 0 && !e.dead);
-    curCmds = new Array(16).fill(null);
+    curCmds = new Array(20).fill(null);
     const title = $('cmdtitle');
     const p = game.players[0];
 
     for (const b of cmdButtons) { b.className = 'cmd-btn disabled';
-      b.innerHTML = `<span class="hk">${['Q','W','E','R','A','S','D','F','Z','X','C','V','G','H','K','L'][b.dataset.idx]}</span>`; }
+      b.innerHTML = `<span class="hk">${['Q','W','E','R','A','S','D','F','Z','X','C','V','G','H','K','L','Y','U','N','O'][b.dataset.idx]}</span>`; }
 
     if (sel.length && globalProd) globalProd = null;   // picking something closes the global panel
     updateProdTabs();
@@ -477,7 +478,7 @@ const UI = (() => {
       const kind = globalProd;
       const list = prodBuildings(kind);
       title.textContent = `ALL ${bName(kind, p.faction)}s (${list.length}) — orders auto-split · Shift-click ×5`;
-      bTrains(kind, p.faction).forEach((uk, i) => { if (i < 16) curCmds[i] = { type: 'gtrain', key: uk, bkind: kind }; });
+      bTrains(kind, p.faction).forEach((uk, i) => { if (i < 20) curCmds[i] = { type: 'gtrain', key: uk, bkind: kind }; });
       paintCmds(p);
       return;
     }
@@ -494,7 +495,7 @@ const UI = (() => {
       title.textContent = FACTIONS[p.faction].dozerName + ' — construction';
       const keys = FACTIONS[p.faction].buildings.filter(k => k !== 'superweapon' || game.swAllowed !== false);
       keys.forEach((bk, i) => {
-        if (i >= 16) return;
+        if (i >= 20) return;
         curCmds[i] = { type: 'place', key: bk };
       });
     } else if (units.length) {
@@ -522,17 +523,17 @@ const UI = (() => {
         curCmds[7] = { type: 'cancelsite' }; // F
       } else {
         const trains = bTrains(building.key, p.faction);
-        trains.forEach((uk, i) => { if (i < 12) curCmds[i] = { type: 'train', key: uk, building }; });
+        trains.forEach((uk, i) => { if (i < 16) curCmds[i] = { type: 'train', key: uk, building }; });
         // purchasable upgrades fill the free slots after the unit list
-        let slot = Math.min(trains.length, 12);
+        let slot = Math.min(trains.length, 16);
         for (const up of (UPGRADES[building.key] || [])) {
           if (building.upgrades[up.key]) continue;
-          while (slot < 15 && curCmds[slot]) slot++;
-          if (slot >= 15) break;
+          while (slot < 19 && curCmds[slot]) slot++;
+          if (slot >= 19) break;
           curCmds[slot] = { type: 'upgrade', up, building };
           slot++;
         }
-        curCmds[15] = { type: 'sell' };      // L
+        curCmds[19] = { type: 'sell' };      // O
       }
     }
 

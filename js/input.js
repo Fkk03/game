@@ -19,7 +19,8 @@ const INPUT = (() => {
   let lastGroupKey = '', lastGroupT = 0;
   const keys = {};
 
-  const GRID_KEYS = ['q', 'w', 'e', 'r', 'a', 's', 'd', 'f', 'z', 'x', 'c', 'v', 'g', 'h', 'k', 'l'];
+  const GRID_KEYS = ['q', 'w', 'e', 'r', 'a', 's', 'd', 'f', 'z', 'x', 'c', 'v',
+    'g', 'h', 'k', 'l', 'y', 'u', 'n', 'o'];
 
   function init(canvas) {
     canvas.addEventListener('mousemove', e => {

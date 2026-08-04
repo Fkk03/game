@@ -518,6 +518,7 @@ const RENDER = (() => {
         case 'goliath': drawGoliath(u, c1, c2); break;
         case 'citadel': drawCitadel(u, c1, c2); break;
         case 'leviathan': drawLeviathan(u, c1, c2); break;
+        case 'annihilator': drawAnnihilator(u, c1, c2); break;
         case 'viper': drawViper(u, c1, c2); break;
         case 'aegis': drawAegis(u, c1, c2); break;
         case 'flak': drawFlakTruck(u, c1, c2); break;
@@ -959,6 +960,43 @@ const RENDER = (() => {
     // commander cupola
     ctx.fillStyle = U.shade(c2, 0.9);
     ctx.beginPath(); ctx.arc(-9, 6, 3.4, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+
+  /* Longbow Annihilator — end-game siege platform: long tracked chassis, folded
+     outriggers, an enormous barrel that overhangs the hull */
+  function drawAnnihilator(u, c1, c2) {
+    tankTreads(u, 44, 26, 5);
+    hullPlate(44, 26, c1, c2, 3);
+    // deployed outrigger spades
+    ctx.fillStyle = U.shade(c2, 0.7);
+    for (const sy of [-15, 15]) {
+      ctx.beginPath();
+      ctx.moveTo(-16, sy * 0.75); ctx.lineTo(-24, sy); ctx.lineTo(-19, sy * 1.05); ctx.lineTo(-13, sy * 0.8);
+      ctx.closePath(); ctx.fill();
+    }
+    // ammo hoist deck
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fillRect(-12, -8, 10, 16);
+    ctx.save();
+    ctx.rotate(U.angDiff(u.angle, u.tAngle));
+    const rec = (u.recoil = Math.max(0, (u.recoil || 0) - 0.04));
+    // heavy trunnion mount
+    ctx.fillStyle = U.shade(c1, 1.25); ctx.strokeStyle = c2; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(4, -10); ctx.lineTo(-10, -10); ctx.lineTo(-14, 0); ctx.lineTo(-10, 10); ctx.lineTo(4, 10);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,246,220,0.2)';
+    ctx.beginPath(); ctx.arc(-4, -3, 3.6, 0, 7); ctx.fill();
+    // the barrel: very long, stepped, with a slotted brake
+    ctx.fillStyle = '#1a1813';
+    ctx.fillRect(2 - rec * 10, -3.6, 46, 7.2);
+    ctx.fillStyle = '#2c2921';
+    ctx.fillRect(2 - rec * 10, -5, 12, 10);            // breech collar
+    ctx.fillStyle = '#3a362c';
+    ctx.fillRect(42 - rec * 10, -5.4, 6, 10.8);        // muzzle brake
+    ctx.fillStyle = '#14120e';
+    for (const bx of [30, 35]) ctx.fillRect(bx - rec * 10, -4.4, 2, 8.8);
     ctx.restore();
   }
 
@@ -1665,6 +1703,7 @@ const RENDER = (() => {
       case 'airfield': drawAirfield(b, s, c1, c2); break;
       case 'gatdef': drawGatDef(b, s, c1, c2, fac); break;
       case 'artdef': drawArtDef(b, s, c1, c2, fac); break;
+      case 'artfort': drawArtFort(b, s, c1, c2, fac); break;
       case 'repairbay': drawRepairBay(b, s, c1, c2); break;
       case 'market': drawMarket(b, s, c1, c2); break;
       case 'superweapon': drawSuper(b, s, c1, c2, fac); break;
@@ -2013,6 +2052,45 @@ const RENDER = (() => {
     // muzzle brake
     ctx.fillStyle = '#14120e';
     ctx.fillRect(2 - rec + s * 0.5 - 3, -3.2, 4, 6.4);
+    ctx.restore();
+    if (defenseOffline(b)) drawOfflineBolt(s);
+  }
+
+  /* Fortress artillery — a bunker ring around a siege gun on a turntable */
+  function drawArtFort(b, s, c1, c2, fac) {
+    // hardened bunker footprint
+    ctx.fillStyle = '#5f5943';
+    roundRect(s * 0.06, s * 0.06, s * 0.88, s * 0.88, 6); ctx.fill();
+    ctx.strokeStyle = '#3f3a29'; ctx.lineWidth = 2.5;
+    roundRect(s * 0.06, s * 0.06, s * 0.88, s * 0.88, 6); ctx.stroke();
+    // blast walls on the corners
+    ctx.fillStyle = '#4a4534';
+    for (const cx of [s * 0.14, s * 0.72]) for (const cy of [s * 0.14, s * 0.72]) {
+      roundRect(cx, cy, s * 0.14, s * 0.14, 2); ctx.fill();
+    }
+    // turntable
+    ctx.fillStyle = U.shade(c2, 0.75);
+    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.3, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(s * 0.5, s * 0.5, s * 0.3, 0, 7); ctx.stroke();
+    ctx.save();
+    ctx.translate(s * 0.5, s * 0.5);
+    ctx.rotate(b.tAngle || 0);
+    const w = BUILDINGS.artfort.weaponByFaction[game.players[b.owner] ? game.players[b.owner].faction : 'coalition'];
+    const rec = b.cool > 0 ? Math.max(0, (b.cool / w.cd) - 0.75) * 16 : 0;
+    // recoil cradle
+    ctx.fillStyle = U.shade(c2, 0.9);
+    roundRect(-s * 0.22, -s * 0.11, s * 0.36, s * 0.22, 3); ctx.fill();
+    ctx.fillStyle = U.shade(c1, 1.2);
+    ctx.beginPath(); ctx.arc(0, 0, s * 0.13, 0, 7); ctx.fill();
+    ctx.strokeStyle = U.shade(c2, 0.65); ctx.lineWidth = 1.2; ctx.stroke();
+    // colossal barrel overhanging the bunker
+    ctx.fillStyle = '#1a1813';
+    ctx.fillRect(2 - rec, -s * 0.075, s * 0.72, s * 0.15);
+    ctx.fillStyle = '#3a362c';
+    ctx.fillRect(2 - rec + s * 0.66, -s * 0.1, s * 0.09, s * 0.2);
+    ctx.fillStyle = '#14120e';
+    for (const k of [0.44, 0.53]) ctx.fillRect(2 - rec + s * k, -s * 0.09, s * 0.025, s * 0.18);
     ctx.restore();
     if (defenseOffline(b)) drawOfflineBolt(s);
   }

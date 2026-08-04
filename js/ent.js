@@ -767,10 +767,24 @@ class Unit {
       return false;
     };
 
-    /* Troops shoot out of the gun ports while riding. Only `gunPorts` of them can
-       reach a firing position at once, so a full load is not a flying fortress —
-       each gunner uses its own weapon, cooldown and range, and earns its own kills. */
+    /* Every soldier aboard mans a gun port and shoots out, using its own weapon,
+       cooldown, range and kill credit. One shared sweep serves the whole cabin —
+       scanning per gunner would cost twenty entity passes a frame on a full load. */
     if (def.gunPorts && this.cargo && this.cargo.length) {
+      this.portScanT = (this.portScanT || 0) - dt;
+      if (this.portScanT <= 0) {
+        this.portScanT = 0.3;
+        const near = [];
+        for (const e of game.ents) {
+          if (e.dead || e.kind !== 'unit' || !isEnemy(this, e)) continue;
+          if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
+          const dd = U.dist(this.x, this.y, e.x, e.y);
+          if (dd < 280) near.push({ e, d: dd });      // 280 covers the longest infantry reach
+        }
+        near.sort((a, b) => a.d - b.d);
+        if (near.length > 8) near.length = 8;
+        this.portTargets = near;
+      }
       let ports = def.gunPorts;
       for (const id of this.cargo) {
         if (ports <= 0) break;
@@ -779,21 +793,13 @@ class Unit {
         ports--;
         g.x = this.x; g.y = this.y;                 // ride along so shots come from the cabin
         if (g.cool > 0) { g.cool -= dt; continue; }
-        // throttle the search: with no target in reach this would otherwise sweep the
-        // entity list every frame for every gunner
-        g.portScanT = (g.portScanT || 0) - dt;
-        if (g.portScanT > 0) continue;
-        g.portScanT = 0.35;
         const gw = g.def.weapon;
-        let best = null, bd = Infinity;
-        for (const e of game.ents) {
-          if (e.dead || e.kind !== 'unit' || !isEnemy(this, e)) continue;
-          if (!weaponCanHit(gw, e)) continue;
-          if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
-          const dd = U.dist(this.x, this.y, e.x, e.y);
-          if (dd < gw.range && dd < bd) { bd = dd; best = e; }
+        for (const c of (this.portTargets || [])) {
+          if (c.e.dead || c.d >= gw.range || !weaponCanHit(gw, c.e)) continue;
+          g.cool = gw.cd;
+          fireWeapon(g, gw, c.e);
+          break;
         }
-        if (best) { g.cool = gw.cd; fireWeapon(g, gw, best); }
       }
     }
 
