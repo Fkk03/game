@@ -157,7 +157,7 @@ python3 -m http.server 8080
   before they can line up a second pass
 - **Spy war** — unarmed stealth spy planes with enormous sight, completely undetectable
   and untouchable: no weapon in the game can target or harm a pure recon plane
-- **Obsidian Strategic Bomber** (Coalition only, **max 2**, $100,000) — a cloaked
+- **Obsidian Strategic Bomber** (Coalition only, **max 5**, $100,000) — a cloaked
   flying wing carrying **one** nuclear payload. The bomb does 22,500 damage in a
   400-radius blast — the largest detonation in the game, wider than a Nuclear
   Missile — and unlike every other aircraft it hits structures at *full* force
