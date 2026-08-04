@@ -40,7 +40,7 @@ async function boot() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.02;
+  renderer.toneMappingExposure = 1.06;
   G.renderer = renderer;
 
   G.scene = new THREE.Scene();
@@ -117,7 +117,10 @@ function startGame() {
 function setupComposer() {
   const composer = new EffectComposer(G.renderer);
   composer.addPass(new RenderPass(G.scene, G.camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.28, 0.6, 0.88);
+  // Composer buffers are linear HDR: sunlit sand sits around 1.5-2.0, so a
+  // low threshold blooms the whole ground into milk. Keep bloom for genuinely
+  // emissive FX (explosions, muzzle flashes, tracers) only.
+  const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.45, 0.45, 2.0);
   composer.addPass(bloom);
   const GradeShader = {
     uniforms: { tDiffuse: { value: null } },
@@ -127,17 +130,21 @@ function setupComposer() {
       void main(){
         vec4 c = texture2D(tDiffuse, vUv);
         vec3 col = max(c.rgb, 0.0);
-        col = pow(col, vec3(1.045));
-        col *= vec3(1.035, 1.0, 0.945);
+        // high-key desert grade: lift the toe a touch (shadow sides stay
+        // readable), warm sun-drenched tint, saturated sand
+        col = pow(col, vec3(0.965));
+        col *= vec3(1.05, 1.0, 0.92);
         float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
-        col = mix(vec3(l), col, 1.08);
+        col = mix(vec3(l), col, 1.16);
         gl_FragColor = vec4(col, c.a);
       }`,
   };
   composer.addPass(new ShaderPass(GradeShader));
+  // barely-there vignette — the RTS view wants an even bright field, and a
+  // strong vignette reads as "dark dirty corners" at this pitch
   const vign = new ShaderPass(VignetteShader);
-  vign.uniforms.offset.value = 0.98;
-  vign.uniforms.darkness.value = 1.0;
+  vign.uniforms.offset.value = 1.1;
+  vign.uniforms.darkness.value = 0.5;
   composer.addPass(vign);
   composer.addPass(new OutputPass());
   G.composer = composer;

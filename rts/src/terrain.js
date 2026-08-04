@@ -114,7 +114,7 @@ export function buildTerrain() {
   // ---- composite painted ground texture ----
   const { tex, bump } = paintGround();
   const mat = new THREE.MeshStandardMaterial({
-    map: tex, bumpMap: bump, bumpScale: 0.9,
+    map: tex, bumpMap: bump, bumpScale: 1.8,   // RTS top-down needs stronger relief than FPS grazing angles
     roughness: 0.96, metalness: 0.0,
   });
   injectDetail(mat);
@@ -165,46 +165,83 @@ function paintGround() {
     x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
   }
 
-  // large-scale warm/cool colour drift + slope/altitude rock underpaint,
-  // computed at height-grid resolution then upscaled (soft and painterly)
+  // large-scale warm/cool colour drift + slope/altitude rock underpaint.
+  // Computed at 1024² (the old 256² upscale read as blurry mush at RTS zoom)
+  // so mesa strata and cliff shading stay crisp; the low-frequency noise
+  // terms are cached on coarse grids and bilinear-sampled.
   const N = GRID + 1;
   {
-    const S = GRID;
-    const cell = WORLD_SIZE / GRID;
+    const S = 1024;
+    const DG = 160;
+    const DW = DG + 1;
+    const drift = new Float32Array(DW * DW);
+    const drift2 = new Float32Array(DW * DW);
+    const bandN = new Float32Array(DW * DW);
+    for (let j = 0; j <= DG; j++) for (let i = 0; i <= DG; i++) {
+      const nx = i / DG - 0.5, nz = j / DG - 0.5;
+      drift[j * DW + i] = fbm(nx * 2.3 + 17, nz * 2.3 + 17);
+      drift2[j * DW + i] = fbm(nx * 1.1 + 31, nz * 1.1 + 31);
+      bandN[j * DW + i] = fbm(nx * 7 + 3, nz * 7 + 3);
+    }
+    const lerpG = (grid, u, v) => {
+      const fx = u * DG, fz = v * DG;
+      const ix = Math.min(fx | 0, DG - 1), iz = Math.min(fz | 0, DG - 1);
+      const tx = fx - ix, tz = fz - iz;
+      return (grid[iz * DW + ix] * (1 - tx) + grid[iz * DW + ix + 1] * tx) * (1 - tz)
+           + (grid[(iz + 1) * DW + ix] * (1 - tx) + grid[(iz + 1) * DW + ix + 1] * tx) * tz;
+    };
+    const sstep = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+    const hash2 = (ix, iz) => {
+      let n = ix * 374761393 + iz * 668265263;
+      n = (n ^ (n >>> 13)) * 1274126177;
+      return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+    };
+    const cell = WORLD_SIZE / S;
     const tc = document.createElement('canvas');
     tc.width = tc.height = S;
     const tcx = tc.getContext('2d');
     const img = tcx.createImageData(S, S);
     const d = img.data;
+    // horizontal component of the sun (sky.js SUN_DIR) for baked aspect tint
+    const sunX = -0.62, sunZ = -0.38;
     for (let iz = 0; iz < S; iz++) {
       for (let ix = 0; ix < S; ix++) {
-        const nx = ix / S - 0.5, nz = iz / S - 0.5;
-        const i0 = Math.max(ix - 1, 0), i1 = Math.min(ix + 1, GRID);
-        const j0 = Math.max(iz - 1, 0), j1 = Math.min(iz + 1, GRID);
-        const h = heights[iz * N + ix];
-        const sx = (heights[iz * N + i1] - heights[iz * N + i0]) / ((i1 - i0) * cell);
-        const sz = (heights[j1 * N + ix] - heights[j0 * N + ix]) / ((j1 - j0) * cell);
+        const u = ix / S, v = iz / S;
+        const wx = (u - 0.5) * WORLD_SIZE, wz = (v - 0.5) * WORLD_SIZE;
+        const h = sampleHeight(wx, wz);
+        const sx = (sampleHeight(wx + cell * 2, wz) - sampleHeight(wx - cell * 2, wz)) / (cell * 4);
+        const sz = (sampleHeight(wx, wz + cell * 2) - sampleHeight(wx, wz - cell * 2)) / (cell * 4);
         const slope = Math.hypot(sx, sz);
-        // warm gold ↔ cool taupe drift across the dune field
-        const t = fbm(nx * 2.3 + 17, nz * 2.3 + 17);
-        const warm = clamp(0.5 + t * 0.42, 0, 1);
-        let r = 158 + warm * 66;
-        let g = 148 + warm * 36;
-        let b = 138 - warm * 20;
-        let a = 0.3;
+        // two-octave warm gold ↔ cool taupe drift so the overview isn't monotone
+        const t = lerpG(drift, u, v) * 0.75 + lerpG(drift2, u, v) * 0.6;
+        const warm = clamp(0.5 + t * 0.5, 0, 1);
+        // baked aspect: sun-facing dune slopes glow warm, lee slopes cool off
+        const lit = clamp((-sx * sunX - sz * sunZ) * 2.2, -1, 1);
+        let r = 150 + warm * 74 + lit * 15;
+        let g = 141 + warm * 42 + lit * 7;
+        let b = 132 - warm * 22 - lit * 9;
+        let a = 0.34;
         // rock exposure: slope-driven (mesa risers) with a milder altitude term,
         // so terrace benches keep a drape of sand between rocky steps
-        let rock = clamp((slope - 0.38) / 0.42, 0, 1);
+        let rock = clamp((slope - 0.36) / 0.4, 0, 1);
         rock = rock * rock * (3 - 2 * rock);
-        rock = Math.max(rock, clamp((h - 17) / 14, 0, 1) * 0.55);
+        rock = Math.max(rock, clamp((h - 17) / 14, 0, 1) * 0.6);
         if (rock > 0.01) {
-          // strata banding keyed to altitude → mesa layers
-          const band = 0.5 + 0.5 * Math.sin(h * 1.15 + fbm(nx * 7 + 3, nz * 7 + 3) * 1.8);
-          const rr = 92 + band * 71, rg = 77 + band * 61, rb = 63 + band * 44;
-          r = r * (1 - rock) + rr * rock;
-          g = g * (1 - rock) + rg * rock;
-          b = b * (1 - rock) + rb * rock;
-          a = a * (1 - rock) + 0.92 * rock;
+          // crisp strata banding keyed to altitude → distinct mesa layers with
+          // a dark parting seam at each layer base
+          const s0 = Math.sin(h * 1.25 + lerpG(bandN, u, v) * 1.9);
+          const band = sstep(-0.35, 0.45, s0);
+          const seam = sstep(0.72, 0.98, -s0);
+          const spec = (hash2(ix, iz) - 0.5) * 30 * rock;  // rough per-pixel speckle
+          let rr = 74 + band * 98 - seam * 34 + lit * 12;
+          let rg = 62 + band * 78 - seam * 27 + lit * 6;
+          let rb = 52 + band * 52 - seam * 19 - lit * 4;
+          const cliffAO = clamp((slope - 1.1) * 0.45, 0, 0.3);  // deep faces darken
+          rr *= 1 - cliffAO; rg *= 1 - cliffAO; rb *= 1 - cliffAO;
+          r = r * (1 - rock) + (rr + spec) * rock;
+          g = g * (1 - rock) + (rg + spec * 0.85) * rock;
+          b = b * (1 - rock) + (rb + spec * 0.7) * rock;
+          a = a * (1 - rock) + Math.min(0.95, 0.82 + seam * 0.13) * rock;
         }
         const k4 = (iz * S + ix) * 4;
         d[k4] = r; d[k4 + 1] = g; d[k4 + 2] = b; d[k4 + 3] = a * 255;
@@ -289,17 +326,49 @@ function paintGround() {
     }
   }
 
-  // scorch + tire marks inside the base
-  const b = LAYOUT.base;
-  for (let i = 0; i < 14; i++) {
-    const a = rng() * Math.PI * 2, d = rng() * b.r * 0.8;
-    const px = w2t(b.x + Math.cos(a) * d), py = w2t(b.z + Math.sin(a) * d);
-    const r = (2 + rng() * 6) / WORLD_SIZE * TEX;
-    const g = x.createRadialGradient(px, py, 0, px, py, r);
-    g.addColorStop(0, `rgba(40,32,24,${0.25 + rng() * 0.3})`);
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    x.fillStyle = g;
-    x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
+  // base plateaus: packed-dirt fill, tire-wear arcs, oil stains, scorch —
+  // the crisp grid scoring is added per-pixel in injectDetail()
+  for (const b of [LAYOUT.base, LAYOUT.lz]) {
+    const bx = w2t(b.x), by = w2t(b.z), br = b.r / WORLD_SIZE * TEX;
+    // hard-packed apron disc, slightly lighter + greyer than open sand
+    const g0 = x.createRadialGradient(bx, by, 0, bx, by, br);
+    g0.addColorStop(0, 'rgba(178,155,120,0.55)');
+    g0.addColorStop(0.72, 'rgba(172,148,113,0.42)');
+    g0.addColorStop(1, 'rgba(172,148,113,0)');
+    x.fillStyle = g0;
+    x.beginPath(); x.arc(bx, by, br, 0, 7); x.fill();
+    // tire-wear ring arcs (vehicles circling the yard)
+    for (let i = 0; i < 22; i++) {
+      const rr = br * (0.15 + rng() * 0.72);
+      const a0 = rng() * Math.PI * 2, span = 0.5 + rng() * 2.4;
+      x.strokeStyle = `rgba(104,84,56,${0.12 + rng() * 0.16})`;
+      x.lineWidth = (0.35 + rng() * 0.8) / WORLD_SIZE * TEX;
+      x.beginPath(); x.arc(bx, by, rr, a0, a0 + span); x.stroke();
+    }
+    // straight wear lanes crossing the yard
+    for (let i = 0; i < 8; i++) {
+      const a0 = rng() * Math.PI * 2, a1 = a0 + Math.PI * (0.6 + rng() * 0.8);
+      const r0 = br * (0.3 + rng() * 0.6), r1 = br * (0.3 + rng() * 0.6);
+      x.strokeStyle = `rgba(190,168,132,${0.14 + rng() * 0.16})`;
+      x.lineWidth = (1.2 + rng() * 1.6) / WORLD_SIZE * TEX;
+      x.beginPath();
+      x.moveTo(bx + Math.cos(a0) * r0, by + Math.sin(a0) * r0);
+      x.lineTo(bx + Math.cos(a1) * r1, by + Math.sin(a1) * r1);
+      x.stroke();
+    }
+    // oil stains + scorch
+    for (let i = 0; i < 16; i++) {
+      const a = rng() * Math.PI * 2, dd = rng() * b.r * 0.8;
+      const px = w2t(b.x + Math.cos(a) * dd), py = w2t(b.z + Math.sin(a) * dd);
+      const r = (1.2 + rng() * 5.5) / WORLD_SIZE * TEX;
+      const g = x.createRadialGradient(px, py, 0, px, py, r);
+      const oil = rng() < 0.4;
+      g.addColorStop(0, oil ? `rgba(28,24,20,${0.3 + rng() * 0.3})`
+                            : `rgba(46,36,26,${0.22 + rng() * 0.28})`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g;
+      x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
+    }
   }
 
   // fine grain
@@ -311,50 +380,137 @@ function paintGround() {
 
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 8;
+  tex.anisotropy = 16;   // ~50° camera pitch: high aniso keeps midground sharp
   tex.needsUpdate = true;
 
-  // bump: grayscale copy + noise
+  // bump: grayscale copy + world-scale dune ripples + noise. 2048 so the
+  // painted mesa strata contribute relief at RTS zoom.
+  const BS = 2048;
   const bc = document.createElement('canvas');
-  bc.width = bc.height = 1024;
+  bc.width = bc.height = BS;
   const bx = bc.getContext('2d');
-  bx.drawImage(c, 0, 0, 1024, 1024);
+  bx.drawImage(c, 0, 0, BS, BS);
   bx.globalCompositeOperation = 'saturation';
-  bx.fillStyle = '#888'; bx.fillRect(0, 0, 1024, 1024);
+  bx.fillStyle = '#888'; bx.fillRect(0, 0, BS, BS);
   bx.globalCompositeOperation = 'source-over';
-  for (let i = 0; i < 16000; i++) {
+  // wind ripples baked at world scale (~3.5m wavelength, one wind direction),
+  // drawn in a rotated frame so crests run diagonal to the grid
+  bx.save();
+  bx.translate(BS / 2, BS / 2);
+  bx.rotate(-0.42);
+  const RR = BS * 0.75;
+  for (let i = 0; i < 260; i++) {
+    const y0 = (rng() * 2 - 1) * RR;
+    const amp = 4 + rng() * 9, ph = rng() * 9, wl = 0.010 + rng() * 0.012;
+    for (let pass = 0; pass < 2; pass++) {
+      bx.globalAlpha = pass ? 0.075 : 0.09;
+      bx.strokeStyle = pass ? '#c9c9c9' : '#4c4c4c';
+      bx.lineWidth = 2.2 + rng() * 2.4;
+      bx.beginPath();
+      for (let px = -RR; px <= RR; px += 24) {
+        const py = y0 + Math.sin(px * wl + ph) * amp + (pass ? 2.4 : 0);
+        px === -RR ? bx.moveTo(px, py) : bx.lineTo(px, py);
+      }
+      bx.stroke();
+    }
+  }
+  bx.restore();
+  bx.globalAlpha = 1;
+  for (let i = 0; i < 30000; i++) {
     const v = rng() < 0.5;
     bx.fillStyle = v ? `rgba(255,255,255,${0.10 * rng()})` : `rgba(0,0,0,${0.12 * rng()})`;
-    bx.fillRect(rng() * 1024, rng() * 1024, 2, 2);
+    bx.fillRect(rng() * BS, rng() * BS, 2, 2);
   }
   const bump = new THREE.CanvasTexture(bc);
-  bump.anisotropy = 4;
+  bump.anisotropy = 8;
 
   return { tex, bump };
 }
 
-// multiply tiled sand detail into the albedo so close-up ground isn't blurry
+// multiply tiled sand detail into the albedo. Three octaves cover the RTS
+// zoom band (camera 34-170m off the ground at ~50° pitch): a close grain for
+// max zoom-in, a mid dune-grain octave that carries the default zoom, and a
+// broad mottle octave so the far overview never flattens to felt. The base
+// discs additionally get a procedural packed-concrete apron — per-slab tone,
+// grid scoring, tire-wear mottle — which stays crisp at any zoom, unlike the
+// 2048 painted map (~3.4px/m).
 function injectDetail(mat) {
   const det = sandDetail();
+  // measure the detail map's mean linear luminance so the octave modulation
+  // is centred (no net brighten/darken of the painted ground)
+  let dMean = 0.62;
+  {
+    const dImg = det.image;
+    const dcx = dImg.getContext('2d');
+    const dd = dcx.getImageData(0, 0, dImg.width, dImg.height).data;
+    let s = 0;
+    for (let i = 0; i < dd.length; i += 16) {   // every 4th pixel is plenty
+      const l = (dd[i] * 0.2126 + dd[i + 1] * 0.7152 + dd[i + 2] * 0.0722) / 255;
+      s += Math.pow(l, 2.2);                    // canvas is sRGB; shader samples linear
+    }
+    dMean = s / (dd.length / 16);
+  }
+  const b0 = LAYOUT.base, b1 = LAYOUT.lz;
+  const f1 = (v) => v.toFixed(1), f4 = (v) => v.toFixed(4);
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.detailMap = { value: det };
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <map_pars_fragment>',
-        '#include <map_pars_fragment>\nuniform sampler2D detailMap;')
+        `#include <map_pars_fragment>
+         uniform sampler2D detailMap;
+         float slabHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }`)
       .replace('#include <map_fragment>',
         `#include <map_fragment>
-         // two detail octaves at different scale/rotation, chosen per-region by a
-         // low-frequency mask so the tiling never lines up
-         vec3 det1 = texture2D(detailMap, vMapUv * 90.0).rgb;
-         mat2 dRot = mat2(0.7986, -0.6018, 0.6018, 0.7986);
-         vec3 det2 = texture2D(detailMap, dRot * vMapUv * 41.3 + vec2(0.37, 0.71)).rgb;
-         float dMask = texture2D(detailMap, dRot * vMapUv * 4.7 + vec2(0.13, 0.57)).g;
-         vec3 det = mix(det1, det2, clamp((dMask - 0.62) * 8.0 + 0.5, 0.0, 1.0));
-         float dl = dot(det, vec3(0.333));
-         // fade detail out with distance — repetition is a mid-range artifact
-         float dFade = 1.0 - smoothstep(18.0, 110.0, length(vViewPosition));
-         float dStr = 0.55 * mix(0.15, 1.0, dFade);
-         diffuseColor.rgb *= mix(vec3(1.0), det / max(dl, 0.001) * (0.55 + dl * 0.65), dStr);`);
+         {
+           mat2 dRot = mat2(0.7986, -0.6018, 0.6018, 0.7986);
+           float dDist = length(vViewPosition);
+           // plane UVs map linearly onto the world: u = x/W+0.5, v = 0.5-z/W
+           vec2 wxz = vec2((vMapUv.x - 0.5) * ${f1(WORLD_SIZE)},
+                           (0.5 - vMapUv.y) * ${f1(WORLD_SIZE)});
+           // low-frequency region mask so octave tiling never lines up
+           float dMask = texture2D(detailMap, dRot * vMapUv * 4.7 + vec2(0.13, 0.57)).g;
+
+           // ---- worn concrete/packed-dirt aprons on the base plateaus ----
+           float apron = max(
+             1.0 - smoothstep(${f1(b0.r * 0.60)}, ${f1(b0.r * 0.95)},
+                              distance(wxz, vec2(${f1(b0.x)}, ${f1(b0.z)}))),
+             1.0 - smoothstep(${f1(b1.r * 0.60)}, ${f1(b1.r * 0.95)},
+                              distance(wxz, vec2(${f1(b1.x)}, ${f1(b1.z)}))));
+           if (apron > 0.004) {
+             vec2 gp = wxz / 7.5;                     // 7.5m slab grid
+             vec2 gf = abs(fract(gp) - 0.5);
+             float joint = smoothstep(0.415, 0.475, max(gf.x, gf.y));
+             float panel = slabHash(floor(gp));
+             float wear  = texture2D(detailMap, dRot * vMapUv * 23.0 + vec2(0.41, 0.87)).g;
+             float wear2 = texture2D(detailMap, vMapUv * 57.0 + vec2(0.77, 0.31)).g;
+             vec3 ap = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3333))), 0.30);
+             ap *= 1.05;                              // sun-bleached concrete lift
+             ap *= 0.94 + panel * 0.12;               // per-slab tone variation
+             ap *= 0.90 + wear * 0.22;                // broad tire-wear mottle
+             ap *= 0.95 + wear2 * 0.10;               // fine chip noise
+             float gridFade = 1.0 - smoothstep(170.0, 330.0, dDist);
+             ap *= 1.0 - joint * 0.22 * gridFade;     // scored expansion joints
+             diffuseColor.rgb = mix(diffuseColor.rgb, ap, apron * 0.8);
+           }
+
+           // ---- distance-banded detail octaves ----
+           vec3 c1 = texture2D(detailMap, vMapUv * 95.0).rgb;
+           vec3 c2 = texture2D(detailMap, dRot * vMapUv * 61.0 + vec2(0.37, 0.71)).rgb;
+           float lC = dot(mix(c1, c2, clamp((dMask - 0.62) * 8.0 + 0.5, 0.0, 1.0)), vec3(0.3333));
+           float m1 = dot(texture2D(detailMap, dRot * vMapUv * 33.0 + vec2(0.19, 0.43)).rgb, vec3(0.3333));
+           float m2 = dot(texture2D(detailMap, vMapUv * 20.7 + vec2(0.53, 0.11)).rgb, vec3(0.3333));
+           float lM = mix(m1, m2, clamp((dMask - 0.5) * 6.0 + 0.5, 0.0, 1.0));
+           float lF = dot(texture2D(detailMap, dRot * vMapUv * 10.3 + vec2(0.71, 0.29)).rgb, vec3(0.3333));
+           float fC = 1.0 - smoothstep(45.0, 130.0, dDist);   // close grain
+           float fM = 1.0 - smoothstep(40.0, 260.0, dDist);   // main RTS band
+           float fF = 1.0 - smoothstep(90.0, 520.0, dDist);   // overview mottle
+           float lum = 1.0;
+           lum *= 1.0 + (lC - ${f4(dMean)}) * 1.05 * fC;
+           lum *= 1.0 + (lM - ${f4(dMean)}) * 1.45 * max(fM, 0.12);
+           lum *= 1.0 + (lF - ${f4(dMean)}) * 0.90 * fF;
+           // gentler grain on the aprons — packed concrete, not loose dunes
+           diffuseColor.rgb *= mix(lum, 1.0 + (lum - 1.0) * 0.55, apron);
+         }`);
   };
 }
 
@@ -364,6 +520,16 @@ function scatter() {
   scatterRocks(rng);
   scatterShrubs(rng);
   scatterStones(rng);
+  scatterLandmarks(makeRng(9273));
+}
+
+// lowest ground within radius r of (x,z) — settle scatter so nothing floats
+// on the downhill side at the RTS pitch
+function groundMin(x, z, r) {
+  let m = sampleHeight(x, z);
+  m = Math.min(m, sampleHeight(x + r, z), sampleHeight(x - r, z),
+                  sampleHeight(x, z + r), sampleHeight(x, z - r));
+  return m;
 }
 
 function nearRoad(x, z, limit = 9) {
@@ -409,7 +575,7 @@ function scatterRocks(rng) {
     const m = meshes[Math.floor(rng() * meshes.length)];
     if (m.count >= count) continue;
     const s = 0.5 + rng() * rng() * 3.4;
-    const y = sampleHeight(x, z) + s * 0.15;
+    const y = groundMin(x, z, s * 0.6) + s * 0.06;
     Q.setFromEuler(new THREE.Euler(0, rng() * 7, (rng() - 0.5) * 0.2));
     S.set(s * (0.8 + rng() * 0.5), s, s * (0.8 + rng() * 0.5));
     M.compose(new THREE.Vector3(x, y, z), Q, S);
@@ -475,7 +641,7 @@ function scatterShrubs(rng) {
       const s = 0.7 + rng() * 1.6;
       Q.setFromEuler(new THREE.Euler(0, rng() * 7, 0));
       S.set(s * 1.3, s, s * 1.3);
-      M.compose(new THREE.Vector3(x, sampleHeight(x, z), z), Q, S);
+      M.compose(new THREE.Vector3(x, groundMin(x, z, s * 0.55) - s * 0.04, z), Q, S);
       mesh.setMatrixAt(mesh.count++, M);
     }
     mesh.instanceMatrix.needsUpdate = true;
@@ -498,10 +664,136 @@ function scatterStones(rng) {
     const s = 0.5 + rng() * 2;
     Q.setFromEuler(new THREE.Euler(rng() * 7, rng() * 7, 0));
     S.set(s, s * 0.7, s);
-    M.compose(new THREE.Vector3(x, sampleHeight(x, z) + 0.03, z), Q, S);
+    M.compose(new THREE.Vector3(x, groundMin(x, z, s * 0.16) + 0.01, z), Q, S);
     mesh.setMatrixAt(mesh.count++, M);
   }
   mesh.instanceMatrix.needsUpdate = true;
+}
+
+// ------------------------------------------------------- landmark formations
+// A few large terraced buttes along the valley so the RTS overview has
+// composition anchors (GZH maps always frame lanes with big rock features).
+function makeStrataTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const x = c.getContext('2d');
+  const rng = makeRng(777);
+  const bands = 9, bh = 128 / bands;
+  for (let i = 0; i < bands; i++) {
+    // palette matches the mesa underpaint strata
+    const t = 0.5 + 0.5 * Math.sin(i * 2.1 + 0.8);
+    const r = 96 + t * 76 + (rng() - 0.5) * 18;
+    const g = 80 + t * 58 + (rng() - 0.5) * 14;
+    const b = 66 + t * 38 + (rng() - 0.5) * 10;
+    const y0 = i * bh;
+    x.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`;
+    x.fillRect(0, y0, 128, bh + 1);
+    x.fillStyle = 'rgba(38,28,18,0.55)';           // parting seam
+    x.fillRect(0, y0, 128, 2);
+    x.fillStyle = 'rgba(255,236,200,0.20)';        // lit lip below the seam
+    x.fillRect(0, y0 + 2, 128, 1.5);
+  }
+  for (let i = 0; i < 300; i++) {                  // vertical weather streaks
+    x.fillStyle = rng() < 0.5 ? `rgba(50,38,24,${0.05 + rng() * 0.10})`
+                              : `rgba(232,206,160,${0.04 + rng() * 0.08})`;
+    x.fillRect(rng() * 128, rng() * 128, 1 + rng() * 2.5, 2 + rng() * 9);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
+// terraced butte: cylinder with per-ring scale + angular jitter, flat top
+function butteGeo(rng, rad, h) {
+  const seg = 10, rings = 5;
+  const g = new THREE.CylinderGeometry(rad * (0.52 + rng() * 0.2), rad, h, seg, rings);
+  const sideCount = (seg + 1) * (rings + 1);
+  const rs = [];
+  for (let i = 0; i <= rings; i++) rs.push(0.88 + rng() * 0.2);
+  const p1 = 0.6 + rng() * 5, p2 = rng() * 6;
+  const pos = g.attributes.position, uv = g.attributes.uv;
+  for (let i = 0; i < pos.count; i++) {
+    const px = pos.getX(i), py = pos.getY(i), pz = pos.getZ(i);
+    const yr = clamp((py + h / 2) / h, 0, 1);
+    const a = Math.atan2(pz, px);
+    // angular lobes + per-ring randomness → craggy silhouette, still stacked
+    const j = (1 + 0.14 * Math.sin(a * 3 + p1) + 0.09 * Math.sin(a * 7 + p2))
+            * rs[Math.round(yr * rings)];
+    pos.setXYZ(i, px * j, py, pz * j);
+    // strata bands ~1 per metre of height
+    if (i < sideCount) uv.setY(i, yr * h / 8);
+    else uv.setXY(i, 0.5, 0.38);   // caps sample a light band interior (flat top)
+  }
+  g.computeVertexNormals();
+  return g;
+}
+
+function scatterLandmarks(rng) {
+  const strata = makeStrataTexture();
+  const mat = new THREE.MeshStandardMaterial({
+    map: strata, roughness: 0.97, metalness: 0, flatShading: true,
+  });
+  // hand-placed along the valley + open quadrants; away from roads/POIs/docks
+  const spots = [
+    { x: -18, z: 68, s: 1.15 },    // mid-valley south of the main road
+    { x: 62, z: 112, s: 0.95 },    // between oasis and oil field
+    { x: -108, z: -92, s: 1.35 },  // NW quadrant
+    { x: 150, z: 8, s: 1.05 },     // east of the oil field
+    { x: -30, z: -152, s: 0.95 },  // north, flanking the contested dock
+    { x: 105, z: 158, s: 1.25 },   // SE open sand
+    { x: -158, z: -38, s: 0.9 },   // west approach
+  ];
+  const geos = [];
+  const tmpM = new THREE.Matrix4(), tmpE = new THREE.Euler();
+  for (const sp of spots) {
+    if (nearRoad(sp.x, sp.z, 20) || nearPOI(sp.x, sp.z, 10)) continue;
+    let bad = false;
+    for (const dk of LAYOUT.docks) {
+      if (Math.hypot(sp.x - dk.x, sp.z - dk.z) < 26) bad = true;
+    }
+    if (bad) continue;
+    const n = 1 + ((rng() * 2.3) | 0);   // 1 main butte + 0-2 companions
+    for (let k = 0; k < n; k++) {
+      const main = k === 0;
+      const rad = (main ? 5.5 + rng() * 2.5 : 2.5 + rng() * 2) * sp.s;
+      const h = (main ? 9 + rng() * 5 : 4 + rng() * 3.5) * sp.s;
+      const a = rng() * Math.PI * 2, d = main ? 0 : rad + 4 + rng() * 5;
+      const bx = sp.x + Math.cos(a) * d, bz = sp.z + Math.sin(a) * d;
+      const g = butteGeo(rng, rad, h);
+      tmpE.set((rng() - 0.5) * 0.06, rng() * 7, (rng() - 0.5) * 0.06);
+      tmpM.makeRotationFromEuler(tmpE);
+      tmpM.setPosition(bx, groundMin(bx, bz, rad * 0.7) + h / 2 - h * 0.08, bz);
+      g.applyMatrix4(tmpM);
+      geos.push(g);
+      // talus boulders around the foot
+      const nt = 2 + ((rng() * 3) | 0);
+      for (let t = 0; t < nt; t++) {
+        const ta = rng() * Math.PI * 2, td = rad * (1.1 + rng() * 0.7);
+        const tx = bx + Math.cos(ta) * td, tz = bz + Math.sin(ta) * td;
+        if (nearRoad(tx, tz, 12)) continue;
+        const ts = (0.8 + rng() * 1.4) * sp.s;
+        const tg = new THREE.DodecahedronGeometry(ts, 0);
+        // polyhedra are non-indexed; mergeGeos only carries indexed triangles
+        tg.setIndex([...Array(tg.attributes.position.count).keys()]);
+        const tuv = tg.attributes.uv;
+        for (let i = 0; i < tuv.count; i++) {
+          tuv.setXY(i, tuv.getX(i) * 0.5, 0.33 + tuv.getY(i) * 0.06);  // one band
+        }
+        tmpE.set(rng() * 7, rng() * 7, 0);
+        tmpM.makeRotationFromEuler(tmpE);
+        tmpM.setPosition(tx, groundMin(tx, tz, ts * 0.5) + ts * 0.25, tz);
+        tg.applyMatrix4(tmpM);
+        geos.push(tg);
+      }
+    }
+  }
+  if (!geos.length) return;
+  const mesh = new THREE.Mesh(mergeGeos(geos), mat);
+  mesh.castShadow = mesh.receiveShadow = true;
+  mesh.name = 'landmarks';
+  G.scene.add(mesh);
+  G.shootables.push(mesh);
 }
 
 // minimal geometry merger (positions/normals/uvs)

@@ -91,11 +91,11 @@ function cleanPanels(tint = '#b1a17b', seed = 61) {
   c.width = c.height = S;
   const x = c.getContext('2d');
   for (let py = 0; py < 4; py++) for (let px = 0; px < 4; px++) {
-    const f = 0.94 + r() * 0.12, warm = (r() - 0.35) * 0.5;
+    const f = 0.88 + r() * 0.2, warm = (r() - 0.35) * 0.7;
     const g = x.createLinearGradient(0, py * P, 0, py * P + P);
-    g.addColorStop(0, toneC(tint, f * 1.06, warm + 0.2));
+    g.addColorStop(0, toneC(tint, f * 1.09, warm + 0.25));
     g.addColorStop(0.6, toneC(tint, f, warm));
-    g.addColorStop(1, toneC(tint, f * 0.9, warm - 0.15));
+    g.addColorStop(1, toneC(tint, f * 0.85, warm - 0.2));
     x.fillStyle = g;
     x.fillRect(px * P, py * P, P, P);
   }
@@ -109,13 +109,15 @@ function cleanPanels(tint = '#b1a17b', seed = 61) {
     x.fillStyle = g;
     x.beginPath(); x.arc(cx, cy, rr, 0, 7); x.fill();
   }
-  // crisp seams: dark line + light bevel below/right
+  // crisp seams: dark line + light bevel below/right + panel-edge AO
   for (let i = 0; i < 4; i++) {
     const p = i * P;
-    x.fillStyle = 'rgba(24,20,12,0.5)'; x.fillRect(0, p, S, 2);
-    x.fillStyle = 'rgba(255,244,214,0.22)'; x.fillRect(0, p + 2, S, 1.5);
-    x.fillStyle = 'rgba(24,20,12,0.45)'; x.fillRect(p, 0, 2, S);
-    x.fillStyle = 'rgba(255,244,214,0.16)'; x.fillRect(p + 2, 0, 1.5, S);
+    x.fillStyle = 'rgba(0,0,0,0.16)'; x.fillRect(0, p + P - 7, S, 7);
+    x.fillStyle = 'rgba(0,0,0,0.13)'; x.fillRect(p + P - 6, 0, 6, S);
+    x.fillStyle = 'rgba(24,20,12,0.72)'; x.fillRect(0, p, S, 2.6);
+    x.fillStyle = 'rgba(255,244,214,0.30)'; x.fillRect(0, p + 2.6, S, 1.8);
+    x.fillStyle = 'rgba(24,20,12,0.62)'; x.fillRect(p, 0, 2.6, S);
+    x.fillStyle = 'rgba(255,244,214,0.22)'; x.fillRect(p + 2.6, 0, 1.8, S);
   }
   // hex bolts at seam crossings
   for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
@@ -143,9 +145,13 @@ function cleanPanels(tint = '#b1a17b', seed = 61) {
     x.fillStyle = g; x.fillRect(sx, 0, 3 + r() * 5, len);
   }
   const bg = x.createLinearGradient(0, 0, 0, 70);
-  bg.addColorStop(0, 'rgba(255,246,214,0.14)');
+  bg.addColorStop(0, 'rgba(255,246,214,0.16)');
   bg.addColorStop(1, 'rgba(255,246,214,0)');
   x.fillStyle = bg; x.fillRect(0, 0, S, 70);
+  const ao = x.createLinearGradient(0, S - 64, 0, S);   // grime settling at the foot
+  ao.addColorStop(0, 'rgba(52,40,22,0)');
+  ao.addColorStop(1, 'rgba(52,40,22,0.28)');
+  x.fillStyle = ao; x.fillRect(0, S - 64, S, 64);
   LT[key] = ctex(c);
   return LT[key];
 }
@@ -176,6 +182,119 @@ function hazardTex() {
   LT.haz = ctex(c, 1);
   LT.haz.repeat.set(3, 1);
   return LT.haz;
+}
+
+// window strip: 4 square cells per tile, framed panes, some lit. Transparent
+// between windows so it composites onto any wall material.
+function windowsTex(kind) {
+  const key = 'win' + kind;
+  if (LT[key]) return LT[key];
+  const r = makeRng(kind === 'warm' ? 808 : 807);
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 64;
+  const x = c.getContext('2d');
+  x.clearRect(0, 0, 256, 64);
+  const warm = kind === 'warm';
+  for (let i = 0; i < 4; i++) {
+    const cx = i * 64 + 13, cy = 9, w = 38, h = 46;
+    // frame
+    x.fillStyle = 'rgba(20,16,10,0.55)';
+    x.fillRect(cx + 2, cy + 3, w + 2, h + 2);            // drop shadow
+    x.fillStyle = warm ? '#6b5232' : '#8f8c7c';
+    x.fillRect(cx - 3, cy - 3, w + 6, h + 6);
+    x.fillStyle = warm ? '#3d2c18' : '#4c4a40';
+    x.fillRect(cx - 1, cy - 1, w + 2, h + 2);
+    const lit = r() < (warm ? 0.5 : 0.45);
+    if (lit) {
+      const g = x.createLinearGradient(0, cy, 0, cy + h);
+      g.addColorStop(0, warm ? '#ffe9b0' : '#e8f4ff');
+      g.addColorStop(1, warm ? '#c8863a' : '#9fc2d8');
+      x.fillStyle = g;
+    } else {
+      const g = x.createLinearGradient(0, cy, 0, cy + h);
+      g.addColorStop(0, warm ? '#241a10' : '#2a3844');
+      g.addColorStop(1, warm ? '#100b06' : '#141e28');
+      x.fillStyle = g;
+    }
+    x.fillRect(cx, cy, w, h);
+    // mullions
+    x.fillStyle = warm ? 'rgba(50,36,20,0.85)' : 'rgba(58,58,50,0.85)';
+    x.fillRect(cx, cy + h / 2 - 1, w, 2.4);
+    x.fillRect(cx + w / 2 - 1, cy, 2.4, h);
+    if (!lit) { // sky glint on dark panes
+      x.fillStyle = 'rgba(220,236,248,0.20)';
+      x.beginPath();
+      x.moveTo(cx + 4, cy + h - 6); x.lineTo(cx + w - 10, cy + 4);
+      x.lineTo(cx + w - 2, cy + 4); x.lineTo(cx + 10, cy + h - 6);
+      x.closePath(); x.fill();
+    }
+    // sill
+    x.fillStyle = warm ? '#7c6038' : '#a29e8c';
+    x.fillRect(cx - 5, cy + h + 3, w + 10, 4);
+    x.fillStyle = 'rgba(20,16,10,0.4)';
+    x.fillRect(cx - 5, cy + h + 7, w + 10, 2);
+  }
+  LT[key] = ctex(c, 1);
+  return LT[key];
+}
+
+// wooden planks: boards with grain, knots, nail heads
+function plankTex(tint, seed) {
+  const key = 'pl' + tint + seed;
+  if (LT[key]) return LT[key];
+  const r = makeRng(seed);
+  const S = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const x = c.getContext('2d');
+  const nB = 5, bw = S / nB;
+  for (let b = 0; b < nB; b++) {
+    const f = 0.82 + r() * 0.32, warm = (r() - 0.4) * 0.8;
+    const gg = x.createLinearGradient(b * bw, 0, b * bw + bw, 0);
+    gg.addColorStop(0, toneC(tint, f * 1.12, warm + 0.25));
+    gg.addColorStop(0.5, toneC(tint, f, warm));
+    gg.addColorStop(1, toneC(tint, f * 0.8, warm - 0.2));
+    x.fillStyle = gg;
+    x.fillRect(b * bw, 0, bw, S);
+    // grain streaks
+    for (let i = 0; i < 7; i++) {
+      x.strokeStyle = `rgba(40,24,10,${0.14 + r() * 0.2})`;
+      x.lineWidth = 0.8 + r();
+      const gx = b * bw + 3 + r() * (bw - 6);
+      x.beginPath(); x.moveTo(gx, 0);
+      x.quadraticCurveTo(gx + (r() - 0.5) * 6, S * 0.5, gx + (r() - 0.5) * 4, S);
+      x.stroke();
+    }
+    // knot
+    if (r() < 0.5) {
+      const kx = b * bw + bw * 0.5, ky = r() * S;
+      x.fillStyle = 'rgba(46,28,12,0.75)';
+      x.beginPath(); x.ellipse(kx, ky, 2.6, 3.6, 0, 0, 7); x.fill();
+      x.strokeStyle = 'rgba(30,18,8,0.5)';
+      x.beginPath(); x.ellipse(kx, ky, 4.2, 5.4, 0, 0, 7); x.stroke();
+    }
+    // board seams
+    x.fillStyle = 'rgba(20,12,5,0.6)'; x.fillRect(b * bw, 0, 1.6, S);
+    x.fillStyle = 'rgba(255,230,180,0.14)'; x.fillRect(b * bw + 1.6, 0, 1.2, S);
+    // nails top + bottom
+    for (const ny of [7, S - 7]) {
+      x.fillStyle = 'rgba(16,12,8,0.7)';
+      x.beginPath(); x.arc(b * bw + bw / 2 + 1, ny + 1, 1.8, 0, 7); x.fill();
+      x.fillStyle = '#9c9484';
+      x.beginPath(); x.arc(b * bw + bw / 2, ny, 1.4, 0, 7); x.fill();
+    }
+  }
+  // weathering film + grain
+  const wg = x.createLinearGradient(0, 0, 0, S);
+  wg.addColorStop(0, 'rgba(255,240,200,0.10)');
+  wg.addColorStop(1, 'rgba(30,20,10,0.18)');
+  x.fillStyle = wg; x.fillRect(0, 0, S, S);
+  for (let i = 0; i < 500; i++) {
+    x.fillStyle = r() < 0.5 ? `rgba(0,0,0,${0.06 * r()})` : `rgba(255,255,230,${0.05 * r()})`;
+    x.fillRect(r() * S, r() * S, 1 + r() * 2, 1 + r());
+  }
+  LT[key] = ctex(c, 1);
+  return LT[key];
 }
 
 // helipad: dark tarmac disc with white ring + H
@@ -227,8 +346,8 @@ function mats() {
     corrRust: std({ map: corrugated('#96805e', 34), roughness: 0.9, metalness: 0.15 }),
     camo: std({ map: camoCanvas(44), roughness: 1, side: THREE.DoubleSide }),
     conc: std({ map: concrete('#9a958a', 55), roughness: 0.9 }),
-    wood: std({ color: 0x6e5638, roughness: 1 }),
-    woodDark: std({ color: 0x4e3c26, roughness: 1 }),
+    wood: std({ map: plankTex('#7a5f3c', 71), roughness: 1 }),
+    woodDark: std({ map: plankTex('#55422a', 72), roughness: 1 }),
     gold: std({ color: 0xc8a028, roughness: 0.35, metalness: 0.8 }),
     green: std({ color: 0x3d4a30, roughness: 0.9 }),
     dark: std({ color: 0x222420, roughness: 0.9 }),
@@ -252,6 +371,10 @@ function mats() {
     reactorGlow: std({ color: 0xaef0ff, emissive: 0x2fb4e8, emissiveIntensity: 2.1 }),
     hazard: std({ map: hazardTex(), roughness: 0.75 }),
     pad: std({ map: helipadTex(), roughness: 0.92 }),
+    radome: std({ color: 0xeceadd, roughness: 0.32, metalness: 0.08 }),
+    winCool: std({ map: windowsTex('cool'), emissiveMap: windowsTex('cool'), emissive: 0xffffff, emissiveIntensity: 0.5, roughness: 0.45, transparent: true }),
+    winWarm: std({ map: windowsTex('warm'), emissiveMap: windowsTex('warm'), emissive: 0xffffff, emissiveIntensity: 0.6, roughness: 0.6, transparent: true }),
+    dirtPad: std({ map: adobe('#a08a5e', 27), roughness: 1 }),
     // vehicle kit
     track: std({ map: trackTex(), roughness: 1 }),
     gun: std({ color: 0x2c2c2e, roughness: 0.5, metalness: 0.55 }),
@@ -298,7 +421,7 @@ function accents(owner) {
   if (a) return a;
   const css = '#' + col.toString(16).padStart(6, '0');
   a = {
-    paint: new THREE.MeshStandardMaterial({ color: col, roughness: 0.55, metalness: 0.3 }),
+    paint: new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.18, roughness: 0.55, metalness: 0.3 }),
     cloth: new THREE.MeshStandardMaterial({ map: fabric(css, 903), roughness: 1, side: THREE.DoubleSide }),
     glow: new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.5, roughness: 0.5 }),
   };
@@ -349,6 +472,68 @@ function dome(g, mat, r, x = 0, y = 0, z = 0, ws = 16, hs = 10) {
   m.position.set(x, y, z);
   m.castShadow = true;
   g && g.add(m);
+  return m;
+}
+// texel-density-corrected box: one texture tile every `tile` world units on
+// every face, so big walls stop stretching one tile across the whole plane.
+function tboxGeo(w, h, d, tile) {
+  return geo(`tb${w},${h},${d},${tile}`, () => {
+    const g = new THREE.BoxGeometry(w, h, d);
+    const uv = g.attributes.uv;
+    const dims = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]]; // +x -x +y -y +z -z
+    for (let f = 0; f < 6; f++) {
+      const [du, dv] = dims[f];
+      for (let i = 0; i < 4; i++) {
+        const k = f * 4 + i;
+        uv.setXY(k, uv.getX(k) * du / tile, uv.getY(k) * dv / tile);
+      }
+    }
+    return g;
+  });
+}
+function tbox(g, mat, w, h, d, x = 0, y = 0, z = 0, tile = 6) {
+  const m = new THREE.Mesh(tboxGeo(w, h, d, tile), mat);
+  m.position.set(x, y, z);
+  m.castShadow = m.receiveShadow = true;
+  g && g.add(m);
+  return m;
+}
+// texel-density-corrected cylinder (side wraps circumference / tile)
+function tcyl(g, mat, rt, rb, h, x = 0, y = 0, z = 0, seg = 14, tile = 6) {
+  const key = `tc${rt},${rb},${h},${seg},${tile}`;
+  const gg = geo(key, () => {
+    const c = new THREE.CylinderGeometry(rt, rb, h, seg);
+    const uv = c.attributes.uv;
+    const circ = Math.PI * (rt + rb);
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * circ / tile, uv.getY(i) * h / tile);
+    return c;
+  });
+  const m = new THREE.Mesh(gg, mat);
+  m.position.set(x, y, z);
+  m.castShadow = m.receiveShadow = true;
+  g && g.add(m);
+  return m;
+}
+// roof-edge parapet ring (GZH buildings almost all have one)
+function parapet(g, mat, w, d, x, y, z, t = 0.4, h = 0.65) {
+  box(g, mat, w, h, t, x, y + h / 2, z - d / 2 + t / 2);
+  box(g, mat, w, h, t, x, y + h / 2, z + d / 2 - t / 2);
+  box(g, mat, t, h, d - t * 2, x - w / 2 + t / 2, y + h / 2, z);
+  box(g, mat, t, h, d - t * 2, x + w / 2 - t / 2, y + h / 2, z);
+}
+// window band pasted on a wall (transparent between panes); faces +Z, use ry
+function winRow(parent, mat, len, h, x, y, z, ry = 0) {
+  const n = Math.max(1, Math.round(len / h));
+  const gg = geo(`wr${len},${h},${n}`, () => {
+    const p = new THREE.PlaneGeometry(len, h);
+    const uv = p.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * n / 4);
+    return p;
+  });
+  const m = new THREE.Mesh(gg, mat);
+  m.position.set(x, y, z);
+  m.rotation.y = ry;
+  parent.add(m);
   return m;
 }
 const _UP = new THREE.Vector3(0, 1, 0);
@@ -761,6 +946,7 @@ function vScorpion(g, owner) {
   turret.add(ts);
   box(ts, m.turretPaint, 1.7, 0.55, 2.1, 0, 0.2, 0);
   box(ts, m.turretPaint, 1.3, 0.18, 1.6, 0, 0.55, 0.1);
+  box(ts, A.paint, 1.34, 0.16, 0.5, 0, 0.56, 0.75);            // turret roof ID band
   box(ts, m.dark, 0.7, 0.45, 0.5, 0, 0.18, -1.15);
   for (const sd of [-1, 1]) {
     const em = new THREE.Mesh(new THREE.PlaneGeometry(1.35, 0.55), m.claw);
@@ -1120,6 +1306,8 @@ function vCrusader(g, owner) {
   const cheekR = box(turret, m.usaTanDark, 0.85, 0.6, 1.1, 0.85, 0.32, -1.0);
   cheekR.rotation.y = -0.45;
   box(turret, m.usaTanDark, 1.5, 0.24, 1.7, 0, 0.72, 0.3);     // roof step
+  box(turret, A.paint, 0.08, 0.5, 2.2, -1.09, 0.32, 0.2);      // turret side ID stripes
+  box(turret, A.paint, 0.08, 0.5, 2.2, 1.09, 0.32, 0.2);
   cyl(turret, m.usaTanDark, 0.34, 0.38, 0.22, -0.5, 0.9, 0.2, 10); // cupola
   cyl(turret, m.gun, 0.025, 0.025, 0.7, -0.5, 1.0, -0.15, 6).rotation.x = Math.PI / 2 - 0.3; // M2
   box(turret, m.gun, 0.1, 0.12, 0.3, -0.5, 0.96, 0.05);
@@ -1324,24 +1512,63 @@ function vComanche(g, owner) {
 // ================================================================= COALITION BUILDINGS
 function bCcC(g, owner) {
   const m = mats(), A = accents(owner);
-  box(g, m.conc, 21, 0.5, 21, 0, 0.25, 0).receiveShadow = true;
+  // concrete apron with curb trim so the building sits IN the ground
+  tbox(g, m.conc, 21.5, 0.5, 21.5, 0, 0.25, 0, 7).receiveShadow = true;
+  for (const sd of [-1, 1]) {
+    box(g, m.cPanelDark, 21.5, 0.18, 0.4, 0, 0.56, sd * 10.55);
+    box(g, m.cPanelDark, 0.4, 0.18, 21.5, sd * 10.55, 0.56, 0);
+  }
   box(g, m.hazard, 5.5, 0.2, 0.4, 0, 0.52, -9.2);              // apron entry strip
   // main armored block with sloped sides
-  box(g, m.cPanel, 15, 4.6, 12.5, 0, 2.75, 0.8);
+  tbox(g, m.cPanel, 15, 4.6, 12.5, 0, 2.75, 0.8, 7);
+  box(g, m.cPanelDark, 15.4, 0.9, 12.9, 0, 0.95, 0.8);         // dark plinth skirt
   for (const sd of [-1, 1]) {
-    const slope = box(g, m.cPanelDark, 2.4, 4.8, 12.5, sd * 8.0, 2.4, 0.8);
+    const slope = tbox(g, m.cPanelDark, 2.4, 4.8, 12.5, sd * 8.0, 2.4, 0.8, 7);
     slope.rotation.z = sd * 0.32;
+    box(g, m.cWhite, 0.5, 0.3, 12.7, sd * 8.7, 4.72, 0.8);     // slope crest trim
   }
+  box(g, m.cWhite, 15.5, 0.35, 12.9, 0, 5.1, 0.8);             // tier-1 white fascia
+  tbox(g, m.cPanelDark, 15.2, 0.26, 12.6, 0, 5.32, 0.8, 7);    // tier-1 textured deck
+  // tier-1 lit window rows: entrance face + rear wall
+  winRow(g, m.winCool, 3.6, 1.15, -4.6, 3.4, -5.47, Math.PI);
+  winRow(g, m.winCool, 3.6, 1.15, 4.6, 3.4, -5.47, Math.PI);
+  winRow(g, m.winCool, 5.6, 1.15, -4.0, 3.4, 7.06, 0);
+  winRow(g, m.winCool, 5.6, 1.15, 4.0, 3.4, 7.06, 0);
+  // rear service detail: door, grilles, pipework
+  box(g, m.cSteel, 1.8, 2.2, 0.2, 0, 1.6, 7.1);
+  box(g, m.cWhite, 2.2, 0.2, 0.26, 0, 2.8, 7.12);
+  for (const vx of [-6.2, 6.2]) {
+    box(g, m.dark, 1.6, 1.0, 0.14, vx, 2.2, 7.08);
+    box(g, m.cSteel, 1.8, 0.14, 0.2, vx, 2.85, 7.1);
+  }
+  cyl(g, m.cSteel, 0.16, 0.16, 3.8, -2.9, 2.4, 7.18, 8);       // rear standpipe
+  cyl(g, m.cSteel, 0.16, 0.16, 0.9, -2.9, 4.42, 6.8, 8).rotation.x = Math.PI / 2;
   // second tier + blue glass command strip
-  box(g, m.cPanelLight, 10.5, 3.2, 8.5, 0, 6.9, 1.6);
-  box(g, m.cGlass, 9.0, 1.0, 0.2, 0, 7.3, -2.72);
-  box(g, m.cGlass, 0.2, 1.0, 6.0, -5.32, 7.3, 1.6);
-  box(g, m.cGlass, 0.2, 1.0, 6.0, 5.32, 7.3, 1.6);
-  box(g, m.cPanelDark, 10.9, 0.4, 8.9, 0, 8.65, 1.6);          // roof cap
-  box(g, A.paint, 10.9, 0.35, 0.3, 0, 5.4, -4.0);              // accent band over tier 1 front
-  // radome on the right roof
+  tbox(g, m.cPanelLight, 10.5, 3.2, 8.5, 0, 6.9, 1.6, 7);
+  box(g, m.cPanelDark, 10.9, 0.55, 8.9, 0, 5.6, 1.6);          // tier-2 plinth
+  box(g, m.cGlass, 9.2, 1.15, 0.2, 0, 7.35, -2.72);
+  box(g, m.cGlass, 0.2, 1.15, 6.2, -5.32, 7.35, 1.6);
+  box(g, m.cGlass, 0.2, 1.15, 6.2, 5.32, 7.35, 1.6);
+  for (const wx of [-3.0, -1.0, 1.0, 3.0])                     // glass mullions
+    box(g, m.cSteel, 0.18, 1.2, 0.26, wx, 7.35, -2.72);
+  box(g, m.cWhite, 9.6, 0.22, 0.34, 0, 6.62, -2.76);           // glass sill
+  box(g, m.cWhite, 9.6, 0.22, 0.34, 0, 8.08, -2.76);           // glass header
+  box(g, m.cWhite, 10.9, 0.3, 8.9, 0, 8.6, 1.6);               // roof fascia
+  tbox(g, m.cPanelDark, 10.6, 0.26, 8.6, 0, 8.82, 1.6, 7);     // textured roof deck
+  parapet(g, m.cPanelDark, 10.9, 8.9, 0, 8.95, 1.6, 0.35, 0.5);
+  winRow(g, m.winCool, 6.4, 1.0, 0, 7.3, 5.86, 0);             // tier-2 rear glazing
+  box(g, A.paint, 10.94, 0.5, 0.3, 0, 6.1, -2.78);             // accent band under glass
+  box(g, A.paint, 15.44, 0.45, 0.34, 0, 4.62, -5.44);          // accent band over tier 1 front
+  box(g, A.paint, 10.94, 0.5, 0.3, 0, 6.1, 5.78);              // accent band on tier-2 rear
+  // radome on the right roof: latticed drum + bright dome + hazard collar
   cyl(g, m.cSteel, 2.0, 2.3, 0.9, 4.6, 9.3, 3.2, 14);
-  dome(g, m.cWhite, 2.4, 4.6, 9.7, 3.2, 18, 12);
+  box(g, m.hazard, 2.9, 0.24, 2.9, 4.6, 9.66, 3.2);
+  dome(g, m.radome, 2.4, 4.6, 9.7, 3.2, 18, 12);
+  const domeSeam = new THREE.Mesh(torGeo(2.28, 0.05, 6, 24), m.cSteel);
+  domeSeam.rotation.x = Math.PI / 2;
+  domeSeam.position.set(4.6, 10.45, 3.2);
+  g.add(domeSeam);
+  box(g, m.redLens, 0.16, 0.16, 0.16, 4.6, 12.2, 3.2);
   // rotating radar array on a lattice mast (sim spins userData.spin)
   const mastX = -3.6, mastZ = 3.4;
   cyl(g, m.cSteel, 0.14, 0.22, 3.4, mastX, 10.5, mastZ, 8);
@@ -1364,41 +1591,59 @@ function bCcC(g, owner) {
   dish.position.set(-6.3, 5.9, 4.6);
   dish.castShadow = true;
   g.add(dish);
-  // entrance: blast door + hazard jambs + ramp
+  // entrance: recessed blast door + hazard jambs + ramp + canopy
   box(g, m.cSteel, 4.2, 3.2, 0.4, 0, 1.85, -5.6);
   box(g, m.dark, 0.14, 2.9, 0.5, 0, 1.8, -5.66);
+  for (const sy of [1.1, 2.1]) box(g, m.dark, 3.8, 0.08, 0.46, 0, sy, -5.64); // door slats
   box(g, m.hazard, 0.5, 3.6, 0.5, -2.5, 2.05, -5.66);
   box(g, m.hazard, 0.5, 3.6, 0.5, 2.5, 2.05, -5.66);
   box(g, m.cPanelDark, 6.2, 0.9, 0.6, 0, 4.15, -5.7);          // door lintel
-  const ramp = box(g, m.conc, 6.0, 0.4, 3.4, 0, 0.45, -7.4);
+  box(g, m.cGlow, 3.4, 0.16, 0.2, 0, 3.62, -5.82);             // lintel light strip
+  const canopy = box(g, m.cWhite, 5.4, 0.18, 1.6, 0, 4.6, -6.4);
+  canopy.rotation.x = 0.08;
+  const ramp = tbox(g, m.conc, 6.0, 0.4, 3.4, 0, 0.45, -7.4, 7);
   ramp.rotation.x = 0.1;
   // accent wing banners flanking the entrance
   for (const sd of [-1, 1]) {
     box(g, A.paint, 2.2, 2.8, 0.16, sd * 4.6, 3.0, -5.55);
     box(g, m.cWhite, 2.3, 0.35, 0.18, sd * 4.6, 4.55, -5.56);
+    box(g, m.cWhite, 2.3, 0.35, 0.18, sd * 4.6, 1.5, -5.56);
   }
-  // corner pylons with warning lights
+  // corner floodlight masts on small bunker feet
   for (const [px, pz] of [[-9.4, -9.4], [9.4, -9.4], [-9.4, 9.4], [9.4, 9.4]]) {
-    box(g, m.cPanelDark, 1.6, 3.6, 1.6, px, 1.8, pz);
-    box(g, m.cSteel, 1.8, 0.3, 1.8, px, 3.7, pz);
-    box(g, m.redLens, 0.22, 0.22, 0.22, px, 4.0, pz);
+    tbox(g, m.cPanelDark, 1.5, 1.4, 1.5, px, 0.95, pz, 4);
+    box(g, m.cWhite, 1.66, 0.24, 1.66, px, 1.72, pz);
+    box(g, A.paint, 1.56, 0.34, 1.56, px, 1.5, pz);
+    cyl(g, m.cSteel, 0.09, 0.13, 4.4, px, 3.9, pz, 7);
+    const head = box(g, m.cSteel, 0.9, 0.3, 0.34, px, 6.1, pz);
+    head.lookAt(0, 0, 0);
+    const lamp = box(g, m.lightLens, 0.84, 0.2, 0.1, px, 6.1, pz);
+    lamp.lookAt(0, 2.4, 0);
+    lamp.translateZ(0.15);
+    box(g, m.redLens, 0.18, 0.18, 0.18, px, 6.35, pz);
   }
   // roof clutter + flag
-  acUnit(g, 3.2, 5.05, 4.9, 1.2);
-  acUnit(g, -5.4, 5.05, -1.8, 1);
-  cyl(g, m.cSteel, 0.3, 0.34, 1.4, 6.1, 5.75, -2.2, 10);       // roof vent
-  box(g, m.cPanelDark, 2.6, 0.5, 1.4, -3.5, 5.3, -3.4);        // duct run
+  acUnit(g, 3.2, 5.45, 4.9, 1.2);
+  acUnit(g, -5.4, 5.45, -1.8, 1);
+  cyl(g, m.cSteel, 0.3, 0.34, 1.4, 6.1, 6.15, -2.2, 10);       // roof vent
+  cyl(g, m.dark, 0.36, 0.36, 0.12, 6.1, 6.9, -2.2, 10);
+  box(g, m.cSteel, 2.6, 0.5, 1.4, -3.5, 5.7, -3.4);            // duct run
+  box(g, m.dark, 0.9, 0.62, 0.9, 6.6, 5.75, 3.9);              // roof hatch
+  box(g, m.hazard, 1.7, 0.14, 1.06, 0, 5.5, -4.9);             // deck hazard pad at front lip
   flagPole(g, owner, 8.9, -8.0, 10, 3.2, 1.9);
   sandbagRow(g, -7.6, 0.5, -7.6, 0.5, 4, 2);
 }
 
 function bReactor(g, owner) {
   const m = mats(), A = accents(owner);
-  box(g, m.conc, 11.5, 0.5, 11.5, 0, 0.25, 0).receiveShadow = true;
+  tbox(g, m.conc, 11.5, 0.5, 11.5, 0, 0.25, 0, 7).receiveShadow = true;
+  for (const sd of [-1, 1]) box(g, m.cPanelDark, 11.5, 0.16, 0.35, 0, 0.55, sd * 5.6);
   box(g, m.hazard, 11.5, 0.22, 0.4, 0, 0.55, -5.6);
   // containment drum + cap
-  cyl(g, m.cPanel, 3.1, 3.3, 3.4, 0, 2.2, -1.4, 18);
-  const cap = new THREE.Mesh(sphGeo(3.1, 18, 10, Math.PI / 2), m.cWhite);
+  tcyl(g, m.cPanel, 3.1, 3.3, 3.4, 0, 2.2, -1.4, 18, 7);
+  cyl(g, m.cSteel, 3.42, 3.5, 0.5, 0, 0.55, -1.4, 18);         // drum foot ring
+  cyl(g, m.cWhite, 3.24, 3.14, 0.4, 0, 3.85, -1.4, 18);        // cap collar
+  const cap = new THREE.Mesh(sphGeo(3.1, 18, 10, Math.PI / 2), m.radome);
   cap.scale.y = 0.55;
   cap.position.set(0, 3.9, -1.4);
   cap.castShadow = true;
@@ -1418,7 +1663,9 @@ function bReactor(g, owner) {
   box(g, A.paint, 1.4, 0.7, 0.2, 0, 1.4, -4.65);               // accent placard on drum front
   // twin cooling stacks at the rear
   for (const sd of [-1, 1]) {
-    cyl(g, m.cWhite, 1.15, 1.6, 5.4, sd * 3.1, 2.7, 3.3, 16);
+    tcyl(g, m.cPanelLight, 1.15, 1.6, 5.4, sd * 3.1, 2.7, 3.3, 16, 6);
+    cyl(g, m.cSteel, 1.66, 1.74, 0.5, sd * 3.1, 0.5, 3.3, 16); // foot collar
+    cyl(g, m.hazard, 1.36, 1.39, 0.34, sd * 3.1, 3.55, 3.3, 16); // hazard belt
     cyl(g, m.cSteel, 1.2, 1.1, 0.5, sd * 3.1, 5.6, 3.3, 16);
     cyl(g, m.dark, 1.0, 1.0, 0.1, sd * 3.1, 5.7, 3.3, 16);
     // feed pipe drum→stack
@@ -1433,37 +1680,46 @@ function bReactor(g, owner) {
     strut(g, m.dark, 2.9 + i * 0.7, 2.7, -3.4, 1.6 + i * 0.5, 2.6, -2.5, 0.024, 5);
   }
   drum(g, m.cSteel, -3.9, -3.9, 0.4, 1.0);
-  box(g, m.cPanelDark, 1.8, 1.2, 1.4, -3.7, 1.0, -2.4);        // control shed
-  box(g, m.cGlass, 0.9, 0.4, 0.08, -3.7, 1.3, -3.14);
+  tbox(g, m.cPanelLight, 2.2, 1.6, 1.7, -3.7, 1.2, -2.4, 4);   // control shed
+  box(g, m.cPanelDark, 2.4, 0.16, 1.9, -3.7, 2.05, -2.4);
+  winRow(g, m.winCool, 1.6, 0.7, -3.7, 1.45, -3.27, Math.PI);
+  box(g, A.paint, 2.24, 0.3, 1.74, -3.7, 0.55, -2.4);          // accent skirting
 }
 
 function bBarracksC(g, owner) {
   const m = mats(), A = accents(owner);
-  box(g, m.conc, 13.5, 0.4, 11.5, 0, 0.2, 0).receiveShadow = true;
-  // main prefab hall
-  box(g, m.cPanel, 9.6, 3.2, 6.8, -1.2, 2.0, 0.6);
-  const roofL = box(g, m.cPanelDark, 5.2, 0.2, 7.6, -3.55, 3.9, 0.6);
+  tbox(g, m.conc, 13.5, 0.4, 11.5, 0, 0.2, 0, 7).receiveShadow = true;
+  for (const sd of [-1, 1]) box(g, m.cPanelDark, 13.5, 0.14, 0.35, 0, 0.44, sd * 5.58);
+  // main prefab hall + plinth
+  tbox(g, m.cPanel, 9.6, 3.2, 6.8, -1.2, 2.0, 0.6, 6);
+  box(g, m.cPanelDark, 9.9, 0.7, 7.1, -1.2, 0.65, 0.6);
+  box(g, m.cWhite, 9.8, 0.22, 7.0, -1.2, 3.5, 0.6);            // eave trim
+  const roofL = tbox(g, m.cPanelDark, 5.2, 0.2, 7.6, -3.55, 3.9, 0.6, 6);
   roofL.rotation.z = 0.18;
-  const roofR = box(g, m.cPanelDark, 5.2, 0.2, 7.6, 1.15, 3.9, 0.6);
+  const roofR = tbox(g, m.cPanelDark, 5.2, 0.2, 7.6, 1.15, 3.9, 0.6, 6);
   roofR.rotation.z = -0.18;
-  box(g, m.cSteel, 0.3, 0.3, 7.7, -1.2, 4.36, 0.6);            // ridge cap
-  // door + accent canopy + windows
+  box(g, m.cWhite, 0.34, 0.3, 7.7, -1.2, 4.36, 0.6);           // ridge cap
+  box(g, m.redLens, 0.14, 0.14, 0.14, -1.2, 4.6, -2.9);        // gable beacon
+  // door + accent canopy + lit windows
   box(g, m.cSteel, 1.6, 2.4, 0.2, -1.2, 1.6, -2.85);
   box(g, m.dark, 0.08, 2.1, 0.24, -1.2, 1.55, -2.9);
+  box(g, m.cWhite, 2.0, 0.22, 0.3, -1.2, 2.88, -2.88);         // door header
   const canopy = box(g, A.paint, 2.6, 0.12, 1.2, -1.2, 2.95, -3.4);
   canopy.rotation.x = 0.14;
   cyl(g, m.cSteel, 0.05, 0.05, 1.1, -2.35, 2.35, -3.9, 6);
   cyl(g, m.cSteel, 0.05, 0.05, 1.1, -0.05, 2.35, -3.9, 6);
-  for (const wx of [-4.4, 1.6]) {
-    box(g, m.cGlass, 1.5, 0.85, 0.15, wx, 2.3, -2.85);
-    box(g, m.cWhite, 1.8, 0.14, 0.26, wx, 1.78, -2.86);
-  }
-  box(g, m.cGlass, 0.15, 0.85, 3.6, -6.08, 2.3, 0.6);          // side glazing
+  winRow(g, m.winCool, 2.2, 1.0, -4.3, 2.25, -2.86, Math.PI);
+  winRow(g, m.winCool, 2.2, 1.0, 1.7, 2.25, -2.86, Math.PI);
+  winRow(g, m.winCool, 5.4, 1.0, -6.05, 2.25, 0.6, -Math.PI / 2); // side windows
+  winRow(g, m.winCool, 5.4, 1.0, 3.62, 2.25, 0.6, Math.PI / 2);
   // bunk annex
-  box(g, m.cPanelLight, 3.6, 2.5, 4.6, 4.6, 1.55, 1.8);
-  const aroof = box(g, m.cPanelDark, 4.2, 0.16, 5.2, 4.75, 2.95, 1.8);
+  tbox(g, m.cPanelLight, 3.6, 2.5, 4.6, 4.6, 1.55, 1.8, 6);
+  const aroof = tbox(g, m.cPanelDark, 4.2, 0.16, 5.2, 4.75, 2.95, 1.8, 6);
   aroof.rotation.z = -0.1;
   box(g, m.dark, 1.1, 1.6, 0.14, 4.6, 1.1, -0.55);
+  box(g, m.cWhite, 1.4, 0.18, 0.2, 4.6, 2.0, -0.56);           // annex door header
+  winRow(g, m.winCool, 2.6, 0.9, 6.42, 1.8, 1.8, Math.PI / 2);
+  box(g, A.paint, 3.68, 0.34, 4.68, 4.6, 0.5, 1.8);            // annex accent skirting
   // flag + sandbags + PT gear
   flagPole(g, owner, 5.6, -4.2, 9, 3.0, 1.8);
   sandbagRow(g, -5.2, 0.4, -4.2, 0.2, 4, 2);
@@ -1478,12 +1734,18 @@ function bBarracksC(g, owner) {
 
 function bSupplyC(g, owner) {
   const m = mats(), A = accents(owner);
-  box(g, m.conc, 17.5, 0.4, 15.5, 0, 0.2, 0).receiveShadow = true;
-  // warehouse
-  box(g, m.cPanel, 10.5, 4.8, 9.0, -3.0, 2.6, 1.8);
-  const roof = box(g, m.cPanelDark, 11.3, 0.22, 9.8, -3.0, 5.15, 1.8);
+  tbox(g, m.conc, 17.5, 0.4, 15.5, 0, 0.2, 0, 7).receiveShadow = true;
+  for (const sd of [-1, 1]) box(g, m.cPanelDark, 17.5, 0.14, 0.35, 0, 0.44, sd * 7.58);
+  // warehouse + plinth + eave trim
+  tbox(g, m.cPanel, 10.5, 4.8, 9.0, -3.0, 2.6, 1.8, 6);
+  box(g, m.cPanelDark, 10.8, 0.8, 9.3, -3.0, 0.7, 1.8);
+  box(g, m.cWhite, 10.9, 0.26, 9.4, -3.0, 4.9, 1.8);
+  const roof = tbox(g, m.cPanelDark, 11.3, 0.22, 9.8, -3.0, 5.15, 1.8, 6);
   roof.rotation.x = 0.06;
+  cyl(g, m.cSteel, 0.28, 0.32, 1.1, -6.6, 5.7, 4.4, 8);        // roof vent stack
+  acUnit(g, -1.2, 5.3, 4.6, 1);
   box(g, A.paint, 10.7, 0.5, 0.2, -3.0, 4.45, -2.72);          // accent eave band
+  winRow(g, m.winCool, 4.2, 0.95, -3.0, 3.6, 6.32, 0);         // rear office glazing
   // open receiving bay
   box(g, m.dark, 5.4, 3.4, 0.3, -3.4, 1.9, -2.78);
   box(g, m.hazard, 0.45, 3.8, 0.4, -6.3, 2.1, -2.8);
@@ -1525,14 +1787,23 @@ function bSupplyC(g, owner) {
 
 function bFactoryC(g, owner) {
   const m = mats(), A = accents(owner);
-  box(g, m.conc, 19.5, 0.5, 17.5, 0, 0.25, 0).receiveShadow = true;
-  // assembly hall
-  box(g, m.cPanel, 15.5, 6.4, 12.5, 0, 3.6, 1.6);
+  tbox(g, m.conc, 19.5, 0.5, 17.5, 0, 0.25, 0, 7).receiveShadow = true;
+  for (const sd of [-1, 1]) box(g, m.cPanelDark, 19.5, 0.16, 0.4, 0, 0.56, sd * 8.58);
+  // assembly hall + plinth + cornice
+  tbox(g, m.cPanel, 15.5, 6.4, 12.5, 0, 3.6, 1.6, 7);
+  box(g, m.cPanelDark, 15.9, 1.0, 12.9, 0, 0.9, 1.6);
+  box(g, m.cWhite, 16.0, 0.32, 13.0, 0, 6.75, 1.6);
   box(g, m.cPanelDark, 16.1, 0.5, 13.1, 0, 7.05, 1.6);
+  parapet(g, m.cPanelDark, 16.1, 13.1, 0, 7.3, 1.6, 0.35, 0.55);
+  // hall side windows high on the wall
+  winRow(g, m.winCool, 9.6, 1.05, -7.78, 5.4, 1.6, -Math.PI / 2);
+  winRow(g, m.winCool, 9.6, 1.05, 7.78, 5.4, 1.6, Math.PI / 2);
   // raised spine + glowing skylight strip
-  box(g, m.cPanelLight, 15.7, 1.3, 4.6, 0, 7.85, 1.6);
+  tbox(g, m.cPanelLight, 15.7, 1.3, 4.6, 0, 7.85, 1.6, 7);
   box(g, m.cGlass, 15.2, 0.6, 0.18, 0, 7.9, -0.72);
-  box(g, m.cPanelDark, 16.0, 0.3, 4.9, 0, 8.6, 1.6);
+  box(g, m.cGlass, 15.2, 0.6, 0.18, 0, 7.9, 3.92);
+  box(g, m.cWhite, 16.0, 0.24, 5.0, 0, 8.55, 1.6);
+  tbox(g, m.cPanelDark, 15.8, 0.22, 4.7, 0, 8.75, 1.6, 7);
   // open vehicle bay
   box(g, m.dark, 7.4, 4.9, 0.4, -1.4, 2.8, -4.68);
   box(g, m.hazard, 8.4, 0.55, 0.5, -1.4, 5.5, -4.7);
@@ -1551,10 +1822,12 @@ function bFactoryC(g, owner) {
   box(g, m.cSteel, 1.3, 0.9, 1.0, -2.4, 0.95, -7.6);
   box(g, m.wood, 1.7, 0.2, 1.4, -2.4, 0.4, -7.6);
   // side office with glass
-  box(g, m.cPanelLight, 3.6, 3.1, 5.4, 9.4, 1.85, -1.0);
-  box(g, m.cGlass, 0.16, 0.8, 4.2, 11.25, 2.4, -1.0);
-  box(g, m.cGlass, 2.6, 0.8, 0.16, 9.4, 2.4, -3.75);
+  tbox(g, m.cPanelLight, 3.6, 3.1, 5.4, 9.4, 1.85, -1.0, 5);
+  winRow(g, m.winCool, 4.4, 0.95, 11.22, 2.35, -1.0, Math.PI / 2);
+  winRow(g, m.winCool, 2.8, 0.95, 9.4, 2.35, -3.72, Math.PI);
   box(g, m.cPanelDark, 4.0, 0.2, 5.8, 9.4, 3.5, -1.0);
+  box(g, A.paint, 3.7, 0.35, 5.5, 9.4, 0.5, -1.0);             // office accent skirting
+  acUnit(g, 9.2, 3.6, 1.2, 0.8);
   // stacks + vents
   cyl(g, m.cSteel, 0.5, 0.62, 3.4, 5.6, 8.9, 4.6, 10);
   cyl(g, m.dark, 0.56, 0.56, 0.2, 5.6, 10.6, 4.6, 10);
@@ -1571,18 +1844,34 @@ function bFactoryC(g, owner) {
 
 function bAirfield(g, owner) {
   const m = mats(), A = accents(owner);
-  box(g, m.conc, 21.5, 0.4, 15.5, 0, 0.2, 0).receiveShadow = true;
+  tbox(g, m.conc, 21.5, 0.4, 15.5, 0, 0.2, 0, 7).receiveShadow = true;
+  for (const sd of [-1, 1]) box(g, m.cPanelDark, 21.5, 0.14, 0.35, 0, 0.44, sd * 7.58);
   // hangar with barrel roof (open to -Z)
   const hx = -5.6;
-  box(g, m.cPanel, 8.6, 3.4, 9.6, hx, 1.7, 1.6);
+  tbox(g, m.cPanel, 8.6, 3.4, 9.6, hx, 1.7, 1.6, 6);
+  box(g, m.cPanelDark, 8.9, 0.7, 9.9, hx, 0.6, 1.6);           // plinth
   const vaultMount = new THREE.Group();
   vaultMount.position.set(hx, 3.4, 1.6);
   vaultMount.rotation.y = Math.PI / 2;              // vault axis along Z
   g.add(vaultMount);
-  const vault = new THREE.Mesh(cylGeo(4.32, 4.32, 9.6, 14, false, 0, Math.PI), m.cPanelLight);
+  const vault = new THREE.Mesh(
+    geo('vaultAf', () => {
+      const vg = new THREE.CylinderGeometry(4.32, 4.32, 9.6, 14, 1, false, 0, Math.PI);
+      const uv = vg.attributes.uv;
+      for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 2.3, uv.getY(i) * 1.6);
+      return vg;
+    }), m.cPanelLight);
   vault.rotation.z = Math.PI / 2;                   // curve bulges up
   vault.castShadow = vault.receiveShadow = true;
   vaultMount.add(vault);
+  // vault rib half-hoops
+  const ribG = geo('afRib', () => new THREE.TorusGeometry(4.36, 0.09, 6, 18, Math.PI));
+  for (const rz of [-2.6, 0.2, 3.0]) {
+    const rib = new THREE.Mesh(ribG, m.cSteel);
+    rib.position.set(hx, 3.4, 1.6 + rz);
+    rib.castShadow = true;
+    g.add(rib);
+  }
   box(g, m.dark, 7.0, 3.6, 0.3, hx, 1.85, -3.1);               // hangar maw
   box(g, m.hazard, 8.8, 0.5, 0.4, hx, 3.75, -3.2);
   box(g, A.paint, 8.8, 0.35, 0.35, hx, 4.15, -3.2);            // accent brow
@@ -1595,10 +1884,14 @@ function bAirfield(g, owner) {
     const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
     box(g, m.lightLens, 0.22, 0.18, 0.22, 5.2 + Math.cos(a) * 4.5, 0.62, 0.6 + Math.sin(a) * 4.5);
   }
-  // control hut + rotating dish
-  box(g, m.cPanelLight, 3.4, 2.8, 3.2, 8.6, 1.7, 5.6);
-  box(g, m.cGlass, 2.6, 0.8, 0.16, 8.6, 2.4, 3.95);
+  // control tower + rotating dish
+  tbox(g, m.cPanelLight, 3.4, 2.8, 3.2, 8.6, 1.7, 5.6, 5);
+  box(g, m.cPanelDark, 3.6, 0.5, 3.4, 8.6, 0.55, 5.6);
+  winRow(g, m.winCool, 2.8, 0.9, 8.6, 2.35, 3.97, Math.PI);
+  winRow(g, m.winCool, 2.8, 0.9, 6.98, 2.35, 5.6, -Math.PI / 2);
+  box(g, m.cWhite, 3.7, 0.18, 3.5, 8.6, 3.06, 5.6);
   box(g, m.cPanelDark, 3.8, 0.2, 3.6, 8.6, 3.2, 5.6);
+  box(g, A.paint, 3.5, 0.3, 3.3, 8.6, 0.9, 5.6);               // accent band
   const radar = new THREE.Group();
   radar.position.set(8.6, 3.9, 5.6);
   g.add(radar);
@@ -1628,7 +1921,11 @@ function bAirfield(g, owner) {
 
 function bPatriot(g, owner) {
   const m = mats(), A = accents(owner);
-  box(g, m.conc, 9.5, 0.5, 9.5, 0, 0.25, 0).receiveShadow = true;
+  tbox(g, m.conc, 9.5, 0.5, 9.5, 0, 0.25, 0, 7).receiveShadow = true;
+  for (const sd of [-1, 1]) {
+    box(g, m.cPanelDark, 9.5, 0.14, 0.32, 0, 0.55, sd * 4.6);
+    box(g, m.cPanelDark, 0.32, 0.14, 9.5, sd * 4.6, 0.55, 0);
+  }
   for (const [px, pz] of [[-4.3, -4.3], [4.3, -4.3], [-4.3, 4.3], [4.3, 4.3]])
     box(g, m.hazard, 0.9, 0.3, 0.9, px, 0.62, pz);
   // phased-array radar trailer at the rear
@@ -1673,11 +1970,18 @@ function bPatriot(g, owner) {
 
 function bParticle(g, owner) {
   const m = mats(), A = accents(owner);
-  box(g, m.conc, 15.5, 0.5, 15.5, 0, 0.25, 0).receiveShadow = true;
+  tbox(g, m.conc, 15.5, 0.5, 15.5, 0, 0.25, 0, 7).receiveShadow = true;
+  for (const sd of [-1, 1]) {
+    box(g, m.cPanelDark, 15.5, 0.16, 0.4, 0, 0.56, sd * 7.58);
+    box(g, m.cPanelDark, 0.4, 0.16, 15.5, sd * 7.58, 0.56, 0);
+  }
   // tiered bunker base
-  box(g, m.cPanel, 12.5, 2.0, 12.5, 0, 1.25, 0);
-  box(g, m.cPanelDark, 10.0, 1.2, 10.0, 0, 2.85, 0);
+  tbox(g, m.cPanel, 12.5, 2.0, 12.5, 0, 1.25, 0, 7);
+  box(g, m.cWhite, 12.7, 0.24, 12.7, 0, 2.3, 0);               // tier trim
+  tbox(g, m.cPanelDark, 10.0, 1.2, 10.0, 0, 2.85, 0, 7);
   box(g, m.hazard, 12.7, 0.3, 0.4, 0, 2.15, -6.28);
+  winRow(g, m.winCool, 4.4, 0.8, -3.6, 1.15, -6.28, Math.PI);  // bunker slit windows
+  winRow(g, m.winCool, 4.4, 0.8, 3.6, 1.15, -6.28, Math.PI);
   // capacitor towers on the corners with glowing tips + conduits
   for (const [px, pz] of [[-5.3, -5.3], [5.3, -5.3], [-5.3, 5.3], [5.3, 5.3]]) {
     cyl(g, m.cSteel, 0.55, 0.7, 3.6, px, 3.8, pz, 10);
@@ -1742,23 +2046,37 @@ function flipWrap(g, scale = 1) {
 
 function bCcG(g, owner) {
   const m = mats(), A = accents(owner);
+  // packed-earth apron
+  tbox(g, m.dirtPad, 19.4, 0.3, 19.4, 0, 0.15, 0, 7).receiveShadow = true;
   const f = flipWrap(g, 0.85);
   // main hall with battered corner piers
-  box(f, m.adobe, 16, 7, 12, 0, 3.5, 0);
+  tbox(f, m.adobe, 16, 7, 12, 0, 3.5, 0, 6);
+  tbox(f, m.adobeDark, 16.4, 1.2, 12.4, 0, 0.75, 0, 6);        // battered plinth
   for (const [px, pz] of [[-7.6, -5.6], [7.6, -5.6], [-7.6, 5.6], [7.6, 5.6]])
-    box(f, m.adobeDark, 1.6, 7.4, 1.6, px, 3.7, pz);
-  box(f, m.adobeDark, 17, 1, 13, 0, 7.3, 0);
+    tbox(f, m.adobeDark, 1.6, 7.4, 1.6, px, 3.7, pz, 5);
+  box(f, m.adobePale, 17.2, 0.4, 13.2, 0, 6.85, 0);            // pale string course
+  tbox(f, m.adobeDark, 17, 1, 13, 0, 7.3, 0, 6);
   for (let i = 0; i < 7; i++) {
     const x = -7.2 + i * 2.4;
     box(f, m.adobe, 1.0, 0.55, 0.6, x, 8.05, 6.3);
     box(f, m.adobe, 1.0, 0.55, 0.6, x, 8.05, -6.3);
   }
+  for (let i = 0; i < 5; i++) {                                // merlons on the ends too
+    const z = -4.8 + i * 2.4;
+    box(f, m.adobe, 0.6, 0.55, 1.0, 8.3, 8.05, z);
+    box(f, m.adobe, 0.6, 0.55, 1.0, -8.3, 8.05, z);
+  }
+  // warm lit windows along both long faces
+  winRow(f, m.winWarm, 4.6, 1.25, -4.4, 5.1, -6.06, Math.PI);
+  winRow(f, m.winWarm, 4.6, 1.25, 4.4, 5.1, -6.06, Math.PI);
   // side wings with corrugated lean-to roofs
-  box(f, m.adobeDark, 5, 5, 7.5, -9.2, 2.5, 1);
-  box(f, m.adobeDark, 5, 5, 7.5, 9.2, 2.5, 1);
-  const lean1 = box(f, m.corrRust, 5.8, 0.18, 8.3, -9.5, 5.35, 1);
+  tbox(f, m.adobeDark, 5, 5, 7.5, -9.2, 2.5, 1, 6);
+  tbox(f, m.adobeDark, 5, 5, 7.5, 9.2, 2.5, 1, 6);
+  winRow(f, m.winWarm, 3.2, 1.05, -9.2, 3.4, 4.79, 0);
+  winRow(f, m.winWarm, 3.2, 1.05, 9.2, 3.4, 4.79, 0);
+  const lean1 = tbox(f, m.corrRust, 5.8, 0.18, 8.3, -9.5, 5.35, 1, 5);
   lean1.rotation.z = 0.09;
-  const lean2 = box(f, m.corr, 5.8, 0.18, 8.3, 9.5, 5.35, 1);
+  const lean2 = tbox(f, m.corr, 5.8, 0.18, 8.3, 9.5, 5.35, 1, 5);
   lean2.rotation.z = -0.09;
   // entry arch + framed wooden double door
   box(f, m.adobePale, 6, 4.5, 1.4, 0, 2.25, 6.4);
@@ -1827,9 +2145,13 @@ function bCcG(g, owner) {
 
 function bBarracksG(g, owner) {
   const m = mats(), A = accents(owner);
+  tbox(g, m.dirtPad, 12.6, 0.24, 10.6, 0, 0.12, 0, 7).receiveShadow = true;
   const f = flipWrap(g);
-  box(f, m.adobeDark, 11, 4, 6.5, -0.5, 2, -1.2);
-  const roof = box(f, m.corrRust, 12, 0.25, 7.8, -0.5, 4.4, -1.2);
+  tbox(f, m.adobeDark, 11, 4, 6.5, -0.5, 2, -1.2, 6);
+  tbox(f, m.adobe, 11.3, 0.9, 6.8, -0.5, 0.6, -1.2, 6);        // plinth
+  winRow(f, m.winWarm, 2.4, 0.95, -3.1, 2.75, -4.46, Math.PI); // rear windows
+  winRow(f, m.winWarm, 2.4, 0.95, 1.9, 2.75, -4.46, Math.PI);
+  const roof = tbox(f, m.corrRust, 12, 0.25, 7.8, -0.5, 4.4, -1.2, 5);
   roof.rotation.x = 0.1;
   box(f, m.conc, 0.5, 0.3, 0.5, -3.5, 4.45, 0.6);
   box(f, m.conc, 0.5, 0.3, 0.5, 0.5, 4.85, -3.0);
@@ -1870,11 +2192,13 @@ function bBarracksG(g, owner) {
 
 function bSupplyG(g, owner) {
   const m = mats(), A = accents(owner);
+  tbox(g, m.dirtPad, 15.6, 0.24, 13.6, 0, 0.12, 0, 7).receiveShadow = true;
   // shanty warehouse: corrugated shed, open front, crate yard
-  box(g, m.metalRust, 10.5, 4.6, 8.5, -1.6, 2.3, 1.4);
-  const roof = box(g, m.corrRust, 11.5, 0.2, 9.6, -1.6, 4.85, 1.4);
+  tbox(g, m.metalRust, 10.5, 4.6, 8.5, -1.6, 2.3, 1.4, 5);
+  tbox(g, m.corr, 10.7, 1.1, 8.7, -1.6, 0.6, 1.4, 5);          // battered skirt
+  const roof = tbox(g, m.corrRust, 11.5, 0.2, 9.6, -1.6, 4.85, 1.4, 5);
   roof.rotation.z = 0.06;
-  box(g, m.corr, 0.25, 3.2, 8.6, 3.75, 1.6, 1.4);              // patch wall
+  tbox(g, m.corr, 0.25, 3.2, 8.6, 3.75, 1.6, 1.4, 5);          // patch wall
   box(g, m.dark, 6.0, 3.4, 0.3, -2.0, 1.7, -2.75);             // open front maw
   box(g, m.wood, 0.6, 4.2, 0.5, -5.2, 2.1, -2.9);
   box(g, m.wood, 0.6, 4.2, 0.5, 1.2, 2.1, -2.9);
@@ -1906,10 +2230,20 @@ function bSupplyG(g, owner) {
 
 function bArmsDealer(g, owner) {
   const m = mats(), A = accents(owner);
+  tbox(g, m.dirtPad, 17.6, 0.26, 15.6, 0, 0.13, 0, 7).receiveShadow = true;
   const f = flipWrap(g);
   // big garage with barrel-vault roof
-  box(f, m.metalRust, 14, 6, 11, 0, 3, 0);
-  const roof = new THREE.Mesh(cylGeo(5.6, 5.6, 14.2, 12, false, 0, Math.PI), m.corr);
+  tbox(f, m.metalRust, 14, 6, 11, 0, 3, 0, 5);
+  tbox(f, m.metal, 14.3, 1.2, 11.3, 0, 0.7, 0, 5);             // plated skirt
+  winRow(f, m.winWarm, 4.4, 1.1, -3.6, 4.2, -5.56, Math.PI);   // lit workshop windows (rear)
+  winRow(f, m.winWarm, 4.4, 1.1, 3.6, 4.2, -5.56, Math.PI);
+  const roof = new THREE.Mesh(
+    geo('adVault', () => {
+      const vg = new THREE.CylinderGeometry(5.6, 5.6, 14.2, 12, 1, false, 0, Math.PI);
+      const uv = vg.attributes.uv;
+      for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 3.5, uv.getY(i) * 2.8);
+      return vg;
+    }), m.corr);
   roof.rotation.z = Math.PI / 2;
   roof.position.set(0, 6, 0);
   roof.castShadow = roof.receiveShadow = true;
@@ -1970,13 +2304,15 @@ function bArmsDealer(g, owner) {
 
 function bBlackmarket(g, owner) {
   const m = mats(), A = accents(owner);
+  tbox(g, m.dirtPad, 11.6, 0.24, 11.6, 0, 0.12, 0, 7).receiveShadow = true;
   // adobe trading house
-  box(g, m.adobe, 7, 4.4, 5.5, -1.4, 2.2, 1.6);
-  box(g, m.adobeDark, 7.6, 0.7, 6.1, -1.4, 4.6, 1.6);
+  tbox(g, m.adobe, 7, 4.4, 5.5, -1.4, 2.2, 1.6, 6);
+  tbox(g, m.adobeDark, 7.6, 0.7, 6.1, -1.4, 4.6, 1.6, 6);
   for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]])
     box(g, m.adobePale, 0.55, 4.9, 0.55, -1.4 + sx * 3.5, 2.45, 1.6 + sz * 2.75);
   box(g, m.woodDark, 1.4, 2.4, 0.2, -2.6, 1.2, -1.18);         // door
-  box(g, m.window, 1.3, 0.9, 0.15, 0.2, 2.6, -1.15);
+  box(g, m.wood, 1.7, 0.2, 0.3, -2.6, 2.5, -1.2);              // door header
+  winRow(g, m.winWarm, 1.3, 1.0, 0.2, 2.6, -1.14, Math.PI);    // lit shop window
   // antenna mast + wire (smuggler comms)
   cyl(g, m.metalDark, 0.08, 0.12, 5.4, 0.8, 7.3, 3.4, 6);
   box(g, m.metalDark, 1.8, 0.08, 0.08, 0.8, 9.6, 3.4);
@@ -2083,7 +2419,9 @@ function bTunnel(g, owner) {
     pos.setXYZ(i, x * n, y * n * 0.72, z * n);
   }
   geoM.computeVertexNormals();
-  const mound = new THREE.Mesh(geoM, m.adobeDark);
+  const muv = geoM.attributes.uv;
+  for (let i = 0; i < muv.count; i++) muv.setXY(i, muv.getX(i) * 3, muv.getY(i) * 1.6);
+  const mound = new THREE.Mesh(geoM, m.dirtPad);
   mound.position.z = 0.8;
   mound.castShadow = mound.receiveShadow = true;
   g.add(mound);
@@ -2128,17 +2466,18 @@ function bTunnel(g, owner) {
 
 function bScudstorm(g, owner) {
   const m = mats(), A = accents(owner);
-  box(g, m.conc, 13, 0.4, 13, 0, 0.2, 0.6).receiveShadow = true;
+  tbox(g, m.conc, 13, 0.4, 13, 0, 0.2, 0.6, 7).receiveShadow = true;
+  tbox(g, m.dirtPad, 17.6, 0.22, 17.6, 0, 0.11, 0.4, 7).receiveShadow = true;
   // earthen revetment on three sides (open to -Z)
   for (const [bx, bz, bw, ry] of [[0, 8.0, 15.5, 0], [-8.0, 0.5, 14.5, Math.PI / 2], [8.0, 0.5, 14.5, Math.PI / 2]]) {
     const berm = new THREE.Group();
     berm.position.set(bx, 0, bz);
     berm.rotation.y = ry;
     g.add(berm);
-    box(berm, m.adobeDark, bw, 1.9, 1.5, 0, 0.8, 0);
-    const s1 = box(berm, m.adobeDark, bw, 2.2, 1.3, 0, 0.62, -1.05);
+    tbox(berm, m.dirtPad, bw, 1.9, 1.5, 0, 0.8, 0, 6);
+    const s1 = tbox(berm, m.dirtPad, bw, 2.2, 1.3, 0, 0.62, -1.05, 6);
     s1.rotation.x = 0.62;
-    const s2 = box(berm, m.adobeDark, bw, 2.2, 1.3, 0, 0.62, 1.05);
+    const s2 = tbox(berm, m.dirtPad, bw, 2.2, 1.3, 0, 0.62, 1.05, 6);
     s2.rotation.x = -0.62;
     sandbagRow(berm, 0, 1.68, 0, 0, Math.floor(bw / 0.9), 1);  // sandbag crown
   }
@@ -2224,8 +2563,10 @@ function bDerrick(g) {
   strut(g, m.metalDark, -1.6, 0.9, 0.6, -2.5, 3.35, 0.1, 0.05, 5); // pitman arm
   // motor + tank + feed pipe + stains
   box(g, m.metalDark, 1.4, 1, 1, -1.8, 0.9, 0);
-  cyl(g, m.metalRust, 1.5, 1.5, 3.2, 3.2, 1.6, -2.4, 14);
-  strut(g, m.metalDark, 2.8, 0.5, -2.0, 1.3, 0.35, -0.2, 0.12, 6);
+  tcyl(g, m.metalRust, 1.5, 1.5, 3.2, 3.2, 1.6, -2.4, 14, 4);
+  cyl(g, m.metalDark, 1.56, 1.56, 0.18, 3.2, 0.4, -2.4, 14);   // tank base ring
+  cyl(g, m.metalDark, 1.52, 1.52, 0.14, 3.2, 3.1, -2.4, 14);   // top rim
+  decal(g, m.stainMat, 1.9, 3.2, -2.4, 0.07);
   cyl(g, m.metalRust, 0.3, 0.06, 0.3, 2.0, 0.6, -0.8, 8);
   // lattice derrick tower for the classic silhouette
   const tx = -2.6, tz = -2.2, th = 7.2;
@@ -2252,21 +2593,23 @@ function bHut(g) {
   const w = 5 + (variant % 3), d = 4.5 + ((variant * 7) % 3);
   const wall = [m.adobe, m.adobeDark, m.adobePale][variant % 3];
   const trim = variant % 3 === 2 ? m.adobeDark : m.adobePale;
-  box(f, wall, w, 3.2, d, 0, 1.6, 0);
+  tbox(g, m.dirtPad, w + 2.4, 0.2, d + 2.4, 0, 0.1, 0, 6).receiveShadow = true;
+  tbox(f, wall, w, 3.2, d, 0, 1.6, 0, 5);
+  tbox(f, trim, w + 0.3, 0.6, d + 0.3, 0, 0.35, 0, 5);         // plinth course
   if (variant % 2 === 0) {
-    const roof = box(f, m.corrRust, w + 1, 0.22, d + 1.2, 0, 3.5, 0);
+    const roof = tbox(f, m.corrRust, w + 1, 0.22, d + 1.2, 0, 3.5, 0, 5);
     roof.rotation.x = 0.08;
     tireTorus(f, w * 0.25, 3.75, d * 0.2, true, 0.4, 0.16);
     box(f, m.conc, 0.45, 0.28, 0.45, -w * 0.3, 3.78, -d * 0.2);
     box(f, m.conc, 0.45, 0.28, 0.45, w * 0.32, 3.68, -d * 0.32);
   } else {
-    box(f, m.adobeDark, w + 0.6, 0.7, d + 0.6, 0, 3.4, 0);
+    tbox(f, m.adobeDark, w + 0.6, 0.7, d + 0.6, 0, 3.4, 0, 5);
     for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]])
       box(f, trim, 0.5, 3.6, 0.5, sx * w / 2, 1.8, sz * d / 2);
   }
   box(f, m.woodDark, 1.3, 2.3, 0.25, w * 0.2, 1.15, d / 2 + 0.05);
   box(f, m.wood, 1.7, 0.24, 0.36, w * 0.2, 2.4, d / 2 + 0.1);
-  box(f, m.dark, 1.1, 0.95, 0.14, -w * 0.25, 2, d / 2 + 0.03);
+  winRow(f, m.winWarm, 1.05, 0.95, -w * 0.25, 2, d / 2 + 0.04);
   box(f, trim, 1.4, 0.16, 0.3, -w * 0.25, 1.42, d / 2 + 0.08);
   box(f, trim, 1.4, 0.18, 0.26, -w * 0.25, 2.58, d / 2 + 0.06);
   if (variant % 3 === 1) {
@@ -2284,22 +2627,30 @@ function bHut(g) {
 function bMosque(g) {
   const m = mats();
   const f = flipWrap(g, 1.05);
-  box(f, m.adobePale, 9, 5.5, 8, 0, 2.75, 0);
-  box(f, m.adobe, 9.5, 0.6, 8.5, 0, 0.3, 0);
-  dome(f, m.adobe, 3.2, 0, 5.5, 0, 18, 12);
+  tbox(g, m.dirtPad, 11.8, 0.22, 11.8, 0, 0.11, 0, 7).receiveShadow = true;
+  tbox(f, m.adobePale, 9, 5.5, 8, 0, 2.75, 0, 6);
+  tbox(f, m.adobe, 9.5, 0.6, 8.5, 0, 0.3, 0, 6);
+  box(f, m.adobe, 9.3, 0.4, 8.3, 0, 5.35, 0);                  // roof string course
+  for (let i = 0; i < 6; i++) {                                // parapet dentils
+    box(f, m.adobePale, 0.7, 0.5, 0.55, -4.0 + i * 1.6, 5.75, 3.85);
+    box(f, m.adobePale, 0.7, 0.5, 0.55, -4.0 + i * 1.6, 5.75, -3.85);
+  }
+  cyl(f, m.adobePale, 3.45, 3.6, 0.85, 0, 5.55, 0, 16);        // dome drum
+  dome(f, m.adobe, 3.2, 0, 5.95, 0, 18, 12);
   cyl(f, m.gold, 0.06, 0.06, 0.9, 0, 9.0, 0, 6);
   const dfin = new THREE.Mesh(sphGeo(0.14, 8, 6), m.gold);
   dfin.position.set(0, 9.5, 0);
   f.add(dfin);
-  cyl(f, m.adobePale, 0.9, 1.1, 11, 6.4, 5.5, -2.5, 10);
+  tcyl(f, m.adobePale, 0.9, 1.1, 11, 6.4, 5.5, -2.5, 10, 6);
   cyl(f, m.adobe, 1.25, 1.25, 0.8, 6.4, 11.2, -2.5, 10);
+  box(f, m.dark, 0.55, 0.5, 0.55, 6.4, 11.15, -2.5);           // muezzin gallery shadow
   cone(f, m.green, 1.1, 1.8, 6.4, 12.5, -2.5, 10);
   cyl(f, m.gold, 0.05, 0.05, 0.7, 6.4, 13.7, -2.5, 6);
   const mfin = new THREE.Mesh(sphGeo(0.12, 8, 6), m.gold);
   mfin.position.set(6.4, 14.05, -2.5);
   f.add(mfin);
   for (const wx of [-2.8, 2.8]) {
-    box(f, m.window, 1.3, 2.4, 0.15, wx, 2.6, 4.05);
+    winRow(f, m.winWarm, 1.3, 2.4, wx, 2.6, 4.06);
     box(f, m.adobe, 1.7, 0.18, 0.34, wx, 1.32, 4.12);
     box(f, m.adobe, 0.2, 2.7, 0.24, wx - 0.83, 2.65, 4.08);
     box(f, m.adobe, 0.2, 2.7, 0.24, wx + 0.83, 2.65, 4.08);
@@ -2375,24 +2726,48 @@ export function buildRubble(def) {
   const r = makeRng(hash || 1);
   const coalition = def.faction === 'coalition';
   const wallMat = coalition ? m.cPanelDark : m.adobeDark;
+  const wallMat2 = coalition ? m.cPanel : m.adobe;
   const charMat = m.dark;
-  decal(g, m.scorch, Math.max(w, d) * 0.62, 0, 0, 0.06);
+  decal(g, m.scorch, Math.max(w, d) * 0.5, 0, 0, 0.06);
   // cracked slab
-  const slab = box(g, m.conc, w * 0.7, 0.5, d * 0.7, 0, 0.18, 0);
+  const slab = tbox(g, m.conc, w * 0.7, 0.5, d * 0.7, 0, 0.18, 0, 7);
   slab.rotation.y = (r() - 0.5) * 0.1;
   slab.rotation.z = (r() - 0.5) * 0.04;
-  // jagged corner wall stubs
-  const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]].filter(() => r() < 0.7);
+  // jagged corner wall stubs, stepped silhouettes in the building's own skin
+  const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]].filter(() => r() < 0.75);
   for (const [sx, sz] of corners.slice(0, 3)) {
-    const bh = 1.2 + r() * Math.min(3, w * 0.16);
+    const bh = 1.4 + r() * Math.min(3.4, w * 0.18);
     const st = new THREE.Group();
     st.position.set(sx * w * 0.32, 0, sz * d * 0.32);
     st.rotation.y = (r() - 0.5) * 0.3;
+    st.rotation.z = (r() - 0.5) * 0.14;
     g.add(st);
-    box(st, wallMat, w * 0.22, bh, 0.6, 0, bh / 2, 0);
-    box(st, wallMat, w * 0.1, bh * 0.55, 0.62, -w * 0.13, bh * 0.27 + bh * 0.5, 0.01);
-    const lean = box(st, wallMat, 0.6, bh * 0.8, d * 0.14, w * 0.13, bh * 0.4, sz * -d * 0.09);
+    tbox(st, wallMat2, w * 0.22, bh, 0.6, 0, bh / 2, 0, 6);
+    tbox(st, wallMat2, w * 0.1, bh * 0.55, 0.62, -w * 0.13, bh * 0.27 + bh * 0.5, 0.01, 6);
+    box(st, m.dark, w * 0.07, bh * 0.4, 0.66, w * 0.04, bh * 0.55, 0);   // blown-out hole
+    const lean = tbox(st, wallMat, 0.6, bh * 0.8, d * 0.14, w * 0.13, bh * 0.4, sz * -d * 0.09, 6);
     lean.rotation.x = (r() - 0.5) * 0.2;
+  }
+  // collapsed roof plate resting against the tallest stub
+  const plate = tbox(g, coalition ? m.cPanelDark : m.corrRust,
+    w * 0.34, 0.22, d * 0.3, -w * 0.08, 1.0, d * 0.06, 6);
+  plate.rotation.set(0.42 + r() * 0.2, (r() - 0.5) * 0.8, (r() - 0.5) * 0.2);
+  // signature wreck piece so the ruin echoes the building
+  if (def.id === 'reactor' || def.id === 'particle') {
+    const shard = new THREE.Mesh(sphGeo(Math.min(2.6, w * 0.18), 12, 7, Math.PI / 2), coalition ? m.radome : m.adobePale);
+    shard.position.set(w * 0.18, 0.5, -d * 0.12);
+    shard.rotation.z = 2.4;
+    shard.castShadow = true;
+    g.add(shard);
+  } else if (coalition) {
+    const beam = box(g, m.cSteel, 0.3, 0.3, Math.min(6, d * 0.5), w * 0.2, 1.1, 0);
+    beam.rotation.set(0.5, 0.7, 0.1);
+  } else {
+    const arch = new THREE.Mesh(cylGeo(1.3, 1.3, 0.8, 12, false, 0, Math.PI), m.adobePale);
+    arch.rotation.z = Math.PI / 2; arch.rotation.y = Math.PI / 2;
+    arch.position.set(-w * 0.18, 0.9, -d * 0.2);
+    arch.castShadow = true;
+    g.add(arch);
   }
   // charred beams leaning through the wreck
   for (let i = 0; i < 4; i++) {
@@ -2411,7 +2786,7 @@ export function buildRubble(def) {
     ge.translate((r() - 0.5) * w * 0.62, s * 0.22, (r() - 0.5) * d * 0.62);
     (i % 2 ? geos : geos2).push(ge);
   }
-  for (const [gg, mat] of [[geos, wallMat], [geos2, coalition ? m.cSteel : m.wood]]) {
+  for (const [gg, mat] of [[geos, wallMat], [geos2, coalition ? m.cSteel : m.woodDark]]) {
     if (!gg.length) continue;
     const mesh = new THREE.Mesh(mergeGeos(gg), mat);
     mesh.castShadow = mesh.receiveShadow = true;

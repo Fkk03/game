@@ -92,26 +92,72 @@ function tickRates() {
 }
 
 // ---------------------------------------------------------------- docks
-let _crateMat = null, _tarpMat = null;
+let _crateMat = null, _crateMat2 = null, _tarpMat = null, _palletMat = null, _strapMat = null;
 function crateMats() {
   if (_crateMat) return;
-  _crateMat = new THREE.MeshStandardMaterial({ map: metalPanels('#4d7796', 31), roughness: 0.82 });
+  // meshes-agent polish pass: crate texture drawn at box scale (panel seams,
+  // planked lid, stencil band) so stacks stop reading as untextured cubes.
+  const mk = (base, edge, seed) => {
+    const rng = makeRng(seed);
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const x = c.getContext('2d');
+    const g0 = x.createLinearGradient(0, 0, 0, 128);
+    g0.addColorStop(0, edge); g0.addColorStop(0.5, base); g0.addColorStop(1, edge);
+    x.fillStyle = g0; x.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 90; i++) {          // painterly mottle
+      x.fillStyle = `rgba(${rng() < 0.5 ? '255,255,240' : '10,14,20'},${0.04 + rng() * 0.07})`;
+      x.beginPath(); x.arc(rng() * 128, rng() * 128, 3 + rng() * 12, 0, 7); x.fill();
+    }
+    for (const p of [10, 64, 118]) {        // panel ribs
+      x.fillStyle = 'rgba(8,10,14,0.55)'; x.fillRect(p - 3, 0, 3, 128);
+      x.fillStyle = 'rgba(240,250,255,0.28)'; x.fillRect(p, 0, 2, 128);
+    }
+    x.fillStyle = 'rgba(8,10,14,0.6)'; x.fillRect(0, 0, 128, 5);
+    x.fillRect(0, 123, 128, 5);
+    x.fillStyle = 'rgba(255,255,255,0.5)';  // stencil band
+    x.fillRect(22, 54, 40, 4);
+    x.fillRect(22, 62, 26, 4);
+    for (let i = 0; i < 40; i++) {          // chipped paint
+      x.fillStyle = rng() < 0.5 ? 'rgba(200,205,200,0.4)' : 'rgba(20,24,30,0.4)';
+      x.fillRect(rng() * 128, rng() * 128, 1 + rng() * 3, 1 + rng() * 2);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return new THREE.MeshStandardMaterial({ map: t, roughness: 0.72, metalness: 0.25 });
+  };
+  _crateMat = mk('#5b84a4', '#3e5e78', 4101);
+  _crateMat2 = mk('#6f96b2', '#476a84', 4102);
   _tarpMat = new THREE.MeshStandardMaterial({ map: fabric('#8a6a3f', 12), roughness: 0.95 });
+  _palletMat = new THREE.MeshStandardMaterial({ map: fabric('#6b5638', 13), roughness: 1 });
+  _strapMat = new THREE.MeshStandardMaterial({ color: 0x2e3438, roughness: 0.6, metalness: 0.4 });
 }
 
 function buildCrateStack(rng, hMax) {
   const grp = new THREE.Group();
-  const sz = 2.3 + rng() * 0.7;
+  const sz = 2.1 + rng() * 0.9;
   const n = 1 + Math.floor(rng() * hMax);
-  let y = 0;
+  // pallet skids under the stack
+  const pal = new THREE.Mesh(new THREE.BoxGeometry(sz * 1.18, 0.16, sz * 1.18), _palletMat);
+  pal.position.y = 0.08;
+  pal.castShadow = pal.receiveShadow = true;
+  grp.add(pal);
+  let y = 0.16;
   for (let i = 0; i < n; i++) {
-    const s = sz * (1 - i * 0.12);
-    const tarp = rng() < 0.22;
-    const m = new THREE.Mesh(new THREE.BoxGeometry(s, s * 0.82, s), tarp ? _tarpMat : _crateMat);
-    m.position.set((rng() - 0.5) * 0.4, y + s * 0.41, (rng() - 0.5) * 0.4);
-    m.rotation.y = (rng() - 0.5) * 0.5;
+    const s = sz * (1 - i * 0.14);
+    const tarp = rng() < 0.2;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(s, s * 0.82, s),
+      tarp ? _tarpMat : (rng() < 0.5 ? _crateMat : _crateMat2));
+    m.position.set((rng() - 0.5) * 0.5, y + s * 0.41, (rng() - 0.5) * 0.5);
+    m.rotation.y = (rng() - 0.5) * 0.7;
     m.castShadow = m.receiveShadow = true;
     grp.add(m);
+    if (!tarp && rng() < 0.7) {             // cargo strap band over the lid
+      const st = new THREE.Mesh(new THREE.BoxGeometry(s * 1.04, s * 0.84, 0.1), _strapMat);
+      st.position.copy(m.position);
+      st.rotation.y = m.rotation.y;
+      grp.add(st);
+    }
     y += s * 0.82;
   }
   return grp;

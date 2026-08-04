@@ -13,9 +13,9 @@ export function buildSky() {
   const skyMat = new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false, fog: false,
     uniforms: {
-      topColor: { value: new THREE.Color(0x2f63b4) },
-      midColor: { value: new THREE.Color(0x84a8d2) },
-      horizonColor: { value: new THREE.Color(0xeac585) },
+      topColor: { value: new THREE.Color(0x3a6cb8) },
+      midColor: { value: new THREE.Color(0x8fb2d8) },
+      horizonColor: { value: new THREE.Color(0xf6c97e) },
       sunDir: { value: SUN_DIR.clone() },
       sunColor: { value: new THREE.Color(0xffdf9e) },
     },
@@ -30,17 +30,19 @@ export function buildSky() {
       uniform vec3 topColor, midColor, horizonColor, sunDir, sunColor;
       void main(){
         float h = clamp(vDir.y, 0.0, 1.0);
-        vec3 col = mix(horizonColor, midColor, smoothstep(0.0, 0.22, h));
-        col = mix(col, topColor, smoothstep(0.16, 0.60, h));
+        vec3 col = mix(horizonColor, midColor, smoothstep(0.0, 0.30, h));
+        col = mix(col, topColor, smoothstep(0.20, 0.62, h));
         // sun disc + glare
         float d = dot(normalize(vDir), normalize(sunDir));
         col += sunColor * pow(max(d, 0.0), 550.0) * 3.0;   // disc
-        col += sunColor * pow(max(d, 0.0), 16.0) * 0.30;   // halo
-        col += sunColor * pow(max(d, 0.0), 3.0) * 0.10;    // broad warm haze
-        // dusty amber glow hugging the horizon all around
-        col += vec3(0.22, 0.145, 0.045) * pow(1.0 - h, 6.5);
+        col += sunColor * pow(max(d, 0.0), 16.0) * 0.32;   // halo
+        col += sunColor * pow(max(d, 0.0), 3.0) * 0.12;    // broad warm haze
+        // dusty gold glow hugging the horizon all around — the band the RTS
+        // camera actually sees near map edges, so make it sing
+        col += vec3(0.34, 0.215, 0.070) * pow(1.0 - h, 4.0);
+        col += vec3(0.15, 0.085, 0.020) * pow(1.0 - h, 12.0);
         // below horizon: dusty ground haze
-        col = mix(col, horizonColor * 0.94, smoothstep(0.0, -0.12, vDir.y));
+        col = mix(col, horizonColor * 0.92, smoothstep(0.0, -0.12, vDir.y));
         gl_FragColor = vec4(col, 1.0);
       }`,
   });
@@ -48,31 +50,33 @@ export function buildSky() {
   sky.frustumCulled = false;
   scene.add(sky);
 
-  // ------- fog: warm golden haze, thinner so distance glows instead of greying out -------
-  scene.fog = new THREE.FogExp2(0xdcbe8e, 0.0022);
+  // ------- fog: thin warm golden haze — distance stays saturated, never grey -------
+  scene.fog = new THREE.FogExp2(0xe3c088, 0.0013);
 
   // ------- lighting rig -------
-  const sun = new THREE.DirectionalLight(0xffe2b0, 3.7);
+  const sun = new THREE.DirectionalLight(0xffe3b3, 3.5);
   sun.position.copy(SUN_DIR).multiplyScalar(300);
   sun.castShadow = true;
   sun.shadow.mapSize.set(4096, 4096);
-  sun.shadow.camera.near = 50;
-  sun.shadow.camera.far = 700;
-  const S = 210;
+  sun.shadow.camera.near = 60;
+  sun.shadow.camera.far = 620;
+  const S = 210;   // refit every frame in updateSky() to the visible footprint
   sun.shadow.camera.left = -S; sun.shadow.camera.right = S;
   sun.shadow.camera.top = S; sun.shadow.camera.bottom = -S;
-  sun.shadow.bias = -0.0004;
-  sun.shadow.normalBias = 0.6;
+  sun.shadow.bias = -0.0003;
+  sun.shadow.normalBias = 0.3;
   sun.shadow.camera.updateProjectionMatrix();
   scene.add(sun);
   scene.add(sun.target);
   G.sun = sun;
 
-  // cooler, dimmer fill — shadow sides fall toward dusty blue instead of grey
-  const hemi = new THREE.HemisphereLight(0x7fa3d6, 0xa07c4e, 0.62);
+  // high warm bounce fill — GZH shadow sides read tan-brown, never black.
+  // Sky half stays faintly blue for cool roof/shadow separation; ground half
+  // is strong bounced-sand warmth that keeps unlit walls legible.
+  const hemi = new THREE.HemisphereLight(0x9db9dd, 0xd9a76a, 1.05);
   scene.add(hemi);
 
-  const amb = new THREE.AmbientLight(0x8a91a8, 0.16);
+  const amb = new THREE.AmbientLight(0xc7a887, 0.22);
   scene.add(amb);
 
   // ------- billboard clouds -------
@@ -119,11 +123,40 @@ function makeCloudTexture() {
   return t;
 }
 
-// keep the shadow camera centred on the active camera so shadows stay crisp
+// Refit the shadow ortho box every frame to the ground footprint the RTS
+// camera can actually see (derived from zoom; pitch/FOV are effectively
+// fixed), instead of one huge fixed box — this is what makes unit shadows
+// crisp instead of soft blobs at gameplay zoom.
 const _camPos = new THREE.Vector3();
 export function updateSky(dt) {
   if (!G.camera || !G.sun) return;
-  G.camera.getWorldPosition(_camPos);
-  G.sun.target.position.set(_camPos.x, 0, _camPos.z);
-  G.sun.position.copy(SUN_DIR).multiplyScalar(300).add(G.sun.target.position);
+  const sun = G.sun, rig = G.camRig;
+  let cx, cz, S;
+  if (rig) {
+    // lateral half-width of the visible ground at this zoom (46° FOV, 16:9,
+    // ~41-54° pitch) is ~1.05*zoom + margin; quantized so the projection
+    // only refits on zoom steps, not every frame.
+    S = Math.min(210, rig.zoom * 1.15 + 30);
+    S = Math.ceil(S / 8) * 8;
+    // the frustum reaches further beyond the look target than behind it
+    const fwd = S * 0.25;
+    cx = rig.tx + Math.sin(rig.yaw) * fwd;
+    cz = rig.tz + Math.cos(rig.yaw) * fwd;
+  } else {
+    G.camera.getWorldPosition(_camPos);
+    cx = _camPos.x; cz = _camPos.z; S = 210;
+  }
+  // snap the centre to the shadow-texel grid so edges don't crawl while panning
+  const texel = (2 * S) / sun.shadow.mapSize.x;
+  cx = Math.round(cx / texel) * texel;
+  cz = Math.round(cz / texel) * texel;
+  const sc = sun.shadow.camera;
+  if (sc.right !== S) {
+    sc.left = -S; sc.right = S; sc.top = S; sc.bottom = -S;
+    sc.near = Math.max(40, 300 - S - 90);
+    sc.far = 300 + S + 90;
+    sc.updateProjectionMatrix();
+  }
+  sun.target.position.set(cx, 0, cz);
+  sun.position.copy(SUN_DIR).multiplyScalar(300).add(sun.target.position);
 }
