@@ -5,7 +5,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:#0a0a08;
   -webkit-user-select:none; user-select:none; }
 
 #game-wrap { position:relative; width:100%; height:100%; }
-#game { position:absolute; inset:0; display:block; cursor:none; }
+#game { position:absolute; inset:0; display:block; cursor:crosshair; }
 
 .hidden { display:none !important; }
 .hud { position:absolute; z-index:10; }
@@ -251,8 +251,9 @@ ul.howto b { color:#ffe9a0; }
 /* ---------------- additions: selection box + placement + cursor ---------------- */
 #selbox { position:absolute; z-index:9; border:1px solid #9fe08a; background:#9fe08a22;
   pointer-events:none; display:none; }
-#cursor { position:absolute; z-index:50; pointer-events:none; font-size:20px;
-  transform:translate(-50%,-50%); text-shadow:0 1px 3px #000; color:#eaffea; }
+/* context badge riding beside the native cursor (native cursor = zero lag) */
+#cursor { position:absolute; z-index:50; pointer-events:none; font-size:15px;
+  transform:translate(14px, 12px); text-shadow:0 1px 3px #000; color:#eaffea; }
 #game.show-cursor { cursor:default; }
 
 /* ---------------- ui agent additions ---------------- */

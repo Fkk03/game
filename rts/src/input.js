@@ -366,17 +366,21 @@ export class Input {
 
   // ---------------------------------------------------------- cursor
   moveCursor(e) {
+    // the NATIVE cursor does the pointing (zero latency); this div is only a
+    // context badge offset beside it, hidden for the default context.
     const c = this.cursor;
     c.style.left = e.clientX + 'px';
     c.style.top = e.clientY + 'px';
     const overGame = e.target === this.canvas && G.state === 'playing';
-    c.style.display = overGame ? 'block' : 'none';
-    if (!overGame) return;
+    if (!overGame) { c.style.display = 'none'; return; }
     const now = performance.now();
-    if (now - this._hoverT < 45) { c.textContent = this.hoverEmoji; return; }
-    this._hoverT = now;
-    this.hoverEmoji = this.computeCursor(e);
-    c.textContent = this.hoverEmoji;
+    if (now - this._hoverT >= 45) {
+      this._hoverT = now;
+      this.hoverEmoji = this.computeCursor(e);
+    }
+    const special = this.hoverEmoji !== '⊹';
+    c.style.display = special ? 'block' : 'none';
+    if (special) c.textContent = this.hoverEmoji;
   }
   computeCursor(e) {
     if (G.placement) return '⌖';

@@ -517,21 +517,21 @@ function figureBase(fig, o) {
     leg.position.set(sx, 0.94, 0);
     leg.rotation.x = rot * (o.stride ?? 1);
     box(leg, o.pants, 0.18, 0.5, 0.21, 0, -0.25, 0);
-    box(leg, o.pants, 0.15, 0.4, 0.17, 0, -0.66, 0.01);
-    box(leg, m.boots, 0.155, 0.09, 0.18, 0, -0.845, 0.015);
-    box(leg, m.boots, 0.15, 0.11, 0.26, 0, -0.9, 0.045);
+    box(leg, o.pants, 0.15, 0.4, 0.17, 0, -0.66, -0.01);
+    box(leg, m.boots, 0.155, 0.09, 0.18, 0, -0.845, -0.015);
+    box(leg, m.boots, 0.15, 0.11, 0.26, 0, -0.9, -0.045);
     fig.add(leg);
   }
   // torso
   box(fig, o.tunic, 0.38, 0.56, 0.23, 0, 1.32, 0);
   box(fig, o.vest, 0.41, 0.3, 0.29, 0, 1.4, 0);
   box(fig, m.belt, 0.42, 0.07, 0.26, 0, 1.06, 0);
-  // ammo pouches
-  box(fig, m.belt, 0.09, 0.13, 0.05, -0.12, 1.36, 0.16);
-  box(fig, m.belt, 0.09, 0.13, 0.05, 0.01, 1.36, 0.16);
-  box(fig, m.belt, 0.09, 0.13, 0.05, 0.14, 1.36, 0.16);
+  // ammo pouches (chest = -Z, the facing/fire direction)
+  box(fig, m.belt, 0.09, 0.13, 0.05, -0.12, 1.36, -0.16);
+  box(fig, m.belt, 0.09, 0.13, 0.05, 0.01, 1.36, -0.16);
+  box(fig, m.belt, 0.09, 0.13, 0.05, 0.14, 1.36, -0.16);
   // head
-  box(fig, m.skin, 0.2, 0.24, 0.21, 0, 1.78, 0.01);
+  box(fig, m.skin, 0.2, 0.24, 0.21, 0, 1.78, -0.01);
   // shoulders
   box(fig, o.tunic, 0.135, 0.14, 0.15, -0.245, 1.51, 0);
   box(fig, o.tunic, 0.135, 0.14, 0.15, 0.245, 1.51, 0);
@@ -549,18 +549,18 @@ function helmetUS(fig, owner) {
   const m = mats(), A = accents(owner);
   const h = new THREE.Mesh(sphGeo(0.165, 12, 7, Math.PI * 0.58), m.helmet);
   h.scale.set(1, 0.82, 1.12);
-  h.position.set(0, 1.87, 0.01);
+  h.position.set(0, 1.87, -0.01);
   h.castShadow = true;
   fig.add(h);
-  box(fig, m.dark, 0.24, 0.05, 0.06, 0, 1.86, 0.13);           // goggles on brim
-  box(fig, A.paint, 0.05, 0.05, 0.02, 0.11, 1.84, 0.12);       // team patch
+  box(fig, m.dark, 0.24, 0.05, 0.06, 0, 1.86, -0.13);          // goggles on brim
+  box(fig, A.paint, 0.05, 0.05, 0.02, 0.11, 1.84, -0.12);      // team patch
 }
 function headWrap(fig, wrapMat) {
-  box(fig, wrapMat, 0.21, 0.1, 0.225, 0, 1.72, 0.02);          // face cloth
+  box(fig, wrapMat, 0.21, 0.1, 0.225, 0, 1.72, -0.02);         // face cloth
   box(fig, wrapMat, 0.28, 0.17, 0.29, 0, 1.92, 0);             // dome
   box(fig, wrapMat, 0.29, 0.075, 0.3, 0, 1.83, 0);             // brim
-  const t1 = box(fig, wrapMat, 0.1, 0.3, 0.035, 0.05, 1.64, -0.14);
-  t1.rotation.x = 0.14;
+  const t1 = box(fig, wrapMat, 0.1, 0.3, 0.035, 0.05, 1.64, 0.14);  // tail hangs down the back (+Z)
+  t1.rotation.x = -0.14;
 }
 function rifleAK(fig) {
   const m = mats();
@@ -611,16 +611,16 @@ function soldier(g, owner, kind) {
   let muzzle = null;
   if (kind === 'ranger') {
     figureBase(fig, { tunic: m.cTunic, pants: m.cPants, vest: m.cVest });
-    box(fig, A.paint, 0.1, 0.1, 0.05, 0, 1.47, 0.17);           // chest team plate
+    box(fig, A.paint, 0.1, 0.1, 0.05, 0, 1.47, -0.17);          // chest team plate
     helmetUS(fig, owner);
     rifleCarbine(fig);
     poseRifle(fig, m.cTunic);
-    box(fig, m.cVest, 0.3, 0.34, 0.14, 0, 1.38, -0.2);          // ruck
+    box(fig, m.cVest, 0.3, 0.34, 0.14, 0, 1.38, 0.2);           // ruck on the back
     muzzle = new THREE.Vector3(0.05 * S, 1.35 * S, -0.95 * S);
   } else if (kind === 'missiledef') {
     figureBase(fig, { tunic: m.cTunic, pants: m.cPants, vest: m.cVest });
     helmetUS(fig, owner);
-    box(fig, m.glass, 0.19, 0.07, 0.04, 0, 1.8, 0.12);          // targeting visor
+    box(fig, m.glass, 0.19, 0.07, 0.04, 0, 1.8, -0.12);         // targeting visor
     // shoulder launch tube
     const tube = new THREE.Group();
     tube.position.set(0.23, 1.6, 0.05);
@@ -636,13 +636,13 @@ function soldier(g, owner, kind) {
     box(tube, m.gun, 0.08, 0.12, 0.16, -0.08, -0.1, -0.1);      // grip block
     arm(fig, m.cTunic, 0.27, 0.16, 1.5, -0.12);
     arm(fig, m.cTunic, -0.27, 0.02, 1.44, -0.22);
-    box(fig, m.cSteel, 0.3, 0.36, 0.16, 0, 1.36, -0.21);        // electronics pack
-    cyl(fig, m.dark, 0.012, 0.012, 0.5, -0.12, 1.75, -0.24, 5);
+    box(fig, m.cSteel, 0.3, 0.36, 0.16, 0, 1.36, 0.21);         // electronics pack on the back
+    cyl(fig, m.dark, 0.012, 0.012, 0.5, -0.12, 1.75, 0.24, 5);
     muzzle = new THREE.Vector3(0.23 * S, 1.68 * S, -0.75 * S);
   } else if (kind === 'rebel') {
     figureBase(fig, { tunic: m.tunic, pants: m.pants, vest: m.vest });
     headWrap(fig, A.cloth);                                     // player-colour wrap
-    const bando = box(fig, m.belt, 0.11, 0.6, 0.04, -0.015, 1.32, 0.16);
+    const bando = box(fig, m.belt, 0.11, 0.6, 0.04, -0.015, 1.32, -0.16);
     bando.rotation.z = 0.62;
     rifleAK(fig);
     poseRifle(fig, m.tunic);
@@ -650,7 +650,7 @@ function soldier(g, owner, kind) {
   } else if (kind === 'rpg') {
     figureBase(fig, { tunic: m.tunic2, pants: m.pants, vest: m.vest });
     headWrap(fig, m.wrapK);
-    box(fig, A.paint, 0.13, 0.06, 0.02, 0, 1.45, 0.16);         // chest rag stripe
+    box(fig, A.paint, 0.13, 0.06, 0.02, 0, 1.45, -0.16);        // chest rag stripe
     // RPG on shoulder
     const tube = new THREE.Group();
     tube.position.set(0.22, 1.62, 0.1);
@@ -666,20 +666,20 @@ function soldier(g, owner, kind) {
     box(tube, m.gunWood, 0.045, 0.1, 0.06, 0, -0.1, 0.12);
     arm(fig, m.tunic2, 0.27, 0.17, 1.52, -0.05);
     arm(fig, m.tunic2, -0.27, 0.06, 1.46, -0.16);
-    // spare rocket satchel
-    const spare = cone(fig, m.hullGreen, 0.07, 0.3, -0.16, 1.42, -0.24, 7);
+    // spare rocket satchel on the back
+    const spare = cone(fig, m.hullGreen, 0.07, 0.3, -0.16, 1.42, 0.24, 7);
     spare.rotation.x = Math.PI / 2 - 0.3;
-    box(fig, m.canvasBed, 0.28, 0.3, 0.14, 0, 1.3, -0.2);
+    box(fig, m.canvasBed, 0.28, 0.3, 0.14, 0, 1.3, 0.2);
     muzzle = new THREE.Vector3(0.22 * S, 1.72 * S, -0.85 * S);
   } else if (kind === 'worker') {
     figureBase(fig, { tunic: m.tunic, pants: m.pants, vest: m.tunic2 });
     const hat = new THREE.Mesh(sphGeo(0.16, 10, 6, Math.PI * 0.52), m.hardhat);
     hat.scale.set(1, 0.75, 1.05);
-    hat.position.set(0, 1.88, 0.01);
+    hat.position.set(0, 1.88, -0.01);
     hat.castShadow = true;
     fig.add(hat);
-    box(fig, m.hardhat, 0.26, 0.028, 0.3, 0, 1.845, 0.02);      // brim
-    box(fig, A.paint, 0.16, 0.1, 0.03, 0, 1.42, 0.15);          // team bib
+    box(fig, m.hardhat, 0.26, 0.028, 0.3, 0, 1.845, -0.02);     // brim
+    box(fig, A.paint, 0.16, 0.1, 0.03, 0, 1.42, -0.15);         // team bib
     // shovel over the shoulder
     const sh = new THREE.Group();
     sh.position.set(-0.24, 1.6, 0.05);
