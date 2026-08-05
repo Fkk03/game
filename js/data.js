@@ -532,6 +532,27 @@ const UPGRADES = {
 const TANK_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank'];
 const TROOP_CHASSIS = ['inf', 'rocketinf', 'commando'];
 
+/* ---- motor-pool field upgrades ----
+   Any crewed, armed ground vehicle can buy Gun and Armor upgrades once it has
+   earned a star: main battle tanks, artillery carriages (the Longbow, the MLRS
+   batteries and the Annihilator), light gun vehicles and the demolition rigs.
+   The unarmed support hulls — dozer, supply truck, radar van — are left out:
+   there is no gun to bore out and no crew to plate in. */
+const VEHICLE_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank', 'mlrs', 'buggy', 'demorig'];
+const FIELD_UP_MAX = 3;                 // levels, gated one per veterancy star
+const FIELD_UP_COST_MUL = 0.3;          // per level, as a share of the vehicle's price
+
+function isFieldUpgradable(u) {
+  const d = (u && u.def) || u;
+  return !!d && !d.air && VEHICLE_CHASSIS.includes(d.chassis) && !!(d.weapon || d.suicide);
+}
+function fieldUpCap(u) { return Math.min(FIELD_UP_MAX, u.vetRank || 0); }
+function fieldUpLevel(u, kind) { return (kind === 'gun' ? u.gunLvl : u.armorLvl) || 0; }
+function canFieldUpgrade(u, kind) {
+  return !!u && !u.dead && isFieldUpgradable(u) && fieldUpLevel(u, kind) < fieldUpCap(u);
+}
+function fieldUpCost(u, faction) { return Math.round(uCost(u.key, faction) * FIELD_UP_COST_MUL); }
+
 /* ---- transport loading rules ----
    A transport has two independent holds: a troop bay sized by `capacity` and,
    on aircraft fitted with a belly cradle, `tankSlots` slots for armour. They

@@ -204,9 +204,15 @@ python3 -m http.server 8080
 - **Full stats on click** — select any unit or building to see its complete combat
   card: damage per shot/missile, range, blast, speed, armor class, sight, ammo,
   personal kill count, cloak state, income/power for structures, and owned upgrades
-- **Tank field upgrades** — tanks with ★ veterancy can buy ⚔ Gun (+25% damage) and
-  🛡 Armor (+25% health) upgrades, one level per star up to 3, each costing 30% of
-  the tank's price; bonuses stack with veterancy and survive promotions
+- **Vehicle field upgrades** — **every armed ground vehicle** with ★ veterancy can buy
+  ⚔ Gun (+25% damage, hotkey **Z**) and 🛡 Armor (+25% health, hotkey **X**) upgrades,
+  one level per star up to 3, each costing 30% of the vehicle's price; bonuses stack
+  with veterancy and survive promotions. That covers main battle tanks *and* the
+  artillery carriages — the Longbow, the Thunder and Barrage batteries and the
+  Annihilator — plus gun trucks and demolition rigs, whose charge scales with the
+  upgrade too. Only the unarmed support hulls (dozer, supply truck, radar van) are
+  left out. Select a mixed group and the batch buys cheapest-first, so a tight budget
+  fits as many vehicles as it can instead of one expensive hull eating the whole purse
 - **Unit veterancy up to ★★★★★** — every star adds damage and max health (up to +80%);
   from 2 stars units self-repair in the field and the rate climbs steeply with rank —
   3 hp/s at ★★, 6 at ★★★, 10.5 at ★★★★ and **50 hp/s at ★★★★★**, so a five-star

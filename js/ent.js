@@ -143,7 +143,8 @@ function killEnt(e, attacker) {
       }
     }
     if (e.def.suicide && !e.detonated) { e.detonated = true;
-      dealSplash(e.x, e.y, e.def.suicide.dmg, 'explosive', e.def.suicide.splash, e.owner, null); }
+      // cooking off short of the target still carries the crew's full charge
+      dealSplash(e.x, e.y, effDamage(e.def.suicide, e), 'explosive', e.def.suicide.splash, e.owner, null); }
     // a downed transport takes everyone aboard with it
     if (e.cargo && e.cargo.length) {
       for (const pid of e.cargo) {
@@ -602,7 +603,8 @@ class Unit {
     const hitR = this.radius + (target.kind === 'building' ? target.size * TILE * 0.5 : target.def.radius) + 8;
     if (d < hitR) {
       this.detonated = true;
-      dealSplash(this.x, this.y, this.def.suicide.dmg, 'explosive', this.def.suicide.splash, this.owner, this);
+      // the charge is the rig's weapon: veterancy and the ⚔ field upgrade size it up
+      dealSplash(this.x, this.y, effDamage(this.def.suicide, this), 'explosive', this.def.suicide.splash, this.owner, this);
       FX.explosion(this.x, this.y, 1.6);
       SFX.explo(this.x, this.y, 1.5);
       this.hp = 0; this.dead = true;
