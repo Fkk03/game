@@ -202,8 +202,10 @@ python3 -m http.server 8080
   🛡 Armor (+25% health) upgrades, one level per star up to 3, each costing 30% of
   the tank's price; bonuses stack with veterancy and survive promotions
 - **Unit veterancy up to ★★★★★** — every star adds damage and max health (up to +80%);
-  from 2 stars units self-repair in the field, faster with each rank, and the Repair
-  Center services veteran crews +25% faster per star
+  from 2 stars units self-repair in the field and the rate triples with rank —
+  3 hp/s at ★★ rising to **18 hp/s at ★★★★★**, so a five-star crew claws back
+  180 health in ten seconds between engagements. The Repair Center also services
+  veteran crews +25% faster per star
 - **Fog of war**, **minimap**, control groups, attack-move,
   waypoint queues, rally points, a skirmish AI with 3 difficulties, procedural desert maps
 - **Win** by destroying every enemy structure
