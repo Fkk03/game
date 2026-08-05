@@ -100,7 +100,13 @@ python3 -m http.server 8080
   into a flying anti-tank battery — and an **active protection system deflects half
   of all incoming gunfire**
   (rockets and flak still hit at full force).
-  Select troops → right-click to board; Unload (F) deploys. Shot down = everyone dies
+  It also **slings one tank on a belly cradle** — a second, independent hold, so a full
+  20-soldier bay and a Warlord ride at the same time. The slung tank is out of play in
+  transit: it cannot be shot, and it does not man a gun port. Airlift armor over a cliff
+  line, past a wall of turrets, or straight into the back of an enemy base.
+  Select troops or a tank → right-click the gunship to board (or select the gunship and
+  right-click what you want winched up); Unload (F) sets everything down — the tank comes
+  off the cradle first so it gets the clear ground. Shot down = everyone aboard dies
 - **Twin base defenses** — every faction fields two: the rapid-fire **Gatling Defense**
   ($800, ~700 range — shreds infantry, light vehicles and aircraft, barely dents heavy
   armor) and the long-range **Artillery Defense** ($1,600, ~1,200 range — leads its
@@ -202,9 +208,10 @@ python3 -m http.server 8080
   🛡 Armor (+25% health) upgrades, one level per star up to 3, each costing 30% of
   the tank's price; bonuses stack with veterancy and survive promotions
 - **Unit veterancy up to ★★★★★** — every star adds damage and max health (up to +80%);
-  from 2 stars units self-repair in the field and the rate triples with rank —
-  3 hp/s at ★★ rising to **18 hp/s at ★★★★★**, so a five-star crew claws back
-  180 health in ten seconds between engagements. The Repair Center also services
+  from 2 stars units self-repair in the field and the rate climbs steeply with rank —
+  3 hp/s at ★★, 6 at ★★★, 10.5 at ★★★★ and **50 hp/s at ★★★★★**, so a five-star
+  crew claws back 500 health in ten seconds between engagements and a surviving elite
+  unit is back in the fight almost at once. The Repair Center also services
   veteran crews +25% faster per star
 - **Fog of war**, **minimap**, control groups, attack-move,
   waypoint queues, rally points, a skirmish AI with 3 difficulties, procedural desert maps

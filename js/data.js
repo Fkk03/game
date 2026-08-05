@@ -20,7 +20,7 @@ const DMG_MOD = {
 const VET_XP = [0, 200, 500, 1100, 2000, 3400];
 const VET_DMG = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_HP  = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
-const VET_REGEN = [0, 0, 3, 6, 10.5, 18];   // hp/s self-repair, from 2 stars up
+const VET_REGEN = [0, 0, 3, 6, 10.5, 50];   // hp/s self-repair, from 2 stars up
 
 /* player promotion ranks (general's XP) → each rank grants 1 power point */
 const RANK_XP = [0, 400, 1000, 2000, 3400, 5200];
@@ -275,9 +275,9 @@ const UNITS = {
   albatross: {
     name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 2850, speed: 262, sight: 8, radius: 19,
     armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true,
-    capacity: 20, gunPorts: 20,
+    capacity: 20, gunPorts: 20, tankSlots: 1,
     resist: { bullet: 0.5, gatling: 0.5 },
-    desc: 'Coalition gunship-transport. Carries up to 20 soldiers, guns down infantry with its chin turret and fires rockets at armor. Every soldier aboard fires from the gun ports, and an active protection system deflects half of all incoming gunfire. Unload (F) deploys the troops.',
+    desc: 'Coalition gunship-transport. Carries up to 20 soldiers plus one slung tank on its belly cradle, guns down infantry with its chin turret and fires rockets at armor. Every soldier aboard fires from the gun ports; the slung tank rides silent. An active protection system deflects half of all incoming gunfire. Unload (F) sets everything down.',
     weapon: { dmg: 330, dtype: 'rocket', range: 240, cd: 2.0, projectile: 'missile', splash: 26, aa: false, ga: true },
     gunWeapon: { dmg: 33, dtype: 'gatling', range: 220, cd: 0.1, projectile: 'bullet', aa: false, ga: true },
   },
@@ -530,6 +530,47 @@ const UPGRADES = {
    Cartel: infantry −40%, non-tank ground combat vehicles −30%.
    Everyone EXCEPT the Coalition: tanks −50%. */
 const TANK_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank'];
+const TROOP_CHASSIS = ['inf', 'rocketinf', 'commando'];
+
+/* ---- transport loading rules ----
+   A transport has two independent holds: a troop bay sized by `capacity` and,
+   on aircraft fitted with a belly cradle, `tankSlots` slots for armour. They
+   never compete for the same space, so twenty riflemen and a tank fit at once. */
+function chassisOf(u) { return u && (u.def ? u.def.chassis : u.chassis); }
+function isTroopUnit(u) { return TROOP_CHASSIS.includes(chassisOf(u)); }
+function isTankUnit(u) { return TANK_CHASSIS.includes(chassisOf(u)); }
+
+/* live occupancy of a transport, split by hold */
+function cargoLoad(tr) {
+  let troops = 0, tanks = 0;
+  if (tr && tr.cargo) for (const id of tr.cargo) {
+    const p = game.byId.get(id);
+    if (!p || p.dead) continue;
+    if (isTankUnit(p)) tanks++; else troops++;
+  }
+  return { troops, tanks };
+}
+
+function isTransport(tr) { return !!(tr && tr.cargo && (tr.def.capacity || tr.def.tankSlots)); }
+
+/* can `u` climb into `tr` right now? */
+function canBoard(u, tr) {
+  if (!u || u.dead || u.embarked || !isTransport(tr) || tr.dead || u === tr) return false;
+  const load = cargoLoad(tr);
+  if (isTankUnit(u)) return load.tanks < (tr.def.tankSlots || 0);
+  if (isTroopUnit(u)) return load.troops < (tr.def.capacity || 0);
+  return false;
+}
+
+/* compact "3/20 · 1/1" readout for the canvas and HUD */
+function cargoLabel(tr) {
+  const load = cargoLoad(tr);
+  let s = '';
+  if (tr.def.capacity) s += '🪖' + load.troops + '/' + tr.def.capacity;
+  if (tr.def.tankSlots) s += (s ? ' ' : '') + '🛡' + load.tanks + '/' + tr.def.tankSlots;
+  return s;
+}
+
 function uCost(key, faction, owner) {
   const u = UNITS[key];
   let c = u.cost;

@@ -342,7 +342,11 @@ const UI = (() => {
       if (e.armorLvl) extra += ` &nbsp;<span style="color:#8fc7ff">🛡+${e.armorLvl * 25}%</span>`;
       if (e.kind === 'unit' && e.def.harvester) extra += ` &nbsp;· carrying $${e.carrying || 0}`;
       if (e.kind === 'unit' && e.def.air && e.def.ammo !== undefined) extra += ` &nbsp;· ammo ${e.ammo}/${e.def.ammo}`;
-      if (e.kind === 'unit' && e.cargo && e.def.capacity) extra += ` &nbsp;· 🪖 ${e.cargo.length}/${e.def.capacity} aboard`;
+      if (e.kind === 'unit' && isTransport(e)) {
+        const load = cargoLoad(e);
+        if (e.def.capacity) extra += ` &nbsp;· 🪖 ${load.troops}/${e.def.capacity} aboard`;
+        if (e.def.tankSlots) extra += ` &nbsp;· 🛡 ${load.tanks}/${e.def.tankSlots} tank`;
+      }
       if (e.kind === 'building' && e.key === 'superweapon' && e.constructed)
         extra += e.swReady ? ' &nbsp;· <b style="color:#8f8">READY</b>' : ` &nbsp;· launch in ${U.fmtTime(e.swTimer)}`;
       info.innerHTML = `<b>${nm}</b> &nbsp;${Math.ceil(e.hp)}/${e.maxHp} HP${extra}
@@ -510,7 +514,7 @@ const UI = (() => {
       if (gunEligible.length) curCmds[3] = { type: 'tankup', kind: 'gun', units: gunEligible };
       if (armorEligible.length && !curCmds[7]) curCmds[7] = { type: 'tankup', kind: 'armor', units: armorEligible };
       // transports with troops aboard get an Unload command (F)
-      const transports = units.filter(u => u.cargo && u.def.capacity);
+      const transports = units.filter(u => isTransport(u));
       if (transports.length) curCmds[7] = { type: 'unloadbtn', transports };
       // coalition veteran aircraft can be retrofitted with a cloak
       if (p.faction === 'coalition') {

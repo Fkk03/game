@@ -555,7 +555,7 @@ const DMG_MOD = {
 const VET_XP = [0, 200, 500, 1100, 2000, 3400];
 const VET_DMG = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_HP  = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
-const VET_REGEN = [0, 0, 3, 6, 10.5, 18];   // hp/s self-repair, from 2 stars up
+const VET_REGEN = [0, 0, 3, 6, 10.5, 50];   // hp/s self-repair, from 2 stars up
 
 /* player promotion ranks (general's XP) → each rank grants 1 power point */
 const RANK_XP = [0, 400, 1000, 2000, 3400, 5200];
@@ -810,9 +810,9 @@ const UNITS = {
   albatross: {
     name: 'Albatross Gunship', icon: '🚁', cost: 1400, hp: 2850, speed: 262, sight: 8, radius: 19,
     armor: 'air', buildTime: 14, chassis: 'heli', air: true, heli: true,
-    capacity: 20, gunPorts: 20,
+    capacity: 20, gunPorts: 20, tankSlots: 1,
     resist: { bullet: 0.5, gatling: 0.5 },
-    desc: 'Coalition gunship-transport. Carries up to 20 soldiers, guns down infantry with its chin turret and fires rockets at armor. Every soldier aboard fires from the gun ports, and an active protection system deflects half of all incoming gunfire. Unload (F) deploys the troops.',
+    desc: 'Coalition gunship-transport. Carries up to 20 soldiers plus one slung tank on its belly cradle, guns down infantry with its chin turret and fires rockets at armor. Every soldier aboard fires from the gun ports; the slung tank rides silent. An active protection system deflects half of all incoming gunfire. Unload (F) sets everything down.',
     weapon: { dmg: 330, dtype: 'rocket', range: 240, cd: 2.0, projectile: 'missile', splash: 26, aa: false, ga: true },
     gunWeapon: { dmg: 33, dtype: 'gatling', range: 220, cd: 0.1, projectile: 'bullet', aa: false, ga: true },
   },
@@ -1065,6 +1065,47 @@ const UPGRADES = {
    Cartel: infantry −40%, non-tank ground combat vehicles −30%.
    Everyone EXCEPT the Coalition: tanks −50%. */
 const TANK_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank'];
+const TROOP_CHASSIS = ['inf', 'rocketinf', 'commando'];
+
+/* ---- transport loading rules ----
+   A transport has two independent holds: a troop bay sized by `capacity` and,
+   on aircraft fitted with a belly cradle, `tankSlots` slots for armour. They
+   never compete for the same space, so twenty riflemen and a tank fit at once. */
+function chassisOf(u) { return u && (u.def ? u.def.chassis : u.chassis); }
+function isTroopUnit(u) { return TROOP_CHASSIS.includes(chassisOf(u)); }
+function isTankUnit(u) { return TANK_CHASSIS.includes(chassisOf(u)); }
+
+/* live occupancy of a transport, split by hold */
+function cargoLoad(tr) {
+  let troops = 0, tanks = 0;
+  if (tr && tr.cargo) for (const id of tr.cargo) {
+    const p = game.byId.get(id);
+    if (!p || p.dead) continue;
+    if (isTankUnit(p)) tanks++; else troops++;
+  }
+  return { troops, tanks };
+}
+
+function isTransport(tr) { return !!(tr && tr.cargo && (tr.def.capacity || tr.def.tankSlots)); }
+
+/* can `u` climb into `tr` right now? */
+function canBoard(u, tr) {
+  if (!u || u.dead || u.embarked || !isTransport(tr) || tr.dead || u === tr) return false;
+  const load = cargoLoad(tr);
+  if (isTankUnit(u)) return load.tanks < (tr.def.tankSlots || 0);
+  if (isTroopUnit(u)) return load.troops < (tr.def.capacity || 0);
+  return false;
+}
+
+/* compact "3/20 · 1/1" readout for the canvas and HUD */
+function cargoLabel(tr) {
+  const load = cargoLoad(tr);
+  let s = '';
+  if (tr.def.capacity) s += '🪖' + load.troops + '/' + tr.def.capacity;
+  if (tr.def.tankSlots) s += (s ? ' ' : '') + '🛡' + load.tanks + '/' + tr.def.tankSlots;
+  return s;
+}
+
 function uCost(key, faction, owner) {
   const u = UNITS[key];
   let c = u.cost;
@@ -2317,7 +2358,7 @@ class Unit {
     this.path = null; this.pathI = 0;
     this.cool = 0;
     this.vetXp = 0; this.vetRank = 0;
-    this.cargo = this.def.capacity && !this.def.harvester ? [] : null;   // transport passengers (unit ids)
+    this.cargo = (this.def.capacity || this.def.tankSlots) && !this.def.harvester ? [] : null;   // transport passengers (unit ids)
     this.guardX = x; this.guardY = y;
     this.stuckT = 0; this.lastX = x; this.lastY = y;
     this.scanT = Math.random() * 0.5;
@@ -2714,11 +2755,10 @@ class Unit {
     }
   }
 
-  /* infantry walking to a transport to climb aboard */
+  /* a soldier — or a tank headed for the belly cradle — driving up to a transport */
   doBoard(dt, o) {
     const tr = game.byId.get(o.targetId);
-    if (!['inf', 'rocketinf', 'commando'].includes(this.def.chassis)) { this.nextOrder(); return; }   // soldiers only
-    if (!tr || tr.dead || !tr.cargo || tr.cargo.length >= tr.def.capacity) { this.nextOrder(); return; }
+    if (!canBoard(this, tr)) { this.nextOrder(); return; }   // wrong chassis, or that hold is full
     const d = U.dist(this.x, this.y, tr.x, tr.y);
     if (d > 55) {
       // transport may drift — refresh the path once a second
@@ -2732,7 +2772,7 @@ class Unit {
     this.path = null;
     tr.cargo.push(this.id);
     this.order = { type: 'idle' };
-    if (this.owner === 0) FX.text(tr.x, tr.y - 26, tr.cargo.length + '/' + tr.def.capacity, '#9fdc7c');
+    if (this.owner === 0) FX.text(tr.x, tr.y - 26, cargoLabel(tr), '#9fdc7c');
   }
 
   doBuild(dt, o) {
@@ -2823,6 +2863,15 @@ class Unit {
     /* Every soldier aboard mans a gun port and shoots out, using its own weapon,
        cooldown, range and kill credit. One shared sweep serves the whole cabin —
        scanning per gunner would cost twenty entity passes a frame on a full load. */
+    /* everything aboard rides at the cabin's position, so wrecks, drop points and
+       gun-port muzzle flashes all come from where the airframe actually is */
+    if (this.cargo && this.cargo.length) {
+      for (const id of this.cargo) {
+        const p = game.byId.get(id);
+        if (p && !p.dead) { p.x = this.x; p.y = this.y; }
+      }
+    }
+
     if (def.gunPorts && this.cargo && this.cargo.length) {
       this.portScanT = (this.portScanT || 0) - dt;
       if (this.portScanT <= 0) {
@@ -2843,8 +2892,8 @@ class Unit {
         if (ports <= 0) break;
         const g = game.byId.get(id);
         if (!g || g.dead || !g.def.weapon) continue;
+        if (!isTroopUnit(g)) continue;              // the slung tank rides; it cannot man a port
         ports--;
-        g.x = this.x; g.y = this.y;                 // ride along so shots come from the cabin
         if (g.cool > 0) { g.cool -= dt; continue; }
         const gw = g.def.weapon;
         for (const c of (this.portTargets || [])) {
@@ -2875,13 +2924,13 @@ class Unit {
         else this.moving = false;
         break;
       }
-      case 'load': {   // hover over a friendly soldier and winch them up
+      case 'load': {   // hover over a friendly soldier or tank and winch it up
         const t = game.byId.get(o.targetId);
-        if (!t || t.dead || t.embarked || this.cargo.length >= def.capacity) { this.nextOrder(); break; }
+        if (!canBoard(t, this)) { this.nextOrder(); break; }
         if (fly(t.x, t.y, def.speed) < 80) {
           t.embarked = true; t.path = null; t.order = { type: 'idle' };
           this.cargo.push(t.id);
-          if (this.owner === 0) FX.text(this.x, this.y - 26, this.cargo.length + '/' + def.capacity, '#9fdc7c');
+          if (this.owner === 0) FX.text(this.x, this.y - 26, cargoLabel(this), '#9fdc7c');
           this.nextOrder();
         }
         break;
@@ -2902,11 +2951,20 @@ class Unit {
     if (!this.cargo || !this.cargo.length) return;
     const ctx0 = Math.floor(this.x / TILE), cty0 = Math.floor(this.y / TILE);
     let dropped = 0;
-    for (const pid of [...this.cargo]) {
+    // armour comes off the cradle first: if the ground below is tight, the tank
+    // gets the one good tile rather than being stranded behind twenty riflemen
+    const order = [...this.cargo].sort((a, b) => {
+      const ua = game.byId.get(a), ub = game.byId.get(b);
+      return (isTankUnit(ub) ? 1 : 0) - (isTankUnit(ua) ? 1 : 0);
+    });
+    for (const pid of order) {
       const u = game.byId.get(pid);
       if (!u || u.dead) continue;
-      const open = PATH.nearestOpen(world, ctx0 + U.randInt(-2, 2), cty0 + U.randInt(-2, 2), 7);
-      if (!open) break;   // nothing but cliffs below — keep the rest aboard
+      // a tank needs real ground, so widen its search instead of jittering it into a cliff
+      const tank = isTankUnit(u);
+      const jitter = tank ? 0 : 2;
+      const open = PATH.nearestOpen(world, ctx0 + U.randInt(-jitter, jitter), cty0 + U.randInt(-jitter, jitter), tank ? 10 : 7);
+      if (!open) { if (tank) continue; break; }   // nothing but cliffs below — keep the rest aboard
       u.embarked = false;
       u.x = (open.tx + 0.5) * TILE + U.rand(-8, 8);
       u.y = (open.ty + 0.5) * TILE + U.rand(-8, 8);
@@ -5183,6 +5241,27 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(u.x, u.y);
     ctx.rotate(u.angle);
+    /* a tank on the belly cradle, drawn before the fuselage so the hull sits on top
+       of it and only the tracks and barrel show — it reads as slung underneath */
+    if (u.def.tankSlots && u.cargo && u.cargo.length &&
+        u.cargo.some(id => { const p = game.byId.get(id); return p && !p.dead && isTankUnit(p); })) {
+      ctx.fillStyle = 'rgba(24,22,18,0.85)';
+      ctx.fillRect(-11, -12, 22, 3.2);            // near track
+      ctx.fillRect(-11, 8.8, 22, 3.2);            // far track
+      ctx.fillStyle = U.shade(c2, 0.62);
+      ctx.fillRect(-10, -10, 20, 20);             // hull
+      ctx.strokeStyle = 'rgba(20,18,14,0.7)'; ctx.lineWidth = 1;
+      ctx.strokeRect(-10, -10, 20, 20);
+      ctx.fillStyle = U.shade(c2, 0.5);
+      ctx.fillRect(9, -1.6, 9, 3.2);              // gun barrel poking past the nose
+      ctx.strokeStyle = 'rgba(30,28,22,0.5)'; ctx.lineWidth = 0.9;
+      ctx.beginPath();                            // cradle straps at the corners
+      ctx.moveTo(-6, -6); ctx.lineTo(-9.5, -10);
+      ctx.moveTo(6, -6); ctx.lineTo(9.5, -10);
+      ctx.moveTo(-6, 6); ctx.lineTo(-9.5, 10);
+      ctx.moveTo(6, 6); ctx.lineTo(9.5, 10);
+      ctx.stroke();
+    }
     const g = ctx.createLinearGradient(0, -10, 0, 10);
     g.addColorStop(0, U.shade(c1, 1.25)); g.addColorStop(1, c2);
     // fat fuselage with tail boom
@@ -5226,7 +5305,7 @@ const RENDER = (() => {
       ctx.font = 'bold 10px system-ui';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#c9e8a0';
-      ctx.fillText(u.cargo.length + '/' + u.def.capacity, u.x, u.y - 26);
+      ctx.fillText(cargoLabel(u), u.x, u.y - 26);
     }
     drawHpBar(u);
   }
@@ -8041,18 +8120,18 @@ const INPUT = (() => {
     // transports: troops right-click a friendly transport to board it;
     // a selected transport right-clicks a soldier to winch them up
     if (target && target.owner === 0 && target.kind === 'unit') {
-      const INF = ['inf', 'rocketinf', 'commando'];
-      if (target.cargo && target.def.capacity) {
+      if (isTransport(target)) {
+        // soldiers fill the troop bay, one tank rides the belly cradle
         let boarded = 0;
         for (const u of units) {
-          if (INF.includes(u.def.chassis)) { u.giveOrder({ type: 'board', targetId: target.id }, shift); boarded++; }
+          if (canBoard(u, target)) { u.giveOrder({ type: 'board', targetId: target.id }, shift); boarded++; }
         }
         if (boarded) { SFX.ack(); UI.flashOrder(wx, wy, 'move'); return; }
       }
-      if (INF.includes(target.def.chassis)) {
+      if (isTroopUnit(target) || isTankUnit(target)) {
         let sent = 0;
         for (const u of units) {
-          if (u.cargo && u.def.capacity) { u.giveOrder({ type: 'load', targetId: target.id }, shift); sent++; }
+          if (canBoard(target, u)) { u.giveOrder({ type: 'load', targetId: target.id }, shift); sent++; }
         }
         if (sent) { SFX.ack(); return; }
       }
@@ -8576,7 +8655,11 @@ const UI = (() => {
       if (e.armorLvl) extra += ` &nbsp;<span style="color:#8fc7ff">🛡+${e.armorLvl * 25}%</span>`;
       if (e.kind === 'unit' && e.def.harvester) extra += ` &nbsp;· carrying $${e.carrying || 0}`;
       if (e.kind === 'unit' && e.def.air && e.def.ammo !== undefined) extra += ` &nbsp;· ammo ${e.ammo}/${e.def.ammo}`;
-      if (e.kind === 'unit' && e.cargo && e.def.capacity) extra += ` &nbsp;· 🪖 ${e.cargo.length}/${e.def.capacity} aboard`;
+      if (e.kind === 'unit' && isTransport(e)) {
+        const load = cargoLoad(e);
+        if (e.def.capacity) extra += ` &nbsp;· 🪖 ${load.troops}/${e.def.capacity} aboard`;
+        if (e.def.tankSlots) extra += ` &nbsp;· 🛡 ${load.tanks}/${e.def.tankSlots} tank`;
+      }
       if (e.kind === 'building' && e.key === 'superweapon' && e.constructed)
         extra += e.swReady ? ' &nbsp;· <b style="color:#8f8">READY</b>' : ` &nbsp;· launch in ${U.fmtTime(e.swTimer)}`;
       info.innerHTML = `<b>${nm}</b> &nbsp;${Math.ceil(e.hp)}/${e.maxHp} HP${extra}
@@ -8744,7 +8827,7 @@ const UI = (() => {
       if (gunEligible.length) curCmds[3] = { type: 'tankup', kind: 'gun', units: gunEligible };
       if (armorEligible.length && !curCmds[7]) curCmds[7] = { type: 'tankup', kind: 'armor', units: armorEligible };
       // transports with troops aboard get an Unload command (F)
-      const transports = units.filter(u => u.cargo && u.def.capacity);
+      const transports = units.filter(u => isTransport(u));
       if (transports.length) curCmds[7] = { type: 'unloadbtn', transports };
       // coalition veteran aircraft can be retrofitted with a cloak
       if (p.faction === 'coalition') {

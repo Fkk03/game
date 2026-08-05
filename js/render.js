@@ -1248,6 +1248,27 @@ const RENDER = (() => {
     ctx.save();
     ctx.translate(u.x, u.y);
     ctx.rotate(u.angle);
+    /* a tank on the belly cradle, drawn before the fuselage so the hull sits on top
+       of it and only the tracks and barrel show — it reads as slung underneath */
+    if (u.def.tankSlots && u.cargo && u.cargo.length &&
+        u.cargo.some(id => { const p = game.byId.get(id); return p && !p.dead && isTankUnit(p); })) {
+      ctx.fillStyle = 'rgba(24,22,18,0.85)';
+      ctx.fillRect(-11, -12, 22, 3.2);            // near track
+      ctx.fillRect(-11, 8.8, 22, 3.2);            // far track
+      ctx.fillStyle = U.shade(c2, 0.62);
+      ctx.fillRect(-10, -10, 20, 20);             // hull
+      ctx.strokeStyle = 'rgba(20,18,14,0.7)'; ctx.lineWidth = 1;
+      ctx.strokeRect(-10, -10, 20, 20);
+      ctx.fillStyle = U.shade(c2, 0.5);
+      ctx.fillRect(9, -1.6, 9, 3.2);              // gun barrel poking past the nose
+      ctx.strokeStyle = 'rgba(30,28,22,0.5)'; ctx.lineWidth = 0.9;
+      ctx.beginPath();                            // cradle straps at the corners
+      ctx.moveTo(-6, -6); ctx.lineTo(-9.5, -10);
+      ctx.moveTo(6, -6); ctx.lineTo(9.5, -10);
+      ctx.moveTo(-6, 6); ctx.lineTo(-9.5, 10);
+      ctx.moveTo(6, 6); ctx.lineTo(9.5, 10);
+      ctx.stroke();
+    }
     const g = ctx.createLinearGradient(0, -10, 0, 10);
     g.addColorStop(0, U.shade(c1, 1.25)); g.addColorStop(1, c2);
     // fat fuselage with tail boom
@@ -1291,7 +1312,7 @@ const RENDER = (() => {
       ctx.font = 'bold 10px system-ui';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#c9e8a0';
-      ctx.fillText(u.cargo.length + '/' + u.def.capacity, u.x, u.y - 26);
+      ctx.fillText(cargoLabel(u), u.x, u.y - 26);
     }
     drawHpBar(u);
   }

@@ -264,7 +264,7 @@ class Unit {
     this.path = null; this.pathI = 0;
     this.cool = 0;
     this.vetXp = 0; this.vetRank = 0;
-    this.cargo = this.def.capacity && !this.def.harvester ? [] : null;   // transport passengers (unit ids)
+    this.cargo = (this.def.capacity || this.def.tankSlots) && !this.def.harvester ? [] : null;   // transport passengers (unit ids)
     this.guardX = x; this.guardY = y;
     this.stuckT = 0; this.lastX = x; this.lastY = y;
     this.scanT = Math.random() * 0.5;
@@ -661,11 +661,10 @@ class Unit {
     }
   }
 
-  /* infantry walking to a transport to climb aboard */
+  /* a soldier — or a tank headed for the belly cradle — driving up to a transport */
   doBoard(dt, o) {
     const tr = game.byId.get(o.targetId);
-    if (!['inf', 'rocketinf', 'commando'].includes(this.def.chassis)) { this.nextOrder(); return; }   // soldiers only
-    if (!tr || tr.dead || !tr.cargo || tr.cargo.length >= tr.def.capacity) { this.nextOrder(); return; }
+    if (!canBoard(this, tr)) { this.nextOrder(); return; }   // wrong chassis, or that hold is full
     const d = U.dist(this.x, this.y, tr.x, tr.y);
     if (d > 55) {
       // transport may drift — refresh the path once a second
@@ -679,7 +678,7 @@ class Unit {
     this.path = null;
     tr.cargo.push(this.id);
     this.order = { type: 'idle' };
-    if (this.owner === 0) FX.text(tr.x, tr.y - 26, tr.cargo.length + '/' + tr.def.capacity, '#9fdc7c');
+    if (this.owner === 0) FX.text(tr.x, tr.y - 26, cargoLabel(tr), '#9fdc7c');
   }
 
   doBuild(dt, o) {
@@ -770,6 +769,15 @@ class Unit {
     /* Every soldier aboard mans a gun port and shoots out, using its own weapon,
        cooldown, range and kill credit. One shared sweep serves the whole cabin —
        scanning per gunner would cost twenty entity passes a frame on a full load. */
+    /* everything aboard rides at the cabin's position, so wrecks, drop points and
+       gun-port muzzle flashes all come from where the airframe actually is */
+    if (this.cargo && this.cargo.length) {
+      for (const id of this.cargo) {
+        const p = game.byId.get(id);
+        if (p && !p.dead) { p.x = this.x; p.y = this.y; }
+      }
+    }
+
     if (def.gunPorts && this.cargo && this.cargo.length) {
       this.portScanT = (this.portScanT || 0) - dt;
       if (this.portScanT <= 0) {
@@ -790,8 +798,8 @@ class Unit {
         if (ports <= 0) break;
         const g = game.byId.get(id);
         if (!g || g.dead || !g.def.weapon) continue;
+        if (!isTroopUnit(g)) continue;              // the slung tank rides; it cannot man a port
         ports--;
-        g.x = this.x; g.y = this.y;                 // ride along so shots come from the cabin
         if (g.cool > 0) { g.cool -= dt; continue; }
         const gw = g.def.weapon;
         for (const c of (this.portTargets || [])) {
@@ -822,13 +830,13 @@ class Unit {
         else this.moving = false;
         break;
       }
-      case 'load': {   // hover over a friendly soldier and winch them up
+      case 'load': {   // hover over a friendly soldier or tank and winch it up
         const t = game.byId.get(o.targetId);
-        if (!t || t.dead || t.embarked || this.cargo.length >= def.capacity) { this.nextOrder(); break; }
+        if (!canBoard(t, this)) { this.nextOrder(); break; }
         if (fly(t.x, t.y, def.speed) < 80) {
           t.embarked = true; t.path = null; t.order = { type: 'idle' };
           this.cargo.push(t.id);
-          if (this.owner === 0) FX.text(this.x, this.y - 26, this.cargo.length + '/' + def.capacity, '#9fdc7c');
+          if (this.owner === 0) FX.text(this.x, this.y - 26, cargoLabel(this), '#9fdc7c');
           this.nextOrder();
         }
         break;
@@ -849,11 +857,20 @@ class Unit {
     if (!this.cargo || !this.cargo.length) return;
     const ctx0 = Math.floor(this.x / TILE), cty0 = Math.floor(this.y / TILE);
     let dropped = 0;
-    for (const pid of [...this.cargo]) {
+    // armour comes off the cradle first: if the ground below is tight, the tank
+    // gets the one good tile rather than being stranded behind twenty riflemen
+    const order = [...this.cargo].sort((a, b) => {
+      const ua = game.byId.get(a), ub = game.byId.get(b);
+      return (isTankUnit(ub) ? 1 : 0) - (isTankUnit(ua) ? 1 : 0);
+    });
+    for (const pid of order) {
       const u = game.byId.get(pid);
       if (!u || u.dead) continue;
-      const open = PATH.nearestOpen(world, ctx0 + U.randInt(-2, 2), cty0 + U.randInt(-2, 2), 7);
-      if (!open) break;   // nothing but cliffs below — keep the rest aboard
+      // a tank needs real ground, so widen its search instead of jittering it into a cliff
+      const tank = isTankUnit(u);
+      const jitter = tank ? 0 : 2;
+      const open = PATH.nearestOpen(world, ctx0 + U.randInt(-jitter, jitter), cty0 + U.randInt(-jitter, jitter), tank ? 10 : 7);
+      if (!open) { if (tank) continue; break; }   // nothing but cliffs below — keep the rest aboard
       u.embarked = false;
       u.x = (open.tx + 0.5) * TILE + U.rand(-8, 8);
       u.y = (open.ty + 0.5) * TILE + U.rand(-8, 8);

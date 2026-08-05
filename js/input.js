@@ -343,18 +343,18 @@ const INPUT = (() => {
     // transports: troops right-click a friendly transport to board it;
     // a selected transport right-clicks a soldier to winch them up
     if (target && target.owner === 0 && target.kind === 'unit') {
-      const INF = ['inf', 'rocketinf', 'commando'];
-      if (target.cargo && target.def.capacity) {
+      if (isTransport(target)) {
+        // soldiers fill the troop bay, one tank rides the belly cradle
         let boarded = 0;
         for (const u of units) {
-          if (INF.includes(u.def.chassis)) { u.giveOrder({ type: 'board', targetId: target.id }, shift); boarded++; }
+          if (canBoard(u, target)) { u.giveOrder({ type: 'board', targetId: target.id }, shift); boarded++; }
         }
         if (boarded) { SFX.ack(); UI.flashOrder(wx, wy, 'move'); return; }
       }
-      if (INF.includes(target.def.chassis)) {
+      if (isTroopUnit(target) || isTankUnit(target)) {
         let sent = 0;
         for (const u of units) {
-          if (u.cargo && u.def.capacity) { u.giveOrder({ type: 'load', targetId: target.id }, shift); sent++; }
+          if (canBoard(target, u)) { u.giveOrder({ type: 'load', targetId: target.id }, shift); sent++; }
         }
         if (sent) { SFX.ack(); return; }
       }
