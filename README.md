@@ -79,12 +79,14 @@ python3 -m http.server 8080
 - **Supply economy** — rich supply piles scattered all across the map; Supply Trucks haul them
   to your Supply Center, Markets pay a fat $32/s trickle
 - **Repair Center** — automatically fixes your tanks and aircraft in a radius around it
-  (now a compact 2-tile pad)
+  at **48 hp/s** (a compact 2-tile pad). Veteran crews work alongside the mechanics, so
+  repairs run +25% faster per star — a 4-star tank comes back at 96 hp/s. An unpowered
+  depot limps along at half rate
 - **Building upgrades** — select a Barracks, War Factory or Airfield and buy one-time
   upgrades: Rapid Assembly (−30% production time), Auto-Repair (3%/3 s after 10 s of
   peace), Reinforced Structure (+50–100% health); Airfields add Fast Rearm (−30%
   turnaround) and Full Restoration (landing aircraft repaired to ≥50%); War Factories
-  add Field Service (repairs nearby vehicles 14 hp/s) and Armor Plating (−25% damage taken)
+  add Field Service (repairs nearby vehicles 42 hp/s) and Armor Plating (−25% damage taken)
 - **Praetorian Commando** (Coalition, no build limit) — cloaked special forces: +50% damage
   striking from stealth, reveals nearby stealth units, resists blasts and flame,
   self-heals out of combat. 5× the soldier for 5× the price — field a whole legion

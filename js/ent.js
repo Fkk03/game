@@ -1209,8 +1209,8 @@ class Building {
         const ep = game.players[e.owner];
         if (!ep || ep.team !== p.team) continue;
         if (e.def.chassis === 'inf' || e.def.chassis === 'rocketinf' || e.def.chassis === 'commando') continue;
-        if (U.dist2(this.x, this.y, e.x, e.y) > 200 * 200) continue;
-        e.hp = Math.min(e.maxHp, e.hp + 14 * dt * (this.powered ? 1 : 0.5));
+        if (U.dist2(this.x, this.y, e.x, e.y) > FIELD_SERVICE_RADIUS * FIELD_SERVICE_RADIUS) continue;
+        e.hp = Math.min(e.maxHp, e.hp + FIELD_SERVICE_RATE * dt * (this.powered ? 1 : 0.5));
         if (Math.random() < dt * 1.2) FX.sparks(e.x + U.rand(-9, 9), e.y + U.rand(-9, 9), 2);
       }
     }

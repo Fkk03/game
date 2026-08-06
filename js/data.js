@@ -21,6 +21,9 @@ const VET_XP = [0, 200, 500, 1100, 2000, 3400];
 const VET_DMG = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_HP  = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_REGEN = [0, 0, 3, 6, 10.5, 50];   // hp/s self-repair, from 2 stars up
+/* the factory's Field Service upgrade — a smaller Service Depot bolted to the plant */
+const FIELD_SERVICE_RATE = 42;              // hp/s to nearby vehicles and aircraft
+const FIELD_SERVICE_RADIUS = 200;
 
 /* player promotion ranks (general's XP) → each rank grants 1 power point */
 const RANK_XP = [0, 400, 1000, 2000, 3400, 5200];
@@ -182,8 +185,8 @@ const BUILDINGS = {
   repairbay: {
     name: { coalition: 'Service Depot', dynasty: 'Repair Yard', cartel: 'Scrap Garage' },
     icon: '🔧', cost: 1200, hp: 4500, size: 2, buildTime: 16, power: 2, armor: 'building',
-    sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft (16 hp/s).',
-    healRadius: 200, healRate: 16,
+    sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft (48 hp/s).',
+    healRadius: 200, healRate: 48,
   },
   market: {
     name: { coalition: 'Trade Uplink', dynasty: 'Trade Port', cartel: 'Black Market' },
@@ -496,7 +499,7 @@ const UPGRADES = {
     { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.0, hpMul: 1.5,
       desc: 'Maximum health +50%.' },
     { key: 'vehiclerepair', name: 'Field Service', icon: '🔧', costMul: 0.75,
-      desc: 'Factory mechanics repair nearby friendly vehicles and aircraft (14 hp/s, like a small Repair Center).' },
+      desc: 'Factory mechanics repair nearby friendly vehicles and aircraft (42 hp/s, like a small Repair Center).' },
     { key: 'plating', name: 'Armor Plating', icon: '🛡️', costMul: 1.0,
       desc: 'Hardened walls — all damage taken by this factory is reduced by 25%.' },
   ],
