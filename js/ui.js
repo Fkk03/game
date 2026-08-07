@@ -502,14 +502,21 @@ const UI = (() => {
         if (i >= 20) return;
         curCmds[i] = { type: 'place', key: bk };
       });
+      /* A lone builder shows its construction menu, which already owns Z and X, so
+         its plating command takes the first free slot after the buildings rather
+         than displacing one. In a mixed army selection it gets the usual X. */
+      const platable = units.filter(u => canFieldUpgrade(u, 'armor'));
+      let slot = keys.length;
+      while (slot < 20 && curCmds[slot]) slot++;
+      if (slot < 20 && platable.length) curCmds[slot] = { type: 'tankup', kind: 'armor', units: platable };
     } else if (units.length) {
       title.textContent = units.length === 1 ? uName(units[0].key, p.faction) : units.length + ' units';
       curCmds[4] = { type: 'attackmove' };   // A
       curCmds[5] = { type: 'stop' };         // S
       curCmds[6] = { type: 'guardbtn' };     // D
-      /* Veteran vehicles buy field upgrades: guns (Z) and armor plating (X), one level
-         per star. They sit on their own slots so the Unload and Stealth Retrofit
-         commands can never displace them in a mixed selection. */
+      /* Every unit buys field upgrades: guns (Z) and armor plating (X), without limit.
+         They sit on their own slots so the Unload and Stealth Retrofit commands can
+         never displace them in a mixed selection. */
       const upVehicles = kind => units.filter(u => canFieldUpgrade(u, kind));
       const gunEligible = upVehicles('gun'), armorEligible = upVehicles('armor');
       if (gunEligible.length) curCmds[8] = { type: 'tankup', kind: 'gun', units: gunEligible };
@@ -603,7 +610,9 @@ const UI = (() => {
         // short label and abbreviated price: the grid rows are 35px and "Armor +25%"
         // wraps to two lines, pushing the cost out of the button
         const money = total >= 10000 ? '$' + (total / 1000).toFixed(total >= 100000 ? 0 : 1) + 'k' : '$' + total;
-        b.innerHTML = `${hk}<span class="icon">${c.kind === 'gun' ? '⚔️' : '🛡️'}</span><span>${c.kind === 'gun' ? 'Gun' : 'Armor'}</span><span class="cost">${money}${n > 1 ? '×' + n : ''}</span>`;
+        // levels are unlimited, so show which one this click buys (lowest in the batch)
+        const next = Math.min(...c.units.map(u => fieldUpLevel(u, c.kind))) + 1;
+        b.innerHTML = `${hk}<span class="icon">${c.kind === 'gun' ? '⚔️' : '🛡️'}</span><span>${c.kind === 'gun' ? 'Gun' : 'Armor'} L${next}</span><span class="cost">${money}${n > 1 ? '×' + n : ''}</span>`;
         b.classList.add('upg');
         if (p.money < Math.min(...each)) b.classList.add('disabled');
       } else if (c.type === 'unloadbtn') {
@@ -812,8 +821,8 @@ const UI = (() => {
       tooltipHtml(el, `<h4>✋ Stop</h4><div class="tt-desc">Halt and hold position.</div>`);
     } else if (c.type === 'tankup') {
       tooltipHtml(el, `<h4>${c.kind === 'gun' ? '⚔️ Gun Upgrade' : '🛡️ Armor Plating'}</h4>
-        <div class="tt-cost">30% of the vehicle's cost per level · one level per veterancy star (max 3) · hotkey ${c.kind === 'gun' ? 'Z' : 'X'}</div>
-        <div class="tt-desc">${c.kind === 'gun' ? '+25% weapon damage per level, stacking with veterancy.' : '+25% maximum health per level, stacking with veterancy; the crew patches in the new plating immediately.'} Fits any armed ground vehicle — tanks, artillery carriages, gun trucks and demolition rigs alike.</div>`);
+        <div class="tt-cost">30% of the unit's cost per level · unlimited levels, no veterancy needed · hotkey ${c.kind === 'gun' ? 'Z' : 'X'}</div>
+        <div class="tt-desc">${c.kind === 'gun' ? '+25% weapon damage per level, stacking with veterancy and never capping — keep buying as long as you can pay.' : '+25% maximum health per level, stacking with veterancy and never capping; the crew patches in the new plating immediately.'} ${c.kind === 'gun' ? 'Fits anything with a weapon — tanks, artillery, gunships, jets and infantry alike.' : 'Fits every unit in the army, support hulls included.'}</div>`);
     } else if (c.type === 'unloadbtn') {
       tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
     } else if (c.type === 'guardbtn') {

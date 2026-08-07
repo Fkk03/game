@@ -535,37 +535,43 @@ const UPGRADES = {
 const TANK_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank'];
 const TROOP_CHASSIS = ['inf', 'rocketinf', 'commando'];
 
-/* ---- motor-pool field upgrades ----
-   Any crewed, armed ground vehicle can buy Gun and Armor upgrades once it has
-   earned a star: main battle tanks, artillery carriages (the Longbow, the MLRS
-   batteries and the Annihilator), light gun vehicles and the demolition rigs.
-   The unarmed support hulls — dozer, supply truck, radar van — are left out:
-   there is no gun to bore out and no crew to plate in. */
+/* ---- field upgrades ----
+   Every unit in the army can be refitted, without limit. Tanks, artillery
+   carriages, gunships, strike jets and infantry squads all buy ⚔ Gun and
+   🛡 Armor levels for a flat 30% of their own price, and they never run out:
+   there is no veterancy gate and no level cap, so a hull you keep alive can be
+   improved for as long as you are willing to pay for it.
+
+   The economics hold that open: each level costs 0.30x the unit's price and
+   returns 0.25x its base damage or health, so buying twenty levels costs six
+   times the unit and yields five times its output — always a slightly worse
+   deal than simply building more, which keeps the wallet the real limit. */
 const VEHICLE_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank', 'mlrs', 'buggy', 'demorig'];
-const FIELD_UP_MAX = 3;                 // levels, gated one per veterancy star
-const FIELD_UP_COST_MUL = 0.3;          // per level, as a share of the vehicle's price
+const FIELD_UP_COST_MUL = 0.3;          // per level, as a share of the unit's price
 
 function isGroundVehicle(u) {
   const d = (u && u.def) || u;
   return !!d && !d.air && VEHICLE_CHASSIS.includes(d.chassis);
 }
-function isFieldUpgradable(u) {
+/* Armor plating goes on anything with a hull; a gun upgrade needs a gun to bore
+   out, so the unarmed support units (dozer, supply truck, radar van, recon plane)
+   get plating only. */
+function isFieldUpgradable(u, kind) {
   const d = (u && u.def) || u;
-  return isGroundVehicle(u) && !!(d.weapon || d.suicide);
+  if (!d || !d.chassis) return false;
+  return kind === 'gun' ? !!(d.weapon || d.suicide) : true;
 }
 
-/* Field self-repair. A tank crew carries spare track, plating and a welding kit and
-   can patch its own hull between engagements far faster than a rifleman can patch
-   himself, so armour regenerates at a multiple of the base veteran rate. */
-const VEHICLE_REGEN_MUL = 6;
+/* Field self-repair. A tank crew carries spare track, plating and a welding kit
+   and patches its own hull between engagements far faster than a rifleman can
+   patch himself, so armour runs on its own curve. */
+const VEHICLE_REGEN = [0, 0, 18, 36, 63, 750];   // hp/s by veterancy rank
 function vetRegenRate(u) {
-  const base = VET_REGEN[u.vetRank] || 0;
-  return isGroundVehicle(u) ? base * VEHICLE_REGEN_MUL : base;
+  return (isGroundVehicle(u) ? VEHICLE_REGEN : VET_REGEN)[u.vetRank] || 0;
 }
-function fieldUpCap(u) { return Math.min(FIELD_UP_MAX, u.vetRank || 0); }
 function fieldUpLevel(u, kind) { return (kind === 'gun' ? u.gunLvl : u.armorLvl) || 0; }
 function canFieldUpgrade(u, kind) {
-  return !!u && !u.dead && isFieldUpgradable(u) && fieldUpLevel(u, kind) < fieldUpCap(u);
+  return !!u && !u.dead && u.kind === 'unit' && isFieldUpgradable(u, kind);
 }
 function fieldUpCost(u, faction) { return Math.round(uCost(u.key, faction) * FIELD_UP_COST_MUL); }
 

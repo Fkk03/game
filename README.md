@@ -205,28 +205,34 @@ python3 -m http.server 8080
 - **Full stats on click** — select any unit or building to see its complete combat
   card: damage per shot/missile, range, blast, speed, armor class, sight, ammo,
   personal kill count, cloak state, income/power for structures, and owned upgrades
-- **Vehicle field upgrades** — **every armed ground vehicle** with ★ veterancy can buy
-  ⚔ Gun (+25% damage, hotkey **Z**) and 🛡 Armor (+25% health, hotkey **X**) upgrades,
-  one level per star up to 3, each costing 30% of the vehicle's price; bonuses stack
-  with veterancy and survive promotions. That covers main battle tanks *and* the
-  artillery carriages — the Longbow, the Thunder and Barrage batteries and the
-  Annihilator — plus gun trucks and demolition rigs, whose charge scales with the
-  upgrade too. Only the unarmed support hulls (dozer, supply truck, radar van) are
-  left out. Select a mixed group and the batch buys cheapest-first, so a tight budget
-  fits as many vehicles as it can instead of one expensive hull eating the whole purse
+- **Field upgrades on every unit, without limit** — select anything and buy
+  ⚔ Gun (+25% damage, hotkey **Z**) and 🛡 Armor (+25% health, hotkey **X**), each for
+  30% of that unit's own price. **There is no veterancy gate and no level cap**: a hull
+  fresh off the line can be refitted immediately, and one you keep alive can be improved
+  for as long as you are willing to pay. Twenty levels is +500% damage and +500% health
+  on the same tank. Tanks, artillery carriages, gunships, strike jets, bombers and
+  infantry squads all qualify; the unarmed support hulls (dozer, supply truck, radar van,
+  recon plane) take plating only, having no gun to bore out. Bonuses stack with veterancy
+  and survive promotions, the button names the level your next click buys, and a mixed
+  selection buys cheapest-first so a tight budget fits as many units as it can instead of
+  one expensive hull eating the whole purse.
+  The economics stay honest at any level: 0.30× price for 0.25× output means buying
+  levels is always a slightly worse deal than simply building more, so your wallet — not
+  an arbitrary ceiling — is the real limit
 - **Unit veterancy up to ★★★★★** — every star adds damage and max health (up to +80%);
   from 2 stars units self-repair in the field and the rate climbs steeply with rank —
   3 hp/s at ★★, 6 at ★★★, 10.5 at ★★★★ and **50 hp/s at ★★★★★**, so a five-star
   soldier claws back 500 health in ten seconds between engagements and a surviving
   elite unit is back in the fight almost at once. The Repair Center also services
   veteran crews +25% faster per star
-- **Armour patches its own hull 6× faster** — a tank crew carries spare track, plating
-  and a welding kit, so every ground vehicle self-repairs at six times the base veteran
-  rate: **18 hp/s at ★★, 36 at ★★★, 63 at ★★★★ and 300 hp/s at ★★★★★**. A five-star
-  Warlord goes from smoking wreck to full in about twelve seconds without ever driving
-  home, which makes veteran armour brutally hard to grind down and turns a won
-  engagement into a tank that keeps rolling. Artillery carriages regenerate on the same
-  curve; infantry and aircraft keep the unmultiplied rate
+- **Armour patches its own hull on a far steeper curve** — a tank crew carries spare
+  track, plating and a welding kit, so every ground vehicle self-repairs at
+  **18 hp/s at ★★, 36 at ★★★, 63 at ★★★★ and 750 hp/s at ★★★★★**. That last step is
+  enormous on purpose: a five-star crew shrugs off a Goliath shell every second and
+  refills a Warlord from near-death in under five seconds without ever driving home,
+  so getting armour to the top rank is the single biggest survivability jump in the
+  game. Artillery carriages regenerate on the same curve; infantry and aircraft keep
+  the base rate
 - **Fog of war**, **minimap**, control groups, attack-move,
   waypoint queues, rally points, a skirmish AI with 3 difficulties, procedural desert maps
 - **Win** by destroying every enemy structure

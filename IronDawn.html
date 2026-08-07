@@ -1070,37 +1070,43 @@ const UPGRADES = {
 const TANK_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank'];
 const TROOP_CHASSIS = ['inf', 'rocketinf', 'commando'];
 
-/* ---- motor-pool field upgrades ----
-   Any crewed, armed ground vehicle can buy Gun and Armor upgrades once it has
-   earned a star: main battle tanks, artillery carriages (the Longbow, the MLRS
-   batteries and the Annihilator), light gun vehicles and the demolition rigs.
-   The unarmed support hulls — dozer, supply truck, radar van — are left out:
-   there is no gun to bore out and no crew to plate in. */
+/* ---- field upgrades ----
+   Every unit in the army can be refitted, without limit. Tanks, artillery
+   carriages, gunships, strike jets and infantry squads all buy ⚔ Gun and
+   🛡 Armor levels for a flat 30% of their own price, and they never run out:
+   there is no veterancy gate and no level cap, so a hull you keep alive can be
+   improved for as long as you are willing to pay for it.
+
+   The economics hold that open: each level costs 0.30x the unit's price and
+   returns 0.25x its base damage or health, so buying twenty levels costs six
+   times the unit and yields five times its output — always a slightly worse
+   deal than simply building more, which keeps the wallet the real limit. */
 const VEHICLE_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank', 'mlrs', 'buggy', 'demorig'];
-const FIELD_UP_MAX = 3;                 // levels, gated one per veterancy star
-const FIELD_UP_COST_MUL = 0.3;          // per level, as a share of the vehicle's price
+const FIELD_UP_COST_MUL = 0.3;          // per level, as a share of the unit's price
 
 function isGroundVehicle(u) {
   const d = (u && u.def) || u;
   return !!d && !d.air && VEHICLE_CHASSIS.includes(d.chassis);
 }
-function isFieldUpgradable(u) {
+/* Armor plating goes on anything with a hull; a gun upgrade needs a gun to bore
+   out, so the unarmed support units (dozer, supply truck, radar van, recon plane)
+   get plating only. */
+function isFieldUpgradable(u, kind) {
   const d = (u && u.def) || u;
-  return isGroundVehicle(u) && !!(d.weapon || d.suicide);
+  if (!d || !d.chassis) return false;
+  return kind === 'gun' ? !!(d.weapon || d.suicide) : true;
 }
 
-/* Field self-repair. A tank crew carries spare track, plating and a welding kit and
-   can patch its own hull between engagements far faster than a rifleman can patch
-   himself, so armour regenerates at a multiple of the base veteran rate. */
-const VEHICLE_REGEN_MUL = 6;
+/* Field self-repair. A tank crew carries spare track, plating and a welding kit
+   and patches its own hull between engagements far faster than a rifleman can
+   patch himself, so armour runs on its own curve. */
+const VEHICLE_REGEN = [0, 0, 18, 36, 63, 750];   // hp/s by veterancy rank
 function vetRegenRate(u) {
-  const base = VET_REGEN[u.vetRank] || 0;
-  return isGroundVehicle(u) ? base * VEHICLE_REGEN_MUL : base;
+  return (isGroundVehicle(u) ? VEHICLE_REGEN : VET_REGEN)[u.vetRank] || 0;
 }
-function fieldUpCap(u) { return Math.min(FIELD_UP_MAX, u.vetRank || 0); }
 function fieldUpLevel(u, kind) { return (kind === 'gun' ? u.gunLvl : u.armorLvl) || 0; }
 function canFieldUpgrade(u, kind) {
-  return !!u && !u.dead && isFieldUpgradable(u) && fieldUpLevel(u, kind) < fieldUpCap(u);
+  return !!u && !u.dead && u.kind === 'unit' && isFieldUpgradable(u, kind);
 }
 function fieldUpCost(u, faction) { return Math.round(uCost(u.key, faction) * FIELD_UP_COST_MUL); }
 
@@ -8854,14 +8860,21 @@ const UI = (() => {
         if (i >= 20) return;
         curCmds[i] = { type: 'place', key: bk };
       });
+      /* A lone builder shows its construction menu, which already owns Z and X, so
+         its plating command takes the first free slot after the buildings rather
+         than displacing one. In a mixed army selection it gets the usual X. */
+      const platable = units.filter(u => canFieldUpgrade(u, 'armor'));
+      let slot = keys.length;
+      while (slot < 20 && curCmds[slot]) slot++;
+      if (slot < 20 && platable.length) curCmds[slot] = { type: 'tankup', kind: 'armor', units: platable };
     } else if (units.length) {
       title.textContent = units.length === 1 ? uName(units[0].key, p.faction) : units.length + ' units';
       curCmds[4] = { type: 'attackmove' };   // A
       curCmds[5] = { type: 'stop' };         // S
       curCmds[6] = { type: 'guardbtn' };     // D
-      /* Veteran vehicles buy field upgrades: guns (Z) and armor plating (X), one level
-         per star. They sit on their own slots so the Unload and Stealth Retrofit
-         commands can never displace them in a mixed selection. */
+      /* Every unit buys field upgrades: guns (Z) and armor plating (X), without limit.
+         They sit on their own slots so the Unload and Stealth Retrofit commands can
+         never displace them in a mixed selection. */
       const upVehicles = kind => units.filter(u => canFieldUpgrade(u, kind));
       const gunEligible = upVehicles('gun'), armorEligible = upVehicles('armor');
       if (gunEligible.length) curCmds[8] = { type: 'tankup', kind: 'gun', units: gunEligible };
@@ -8955,7 +8968,9 @@ const UI = (() => {
         // short label and abbreviated price: the grid rows are 35px and "Armor +25%"
         // wraps to two lines, pushing the cost out of the button
         const money = total >= 10000 ? '$' + (total / 1000).toFixed(total >= 100000 ? 0 : 1) + 'k' : '$' + total;
-        b.innerHTML = `${hk}<span class="icon">${c.kind === 'gun' ? '⚔️' : '🛡️'}</span><span>${c.kind === 'gun' ? 'Gun' : 'Armor'}</span><span class="cost">${money}${n > 1 ? '×' + n : ''}</span>`;
+        // levels are unlimited, so show which one this click buys (lowest in the batch)
+        const next = Math.min(...c.units.map(u => fieldUpLevel(u, c.kind))) + 1;
+        b.innerHTML = `${hk}<span class="icon">${c.kind === 'gun' ? '⚔️' : '🛡️'}</span><span>${c.kind === 'gun' ? 'Gun' : 'Armor'} L${next}</span><span class="cost">${money}${n > 1 ? '×' + n : ''}</span>`;
         b.classList.add('upg');
         if (p.money < Math.min(...each)) b.classList.add('disabled');
       } else if (c.type === 'unloadbtn') {
@@ -9164,8 +9179,8 @@ const UI = (() => {
       tooltipHtml(el, `<h4>✋ Stop</h4><div class="tt-desc">Halt and hold position.</div>`);
     } else if (c.type === 'tankup') {
       tooltipHtml(el, `<h4>${c.kind === 'gun' ? '⚔️ Gun Upgrade' : '🛡️ Armor Plating'}</h4>
-        <div class="tt-cost">30% of the vehicle's cost per level · one level per veterancy star (max 3) · hotkey ${c.kind === 'gun' ? 'Z' : 'X'}</div>
-        <div class="tt-desc">${c.kind === 'gun' ? '+25% weapon damage per level, stacking with veterancy.' : '+25% maximum health per level, stacking with veterancy; the crew patches in the new plating immediately.'} Fits any armed ground vehicle — tanks, artillery carriages, gun trucks and demolition rigs alike.</div>`);
+        <div class="tt-cost">30% of the unit's cost per level · unlimited levels, no veterancy needed · hotkey ${c.kind === 'gun' ? 'Z' : 'X'}</div>
+        <div class="tt-desc">${c.kind === 'gun' ? '+25% weapon damage per level, stacking with veterancy and never capping — keep buying as long as you can pay.' : '+25% maximum health per level, stacking with veterancy and never capping; the crew patches in the new plating immediately.'} ${c.kind === 'gun' ? 'Fits anything with a weapon — tanks, artillery, gunships, jets and infantry alike.' : 'Fits every unit in the army, support hulls included.'}</div>`);
     } else if (c.type === 'unloadbtn') {
       tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
     } else if (c.type === 'guardbtn') {
