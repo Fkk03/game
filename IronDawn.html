@@ -557,7 +557,7 @@ const VET_DMG = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_HP  = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_REGEN = [0, 0, 3, 6, 10.5, 50];   // hp/s self-repair, from 2 stars up
 /* the factory's Field Service upgrade — a smaller Service Depot bolted to the plant */
-const FIELD_SERVICE_RATE = 84;              // hp/s to nearby vehicles and aircraft
+const FIELD_SERVICE_RATE = 14;              // hp/s to nearby vehicles and aircraft
 const FIELD_SERVICE_RADIUS = 200;
 
 /* player promotion ranks (general's XP) → each rank grants 1 power point */
@@ -720,8 +720,8 @@ const BUILDINGS = {
   repairbay: {
     name: { coalition: 'Service Depot', dynasty: 'Repair Yard', cartel: 'Scrap Garage' },
     icon: '🔧', cost: 1200, hp: 4500, size: 2, buildTime: 16, power: 2, armor: 'building',
-    sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft (96 hp/s).',
-    healRadius: 200, healRate: 96,
+    sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft (16 hp/s).',
+    healRadius: 200, healRate: 16,
   },
   market: {
     name: { coalition: 'Trade Uplink', dynasty: 'Trade Port', cartel: 'Black Market' },
@@ -1034,7 +1034,7 @@ const UPGRADES = {
     { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.0, hpMul: 1.5,
       desc: 'Maximum health +50%.' },
     { key: 'vehiclerepair', name: 'Field Service', icon: '🔧', costMul: 0.75,
-      desc: 'Factory mechanics repair nearby friendly vehicles and aircraft (84 hp/s, like a small Repair Center).' },
+      desc: 'Factory mechanics repair nearby friendly vehicles and aircraft (14 hp/s, like a small Repair Center).' },
     { key: 'plating', name: 'Armor Plating', icon: '🛡️', costMul: 1.0,
       desc: 'Hardened walls — all damage taken by this factory is reduced by 25%.' },
   ],
@@ -1080,9 +1080,22 @@ const VEHICLE_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank', 'mlrs', 'bu
 const FIELD_UP_MAX = 3;                 // levels, gated one per veterancy star
 const FIELD_UP_COST_MUL = 0.3;          // per level, as a share of the vehicle's price
 
+function isGroundVehicle(u) {
+  const d = (u && u.def) || u;
+  return !!d && !d.air && VEHICLE_CHASSIS.includes(d.chassis);
+}
 function isFieldUpgradable(u) {
   const d = (u && u.def) || u;
-  return !!d && !d.air && VEHICLE_CHASSIS.includes(d.chassis) && !!(d.weapon || d.suicide);
+  return isGroundVehicle(u) && !!(d.weapon || d.suicide);
+}
+
+/* Field self-repair. A tank crew carries spare track, plating and a welding kit and
+   can patch its own hull between engagements far faster than a rifleman can patch
+   himself, so armour regenerates at a multiple of the base veteran rate. */
+const VEHICLE_REGEN_MUL = 6;
+function vetRegenRate(u) {
+  const base = VET_REGEN[u.vetRank] || 0;
+  return isGroundVehicle(u) ? base * VEHICLE_REGEN_MUL : base;
 }
 function fieldUpCap(u) { return Math.min(FIELD_UP_MAX, u.vetRank || 0); }
 function fieldUpLevel(u, kind) { return (kind === 'gun' ? u.gunLvl : u.armorLvl) || 0; }
@@ -2548,7 +2561,7 @@ class Unit {
 
     // veterans patch themselves up in the field — faster with every star.
     // Runs BEFORE the aircraft branch so veteran pilots heal too.
-    const regen = VET_REGEN[this.vetRank];
+    const regen = vetRegenRate(this);
     if (regen && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
     // special-forces conditioning: self-heal once out of combat for 8 s
     if (this.def.fieldRegen && this.hp < this.maxHp && game.t - (this.lastHitT || -99) > 8) {

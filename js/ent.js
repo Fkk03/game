@@ -430,7 +430,7 @@ class Unit {
 
     // veterans patch themselves up in the field — faster with every star.
     // Runs BEFORE the aircraft branch so veteran pilots heal too.
-    const regen = VET_REGEN[this.vetRank];
+    const regen = vetRegenRate(this);
     if (regen && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
     // special-forces conditioning: self-heal once out of combat for 8 s
     if (this.def.fieldRegen && this.hp < this.maxHp && game.t - (this.lastHitT || -99) > 8) {

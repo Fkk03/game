@@ -79,14 +79,13 @@ python3 -m http.server 8080
 - **Supply economy** — rich supply piles scattered all across the map; Supply Trucks haul them
   to your Supply Center, Markets pay a fat $32/s trickle
 - **Repair Center** — automatically fixes your tanks and aircraft in a radius around it
-  at **96 hp/s** (a compact 2-tile pad). Veteran crews work alongside the mechanics, so
-  repairs run +25% faster per star — a 4-star tank comes back at 192 hp/s. An unpowered
-  depot limps along at half rate
+  at 16 hp/s (a compact 2-tile pad). Veteran crews work alongside the mechanics, so
+  repairs run +25% faster per star. An unpowered depot limps along at half rate
 - **Building upgrades** — select a Barracks, War Factory or Airfield and buy one-time
   upgrades: Rapid Assembly (−30% production time), Auto-Repair (3%/3 s after 10 s of
   peace), Reinforced Structure (+50–100% health); Airfields add Fast Rearm (−30%
   turnaround) and Full Restoration (landing aircraft repaired to ≥50%); War Factories
-  add Field Service (repairs nearby vehicles 84 hp/s) and Armor Plating (−25% damage taken)
+  add Field Service (repairs nearby vehicles 14 hp/s) and Armor Plating (−25% damage taken)
 - **Praetorian Commando** (Coalition, no build limit) — cloaked special forces: +50% damage
   striking from stealth, reveals nearby stealth units, resists blasts and flame,
   self-heals out of combat. 5× the soldier for 5× the price — field a whole legion
@@ -218,9 +217,16 @@ python3 -m http.server 8080
 - **Unit veterancy up to ★★★★★** — every star adds damage and max health (up to +80%);
   from 2 stars units self-repair in the field and the rate climbs steeply with rank —
   3 hp/s at ★★, 6 at ★★★, 10.5 at ★★★★ and **50 hp/s at ★★★★★**, so a five-star
-  crew claws back 500 health in ten seconds between engagements and a surviving elite
-  unit is back in the fight almost at once. The Repair Center also services
+  soldier claws back 500 health in ten seconds between engagements and a surviving
+  elite unit is back in the fight almost at once. The Repair Center also services
   veteran crews +25% faster per star
+- **Armour patches its own hull 6× faster** — a tank crew carries spare track, plating
+  and a welding kit, so every ground vehicle self-repairs at six times the base veteran
+  rate: **18 hp/s at ★★, 36 at ★★★, 63 at ★★★★ and 300 hp/s at ★★★★★**. A five-star
+  Warlord goes from smoking wreck to full in about twelve seconds without ever driving
+  home, which makes veteran armour brutally hard to grind down and turns a won
+  engagement into a tank that keeps rolling. Artillery carriages regenerate on the same
+  curve; infantry and aircraft keep the unmultiplied rate
 - **Fog of war**, **minimap**, control groups, attack-move,
   waypoint queues, rally points, a skirmish AI with 3 difficulties, procedural desert maps
 - **Win** by destroying every enemy structure
