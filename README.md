@@ -201,7 +201,12 @@ python3 -m http.server 8080
   recon sweeps, airstrikes, artillery barrages, paradrops, emergency supply drops, war frenzy,
   sabotage, ambushes, carpet bombing, thermobaric bombs…
 - **Superweapons** — Solaris Beam / Nuclear Missile / Rocket Storm, on a 5-minute countdown
-  that both players can see
+  that both players can see. All three are **3× the damage and 10× the blast radius** of a
+  conventional strike: one Nuclear Missile does 43,200 in a 2,300-px radius, erasing heavy
+  armour out to two thousand pixels and taking a whole base with it. The multi-shot strikes
+  spread their impacts ten times as wide as well, so the Solaris Beam sweeps a corridor
+  right across a battlefield and the Rocket Storm saturates a 3,200-px box — the footprint
+  really is ten times across, not one enormous crater with the whole salvo stacked inside
 - **Full stats on click** — select any unit or building to see its complete combat
   card: damage per shot/missile, range, blast, speed, armor class, sight, ammo,
   personal kill count, cloak state, income/power for structures, and owned upgrades
@@ -219,6 +224,17 @@ python3 -m http.server 8080
   The economics stay honest at any level: 0.30× price for 0.25× output means buying
   levels is always a slightly worse deal than simply building more, so your wallet — not
   an arbitrary ceiling — is the real limit
+- **⚙ Specials — a third upgrade track, different on every hull** (hotkey **C**, same
+  terms as the other two: +25% a level, no cap, no gate, 30% of the unit's price). What
+  the system *is* depends on what you selected, so a tank's third upgrade is not a jet's:
+  **Autoloader** on main battle tanks and **Pressure Feed** on flame tanks (+25% rate of
+  fire), **Extended Barrel** on artillery and **Tracking Radar** on anti-air (+25% weapon
+  range), **Tuned Suspension** on gun trucks and **Nitro Injection** on demolition rigs
+  (+25% speed), **Combat Drills** on infantry (+25% rate of fire — soldiers upgrade on
+  exactly the same curve as tanks), **Rotor Tuning** on gunships and **Afterburners** on
+  jets (+25% speed), and an **Overhauled Engine** on the support hulls. Four levels of all
+  three tracks together is a unit with double the damage, double the health and double the
+  rate of fire
 - **Unit veterancy up to ★★★★★** — every star adds damage and max health (up to +80%);
   from 2 stars units self-repair in the field and the rate climbs steeply with rank —
   3 hp/s at ★★, 6 at ★★★, 10.5 at ★★★★ and **50 hp/s at ★★★★★**, so a five-star

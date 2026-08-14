@@ -221,22 +221,24 @@ const POWERS_SYS = (() => {
         break;
       case 'solaris': {
         // sweeping beam: sequence of beam strikes marching across the area
+        const sw = SUPERWEAPONS.solaris;
         const ang = U.rand(0, Math.PI * 2);
-        for (let i = 0; i < 14; i++) {
-          const off = (i - 6.5) * 34;
+        for (let i = 0; i < sw.shots; i++) {
+          const off = (i - (sw.shots - 1) / 2) * sw.spread;
           const px = x + Math.cos(ang) * off, py = y + Math.sin(ang) * off;
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 2.5 + i * 0.32,
-            dmg: 1890, dtype: 'beam', splash: 65, owner: pi, dead: false, x: px, y: py, fxSize: 1.35, beam: true });
+            dmg: sw.dmg, dtype: 'beam', splash: sw.splash, owner: pi, dead: false, x: px, y: py, fxSize: 1.35, beam: true });
         }
-        game.beamStrikes.push({ x, y, ang, t: 0, dur: 14 * 0.32 + 2.5 });
+        game.beamStrikes.push({ x, y, ang, t: 0, dur: sw.shots * 0.32 + 2.5, spread: sw.spread });
         SFX.beam(x, y);
         break;
       }
       case 'rocketstorm': {
-        for (let i = 0; i < 24; i++) {
-          const px = x + U.rand(-160, 160), py = y + U.rand(-160, 160);
+        const sw = SUPERWEAPONS.rocketstorm;
+        for (let i = 0; i < sw.shots; i++) {
+          const px = x + U.rand(-sw.spread, sw.spread), py = y + U.rand(-sw.spread, sw.spread);
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 1.5 + i * 0.33,
-            dmg: 1350, dtype: 'explosive', splash: 70, owner: pi, dead: false, x: px, y: py, fxSize: 1.2 });
+            dmg: sw.dmg, dtype: 'explosive', splash: sw.splash, owner: pi, dead: false, x: px, y: py, fxSize: 1.2 });
         }
         break;
       }
@@ -251,7 +253,7 @@ const POWERS_SYS = (() => {
       if (n.t >= n.fly) {
         FX.nukeExplosion(n.x, n.y);
         SFX.bigExplo(n.x, n.y);
-        dealSplash(n.x, n.y, 14400, 'explosive', 230, n.owner, null);
+        dealSplash(n.x, n.y, SUPERWEAPONS.nuke.dmg, 'explosive', SUPERWEAPONS.nuke.splash, n.owner, null);
         game.nukes.splice(i, 1);
       }
     }

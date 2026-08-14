@@ -334,7 +334,7 @@ class Unit {
       this.pathI++;
       return this.pathI >= this.path.length;
     }
-    const sp = this.def.speed * speedMul;
+    const sp = effSpeed(this) * speedMul;
     const desired = U.angTo(this.x, this.y, wp.x, wp.y);
     const turnRate = this.def.chassis === 'inf' || this.def.chassis === 'rocketinf' ? 9 :
       (this.def.chassis === 'heavytank' ? 2.4 : 4.2);
@@ -407,7 +407,7 @@ class Unit {
   tryFire(target, dt) {
     const w = this.def.weapon;
     const d = U.dist(this.x, this.y, target.x, target.y);
-    const range = w.range + (target.kind === 'building' ? target.size * TILE * 0.4 : 0);
+    const range = effRange(w, this) + (target.kind === 'building' ? target.size * TILE * 0.4 : 0);
     if (w.minRange && d < w.minRange) return 'tooclose';
     if (d > range) return 'far';
     // face target with turret
@@ -417,7 +417,7 @@ class Unit {
     if (needBody) this.angle = U.turnToward(this.angle, want, 9 * dt);
     if (Math.abs(U.angDiff(this.tAngle, want)) > 0.25) return 'turning';
     if (this.cool > 0) return 'cooling';
-    this.cool = w.cd;
+    this.cool = effCd(w, this);
     fireWeapon(this, w, target);
     if (this.def.decloakOnFire || this.stealthUpgrade) this.decloakUntil = game.t + (this.def.decloakOnFire || 1);
     return 'fired';
@@ -523,7 +523,7 @@ class Unit {
     this.scanT -= dt;
     if (this.scanT <= 0) {
       this.scanT = 0.4;
-      const t = this.findTarget(this.def.weapon.range + 60);
+      const t = this.findTarget(effRange(this.def.weapon, this) + 60);
       if (t) { this.order = { type: 'attack', targetId: t.id, fromGuard: true }; return; }
       // drift back to guard anchor
       if (U.dist(this.x, this.y, this.guardX, this.guardY) > 60 && !this.path) {
@@ -538,7 +538,7 @@ class Unit {
     if (this.scanT <= 0 && ((this.def.weapon && !this.def.noAutoAttack) || this.def.suicide)) {
       this.scanT = 0.35;
       const t = this.findTarget(this.def.weapon ?
-        Math.max(this.def.weapon.range + 80, this.def.sight * TILE) : this.def.sight * TILE);
+        Math.max(effRange(this.def.weapon, this) + 80, this.def.sight * TILE) : this.def.sight * TILE);
       if (t) {
         this.orderQueue.unshift({ type: 'attackmove', x: o.x, y: o.y });
         this.order = { type: 'attack', targetId: t.id, resume: true };
@@ -555,7 +555,7 @@ class Unit {
     this.scanT -= dt;
     if (this.scanT <= 0 && this.def.weapon && !this.def.noAutoAttack) {
       this.scanT = 0.35;
-      const t = this.findTarget(Math.max(this.def.weapon.range + 80, this.def.sight * TILE));
+      const t = this.findTarget(Math.max(effRange(this.def.weapon, this) + 80, this.def.sight * TILE));
       if (t) {
         this.orderQueue.unshift({ type: 'guardarea', x: o.x, y: o.y });
         this.order = { type: 'attack', targetId: t.id, fromGuard: true };
@@ -728,6 +728,7 @@ class Unit {
   /* --------- transport helicopter --------- */
   updateHeli(dt) {
     const def = this.def;
+    const spd = effSpeed(this);        // ⚙ Afterburners / Rotor Tuning
     const o = this.order;
     const fly = (tx, ty, sp) => {
       const d = U.dist(this.x, this.y, tx, ty);
@@ -759,10 +760,10 @@ class Unit {
       if (!t) return false;
       const w = (t.kind === 'unit' && t.def.armor === 'inf') ? (def.gunWeapon || def.weapon) : def.weapon;
       const d = U.dist(this.x, this.y, t.x, t.y);
-      const range = w.range + (t.kind === 'building' ? t.size * TILE * 0.4 : 0);
+      const range = effRange(w, this) + (t.kind === 'building' ? t.size * TILE * 0.4 : 0);
       if (d <= range) {
         this.angle = U.turnToward(this.angle, U.angTo(this.x, this.y, t.x, t.y), 5 * dt);
-        if (this.cool <= 0) { this.cool = w.cd; fireWeapon(this, w, t); }
+        if (this.cool <= 0) { this.cool = effCd(w, this); fireWeapon(this, w, t); }
         return true;
       }
       return false;
@@ -784,12 +785,19 @@ class Unit {
       this.portScanT = (this.portScanT || 0) - dt;
       if (this.portScanT <= 0) {
         this.portScanT = 0.3;
+        // sweep as far as the longest reach in the cabin: ⚙ Combat Drills or a
+        // range special can push a passenger past the stock infantry envelope
+        let reach = 280;
+        for (const id of this.cargo) {
+          const g = game.byId.get(id);
+          if (g && !g.dead && g.def.weapon) reach = Math.max(reach, effRange(g.def.weapon, g));
+        }
         const near = [];
         for (const e of game.ents) {
           if (e.dead || e.kind !== 'unit' || !isEnemy(this, e)) continue;
           if (isStealthed(e) && !isDetectedBy(e, game.players[this.owner].team)) continue;
           const dd = U.dist(this.x, this.y, e.x, e.y);
-          if (dd < 280) near.push({ e, d: dd });      // 280 covers the longest infantry reach
+          if (dd < reach) near.push({ e, d: dd });
         }
         near.sort((a, b) => a.d - b.d);
         if (near.length > 8) near.length = 8;
@@ -805,8 +813,8 @@ class Unit {
         if (g.cool > 0) { g.cool -= dt; continue; }
         const gw = g.def.weapon;
         for (const c of (this.portTargets || [])) {
-          if (c.e.dead || c.d >= gw.range || !weaponCanHit(gw, c.e)) continue;
-          g.cool = gw.cd;
+          if (c.e.dead || c.d >= effRange(gw, g) || !weaponCanHit(gw, c.e)) continue;
+          g.cool = effCd(gw, g);
           fireWeapon(g, gw, c.e);
           break;
         }
@@ -815,27 +823,27 @@ class Unit {
 
     switch (o.type) {
       case 'move':
-        if (fly(o.x, o.y, def.speed) < 14) this.nextOrder();
+        if (fly(o.x, o.y, spd) < 14) this.nextOrder();
         break;
       case 'attackmove':
       case 'guardarea': {
         // fight anything in reach; otherwise push on to the post and hold it there
         if (heliCombat()) { this.moving = false; break; }
-        fly(o.x, o.y, def.speed);
+        fly(o.x, o.y, spd);
         break;
       }
       case 'attack': {
         const t = game.byId.get(o.targetId);
         if (!t || t.dead) { this.heliTargetId = 0; this.nextOrder(); break; }
         this.heliTargetId = t.id;
-        if (!heliCombat()) fly(t.x, t.y, def.speed);
+        if (!heliCombat()) fly(t.x, t.y, spd);
         else this.moving = false;
         break;
       }
       case 'load': {   // hover over a friendly soldier or tank and winch it up
         const t = game.byId.get(o.targetId);
         if (!canBoard(t, this)) { this.nextOrder(); break; }
-        if (fly(t.x, t.y, def.speed) < 80) {
+        if (fly(t.x, t.y, spd) < 80) {
           t.embarked = true; t.path = null; t.order = { type: 'idle' };
           this.cargo.push(t.id);
           if (this.owner === 0) FX.text(this.x, this.y - 26, cargoLabel(this), '#9fdc7c');
@@ -887,6 +895,7 @@ class Unit {
   /* --------- jets --------- */
   updateJet(dt) {
     const def = this.def;
+    const spd = effSpeed(this);        // ⚙ Afterburners / Rotor Tuning
     // find home pad if lost
     if (!this.padId || !game.byId.get(this.padId) || game.byId.get(this.padId).dead) {
       this.padId = null;
@@ -902,7 +911,7 @@ class Unit {
       this.y += Math.sin(this.angle) * sp * dt;
       this.x = U.clamp(this.x, 20, world.pw - 20);
       this.y = U.clamp(this.y, 20, world.ph - 20);
-      if (sp > def.speed * 0.7 && Math.random() < dt * 22) {
+      if (sp > spd * 0.7 && Math.random() < dt * 22) {
         const wa = this.angle + Math.PI / 2;
         FX.contrail(this.x + Math.cos(wa) * 11 - Math.cos(this.angle) * 10,
                     this.y + Math.sin(wa) * 11 - Math.sin(this.angle) * 10);
@@ -918,7 +927,7 @@ class Unit {
         const usePad = pad && def.weapon;
         const cx = usePad ? pad.x : this.guardX, cy = usePad ? pad.y : this.guardY;
         this.circleA += dt * 0.9;
-        flyToward(cx + Math.cos(this.circleA) * 95, cy + Math.sin(this.circleA) * 95, def.speed * 0.55);
+        flyToward(cx + Math.cos(this.circleA) * 95, cy + Math.sin(this.circleA) * 95, spd * 0.55);
         // auto re-engage persist target
         if (this.persistTargetId) {
           const t = game.byId.get(this.persistTargetId);
@@ -929,19 +938,19 @@ class Unit {
       }
       case 'moveto': {
         const o = this.order;
-        if (flyToward(o.x, o.y, def.speed) < 40) { this.jetState = 'idle'; this.guardX = this.x; this.guardY = this.y; this.order = { type: 'guard' }; }
+        if (flyToward(o.x, o.y, spd) < 40) { this.jetState = 'idle'; this.guardX = this.x; this.guardY = this.y; this.order = { type: 'guard' }; }
         break;
       }
       case 'guardmove': {
         if (!this.guardPost) { this.jetState = 'idle'; break; }
-        if (flyToward(this.guardPost.x, this.guardPost.y, def.speed) < 70) this.jetState = 'guardair';
+        if (flyToward(this.guardPost.x, this.guardPost.y, spd) < 70) this.jetState = 'guardair';
         break;
       }
       case 'guardair': {
         const gp = this.guardPost;
         if (!gp) { this.jetState = 'idle'; break; }
         this.circleA += dt * 1.1;
-        flyToward(gp.x + Math.cos(this.circleA) * 110, gp.y + Math.sin(this.circleA) * 110, def.speed * 0.6);
+        flyToward(gp.x + Math.cos(this.circleA) * 110, gp.y + Math.sin(this.circleA) * 110, spd * 0.6);
         if (!def.weapon) break;                       // unarmed recon: just orbit and watch
         if (this.ammo <= 0) { this.jetState = 'return'; break; }
         this.scanT -= dt;
@@ -1035,9 +1044,9 @@ class Unit {
           this.jetState = 'return';
           break;
         }
-        const d = flyToward(t.x, t.y, def.speed);
-        if (d < w.range && this.cool <= 0) {
-          this.cool = w.cd;
+        const d = flyToward(t.x, t.y, spd);
+        if (d < effRange(w, this) && this.cool <= 0) {
+          this.cool = effCd(w, this);
           fireWeapon(this, w, t);
           this.ammo--;
           if (def.decloakOnFire || this.stealthUpgrade) this.decloakUntil = game.t + (def.decloakOnFire || 1);
@@ -1046,7 +1055,7 @@ class Unit {
           this._shotsT = game.t;
           // end of a controlled burst: re-evaluate targets instead of dumping the rack
           if (def.burst && this._shots[t.id] % def.burst === 0) {
-            this.cool = Math.max(this.cool, w.cd * 2.2);
+            this.cool = Math.max(this.cool, effCd(w, this) * 2.2);
             const nt = reacquire(doomed(t) ? t.id : 0);
             if (nt && nt.id !== t.id && (doomed(t) || U.dist2(this.x, this.y, nt.x, nt.y) < U.dist2(this.x, this.y, t.x, t.y))) {
               this.order = { type: 'attack', targetId: nt.id };
@@ -1059,7 +1068,7 @@ class Unit {
       }
       case 'return': {
         if (!pad) { this.jetState = this.guardPost && this.ammo > 0 ? 'guardmove' : 'idle'; break; }
-        const d = flyToward(pad.x, pad.y, def.speed);
+        const d = flyToward(pad.x, pad.y, spd);
         if (d < 40) { this.jetState = 'rearm'; this.rearmT = 0; }
         break;
       }
@@ -1422,8 +1431,8 @@ function fireWeapon(src, w, target) {
       // otherwise anything on the move simply outwalks the splash radius
       let aimX = target.x, aimY = target.y;
       if (target.kind === 'unit' && target.moving && !target.def.air) {
-        aimX += Math.cos(target.angle) * target.def.speed * fly * 0.9;
-        aimY += Math.sin(target.angle) * target.def.speed * fly * 0.9;
+        aimX += Math.cos(target.angle) * effSpeed(target) * fly * 0.9;
+        aimY += Math.sin(target.angle) * effSpeed(target) * fly * 0.9;
       }
       game.projs.push({ kind: 'arty', x: muzX, y: muzY, sx: muzX, sy: muzY,
         tx: aimX + U.rand(-spread, spread), ty: aimY + U.rand(-spread, spread),

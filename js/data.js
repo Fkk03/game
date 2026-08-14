@@ -20,7 +20,7 @@ const DMG_MOD = {
 const VET_XP = [0, 200, 500, 1100, 2000, 3400];
 const VET_DMG = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_HP  = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
-const VET_REGEN = [0, 0, 3, 6, 10.5, 50];   // hp/s self-repair, from 2 stars up
+const VET_REGEN = [0, 0, 15, 30, 52.5, 250];   // hp/s self-repair, from 2 stars up
 /* the factory's Field Service upgrade — a smaller Service Depot bolted to the plant */
 const FIELD_SERVICE_RATE = 14;              // hp/s to nearby vehicles and aircraft
 const FIELD_SERVICE_RADIUS = 200;
@@ -468,10 +468,23 @@ const POWERS = {
 };
 
 /* superweapon strikes */
+/* Superweapon payloads. Each blast is ten times the radius and three times the
+   damage of the original design, and the multi-shot strikes spread their
+   impacts ten times as wide so the footprint really is ten times across rather
+   than one enormous crater with the whole salvo stacked inside it. */
 const SUPERWEAPONS = {
-  solaris:     { name: 'Solaris Beam', desc: 'Orbital energy beam sweeps across the target.' },
-  nuke:        { name: 'Nuclear Missile', desc: 'City-block-erasing nuclear strike.' },
-  rocketstorm: { name: 'Rocket Storm', desc: '24 heavy rockets saturate a wide area.' },
+  solaris: {
+    name: 'Solaris Beam', desc: 'Orbital energy beam sweeps a vast corridor across the map.',
+    shots: 14, dmg: 5670, splash: 650, spread: 340,
+  },
+  nuke: {
+    name: 'Nuclear Missile', desc: 'District-erasing nuclear strike.',
+    dmg: 43200, splash: 2300,
+  },
+  rocketstorm: {
+    name: 'Rocket Storm', desc: '24 heavy rockets saturate an enormous area.',
+    shots: 24, dmg: 4050, splash: 700, spread: 1600,
+  },
 };
 
 /* =====================================================================
@@ -559,17 +572,61 @@ function isGroundVehicle(u) {
 function isFieldUpgradable(u, kind) {
   const d = (u && u.def) || u;
   if (!d || !d.chassis) return false;
-  return kind === 'gun' ? !!(d.weapon || d.suicide) : true;
+  if (kind === 'gun') return !!(d.weapon || d.suicide);
+  if (kind === 'special') {
+    const s = SPECIALS[d.chassis];
+    // a faster reload or a longer reach means nothing without a weapon to fit it to
+    return !!s && (s.effect === 'speed' || !!d.weapon);
+  }
+  return true;
 }
 
 /* Field self-repair. A tank crew carries spare track, plating and a welding kit
    and patches its own hull between engagements far faster than a rifleman can
    patch himself, so armour runs on its own curve. */
-const VEHICLE_REGEN = [0, 0, 18, 36, 63, 750];   // hp/s by veterancy rank
+const VEHICLE_REGEN = [0, 0, 90, 180, 315, 3750];   // hp/s by veterancy rank
 function vetRegenRate(u) {
   return (isGroundVehicle(u) ? VEHICLE_REGEN : VET_REGEN)[u.vetRank] || 0;
 }
-function fieldUpLevel(u, kind) { return (kind === 'gun' ? u.gunLvl : u.armorLvl) || 0; }
+/* ---- the ⚙ Special ----
+   Alongside its gun and its plating every unit carries one signature system it
+   can keep improving on exactly the same terms: unlimited levels, +25% each,
+   30% of the unit's price. What that system IS depends on the hull, so a tank's
+   third upgrade is not a jet's. Three mechanisms cover the roster — rate of
+   fire, weapon range and top speed. */
+const SPECIALS = {
+  tank:      { name: 'Autoloader',        short: 'Loader',  icon: '🔁', effect: 'rof' },
+  heavytank: { name: 'Autoloader',        short: 'Loader',  icon: '🔁', effect: 'rof' },
+  flametank: { name: 'Pressure Feed',     short: 'Feed',    icon: '🔥', effect: 'rof' },
+  aatank:    { name: 'Tracking Radar',    short: 'Radar',   icon: '📡', effect: 'range' },
+  mlrs:      { name: 'Extended Barrel',   short: 'Barrel',  icon: '🎯', effect: 'range' },
+  buggy:     { name: 'Tuned Suspension',  short: 'Susp',    icon: '🏁', effect: 'speed' },
+  demorig:   { name: 'Nitro Injection',   short: 'Nitro',   icon: '🏁', effect: 'speed' },
+  inf:       { name: 'Combat Drills',     short: 'Drills',  icon: '🎖️', effect: 'rof' },
+  rocketinf: { name: 'Combat Drills',     short: 'Drills',  icon: '🎖️', effect: 'rof' },
+  commando:  { name: 'Combat Drills',     short: 'Drills',  icon: '🎖️', effect: 'rof' },
+  heli:      { name: 'Rotor Tuning',      short: 'Rotors',  icon: '🚁', effect: 'speed' },
+  jet:       { name: 'Afterburners',      short: 'Burners', icon: '💨', effect: 'speed' },
+  dozer:     { name: 'Overhauled Engine', short: 'Engine',  icon: '🔧', effect: 'speed' },
+  truck:     { name: 'Overhauled Engine', short: 'Engine',  icon: '🔧', effect: 'speed' },
+  radar:     { name: 'Overhauled Engine', short: 'Engine',  icon: '🔧', effect: 'speed' },
+};
+const FIELD_UP_STEP = 0.25;             // what one level of any field upgrade is worth
+
+function specialOf(u) { return SPECIALS[chassisOf(u)] || null; }
+function specialMul(u, effect) {
+  const s = specialOf(u);
+  if (!s || s.effect !== effect) return 1;
+  return 1 + FIELD_UP_STEP * (u.specialLvl || 0);
+}
+/* the unit's effective numbers once its ⚙ system is counted */
+function effCd(w, u) { return w.cd / specialMul(u, 'rof'); }
+function effRange(w, u) { return w.range * specialMul(u, 'range'); }
+function effSpeed(u) { return u.def.speed * specialMul(u, 'speed'); }
+
+function fieldUpLevel(u, kind) {
+  return (kind === 'gun' ? u.gunLvl : kind === 'armor' ? u.armorLvl : u.specialLvl) || 0;
+}
 function canFieldUpgrade(u, kind) {
   return !!u && !u.dead && u.kind === 'unit' && isFieldUpgradable(u, kind);
 }

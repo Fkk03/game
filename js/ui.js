@@ -340,6 +340,10 @@ const UI = (() => {
       if (e.kind === 'unit' && e.vetRank) extra += ` &nbsp;<span style="color:#ffd76a">${'★'.repeat(e.vetRank)}</span>`;
       if (e.gunLvl) extra += ` &nbsp;<span style="color:#ffb070">⚔+${e.gunLvl * 25}%</span>`;
       if (e.armorLvl) extra += ` &nbsp;<span style="color:#8fc7ff">🛡+${e.armorLvl * 25}%</span>`;
+      if (e.specialLvl) {
+        const sp = specialOf(e);
+        extra += ` &nbsp;<span style="color:#c9a7ff" title="${sp.name}">${sp.icon}+${e.specialLvl * 25}%</span>`;
+      }
       if (e.kind === 'unit' && e.def.harvester) extra += ` &nbsp;· carrying $${e.carrying || 0}`;
       if (e.kind === 'unit' && e.def.air && e.def.ammo !== undefined) extra += ` &nbsp;· ammo ${e.ammo}/${e.def.ammo}`;
       if (e.kind === 'unit' && isTransport(e)) {
@@ -384,12 +388,14 @@ const UI = (() => {
         const per = w.projectile === 'nukebomb' ? ' per bomb' :
           w.projectile === 'napalm' ? ' per payload' : ' per missile';
         bits.push(`⚔ ${dmg} ${w.dtype}${d.air ? per : ''}`);
-        bits.push(`range ${w.range}`);
+        // range, reload and speed all read the unit's own ⚙ system, not the datasheet
+        bits.push(`range ${Math.round(effRange(w, e))}`);
+        bits.push(`reload ${effCd(w, e).toFixed(2)}s`);
         if (w.splash) bits.push(`blast ${w.splash}`);
       }
       if (d.gunWeapon) bits.push(`🔫 ${d.gunWeapon.dmg} ${d.gunWeapon.dtype} vs infantry`);
-      if (d.suicide) bits.push(`💣 ${d.suicide.dmg} · blast ${d.suicide.splash}`);
-      bits.push(`speed ${d.speed}`);
+      if (d.suicide) bits.push(`💣 ${Math.round(effDamage(d.suicide, e))} · blast ${d.suicide.splash}`);
+      bits.push(`speed ${Math.round(effSpeed(e))}`);
       bits.push(`armor ${d.armor}`);
       bits.push(`sight ${d.sight}`);
       if (d.detect) bits.push(`detects stealth ${d.detect}`);
@@ -505,10 +511,12 @@ const UI = (() => {
       /* A lone builder shows its construction menu, which already owns Z and X, so
          its plating command takes the first free slot after the buildings rather
          than displacing one. In a mixed army selection it gets the usual X. */
-      const platable = units.filter(u => canFieldUpgrade(u, 'armor'));
       let slot = keys.length;
-      while (slot < 20 && curCmds[slot]) slot++;
-      if (slot < 20 && platable.length) curCmds[slot] = { type: 'tankup', kind: 'armor', units: platable };
+      for (const kind of ['armor', 'special']) {
+        const eligible = units.filter(u => canFieldUpgrade(u, kind));
+        while (slot < 20 && curCmds[slot]) slot++;
+        if (slot < 20 && eligible.length) curCmds[slot] = { type: 'tankup', kind, units: eligible };
+      }
     } else if (units.length) {
       title.textContent = units.length === 1 ? uName(units[0].key, p.faction) : units.length + ' units';
       curCmds[4] = { type: 'attackmove' };   // A
@@ -518,9 +526,11 @@ const UI = (() => {
          They sit on their own slots so the Unload and Stealth Retrofit commands can
          never displace them in a mixed selection. */
       const upVehicles = kind => units.filter(u => canFieldUpgrade(u, kind));
-      const gunEligible = upVehicles('gun'), armorEligible = upVehicles('armor');
+      const gunEligible = upVehicles('gun'), armorEligible = upVehicles('armor'),
+        specialEligible = upVehicles('special');
       if (gunEligible.length) curCmds[8] = { type: 'tankup', kind: 'gun', units: gunEligible };
       if (armorEligible.length) curCmds[9] = { type: 'tankup', kind: 'armor', units: armorEligible };
+      if (specialEligible.length) curCmds[10] = { type: 'tankup', kind: 'special', units: specialEligible };
       // transports with troops aboard get an Unload command (F)
       const transports = units.filter(u => isTransport(u));
       if (transports.length) curCmds[7] = { type: 'unloadbtn', transports };
@@ -612,7 +622,8 @@ const UI = (() => {
         const money = total >= 10000 ? '$' + (total / 1000).toFixed(total >= 100000 ? 0 : 1) + 'k' : '$' + total;
         // levels are unlimited, so show which one this click buys (lowest in the batch)
         const next = Math.min(...c.units.map(u => fieldUpLevel(u, c.kind))) + 1;
-        b.innerHTML = `${hk}<span class="icon">${c.kind === 'gun' ? '⚔️' : '🛡️'}</span><span>${c.kind === 'gun' ? 'Gun' : 'Armor'} L${next}</span><span class="cost">${money}${n > 1 ? '×' + n : ''}</span>`;
+        const face = cmdFace(c);
+        b.innerHTML = `${hk}<span class="icon">${face.icon}</span><span>${face.label} L${next}</span><span class="cost">${money}${n > 1 ? '×' + n : ''}</span>`;
         b.classList.add('upg');
         if (p.money < Math.min(...each)) b.classList.add('disabled');
       } else if (c.type === 'unloadbtn') {
@@ -635,6 +646,25 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">✖</span><span>Cancel (75%)</span>`;
       }
     });
+  }
+
+  /* Icon, label and blurb for a field-upgrade button. Gun and Armor read the same
+     on everything; the ⚙ Special is named after whatever system that hull carries,
+     and falls back to a generic face when a mixed selection carries several. */
+  function cmdFace(c) {
+    if (c.kind === 'gun') return { icon: '\u2694\ufe0f', label: 'Gun', title: 'Gun Upgrade',
+      desc: '+25% weapon damage per level, stacking with veterancy and never capping \u2014 keep buying as long as you can pay. Fits anything with a weapon: tanks, artillery, gunships, jets and infantry alike.' };
+    if (c.kind === 'armor') return { icon: '\ud83d\udee1\ufe0f', label: 'Armor', title: 'Armor Plating',
+      desc: '+25% maximum health per level, stacking with veterancy and never capping; the crew patches in the new plating immediately. Fits every unit in the army, support hulls included.' };
+    const specs = c.units.map(u => specialOf(u)).filter(Boolean);
+    const same = specs.length && specs.every(x => x.name === specs[0].name) ? specs[0] : null;
+    if (!same) return { icon: '\u2699\ufe0f', label: 'Special', title: 'Special Systems',
+      desc: 'Each hull upgrades its own signature system \u2014 +25% per level, no cap. This selection carries several different ones; they all improve together.' };
+    const what = same.effect === 'rof' ? '+25% rate of fire per level'
+      : same.effect === 'range' ? '+25% weapon range per level'
+      : '+25% top speed per level';
+    return { icon: same.icon, label: same.short, title: same.name,
+      desc: same.name + ': ' + what + ', stacking without limit on the same terms as the gun and the plating.' };
   }
 
   function triggerHotkey(i) {
@@ -701,18 +731,21 @@ const UI = (() => {
           if (p.money < cost) { short++; continue; }
           p.spend(cost);
           if (c.kind === 'gun') u.gunLvl = fieldUpLevel(u, 'gun') + 1;
+          else if (c.kind === 'special') u.specialLvl = fieldUpLevel(u, 'special') + 1;
           else {
             u.armorLvl = fieldUpLevel(u, 'armor') + 1;
-            const nm = Math.round(u.def.hp * VET_HP[u.vetRank] * (1 + 0.25 * u.armorLvl));
+            const nm = Math.round(u.def.hp * VET_HP[u.vetRank] * (1 + FIELD_UP_STEP * u.armorLvl));
             u.hp += nm - u.maxHp;
             u.maxHp = nm;
           }
-          FX.text(u.x, u.y - 22, c.kind === 'gun' ? '⚔ GUN UPGRADED' : '🛡 ARMOR PLATED', '#ffd76a');
+          const sp = specialOf(u);
+          FX.text(u.x, u.y - 22, c.kind === 'gun' ? '⚔ GUN UPGRADED' :
+            c.kind === 'special' ? (sp.icon + ' ' + sp.name.toUpperCase()) : '🛡 ARMOR PLATED', '#ffd76a');
           done++;
         }
         if (done) {
           SFX.cash();
-          feed(`${c.kind === 'gun' ? 'Gun' : 'Armor'} upgrade fitted on ${done} vehicle${done > 1 ? 's' : ''}` +
+          feed(`${cmdFace(c).label} upgrade fitted on ${done} unit${done > 1 ? 's' : ''}` +
             (short ? ` — ${short} left unfunded` : ''), short ? 'bad' : 'gold');
         } else { feed('Insufficient funds', 'bad'); SFX.error(); }
         refreshSel(); refreshCmd();
@@ -820,9 +853,9 @@ const UI = (() => {
     } else if (c.type === 'stop') {
       tooltipHtml(el, `<h4>✋ Stop</h4><div class="tt-desc">Halt and hold position.</div>`);
     } else if (c.type === 'tankup') {
-      tooltipHtml(el, `<h4>${c.kind === 'gun' ? '⚔️ Gun Upgrade' : '🛡️ Armor Plating'}</h4>
-        <div class="tt-cost">30% of the unit's cost per level · unlimited levels, no veterancy needed · hotkey ${c.kind === 'gun' ? 'Z' : 'X'}</div>
-        <div class="tt-desc">${c.kind === 'gun' ? '+25% weapon damage per level, stacking with veterancy and never capping — keep buying as long as you can pay.' : '+25% maximum health per level, stacking with veterancy and never capping; the crew patches in the new plating immediately.'} ${c.kind === 'gun' ? 'Fits anything with a weapon — tanks, artillery, gunships, jets and infantry alike.' : 'Fits every unit in the army, support hulls included.'}</div>`);
+      tooltipHtml(el, `<h4>${cmdFace(c).icon} ${cmdFace(c).title}</h4>
+        <div class="tt-cost">30% of the unit's cost per level · unlimited levels, no veterancy needed · hotkey ${c.kind === 'gun' ? 'Z' : c.kind === 'armor' ? 'X' : 'C'}</div>
+        <div class="tt-desc">${cmdFace(c).desc}</div>`);
     } else if (c.type === 'unloadbtn') {
       tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
     } else if (c.type === 'guardbtn') {
