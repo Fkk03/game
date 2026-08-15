@@ -615,7 +615,7 @@ const UI = (() => {
         // an Annihilator and a Jackal in one selection cost wildly different amounts,
         // so quote the batch total and only grey out when even the cheapest is unaffordable
         const n = c.units.length;
-        const each = c.units.map(u => fieldUpCost(u, p.faction));
+        const each = c.units.map(u => fieldUpCost(u, p.faction, c.kind));
         const total = each.reduce((a, x) => a + x, 0);
         // short label and abbreviated price: the grid rows are 35px and "Armor +25%"
         // wraps to two lines, pushing the cost out of the button
@@ -653,18 +653,17 @@ const UI = (() => {
      and falls back to a generic face when a mixed selection carries several. */
   function cmdFace(c) {
     if (c.kind === 'gun') return { icon: '\u2694\ufe0f', label: 'Gun', title: 'Gun Upgrade',
-      desc: '+25% weapon damage per level, stacking with veterancy and never capping \u2014 keep buying as long as you can pay. Fits anything with a weapon: tanks, artillery, gunships, jets and infantry alike.' };
+      desc: '+25% weapon damage per level, stacking with veterancy and never capping. Each level is priced on the firepower it actually adds, so a point of damage costs the same whichever hull you bolt it onto.' };
     if (c.kind === 'armor') return { icon: '\ud83d\udee1\ufe0f', label: 'Armor', title: 'Armor Plating',
-      desc: '+25% maximum health per level, stacking with veterancy and never capping; the crew patches in the new plating immediately. Fits every unit in the army, support hulls included.' };
+      desc: '+25% maximum health per level, stacking with veterancy and never capping; the crew patches in the new plating immediately. Each level is priced on the health it actually adds, so a point of armour costs the same on a scout truck as on a Leviathan.' };
     const specs = c.units.map(u => specialOf(u)).filter(Boolean);
     const same = specs.length && specs.every(x => x.name === specs[0].name) ? specs[0] : null;
     if (!same) return { icon: '\u2699\ufe0f', label: 'Special', title: 'Special Systems',
-      desc: 'Each hull upgrades its own signature system \u2014 +25% per level, no cap. This selection carries several different ones; they all improve together.' };
-    const what = same.effect === 'rof' ? '+25% rate of fire per level'
-      : same.effect === 'range' ? '+25% weapon range per level'
-      : '+25% top speed per level';
+      desc: 'Each hull upgrades its own signature system \u2014 +25% per level to a maximum of double. This selection carries several different ones; they all improve together.' };
+    const what = same.effect === 'rof' ? 'rate of fire'
+      : same.effect === 'range' ? 'weapon range' : 'top speed';
     return { icon: same.icon, label: same.short, title: same.name,
-      desc: same.name + ': ' + what + ', stacking without limit on the same terms as the gun and the plating.' };
+      desc: `${same.name}: +25% ${what} per level, up to ${SPECIAL_MAX_LEVEL} levels — exactly double and no further.` };
   }
 
   function triggerHotkey(i) {
@@ -724,10 +723,10 @@ const UI = (() => {
         let done = 0, short = 0;
         // cheapest first, so a mixed batch fits as many vehicles as the cash allows
         // instead of one dear hull swallowing the budget
-        const queue = [...c.units].sort((a, b2) => fieldUpCost(a, p.faction) - fieldUpCost(b2, p.faction));
+        const queue = [...c.units].sort((a, b2) => fieldUpCost(a, p.faction, c.kind) - fieldUpCost(b2, p.faction, c.kind));
         for (const u of queue) {
           if (!canFieldUpgrade(u, c.kind)) continue;
-          const cost = fieldUpCost(u, p.faction);
+          const cost = fieldUpCost(u, p.faction, c.kind);
           if (p.money < cost) { short++; continue; }
           p.spend(cost);
           if (c.kind === 'gun') u.gunLvl = fieldUpLevel(u, 'gun') + 1;
@@ -854,7 +853,9 @@ const UI = (() => {
       tooltipHtml(el, `<h4>✋ Stop</h4><div class="tt-desc">Halt and hold position.</div>`);
     } else if (c.type === 'tankup') {
       tooltipHtml(el, `<h4>${cmdFace(c).icon} ${cmdFace(c).title}</h4>
-        <div class="tt-cost">30% of the unit's cost per level · unlimited levels, no veterancy needed · hotkey ${c.kind === 'gun' ? 'Z' : c.kind === 'armor' ? 'X' : 'C'}</div>
+        <div class="tt-cost">${c.kind === 'special'
+          ? `30% of the unit's cost per level · up to ${SPECIAL_MAX_LEVEL} levels (${SPECIAL_MAX_MUL}x maximum)`
+          : 'priced on the health or firepower it adds, at the going rate · unlimited levels'} · no veterancy needed · hotkey ${c.kind === 'gun' ? 'Z' : c.kind === 'armor' ? 'X' : 'C'}</div>
         <div class="tt-desc">${cmdFace(c).desc}</div>`);
     } else if (c.type === 'unloadbtn') {
       tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);

@@ -211,21 +211,31 @@ python3 -m http.server 8080
   card: damage per shot/missile, range, blast, speed, armor class, sight, ammo,
   personal kill count, cloak state, income/power for structures, and owned upgrades
 - **Field upgrades on every unit, without limit** — select anything and buy
-  ⚔ Gun (+25% damage, hotkey **Z**) and 🛡 Armor (+25% health, hotkey **X**), each for
-  30% of that unit's own price. **There is no veterancy gate and no level cap**: a hull
-  fresh off the line can be refitted immediately, and one you keep alive can be improved
-  for as long as you are willing to pay. Twenty levels is +500% damage and +500% health
-  on the same tank. Tanks, artillery carriages, gunships, strike jets, bombers and
+  ⚔ Gun (+25% damage, hotkey **Z**) and 🛡 Armor (+25% health, hotkey **X**).
+  **There is no veterancy gate and no level cap**: a hull fresh off the line can be
+  refitted immediately, and one you keep alive can be improved for as long as you are
+  willing to pay. Twenty levels is +500% damage and +500% health on the same tank.
+  **Each level is priced on the stat it actually adds**, at the roster's going rate —
+  a point of health costs $2 and a point of damage $11.20 whichever hull you bolt it
+  onto. Pricing levels as a flat share of the *unit's* price instead used to let cheap,
+  stat-efficient hulls buy absolute power far more cheaply than expensive ones (twenty
+  levels put a Goliath at $0.42 per point of health while a Leviathan paid $1.56 and an
+  Annihilator $18.15), so mass simply out-scaled quality forever. Now an Annihilator
+  pays the most in the game to improve its 6,000-damage shell and very little to plate
+  its modest hull, which is exactly what those numbers are worth. Tanks, artillery carriages, gunships, strike jets, bombers and
   infantry squads all qualify; the unarmed support hulls (dozer, supply truck, radar van,
   recon plane) take plating only, having no gun to bore out. Bonuses stack with veterancy
   and survive promotions, the button names the level your next click buys, and a mixed
   selection buys cheapest-first so a tight budget fits as many units as it can instead of
   one expensive hull eating the whole purse.
-  The economics stay honest at any level: 0.30× price for 0.25× output means buying
-  levels is always a slightly worse deal than simply building more, so your wallet — not
-  an arbitrary ceiling — is the real limit
-- **⚙ Specials — a third upgrade track, different on every hull** (hotkey **C**, same
-  terms as the other two: +25% a level, no cap, no gate, 30% of the unit's price). What
+  The economics stay honest at any level: a level costs 1.2× what that much health or
+  damage costs as fresh units, so buying levels is always a slightly worse deal than
+  simply building more — which is what lets them stay uncapped
+- **⚙ Specials — a third upgrade track, different on every hull** (hotkey **C**, +25% a
+  level, no veterancy gate, 30% of the unit's price, **up to 4 levels — exactly double
+  and no further**). Doubling a reload, a reach or a top speed is the whole point of the
+  system; past that it stops being a refit and starts rewriting what the hull is, so
+  unlike Gun and Armor this one has a ceiling. What
   the system *is* depends on what you selected, so a tank's third upgrade is not a jet's:
   **Autoloader** on main battle tanks and **Pressure Feed** on flame tanks (+25% rate of
   fire), **Extended Barrel** on artillery and **Tracking Radar** on anti-air (+25% weapon
@@ -234,21 +244,19 @@ python3 -m http.server 8080
   exactly the same curve as tanks), **Rotor Tuning** on gunships and **Afterburners** on
   jets (+25% speed), and an **Overhauled Engine** on the support hulls. Four levels of all
   three tracks together is a unit with double the damage, double the health and double the
-  rate of fire
+  rate of fire — and from there the Special is maxed while Gun and Armor keep going
 - **Unit veterancy up to ★★★★★** — every star adds damage and max health (up to +80%);
   from 2 stars units self-repair in the field and the rate climbs steeply with rank —
-  3 hp/s at ★★, 6 at ★★★, 10.5 at ★★★★ and **50 hp/s at ★★★★★**, so a five-star
-  soldier claws back 500 health in ten seconds between engagements and a surviving
-  elite unit is back in the fight almost at once. The Repair Center also services
+  7.5 hp/s at ★★, 15 at ★★★, 26.25 at ★★★★ and **125 hp/s at ★★★★★**, so a five-star
+  soldier claws back over a thousand health in ten seconds between engagements and a
+  surviving elite unit is back in the fight almost at once. The Repair Center also services
   veteran crews +25% faster per star
 - **Armour patches its own hull on a far steeper curve** — a tank crew carries spare
   track, plating and a welding kit, so every ground vehicle self-repairs at
-  **18 hp/s at ★★, 36 at ★★★, 63 at ★★★★ and 750 hp/s at ★★★★★**. That last step is
-  enormous on purpose: a five-star crew shrugs off a Goliath shell every second and
-  refills a Warlord from near-death in under five seconds without ever driving home,
-  so getting armour to the top rank is the single biggest survivability jump in the
-  game. Artillery carriages regenerate on the same curve; infantry and aircraft keep
-  the base rate
+  **45 hp/s at ★★, 90 at ★★★, 157.5 at ★★★★ and 1,875 hp/s at ★★★★★**. That last step is
+  enormous on purpose: getting armour to the top rank is the single biggest survivability
+  jump in the game. Artillery carriages regenerate on the same curve; infantry and
+  aircraft keep the base rate
 - **Fog of war**, **minimap**, control groups, attack-move,
   waypoint queues, rally points, a skirmish AI with 3 difficulties, procedural desert maps
 - **Win** by destroying every enemy structure

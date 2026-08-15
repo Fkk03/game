@@ -20,7 +20,7 @@ const DMG_MOD = {
 const VET_XP = [0, 200, 500, 1100, 2000, 3400];
 const VET_DMG = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_HP  = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
-const VET_REGEN = [0, 0, 15, 30, 52.5, 250];   // hp/s self-repair, from 2 stars up
+const VET_REGEN = [0, 0, 7.5, 15, 26.25, 125];   // hp/s self-repair, from 2 stars up
 /* the factory's Field Service upgrade — a smaller Service Depot bolted to the plant */
 const FIELD_SERVICE_RATE = 14;              // hp/s to nearby vehicles and aircraft
 const FIELD_SERVICE_RADIUS = 200;
@@ -560,7 +560,48 @@ const TROOP_CHASSIS = ['inf', 'rocketinf', 'commando'];
    times the unit and yields five times its output — always a slightly worse
    deal than simply building more, which keeps the wallet the real limit. */
 const VEHICLE_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank', 'mlrs', 'buggy', 'demorig'];
-const FIELD_UP_COST_MUL = 0.3;          // per level, as a share of the unit's price
+const FIELD_UP_COST_MUL = 0.3;          // Special levels, as a share of the unit's price
+const FIELD_UP_PREMIUM = 1.2;           // Gun/Armor cost this much over the going rate for the stat
+
+/* ---- what a Gun or Armor level costs ----
+   A level adds a fixed fraction of the unit's BASE stat, so billing it as a fraction
+   of the unit's PRICE let stat-efficient hulls buy absolute power far more cheaply
+   than expensive ones: twenty levels put a Goliath at $0.42 per point of health while
+   a Leviathan paid $1.56 and an Annihilator $18.15 for the same relative gain. Mass
+   won outright, and no amount of levels closed the gap because the multiplier simply
+   preserved whatever efficiency the hull started with.
+
+   Levels are priced off the stat they actually add instead, at the game-wide going
+   rate for health and for damage. A point of armour costs the same whoever bolts it
+   on, and a point of damage likewise, so upgrading is proportional by construction.
+   The rate is the roster median rather than the mean so one outlier hull cannot drag
+   the whole economy, and the 1.2 premium keeps upgrading a slightly worse deal than
+   simply building more — the property that lets the levels stay uncapped. */
+let _upRate = null;
+function upgradeRates() {
+  if (_upRate) return _upRate;
+  const hp = [], dmg = [];
+  for (const k in UNITS) {
+    const u = UNITS[k];
+    if (u.builder || u.harvester || !u.cost) continue;
+    hp.push(u.hp / u.cost);
+    const a = unitAlpha(u);
+    if (a > 0) dmg.push(a / u.cost);
+  }
+  const median = a => { a.sort((x, y) => x - y); return a[Math.floor(a.length / 2)]; };
+  _upRate = { hpPer$: median(hp), dmgPer$: median(dmg) };
+  return _upRate;
+}
+/* What a gun level actually buys: damage per shot. That is the exact parallel of the
+   health an armour level buys, and it sidesteps the pathologies of pricing on DPS —
+   which flatters a rapid-fire jet that only carries two missiles and undervalues a
+   siege gun whose worth is in the shell, not the cadence. Rate of fire is what the
+   Special sells, and it is priced separately. */
+function unitAlpha(def) {
+  if (def.weapon) return def.weapon.dmg;
+  if (def.suicide) return def.suicide.dmg;
+  return 0;
+}
 
 function isGroundVehicle(u) {
   const d = (u && u.def) || u;
@@ -584,7 +625,7 @@ function isFieldUpgradable(u, kind) {
 /* Field self-repair. A tank crew carries spare track, plating and a welding kit
    and patches its own hull between engagements far faster than a rifleman can
    patch himself, so armour runs on its own curve. */
-const VEHICLE_REGEN = [0, 0, 90, 180, 315, 3750];   // hp/s by veterancy rank
+const VEHICLE_REGEN = [0, 0, 45, 90, 157.5, 1875];   // hp/s by veterancy rank
 function vetRegenRate(u) {
   return (isGroundVehicle(u) ? VEHICLE_REGEN : VET_REGEN)[u.vetRank] || 0;
 }
@@ -612,12 +653,17 @@ const SPECIALS = {
   radar:     { name: 'Overhauled Engine', short: 'Engine',  icon: '🔧', effect: 'speed' },
 };
 const FIELD_UP_STEP = 0.25;             // what one level of any field upgrade is worth
+/* Gun and Armor stack without limit; a Special tops out at exactly double. Doubling a
+   reload, a reach or a top speed is the whole point of the system — past that it stops
+   being a refit and starts rewriting what the hull is. */
+const SPECIAL_MAX_MUL = 2;
+const SPECIAL_MAX_LEVEL = Math.round((SPECIAL_MAX_MUL - 1) / FIELD_UP_STEP);
 
 function specialOf(u) { return SPECIALS[chassisOf(u)] || null; }
 function specialMul(u, effect) {
   const s = specialOf(u);
   if (!s || s.effect !== effect) return 1;
-  return 1 + FIELD_UP_STEP * (u.specialLvl || 0);
+  return 1 + FIELD_UP_STEP * Math.min(SPECIAL_MAX_LEVEL, u.specialLvl || 0);
 }
 /* the unit's effective numbers once its ⚙ system is counted */
 function effCd(w, u) { return w.cd / specialMul(u, 'rof'); }
@@ -628,9 +674,17 @@ function fieldUpLevel(u, kind) {
   return (kind === 'gun' ? u.gunLvl : kind === 'armor' ? u.armorLvl : u.specialLvl) || 0;
 }
 function canFieldUpgrade(u, kind) {
-  return !!u && !u.dead && u.kind === 'unit' && isFieldUpgradable(u, kind);
+  if (!u || u.dead || u.kind !== 'unit' || !isFieldUpgradable(u, kind)) return false;
+  return kind !== 'special' || fieldUpLevel(u, 'special') < SPECIAL_MAX_LEVEL;
 }
-function fieldUpCost(u, faction) { return Math.round(uCost(u.key, faction) * FIELD_UP_COST_MUL); }
+function fieldUpCost(u, faction, kind) {
+  const d = u.def || u;
+  const r = upgradeRates();
+  if (kind === 'gun') return Math.max(10, Math.round(FIELD_UP_STEP * unitAlpha(d) / r.dmgPer$ * FIELD_UP_PREMIUM));
+  if (kind === 'armor') return Math.max(10, Math.round(FIELD_UP_STEP * d.hp / r.hpPer$ * FIELD_UP_PREMIUM));
+  // the Special is capped at 2x, so it cannot run away and stays priced off the hull
+  return Math.max(10, Math.round(uCost(u.key, faction) * FIELD_UP_COST_MUL));
+}
 
 /* ---- transport loading rules ----
    A transport has two independent holds: a troop bay sized by `capacity` and,
