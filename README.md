@@ -251,12 +251,13 @@ python3 -m http.server 8080
   soldier claws back over a thousand health in ten seconds between engagements and a
   surviving elite unit is back in the fight almost at once. The Repair Center also services
   veteran crews +25% faster per star
-- **Armour patches its own hull on a far steeper curve** — a tank crew carries spare
-  track, plating and a welding kit, so every ground vehicle self-repairs at
-  **45 hp/s at ★★, 90 at ★★★, 157.5 at ★★★★ and 1,875 hp/s at ★★★★★**. That last step is
-  enormous on purpose: getting armour to the top rank is the single biggest survivability
-  jump in the game. Artillery carriages regenerate on the same curve; infantry and
-  aircraft keep the base rate
+- **Armour patches its own hull on a steeper curve** — a tank crew carries spare track,
+  plating and a welding kit, so every ground vehicle self-repairs at
+  **11.25 hp/s at ★★, 22.5 at ★★★, 39.375 at ★★★★ and 468.75 hp/s at ★★★★★**. The top
+  rank is a deliberate step change rather than another increment: getting armour to five
+  stars is the single biggest survivability jump in the game, but below that a tank still
+  has to be pulled back and repaired like anything else. Artillery carriages regenerate on
+  the same curve; infantry and aircraft keep the base rate
 - **Fog of war**, **minimap**, control groups, attack-move,
   waypoint queues, rally points, a skirmish AI with 3 difficulties, procedural desert maps
 - **Win** by destroying every enemy structure

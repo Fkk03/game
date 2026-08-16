@@ -1160,7 +1160,7 @@ function isFieldUpgradable(u, kind) {
 /* Field self-repair. A tank crew carries spare track, plating and a welding kit
    and patches its own hull between engagements far faster than a rifleman can
    patch himself, so armour runs on its own curve. */
-const VEHICLE_REGEN = [0, 0, 45, 90, 157.5, 1875];   // hp/s by veterancy rank
+const VEHICLE_REGEN = [0, 0, 11.25, 22.5, 39.375, 468.75];   // hp/s by veterancy rank
 function vetRegenRate(u) {
   return (isGroundVehicle(u) ? VEHICLE_REGEN : VET_REGEN)[u.vetRank] || 0;
 }
