@@ -18,9 +18,9 @@ const AI = (() => {
   }
 
   const COMPS = {
-    coalition: { ranger: 3, rocketeer: 2, commando: 1, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1, seraph: 1, umbra: 1, spyplane: 1 },
-    dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1, behemoth: 1, spyplane: 1 },
-    cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1 },
+    coalition: { ranger: 3, rocketeer: 2, commando: 1, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1.6, seraph: 1, umbra: 1, spyplane: 1, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
+    dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1.6, behemoth: 1, spyplane: 1, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
+    cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1.6, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
   };
   /* units that counter each enemy composition trend, per faction */
   const COUNTERS = {
@@ -52,6 +52,8 @@ const AI = (() => {
       reinforceReady: false,
       targetHpStart: 1,
       cashT: 600,              // war-chest drop every 10 minutes
+      upgradeT: 45,            // first refit pass once there is an army worth refitting
+      upgradesBought: 0,       // exposed for diagnostics/tests
     };
 
     const p = () => game.players[pi];
@@ -81,13 +83,25 @@ const AI = (() => {
       return diff.waveEvery * (po === 'desperate' ? 0.5 : po === 'pushing' ? 0.7 : po === 'leading' ? 0.85 : 1);
     }
 
-    function myEnts() { return game.ents.filter(e => !e.dead && e.owner === pi); }
-    function myBuildings(key) {
-      return game.ents.filter(e => !e.dead && e.owner === pi && e.kind === 'building' && (!key || e.key === key));
+    /* One roster snapshot per brain tick. Every myBuildings/myUnits call used to scan
+       the whole entity list, and wantedStructure alone asks seventeen times — with
+       fourteen generals at 2 Hz that is hundreds of full-roster passes a second on a
+       list of a thousand-plus entities. Callers only ever read or re-filter these
+       arrays, never mutate them, so one indexed pass per tick serves them all. */
+    let _rosB = { _all: [] }, _rosU = { _all: [] };
+    function refreshRoster() {
+      _rosB = { _all: [] }; _rosU = { _all: [] };
+      for (const e of game.ents) {
+        if (e.dead || e.owner !== pi) continue;
+        const bag = e.kind === 'building' ? _rosB : e.kind === 'unit' ? _rosU : null;
+        if (!bag) continue;
+        bag._all.push(e);
+        (bag[e.key] || (bag[e.key] = [])).push(e);
+      }
     }
-    function myUnits(key) {
-      return game.ents.filter(e => !e.dead && e.owner === pi && e.kind === 'unit' && (!key || e.key === key));
-    }
+    function myEnts() { return _rosB._all.concat(_rosU._all); }
+    function myBuildings(key) { return key ? (_rosB[key] || []) : _rosB._all; }
+    function myUnits(key) { return key ? (_rosU[key] || []) : _rosU._all; }
     function combatUnits() {
       return myUnits().filter(u => u.def.weapon || u.def.suicide);
     }
@@ -370,7 +384,16 @@ const AI = (() => {
 
       // income is the lifeblood — a mined-out or supply-less AI expands before anything else
       if (!has('supply') && money >= BUILDINGS.supply.cost) return 'supply';
-      if (has('supply') && !supplyHasWork() && money >= BUILDINGS.supply.cost &&
+      /* Mined out -> expand onto fresh supplies, but no further than this. On an
+         exhausted map the condition never clears, so it used to fire forever: a
+         general with twenty-six idle supply centers kept demanding a twenty-seventh,
+         which monopolised every build decision and left the rest of the plan — every
+         factory, defense and fortress gun — permanently unreachable. The cap is a
+         flat count on purpose; scaling it with wealth would gate economic expansion
+         on already being rich, which is backwards for a general that has just mined
+         itself out. */
+      if (has('supply') && !supplyHasWork() && has('supply') < AI_MAX_SUPPLY &&
+          money >= BUILDINGS.supply.cost &&
           nearestDockWithSupplies(world.pw / 2, world.ph / 2)) return 'supply';
       if (F.usesPower && p().powerUse + 4 > p().powerCap) {
         // rich late-game AIs build one big nuclear reactor instead of stacking fusion plants
@@ -388,8 +411,10 @@ const AI = (() => {
       if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + buf(1200) && game.t > 320) return 'repairbay';
       if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 420 &&
           money >= BUILDINGS.superweapon.cost + buf(1000)) return 'superweapon';
-      if (game.swAllowed !== false && has('superweapon') < 3 && game.t > 700 &&
-          money >= BUILDINGS.superweapon.cost + buf(6000)) return 'superweapon';
+      /* Extra silos used to be an unconditional early return. A superweapon costs
+         $4,000, so from t>700 the AI always wanted another one and never reached the
+         wealth-scaled plan below — its treasury climbed to half a million while
+         nothing late-game got built. They compete on merit now, like everything else. */
 
       /* Wealth-scaled build-out: pick whichever structure is furthest below what the
          treasury justifies, so a rich general grows production, economy and defenses
@@ -399,6 +424,11 @@ const AI = (() => {
         { key: 'factory',   want: affordCount(1, 20000, 12), t: 230, extra: 1200, w: 1.35 },
         { key: 'gatdef',    want: affordCount(2, 8000, 48),  t: 250, extra: 600,  w: 1.5 },
         { key: 'artdef',    want: affordCount(2, 11000, 36), t: 290, extra: 800,  w: 1.35 },
+        // fortress guns are a late, rich-general structure: base want 0 so they are
+        // bought purely out of surplus, never at the expense of the core base
+        { key: 'artfort',   want: affordCount(0, 90000, 3),  t: 540, extra: 12000, w: 1.25 },
+        { key: 'superweapon', want: game.swAllowed !== false && diff.superweapon ? affordCount(1, 45000, 3) : 0,
+          t: 700, extra: 6000, w: 0.8 },
         { key: 'airfield',  want: affordCount(1, 26000, 10), t: 290, extra: 1500, w: 1.1 },
         { key: 'barracks',  want: affordCount(1, 28000, 9),  t: 250, extra: 700,  w: 0.95 },
         { key: 'market',    want: affordCount(2, 11000, 26), t: 240, extra: 900,  w: 0.85 },
@@ -597,6 +627,7 @@ const AI = (() => {
         if (idle) idle.giveOrder({ type: 'repair', targetId: hurt.id });
       }
       const want = wantedStructure();
+      S.lastWant = want;                          // exposed for diagnostics/tests
       // extra dozers = parallel construction; a flush treasury opens more sites at once,
       // because a war chest only matters at the rate it can be turned into buildings
       const maxSites = Math.max(2, Math.min(dozers.length,
@@ -683,6 +714,9 @@ const AI = (() => {
         // that never enter their envelope — but only some: siege pieces are fragile
         // and an army that is mostly artillery cannot actually take ground.
         comp.siege = (comp.siege || 1) * (1 + Math.min(2.5, mix.n * 0.5));
+        // the Annihilator outranges every emplacement in the game and shrugs off the
+        // return fire a Longbow dies to, so a fortified line is exactly what it is for
+        comp.annihilator = (comp.annihilator || 1) * (1 + Math.min(1.6, mix.n * 0.35));
         if (mix.aa < mix.ga * 0.35) {
           for (const k of AIR_KEYS) if (comp[k]) comp[k] *= 1.8;   // their line can't shoot up
         } else {
@@ -692,28 +726,85 @@ const AI = (() => {
       }
       S.lastComp = comp;                        // exposed for diagnostics/tests
       const army = combatUnits();
-      if (army.length >= armyCapEff()) return;
+      /* At the cap the general used to stop producing altogether, so a line filled
+         with sixty riflemen never left room for a siege train and the treasury simply
+         grew. Past the cap it keeps building, but only heavy hulls and only out of
+         real surplus — trading quantity for quality instead of banking the money. */
+      const atCap = army.length >= armyCapEff();
+      if (atCap && p().money < 90000) return;
+      const HEAVY = ['annihilator', 'siege', 'leviathan', 'citadel', 'goliath'];
       const counts = {};
       for (const u of army) counts[u.key] = (counts[u.key] || 0) + 1;
       const po = posture();
       const qDepth = po === 'desperate' || po === 'pushing' ? 5 : 4;
       for (const b of myBuildings()) {
         if (!b.constructed || b.queue.length >= qDepth) continue;
-        const trainable = bTrains(b.key, fac).filter(k => comp[k]);
+        let trainable = bTrains(b.key, fac).filter(k => comp[k]);
+        if (atCap) trainable = trainable.filter(k => HEAVY.includes(k));
         if (!trainable.length) continue;
-        let pick = null, worst = 1e9;
+        /* Rank every option by how far short of its share it is, then take the best
+           one actually affordable. Picking only the single worst-off type meant one
+           unaffordable heavy hull — an Annihilator is most of a treasury — silently
+           froze that building's output while the AI saved up for it. */
+        const reserve = buf(game.t < 300 ? 500 : 120);
+        const ranked = [];
         for (const k of trainable) {
           if (b.key === 'airfield') {
             const jets = myUnits(k).length + b.queue.filter(q => q.key === k).length;
             if (jets >= (b.def.pads || 2)) continue;
           }
-          const ratio = (counts[k] || 0) / comp[k];
-          if (ratio < worst) { worst = ratio; pick = k; }
+          ranked.push({ k, ratio: (counts[k] || 0) / comp[k] });
         }
-        if (pick && p().money > uCost(pick, fac, pi) + buf(game.t < 300 ? 500 : 120)) {
-          b.enqueue(pick);
+        ranked.sort((a, b2) => a.ratio - b2.ratio);
+        const pick = ranked.find(x => p().money > uCost(x.k, fac, pi) + reserve);
+        if (pick) b.enqueue(pick.k);
+      }
+    }
+
+    /* Refit the standing army. A level costs more than the stat is worth as fresh
+       units, so this only ever spends genuine surplus — but a general at the army cap
+       has nowhere else to put its money, and an upgraded column is worth far more than
+       cash sitting in the bank. Veterans are refitted first: a hull that has already
+       survived a fight is the one worth investing in. */
+    function manageUpgrades() {
+      const pl = p();
+      /* Only genuinely idle money gets refitted, and construction outranks it: if
+         there is a structure the general wants, its price is added to the reserve so
+         the treasury climbs towards it instead of being spent on gun sights. A flat
+         reserve got this wrong in both directions — too low and the AI refitted its
+         way out of a base (nine supply centers instead of eighteen), too high and it
+         never refitted at all. */
+      const wantB = wantedStructure();
+      const reserve = 70000 + (wantB ? BUILDINGS[wantB].cost : 0);
+      if (pl.money <= reserve) return;
+      let budget = (pl.money - reserve) * 0.4;
+      const fac = pl.faction;
+      const army = combatUnits();
+      if (!army.length) return;
+      /* One level per hull per pass, least-upgraded first. Buying every track on one
+         unit before moving on maxed a handful of veterans and left the rest of the
+         army — and every aircraft — completely stock. */
+      const order = army.slice().sort((a, b) => {
+        const la = (a.gunLvl || 0) + (a.armorLvl || 0) + (a.specialLvl || 0);
+        const lb = (b.gunLvl || 0) + (b.armorLvl || 0) + (b.specialLvl || 0);
+        return la !== lb ? la - lb : (b.vetRank || 0) - (a.vetRank || 0);
+      });
+      let bought = 0;
+      for (const u of order) {
+        if (bought >= 25 || budget <= 0) break;
+        for (const kind of ['special', 'gun', 'armor']) {
+          if (fieldUpLevel(u, kind) >= AI_UPGRADE_MAX) continue;
+          if (!canFieldUpgrade(u, kind)) continue;
+          const cost = fieldUpCost(u, fac, kind);
+          if (cost > budget || cost > pl.money) continue;
+          pl.spend(cost);
+          budget -= cost;
+          applyFieldUpgrade(u, kind);
+          bought++;
+          break;                                  // next hull: spread, don't max one
         }
       }
+      if (bought) S.upgradesBought = (S.upgradesBought || 0) + bought;
     }
 
     /* ------------- attacks ------------- */
@@ -1087,6 +1178,7 @@ const AI = (() => {
 
     function tick(dt2) {
       if (game.over || p().defeated) return;
+      refreshRoster();
       if (S.defendT > 0) S.defendT -= dt2;
       // war chest: every AI general is resupplied with $100,000 every 10 minutes
       S.cashT -= dt2;
@@ -1096,6 +1188,8 @@ const AI = (() => {
       manageDozers();
       manageEconomy();
       manageArmy();
+      S.upgradeT -= dt2;
+      if (S.upgradeT <= 0) { S.upgradeT = 6; manageUpgrades(); }
       manageAttack(dt2);
       S.powerUseT -= dt2;
       if (S.powerUseT <= 0) { S.powerUseT = 12; usePowers(); useSuperweapon(); }

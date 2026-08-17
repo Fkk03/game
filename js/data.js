@@ -45,7 +45,13 @@ const DIFFICULTY = {
 };
 
 /* AI war chest: every AI general is resupplied this much every 10 minutes */
-const AI_CASH_DROP = 100000;
+const AI_CASH_DROP = 30000;
+/* How many levels of one track the AI will sink into a single hull. It refits its
+   army to a solid standard rather than min-maxing one tank into a monument. */
+const AI_UPGRADE_MAX = 4;
+/* Ceiling on the mined-out "expand the economy" reflex. Without one, an exhausted
+   map makes the AI request supply centers forever and nothing else ever gets built. */
+const AI_MAX_SUPPLY = 14;
 /* AI production handicap: units cost and take half as long to build */
 const AI_UNIT_COST_MUL = 0.5;
 const AI_BUILDTIME_MUL = 0.5;
@@ -687,6 +693,20 @@ function canFieldUpgrade(u, kind) {
   if (!u || u.dead || u.kind !== 'unit' || !isFieldUpgradable(u, kind)) return false;
   return kind !== 'special' || fieldUpLevel(u, 'special') < SPECIAL_MAX_LEVEL;
 }
+/* Apply one purchased level. The caller has already paid; this is the only place
+   that knows what a level does, so the player's command grid and the AI's refit
+   routine can never disagree about it. */
+function applyFieldUpgrade(u, kind) {
+  if (kind === 'gun') u.gunLvl = fieldUpLevel(u, 'gun') + 1;
+  else if (kind === 'special') u.specialLvl = fieldUpLevel(u, 'special') + 1;
+  else {
+    u.armorLvl = fieldUpLevel(u, 'armor') + 1;
+    const nm = Math.round(u.def.hp * VET_HP[u.vetRank] * (1 + FIELD_UP_STEP * u.armorLvl));
+    u.hp += nm - u.maxHp;
+    u.maxHp = nm;
+  }
+}
+
 function fieldUpCost(u, faction, kind) {
   const d = u.def || u;
   const r = upgradeRates();

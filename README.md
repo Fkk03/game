@@ -59,9 +59,19 @@ python3 -m http.server 8080
   - **Switches doctrine** — massed push, artillery siege, air strike or economy raid,
     chosen from what it has and what you've fortified. Dense anti-air makes it buy
     artillery instead of jets; an AA-blind gun line makes it press the air advantage
-- **AI war chest** — every AI general is resupplied with **$100,000 every 10 minutes**,
+- **AI war chest** — every AI general is resupplied with **$30,000 every 10 minutes**,
   and their units cost half price and roll off the line in half the time, so the
   pressure never lets up in a long game
+- **Generals who refit** — an AI does not just build units, it upgrades them. Surplus
+  cash goes into ⚔ Gun, 🛡 Armor and ⚙ Special levels on the army it already has,
+  spread a level at a time across the whole force so tanks *and* aircraft improve
+  rather than one pet veteran becoming a monument. Construction outranks it: if there
+  is a structure the general wants, its price is reserved first. Expect a mature AI
+  column to be running a quarter to a half of its hulls at multiple upgrade levels
+- **Generals who bring the big guns** — the endgame hulls are in their plans now. A
+  hard AI fields **Longbow siege guns and Annihilators**, Citadels and Leviathans, and
+  a rich one plants fortress artillery. Artillery weighting climbs the more you
+  fortify: a dense gun line is exactly what an Annihilator's 3,200-range shell is for
 - **Generals who expand** — an AI never sits on its starting plot. It founds forward
   towns on fresh supply fields, grows each one its own war factories, airfields and
   barracks instead of stacking everything in the capital, and runs a construction

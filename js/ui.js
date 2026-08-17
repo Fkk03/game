@@ -729,14 +729,7 @@ const UI = (() => {
           const cost = fieldUpCost(u, p.faction, c.kind);
           if (p.money < cost) { short++; continue; }
           p.spend(cost);
-          if (c.kind === 'gun') u.gunLvl = fieldUpLevel(u, 'gun') + 1;
-          else if (c.kind === 'special') u.specialLvl = fieldUpLevel(u, 'special') + 1;
-          else {
-            u.armorLvl = fieldUpLevel(u, 'armor') + 1;
-            const nm = Math.round(u.def.hp * VET_HP[u.vetRank] * (1 + FIELD_UP_STEP * u.armorLvl));
-            u.hp += nm - u.maxHp;
-            u.maxHp = nm;
-          }
+          applyFieldUpgrade(u, c.kind);
           const sp = specialOf(u);
           FX.text(u.x, u.y - 22, c.kind === 'gun' ? '⚔ GUN UPGRADED' :
             c.kind === 'special' ? (sp.icon + ' ' + sp.name.toUpperCase()) : '🛡 ARMOR PLATED', '#ffd76a');
