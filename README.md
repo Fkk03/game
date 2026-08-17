@@ -79,13 +79,18 @@ python3 -m http.server 8080
 - **Supply economy** — rich supply piles scattered all across the map; Supply Trucks haul them
   to your Supply Center, Markets pay a fat $32/s trickle
 - **Repair Center** — automatically fixes your tanks and aircraft in a radius around it
-  at 16 hp/s (a compact 2-tile pad). Veteran crews work alongside the mechanics, so
-  repairs run +25% faster per star. An unpowered depot limps along at half rate
+  (a compact 2-tile pad), at **4× whatever that crew manages on its own in the field**.
+  A green crew has no field repair to quadruple, so it gets the pad's rated 16 hp/s;
+  a four-star tank is serviced at 47.25 and a five-star at 562.5, and since the crew
+  keeps working underneath, parking a veteran in the bay is five times its field rate.
+  Pulling armour back is always decisively faster than sitting where it was hit. An
+  unpowered depot limps along at half rate
 - **Building upgrades** — select a Barracks, War Factory or Airfield and buy one-time
   upgrades: Rapid Assembly (−30% production time), Auto-Repair (3%/3 s after 10 s of
   peace), Reinforced Structure (+50–100% health); Airfields add Fast Rearm (−30%
   turnaround) and Full Restoration (landing aircraft repaired to ≥50%); War Factories
-  add Field Service (repairs nearby vehicles 14 hp/s) and Armor Plating (−25% damage taken)
+  add Field Service (a small Repair Center: the same 4× rule off a 14 hp/s floor) and
+  Armor Plating (−25% damage taken)
 - **Praetorian Commando** (Coalition, no build limit) — cloaked special forces: +50% damage
   striking from stealth, reveals nearby stealth units, resists blasts and flame,
   self-heals out of combat. 5× the soldier for 5× the price — field a whole legion
@@ -247,13 +252,13 @@ python3 -m http.server 8080
   rate of fire — and from there the Special is maxed while Gun and Armor keep going
 - **Unit veterancy up to ★★★★★** — every star adds damage and max health (up to +80%);
   from 2 stars units self-repair in the field and the rate climbs steeply with rank —
-  7.5 hp/s at ★★, 15 at ★★★, 26.25 at ★★★★ and **125 hp/s at ★★★★★**, so a five-star
-  soldier claws back over a thousand health in ten seconds between engagements and a
-  surviving elite unit is back in the fight almost at once. The Repair Center also services
+  2.25 hp/s at ★★, 4.5 at ★★★, 7.875 at ★★★★ and **37.5 hp/s at ★★★★★**. Field repair is
+  a trickle that rewards surviving, not a substitute for pulling back — for real recovery
+  you want a Repair Center. The Repair Center also services
   veteran crews +25% faster per star
 - **Armour patches its own hull on a steeper curve** — a tank crew carries spare track,
   plating and a welding kit, so every ground vehicle self-repairs at
-  **11.25 hp/s at ★★, 22.5 at ★★★, 39.375 at ★★★★ and 468.75 hp/s at ★★★★★**. The top
+  **3.375 hp/s at ★★, 6.75 at ★★★, 11.8125 at ★★★★ and 140.625 hp/s at ★★★★★**. The top
   rank is a deliberate step change rather than another increment: getting armour to five
   stars is the single biggest survivability jump in the game, but below that a tank still
   has to be pulled back and repaired like anything else. Artillery carriages regenerate on

@@ -1174,18 +1174,27 @@ class Building {
       return;
     }
 
-    // repair bay: heal nearby friendly vehicles & aircraft
+    /* Repair bay: heal nearby friendly vehicles & aircraft. The sweep costs a pass over
+       the whole roster, and with field repair down to a trickle far more units are below
+       full health at any moment, so it runs at 4 Hz and applies the elapsed time in one
+       go rather than every frame. Identical healing, a fraction of the scanning. */
     if (this.key === 'repairbay') {
-      const R = this.def.healRadius, rate = this.def.healRate * (this.powered ? 1 : 0.5);
-      for (const e of game.ents) {
-        if (e.dead || e.kind !== 'unit' || e.hp >= e.maxHp) continue;
-        const ep = game.players[e.owner];
-        if (!ep || ep.team !== p.team) continue;
-        if (e.def.chassis === 'inf' || e.def.chassis === 'rocketinf') continue;
-        if (U.dist2(this.x, this.y, e.x, e.y) > R * R) continue;
-        // veteran crews work with the mechanics — repairs speed up per star
-        e.hp = Math.min(e.maxHp, e.hp + rate * (1 + e.vetRank * 0.25) * dt);
-        if (Math.random() < dt * 1.5) FX.sparks(e.x + U.rand(-9, 9), e.y + U.rand(-9, 9), 2);
+      this.healT = (this.healT || 0) + dt;
+      if (this.healT >= 0.25) {
+        const step = this.healT; this.healT = 0;
+        const R = this.def.healRadius, pw = this.powered ? 1 : 0.5;
+        for (const e of game.ents) {
+          if (e.dead || e.kind !== 'unit' || e.hp >= e.maxHp) continue;
+          const ep = game.players[e.owner];
+          if (!ep || ep.team !== p.team) continue;
+          if (e.def.chassis === 'inf' || e.def.chassis === 'rocketinf') continue;
+          if (U.dist2(this.x, this.y, e.x, e.y) > R * R) continue;
+          /* Four times what this crew could manage in the field. Rank already scales
+             the field rate, so there is no separate per-star bonus here — adding one
+             would count veterancy twice. */
+          e.hp = Math.min(e.maxHp, e.hp + servicingRate(this, e) * pw * step);
+          if (Math.random() < step * 1.5) FX.sparks(e.x + U.rand(-9, 9), e.y + U.rand(-9, 9), 2);
+        }
       }
     }
 
@@ -1212,14 +1221,16 @@ class Building {
     }
 
     // field-service upgrade: factory mechanics fix nearby friendly vehicles/aircraft
-    if (this.key === 'factory' && this.upgrades.vehiclerepair) {
+    if (this.key === 'factory' && this.upgrades.vehiclerepair && (this.healT = (this.healT || 0) + dt) >= 0.25) {
+      const step = this.healT; this.healT = 0;
       for (const e of game.ents) {
         if (e.dead || e.kind !== 'unit' || e.hp >= e.maxHp) continue;
         const ep = game.players[e.owner];
         if (!ep || ep.team !== p.team) continue;
         if (e.def.chassis === 'inf' || e.def.chassis === 'rocketinf' || e.def.chassis === 'commando') continue;
         if (U.dist2(this.x, this.y, e.x, e.y) > FIELD_SERVICE_RADIUS * FIELD_SERVICE_RADIUS) continue;
-        e.hp = Math.min(e.maxHp, e.hp + FIELD_SERVICE_RATE * dt * (this.powered ? 1 : 0.5));
+        // the factory's mechanics work to the same rule as a proper depot, off a lower floor
+        e.hp = Math.min(e.maxHp, e.hp + servicingRate(this, e) * step * (this.powered ? 1 : 0.5));
         if (Math.random() < dt * 1.2) FX.sparks(e.x + U.rand(-9, 9), e.y + U.rand(-9, 9), 2);
       }
     }

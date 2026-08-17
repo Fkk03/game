@@ -20,10 +20,20 @@ const DMG_MOD = {
 const VET_XP = [0, 200, 500, 1100, 2000, 3400];
 const VET_DMG = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_HP  = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
-const VET_REGEN = [0, 0, 7.5, 15, 26.25, 125];   // hp/s self-repair, from 2 stars up
+const VET_REGEN = [0, 0, 2.25, 4.5, 7.875, 37.5];   // hp/s self-repair, from 2 stars up
 /* the factory's Field Service upgrade — a smaller Service Depot bolted to the plant */
-const FIELD_SERVICE_RATE = 14;              // hp/s to nearby vehicles and aircraft
+const FIELD_SERVICE_RATE = 14;              // hp/s floor for a crew that cannot self-repair
 const FIELD_SERVICE_RADIUS = 200;
+
+/* A servicing bay works at this multiple of whatever the crew could manage on its own
+   in the field, so the depot is always the decisively faster place to be hurt. Below
+   two stars a crew has no field repair at all, so the building's own rated output is
+   the floor — otherwise four times nothing would leave green units unserviceable. */
+const DEPOT_REGEN_MUL = 4;
+function servicingRate(building, unit) {
+  const floor = building.key === 'factory' ? FIELD_SERVICE_RATE : building.def.healRate;
+  return Math.max(floor, DEPOT_REGEN_MUL * vetRegenRate(unit));
+}
 
 /* player promotion ranks (general's XP) → each rank grants 1 power point */
 const RANK_XP = [0, 400, 1000, 2000, 3400, 5200];
@@ -185,7 +195,7 @@ const BUILDINGS = {
   repairbay: {
     name: { coalition: 'Service Depot', dynasty: 'Repair Yard', cartel: 'Scrap Garage' },
     icon: '🔧', cost: 1200, hp: 4500, size: 2, buildTime: 16, power: 2, armor: 'building',
-    sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft (16 hp/s).',
+    sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft at 4x the rate their own crew manages in the field — 16 hp/s for a green crew that cannot self-repair at all, far more for veterans.',
     healRadius: 200, healRate: 16,
   },
   market: {
@@ -512,7 +522,7 @@ const UPGRADES = {
     { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.0, hpMul: 1.5,
       desc: 'Maximum health +50%.' },
     { key: 'vehiclerepair', name: 'Field Service', icon: '🔧', costMul: 0.75,
-      desc: 'Factory mechanics repair nearby friendly vehicles and aircraft (14 hp/s, like a small Repair Center).' },
+      desc: 'Factory mechanics repair nearby friendly vehicles and aircraft at 4x their own field rate, from a 14 hp/s floor — a small Repair Center.' },
     { key: 'plating', name: 'Armor Plating', icon: '🛡️', costMul: 1.0,
       desc: 'Hardened walls — all damage taken by this factory is reduced by 25%.' },
   ],
@@ -625,7 +635,7 @@ function isFieldUpgradable(u, kind) {
 /* Field self-repair. A tank crew carries spare track, plating and a welding kit
    and patches its own hull between engagements far faster than a rifleman can
    patch himself, so armour runs on its own curve. */
-const VEHICLE_REGEN = [0, 0, 11.25, 22.5, 39.375, 468.75];   // hp/s by veterancy rank
+const VEHICLE_REGEN = [0, 0, 3.375, 6.75, 11.8125, 140.625];   // hp/s by veterancy rank
 function vetRegenRate(u) {
   return (isGroundVehicle(u) ? VEHICLE_REGEN : VET_REGEN)[u.vetRank] || 0;
 }
