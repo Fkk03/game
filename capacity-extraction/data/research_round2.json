@@ -1,0 +1,1350 @@
+{
+ "gap": {
+  "china-cloud-retry": {
+   "companies": [
+    {
+     "name": "Alibaba Cloud (Cloud Intelligence Group, segment of Alibaba Group Holding)",
+     "ticker": "BABA",
+     "as_of": "2026-05-13",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "Null is the correct answer: Alibaba does not disclose MW/GW data-center capacity or GPU counts in its earnings releases or 20-F. The only capacity-adjacent disclosures are capex commitments: the Feb 2025 plan to 'invest at least RMB 380 billion (US$53 billion) over the next three years' in cloud/AI infrastructure, management commentary at the May 13, 2026 FY26 results that the company was likely to overshoot that RMB380bn target, and a Datacenter Dynamics report that Alibaba is considering raising the 3-year AI data-center capex plan to ~RMB480bn (US$69.05bn). FY2026 (ended Mar-2026) actual capex was RMB126,063m (US$18,275m)."
+     },
+     "financials": {
+      "ntm_revenue_usd_m": 23451,
+      "revenue_basis": "Annualized run-rate: March-2026 quarter (fiscal Q4 FY2026) Cloud Intelligence Group revenue RMB41,626m (+38% YoY vs RMB30,127m; external cloud revenue +40% YoY; AI-related products = ~30% of external cloud revenue, 11th consecutive quarter of triple-digit AI product growth) x4 = RMB166.5bn, converted at 7.1 RMB/USD as instructed (company's own release implies ~6.90: US$6,035m for the quarter, i.e. ~$24.1bn annualized at company rate). Full FY2026 cloud revenue was RMB158,132m (US$22,924m), +34% YoY. This is a trailing-quarter annualization, not a true NTM forecast; growth is accelerating so NTM is likely materially higher.",
+      "ntm_ebitda_usd_m": 2139,
+      "contracted_revenue_backlog_usd_m": null,
+      "backlog_definition": "No contracted revenue backlog / RPO is disclosed for Alibaba Cloud. Nearest forward indicator disclosed at FY26 results: company expects AI model and application services ARR to surpass RMB10bn (~US$1.4bn) in the June-2026 quarter and RMB30bn (~US$4.3bn) by year-end.",
+      "net_debt_usd_m": -37115,
+      "ntm_revenue_usd_m_note_omitted": null,
+      "valuation_usd_m": null,
+      "valuation_basis": "Cloud Intelligence Group is an unlisted segment of Alibaba Group (NYSE: BABA / 9988.HK); no separate segment valuation exists, so null. Group market cap not part of this extraction."
+     },
+     "sources": [
+      {
+       "url": "https://www.businesswire.com/news/home/20260512841182/en/Alibaba-Group-Announces-March-Quarter-2026-and-Fiscal-Year-2026-Results",
+       "title": "Alibaba Group Announces March Quarter 2026 and Fiscal Year 2026 Results (Business Wire)",
+       "type": "company press release (quoted via search rendering; direct fetch blocked)",
+       "date": "2026-05-13",
+       "quote": "revenue from Cloud Intelligence Group was RMB41,626 million (US$6,035 million) in the quarter ended March 31, 2026, an increase of 38% compared to RMB30,127 million in the same quarter of 2025 ... Cloud Intelligence Group adjusted EBITA increased by 57% to RMB3,796 million (US$550 million)"
+      },
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/0001577552/000110465926060224/tm2614494d1_ex99-1.htm",
+       "title": "Alibaba Group Holding Ltd - Form 6-K ex-99.1, March Quarter 2026 and FY2026 Results",
+       "type": "SEC 6-K exhibit (quoted via search rendering; sec.gov fetch blocked)",
+       "date": "2026-05-13",
+       "quote": "As of March 31, 2026, cash and cash equivalents, short-term investments and other treasury investments ... that are unrestricted for withdrawal and use, were RMB520,824 million (US$75,504 million), compared to RMB597,132 million as of March 31, 2025 ... capital expenditures of RMB126,063 million (US$18,275 million)"
+      },
+      {
+       "url": "https://www.stocktitan.net/sec-filings/BABA/6-k-alibaba-group-holding-ltd-current-report-foreign-issuer-164c9931befd.html",
+       "title": "Alibaba FY 2026 profit falls as AI cloud surges | BABA SEC Filing - Form 6-K (StockTitan)",
+       "type": "6-K summary (search rendering)",
+       "date": "2026-05-13",
+       "quote": "Fiscal 2026 Cloud Intelligence Group revenue was RMB158,132 million (US$22,924 million), up 34% year-over-year, with adjusted EBITA up 35% to RMB14,265 million (US$2,068 million) ... free cash flow moved from an inflow of RMB73,870 million to an outflow of RMB46,609 million (US$6,757 million)"
+      },
+      {
+       "url": "https://www.alibabagroup.com/en-US/document-1830678592242057216",
+       "title": "Alibaba to Invest RMB380 billion in AI and Cloud Infrastructure Over Next Three Years",
+       "type": "company announcement (search rendering)",
+       "date": "2025-02-24",
+       "quote": "Alibaba Group announced plans to invest at least RMB 380 billion (US $53 billion) over the next three years to advance its cloud computing and AI infrastructure. The investment exceeds Alibaba's total AI and cloud spending over the past decade."
+      },
+      {
+       "url": "https://www.cnbc.com/2026/05/13/alibaba-earnings-march-quarter-ai-cloud-growth.html",
+       "title": "Alibaba jumps as it strikes bullish tone on AI investments, even as profit plunges (CNBC)",
+       "type": "news (search rendering, paraphrase of May 13 2026 earnings commentary)",
+       "date": "2026-05-13",
+       "quote": "In its March 2026 quarter, reported on May 13, chief executive Eddie Wu went further, saying the company was likely to overshoot that RMB 380 billion target given the scale of investment required for AI data centers. [search-rendering paraphrase]"
+      },
+      {
+       "url": "https://www.datacenterdynamics.com/en/news/alibaba-considers-increasing-ai-data-center-capex-spend-to-69bn-over-three-years-report/",
+       "title": "Alibaba considers increasing AI data center capex spend to $69bn over three years - report (DCD)",
+       "type": "news (search rendering)",
+       "date": "2026",
+       "quote": "Alibaba Cloud is reportedly considering increasing its planned three-year capex investment in AI infrastructure to $69.05bn (480 billion yuan), which would be an increase on the previously promised $52.4 billion (380 billion yuan)."
+      },
+      {
+       "url": "https://www.alibabagroup.com/en-US/document-1991364841188622336",
+       "title": "Alibaba's Cloud Revenue Growth Accelerates to 40% as AI Strategy Delivers",
+       "type": "company announcement (search rendering)",
+       "date": "2026-05-13",
+       "quote": "Cloud Intelligence Group's external revenue climbed 40% as enterprise adoption of AI services deepened ... AI-related products accounted for 30% of the Cloud Intelligence Group's external revenue ... expects AI model and application services annualized recurring revenue (ARR) to surpass RMB 10 billion (approximately US$1.4 billion) in the June quarter and RMB 30 billion (approximately US$4.3 billion) by year-end"
+      },
+      {
+       "url": "https://www.financecharts.com/stocks/BABA/balance-sheet/total-debt",
+       "title": "Alibaba Group Holding (BABA) Total Debt - Current & Historical Data",
+       "type": "third-party aggregator (search rendering) - used only for total debt in net-cash calc",
+       "date": "2026-03-31",
+       "quote": "The total debt for Alibaba Group Holding was $38.389 billion for the period ending March 31, 2026."
+      }
+     ],
+     "caveats": "Sign convention: negative net_debt = net cash. Net cash of ~US$37.1bn = company-disclosed unrestricted cash/ST investments/treasury investments of US$75,504m (Mar 31, 2026) minus total debt of US$38.389bn taken from a third-party aggregator (financecharts; consistent with 20-F borrowings schedule totaling RMB75,674m plus US$14-15bn senior notes plus convertibles/exchangeables) - treat as approximate. Segment 'adjusted EBITA' is not EBITDA (EBITDA would be substantially higher given depreciation of AI infrastructure); ntm_ebitda_usd_m is Q4-FY26 adjusted EBITA x4 at 7.1 RMB/USD. All quotes were obtained from search-engine renderings because the egress proxy blocked every direct fetch (sec.gov, alibabagroup.com, businesswire). The June-2026 quarter (fiscal Q1 FY2027) had NOT been reported as of Aug 17, 2026 (next earnings cited as Aug 20 or Aug 29, 2026), so the March-2026 quarter is correctly the latest. Revenue figure RMB41,626m is total segment (incl. inter-segment); external revenue growth was 40% vs 38% total.",
+     "confidence": "high"
+    },
+    {
+     "name": "Baidu AI Cloud (segment of Baidu, Inc.)",
+     "ticker": "BIDU",
+     "as_of": "2026-05-18",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "Null is the correct answer: Baidu does not disclose MW/GW data-center capacity, GPU counts, or numeric capex in its quarterly releases. Closest capacity-adjacent disclosures in Q1 2026: 'Revenue from GPU Cloud increased by 184% year over year in the first quarter of 2026' and management commentary that it will 'maintain strategic investment intensity while preserving financial discipline' and continue investing in foundation models and AI capabilities. No update to any MW figure exists; Baidu also develops in-house Kunlun AI chips (no deployment counts given in Q1 release renderings)."
+     },
+     "financials": {
+      "ntm_revenue_usd_m": 6366,
+      "revenue_basis": "Annualized run-rate: Q1 2026 total AI Cloud revenue RMB11.3bn (AI Cloud Infra RMB8.8bn, +79% YoY, within which GPU Cloud +184% YoY; plus AI Applications RMB2.5bn, ~flat YoY) x4 = RMB45.2bn, converted at 7.1 RMB/USD as instructed (Baidu's own release used ~6.90, e.g. total revenue RMB32.1bn = US$4.65bn). Note Baidu re-segmented its AI Cloud disclosure in 2025-26 into 'AI Cloud Infra' + 'AI Applications', so the +79% applies to the Infra line, not the RMB11.3bn total; implied total AI Cloud YoY growth is roughly +50% (Infra base ~RMB4.9bn + flat ~RMB2.5bn apps). Separately, Baidu Core 'AI-powered Business' revenue rose 49% YoY to RMB13.6bn, first time exceeding half (52%) of General Business revenue. Trailing annualization, not a true NTM forecast.",
+      "ntm_ebitda_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "backlog_definition": "No backlog/RPO disclosed for AI Cloud. No numeric segment margin either - only qualitative commentary (third-party coverage headline: 'AI Cloud Hits 79% Growth but Margins Stay Under Pressure'), hence ntm_ebitda_usd_m = null per instructions.",
+      "net_debt_usd_m": null,
+      "valuation_usd_m": null,
+      "valuation_basis": "AI Cloud is an unlisted segment of Baidu, Inc. (NASDAQ: BIDU / 9888.HK); no separate segment valuation exists, so null."
+     },
+     "sources": [
+      {
+       "url": "https://www.prnewswire.com/news-releases/baidu-announces-first-quarter-2026-results-302774476.html",
+       "title": "Baidu Announces First Quarter 2026 Results (PR Newswire)",
+       "type": "company press release (quoted via search rendering; direct fetch blocked)",
+       "date": "2026-05-18",
+       "quote": "Revenue from AI Cloud Infra was RMB 8.8 billion in the first quarter of 2026, up 79% year over year ... Revenue from GPU Cloud increased by 184% year over year in the first quarter of 2026 ... Revenue from AI Applications was RMB 2.5 billion in the first quarter of 2026, approximately flat year over year. Combined, AI Cloud Infra and AI applications drove total AI cloud revenue to RMB 11.3 billion in the first quarter of 2026."
+      },
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/1329099/000119312526076505/d117608dex991.htm",
+       "title": "Baidu, Inc. - Form 6-K ex-99.1 (Q1 2026 results)",
+       "type": "SEC 6-K exhibit (located via search; sec.gov fetch blocked - contents corroborated via PR Newswire/tickeron renderings)",
+       "date": "2026-05-18",
+       "quote": "Total revenue was RMB32.1 billion ($4.65 billion) [search rendering of release; SCMP separately: 'Baidu says AI now primary revenue driver despite 2% drop in first-quarter revenue']"
+      },
+      {
+       "url": "https://tickeron.com/earnings/BIDU/",
+       "title": "Baidu (BIDU) First Quarter 2026 Earnings Recap: AI Momentum Drives Results",
+       "type": "earnings recap (search rendering)",
+       "date": "2026-05",
+       "quote": "As of March 31, 2026, total cash and investments were RMB 279.3 billion ($40.49 billion) ... Operating cash flow was RMB 2.7 billion ($387 million) ... Baidu Core AI-powered Business revenue rose 49% year-over-year to RMB 13.6 billion, accounting for 52% of General Business revenue."
+      },
+      {
+       "url": "https://ir.baidu.com/news-releases/news-release-details/baidu-report-first-quarter-2026-financial-results-may-18-2026",
+       "title": "Baidu to Report First Quarter 2026 Financial Results on May 18, 2026",
+       "type": "IR notice (search result title)",
+       "date": "2026-05",
+       "quote": "Baidu to Report First Quarter 2026 Financial Results on May 18, 2026"
+      },
+      {
+       "url": "https://www.tikr.com/blog/baidu-q1-2026-earnings-ai-cloud-hits-79-growth-but-margins-stay-under-pressure",
+       "title": "Baidu Q1 2026 Earnings: AI Cloud Hits 79% Growth but Margins Stay Under Pressure (TIKR)",
+       "type": "analysis (search rendering)",
+       "date": "2026-05",
+       "quote": "Baidu Q1 2026 Earnings: AI Cloud Hits 79% Growth but Margins Stay Under Pressure [headline]; management stated their overall approach is to maintain strategic investment intensity while preserving financial discipline"
+      },
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/1329099/000119312526109289/d38065d20f.htm",
+       "title": "Baidu, Inc. - Form 20-F (FY2025 annual report)",
+       "type": "SEC 20-F (located via search; fetch blocked)",
+       "date": "2026-03",
+       "quote": "in 2025, Baidu had net proceeds of RMB20.8 billion from long-term notes, and in March 2025 Baidu completed an offering consisting of CNY7.5 billion of 2.70% notes due 2030 and CNY2.5 billion of 3.00% notes due 2035, as well as a CNY4.4 billion offering of 1.90% senior unsecured notes due 2029 [search rendering]"
+      },
+      {
+       "url": "https://www.scmp.com/tech/big-tech/article/3353928/baidu-says-ai-now-primary-revenue-driver-despite-2-drop-first-quarter-revenue",
+       "title": "Baidu says AI now primary business driver despite 2% drop in first-quarter revenue (SCMP)",
+       "type": "news (search result title)",
+       "date": "2026-05",
+       "quote": "Baidu says AI now primary revenue driver despite 2% drop in first-quarter revenue [headline]"
+      }
+     ],
+     "caveats": "Q2 2026 results were due pre-market Aug 18, 2026 - ONE DAY after the as-of date of this extraction - so Q1 2026 (reported May 18, 2026) is the latest available; re-run tomorrow for Q2. net_debt_usd_m is null because Baidu's total debt as of Mar 31, 2026 could not be verified from search renderings (sec.gov blocked); however Baidu is unambiguously in a large net cash position: total cash and investments (broad company definition incl. restricted cash, LT time deposits/HTM and adjusted LT investments) were RMB279.3bn (US$40.49bn) vs. debt historically in the ~RMB80-110bn range (2025 issuances alone: ~RMB20.8bn net proceeds of long-term notes). AI Cloud YoY growth on the new segmentation: +79% applies to AI Cloud Infra only; total AI Cloud (RMB11.3bn) growth ~+50% is my inference from disclosed components, not a company-stated number. No segment EBITDA/operating-profit figure disclosed. All quotes are from search-engine renderings, not direct document fetches.",
+     "confidence": "medium"
+    },
+    {
+     "name": "Tencent Cloud (within FinTech and Business Services segment of Tencent Holdings)",
+     "ticker": "TCEHY / 0700.HK",
+     "as_of": "2026-08-12",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "Null is the correct answer: Tencent discloses no MW/GW data-center capacity or GPU counts. Only qualitative capacity remarks exist in the Q2 2026 (Aug 12, 2026) materials: management said that 'towards the end of the year and into next year, the company will have sufficient GPU ASIC capacity to step up in terms of Tencent Cloud, renting out bare metal GPU or providing Model-as-a-Service', and noted compute rented out via Tencent Cloud earns cost recovery or better ('a 30% profit on recent compute orders'). The capex line is the capacity proxy: 2Q26 operating capex RMB51.8bn, +190% YoY (total quarterly capex ~RMB52.8bn; capex cash payments RMB59.3bn), driven by AI/GPU infrastructure."
+     },
+     "financials": {
+      "ntm_revenue_usd_m": null,
+      "revenue_basis": "Null because Tencent does not disclose standalone cloud revenue. Q2 2026 (quarter ended Jun 30, 2026, reported Aug 12, 2026) disclosures: cloud growth given qualitatively - 'Cloud revenue growth rate accelerated from high teens percentage year-on-year in the first quarter to low 20s percentage in the second quarter, benefiting from AI-related demand, international expansion, and increased usage and pricing for general cloud services'; 'Tencent Cloud's international business grew more than 40% year-over-year'. Closest disclosed container: FinTech and Business Services segment revenue RMB60.3bn, +9% YoY in 2Q26 (annualized RMB241.2bn = ~US$34.0bn at 7.1 RMB/USD), but that includes payments/wealth management, so it overstates cloud; street estimates of Tencent Cloud proper are roughly RMB12-15bn/quarter (not company-disclosed, not used). Group revenue 2Q26: RMB204.8bn, +11% YoY.",
+      "ntm_ebitda_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "backlog_definition": "No cloud backlog/RPO disclosed. No cloud-level profitability disclosed either; group color only (non-IFRS net profit +9% YoY to RMB68.4bn; losses from new AI products widened to RMB10.5bn; 'core profit ex-AI up 19%'), hence null.",
+      "net_debt_usd_m": -8197,
+      "valuation_usd_m": null,
+      "valuation_basis": "Tencent Cloud is an unlisted business line of Tencent Holdings (0700.HK / TCEHY ADR); no separate valuation exists, so null. Note Tencent's listed investee portfolio (excl. subsidiaries) had fair value RMB487.2bn at Jun 30, 2026 - relevant to any group SOTP."
+     },
+     "sources": [
+      {
+       "url": "https://www.prnewswire.com/apac/news-releases/tencent-announces-2026-second-quarter-results-302849608.html",
+       "title": "TENCENT ANNOUNCES 2026 SECOND QUARTER RESULTS (PR Newswire)",
+       "type": "company press release (quoted via search rendering; direct fetch blocked)",
+       "date": "2026-08-12",
+       "quote": "Revenues from FinTech and Business Services rose by 9% year-on-year to RMB60.3 billion for 2Q2026 ... negative free cash flow of RMB13.8 billion for 2Q2026, as net cash generated from operating activities of RMB52.7 billion was more than offset by capital expenditure payments of RMB59.3 billion, media content payments of RMB5.0 billion and lease liability payments of RMB2.2 billion ... fair value of Tencent's shareholdings in listed investee companies (excluding subsidiaries) totalled RMB487.2 billion as at 30 June 2026"
+      },
+      {
+       "url": "https://www.gurufocus.com/news/9029249/tencent-holdings-ltd-tcehy-q2-2026-earnings-call-highlights-ai-investments-drive-revenue-growth-to-rmb2048-billion-but-capex-surge-pressures-cash-flow",
+       "title": "Tencent Holdings (TCEHY) Q2 2026 Earnings Call Highlights (GuruFocus)",
+       "type": "earnings-call summary (search rendering)",
+       "date": "2026-08-12",
+       "quote": "Tencent's net cash position was RMB 58.2 billion at quarter-end (June 30, 2026) ... The net cash position dropped sharply from RMB 146.9 billion to RMB 58.2 billion due to capital expenditure payments and dividend payouts ... revenue growth to RMB204.8 billion"
+      },
+      {
+       "url": "https://finance.biggo.com/news/US_TCEHY_2026-08-12",
+       "title": "[TCEHY Q2 2026 Earnings Call] CapEx Surges 190% to RMB 51.8B, Core Profit Ex-AI Up 19% as Tencent Doubles Down on AI (BigGo Finance)",
+       "type": "earnings summary (search rendering)",
+       "date": "2026-08-12",
+       "quote": "Operating CapEx was RMB 51.8 billion, up 190% year-on-year as the company accelerated investments in AI infrastructure ... Tencent Cloud's international business grew more than 40% year-over-year ... losses from new AI products widened to RMB 10.5 billion ... excluding AI-related investments and compute prepayments, free cash flow stood at RMB 37.6 billion"
+      },
+      {
+       "url": "https://www.investing.com/news/transcripts/earnings-call-transcript-tencent-posts-solid-q2-2026-growth-as-ai-spending-surges-93CH-4855197",
+       "title": "Earnings call transcript: Tencent posts solid Q2 2026 growth as AI spending surges (Investing.com)",
+       "type": "earnings-call transcript summary (search rendering)",
+       "date": "2026-08-12",
+       "quote": "Cloud revenue growth rate accelerated from high teens percentage year-on-year in the first quarter to low 20s percentage in the second quarter, benefiting from AI-related demand, international expansion, and increased usage and pricing for general cloud services ... towards the end of the year and into next year, the company will have sufficient GPU ASIC capacity to step up in terms of Tencent Cloud, renting out bare metal GPU or providing Model-as-a-Service"
+      },
+      {
+       "url": "https://longbridge.com/news/295634470",
+       "title": "Tencent Q2 FY26 profit attributable to equity holders rises 0.7% to RMB 56.02 billion; revenue increases 11% to RMB 204.8bn (Longbridge)",
+       "type": "news (search rendering)",
+       "date": "2026-08-12",
+       "quote": "Tencent Q2 FY26 profit attributable to equity holders rises 0.7% to RMB 56.02 billion; revenue increases 11% to RMB 204.8 [billion]"
+      },
+      {
+       "url": "https://finance.biggo.com/news/fdcf980d-f23b-4dc2-a99c-d58b7d0a589f",
+       "title": "Tencent Q2 Revenue Rises 11%; AI Spending Drags Free Cash Flow Into Negative Territory as Capex Surges 176% (BigGo Finance)",
+       "type": "news (search rendering)",
+       "date": "2026-08-12",
+       "quote": "revenue rising 11% year-over-year to RMB 204.8 billion, slightly above market expectations of RMB 202.8 billion ... non-IFRS net profit up 9% YoY to RMB 68.4B ... management noting a 30% profit on recent compute orders"
+      }
+     ],
+     "caveats": "Sign convention: negative net_debt = net cash. Net cash RMB58.2bn at Jun 30, 2026 converted at 7.1 RMB/USD = ~US$8.2bn; this is Tencent's own 'net cash position' metric (down from RMB146.9bn at Mar 31, 2026 on capex and dividends) and EXCLUDES the RMB487.2bn listed investee portfolio. Cloud revenue, cloud margin and any MW capacity are simply not disclosed - nulls are the correct answer, with qualitative growth ('low 20s%' YoY, international cloud +40%) documented in revenue_basis. Capex figures vary by definition across renderings: operating capex RMB51.8bn (+190% YoY) vs total quarterly capex ~RMB52.8bn vs capex cash payments RMB59.3bn (the +176% figure in one headline refers to a different capex definition). All quotes from search-engine renderings of the Aug 12, 2026 press release/call; direct fetches (prnewswire, tencent.com, sec.gov) were blocked by the egress proxy.",
+     "confidence": "medium"
+    }
+   ],
+   "research_notes": "METHOD / LIMITATIONS: The sandbox egress proxy returned CONNECT 403 for every relevant domain (www.sec.gov, efts.sec.gov, alibabagroup.com, ir.baidu.com, tencent.com, prnewswire, businesswire, Reuters, Yahoo, etc.), so NO direct document fetches were possible. Per fallback instructions, every figure was taken from search-engine renderings of the underlying primary documents (company press releases on Business Wire/PR Newswire, SEC 6-K/20-F exhibits, and earnings-call transcript summaries), cross-checked across at least two independent queries/outlets per company. Quotes are verbatim as rendered by search results; a few (flagged in-line) are rendering paraphrases rather than press-release text. Confidence in the headline segment revenue/EBITA numbers is high because identical figures appeared across 3+ independent renderings of the official releases.\n\nREPORTING CALENDAR (as of Sun/Mon Aug 17, 2026): Tencent Q2 2026 reported Aug 12, 2026 (used). Baidu Q2 2026 due pre-market Aug 18, 2026 - one day after cutoff - so Q1 2026 (reported May 18, 2026) used; re-extract after Aug 18. Alibaba June-2026 quarter (fiscal Q1 FY2027) not yet reported (sources cite Aug 20 or Aug 29, 2026; street expects ~$35.3bn group revenue), so March-2026 quarter / FY2026 results (reported May 13, 2026) used.\n\nFX: All my own conversions use 7.1 RMB/USD as instructed. Note the companies' own releases imply ~6.90 RMB/USD (e.g., Alibaba RMB41,626m = US$6,035m; Baidu RMB279.3bn = US$40.49bn), so company-published USD figures are ~3% higher than my 7.1-based conversions.\n\nKEY CROSS-COMPANY FACTS: (1) Alibaba Cloud is the only one of the three with a disclosed segment profit metric (adjusted EBITA RMB3,796m in Mar-26 quarter, +57%; FY26 RMB14,265m, +35%) - note EBITA is not EBITDA. (2) Baidu re-segmented AI Cloud into 'AI Cloud Infra' (RMB8.8bn, +79%) + 'AI Applications' (RMB2.5bn, flat), total RMB11.3bn; the widely quoted +79% is Infra-only. (3) Tencent discloses no cloud revenue line at all - FinTech & Business Services (RMB60.3bn, +9%) is the container; cloud growth was stated qualitatively as accelerating from 'high teens' (Q1) to 'low 20s' percent YoY (Q2), with international cloud +40%. (4) AI capex arms race confirmed in official numbers: Alibaba FY26 capex RMB126.1bn with FY26 FCF at -RMB46.6bn and management signaling overshoot of the RMB380bn 3-yr plan (reports of ~RMB480bn under consideration, per DCD - unconfirmed by company); Tencent 2Q26 operating capex RMB51.8bn (+190% YoY) flipping quarterly FCF to -RMB13.8bn and cutting its net cash from RMB146.9bn to RMB58.2bn in one quarter; Baidu discloses no numeric capex, only 'strategic investment intensity' language, and its Q1 operating cash flow was just RMB2.7bn vs RMB279.3bn total cash & investments. (5) MW/GW/GPU-count capacity disclosure: none for any of the three - nulls are correct, documented per company; the only capacity-flavored remarks were Tencent's 'sufficient GPU ASIC capacity' comment and Alibaba's capex-plan language. (6) Net cash: Alibaba ~US$37bn net cash (company cash US$75.5bn minus aggregator-sourced debt US$38.4bn - the only third-party-sourced number used in a calculation); Tencent company-defined net cash RMB58.2bn; Baidu left null (gross cash US$40.49bn verified, debt not verifiable from renderings, clearly net cash overall). Valuation fields null for all three - unlisted segments of listed parents."
+  },
+  "openai-live": {
+   "companies": [
+    {
+     "name": "OpenAI (OpenAI Group PBC, controlled by OpenAI Foundation) \u2014 incl. Stargate program",
+     "ticker": "PRIVATE (confidential IPO prospectus filed with SEC June 2026, per press reports)",
+     "as_of": "2026-08-17",
+     "capacity": {
+      "built_active_mw": 1900,
+      "contracted_or_secured_power_mw": 30000,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": 250000,
+      "gpu_count": null,
+      "capacity_definition": "built_active_mw = 1.9 GW: OpenAI's own disclosure that its operational computing capacity 'rose from 0.6 gigawatts to 1.9 gigawatts' during 2025 (company statement reported 2026-01-19 by SiliconANGLE and others); this is total OpenAI operational compute across partners (Abilene/Oracle, Microsoft, CoreWeave), not just Stargate-owned sites, and is a start-of-2026 figure \u2014 mid-2026 operational capacity is likely higher but no newer verified total was found. contracted_or_secured_power_mw = 30 GW: Altman's stated total committed compute \u2014 'OpenAI has committed to about 30 gigawatts of compute with a total cost of ownership of about $1.4 trillion' (2025-11-06); this spans all vendor deals (NVIDIA 10 GW, AMD 6 GW, Broadcom 10 GW, Oracle/Stargate ~4.5+ GW, AWS, CoreWeave; categories overlap so they do not sum cleanly) and remains the best-supported committed total as of Aug 2026. Separately, OpenAI announced in Jan 2026 it had 'secured' >10 GW under the Stargate US program specifically, hitting its 10 GW-by-2029 target ~3 years early, 'with more than 3GW added in the last 90 days alone.' total_pipeline_mw = 250 GW: aspirational \u2014 Altman internal memo (Sept 2025, leaked/reported Nov 2025): 'audacious long-term goal is to build 250 gigawatts of capacity by 2033'; consistent with his stated ambition of 'a factory that can produce a gigawatt of new AI infrastructure every week.' contracted_unbuilt left null rather than derived (30 GW committed minus 1.9 GW active would mix definitions/dates). gpu_count: no verified current figure found."
+     },
+     "financials": {
+      "valuation_usd_m": 852000,
+      "valuation_basis": "$852B = price of the completed $122B primary round (Bloomberg, 2026-03-31: 'OpenAI completed a deal to raise $122 billion from investors at an $852 billion valuation') and reaffirmed by the ~$7B employee tender/buyback completed at the same $852B valuation (Bloomberg/CNBC, 2026-08-10). This is the latest actual transaction mark. Trajectory: $500B secondary (Oct 2025) -> $730B ($110B announced, ~Feb 2026, per Bloomberg context) -> $852B ($122B round closed 2026-03-31) -> $852B tender (2026-08-10). Reported IPO aspiration (NOT a mark): 'Bloomberg and Reuters have reported a target valuation range of $1.75 trillion to above $2 trillion, with a raise of up to $75 billion' after a confidential SEC prospectus filing in June 2026.",
+      "ntm_revenue_usd_m": 40000,
+      "revenue_basis": "PRESS ESTIMATE, current annualized run-rate (not NTM): Bloomberg, 2026-08-13 \u2014 'OpenAI's Revenue Run Rate Tops $40 Billion Ahead of IPO'; 'OpenAI is on track to generate annualized revenue of more than $40 billion based on its current performance, roughly doubling its run rate from the end of 2025.' Prior points: Altman said OpenAI would end 2025 above $20B ARR (TechCrunch, 2025-11-06); lower-quality outlets claimed a ~$25B plateau through mid-2026 (unverified). WSJ reportedly (2026-04-28) said OpenAI missed internal monthly sales targets in early 2026 amid an Altman-Friar rift over whether revenue can support the $1.4T commitments.",
+      "ntm_ebitda_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "backlog_definition": "Not applicable in the normal sense \u2014 OpenAI is the BUYER: ~$1.4 trillion of compute purchase obligations over ~8 years ('looking at commitments of about $1.4 trillion over the next 8 years' \u2014 Altman, Nov 2025). Press-tabulated vendor breakdown (partly estimates): Broadcom (~$350B est., not officially disclosed), Oracle (~$300B/5yrs from 2027, ~4.5 GW), Microsoft Azure ($250B incremental, official), NVIDIA (up to $100B invested progressively per GW), AMD (~$90B est.), AWS ($38B official), CoreWeave (~$22.4B). Later 2026 reports on near-term cadence conflict: Reuters source said compute spend 'around $600 billion through 2030'; a subsequent WSJ-attributed report said planned compute spending was lifted to '$750 billion through 2030.'",
+      "net_debt_usd_m": null
+     },
+     "sources": [
+      {
+       "url": "https://www.bloomberg.com/news/articles/2026-03-31/openai-valued-at-852-billion-after-completing-122-billion-round",
+       "title": "OpenAI Valued at $852 Billion After Completing $122 Billion Round",
+       "type": "news (Bloomberg; quote via search rendering)",
+       "date": "2026-03-31",
+       "quote": "OpenAI completed a deal to raise $122 billion from investors at an $852 billion valuation, marking the company's largest funding round to date by far... Amazon.com Inc. agreed to invest $50 billion in the round, while Nvidia Corp. and SoftBank Group Corp. each put in $30 billion... a little more than a month after it announced $110 billion in funding at a $730 billion valuation."
+      },
+      {
+       "url": "https://www.cnbc.com/2026/08/10/openai-wraps-7-billion-share-sale-ahead-of-potential-ipo-.html",
+       "title": "OpenAI wraps $7 billion share sale ahead of potential IPO",
+       "type": "news (CNBC; quote via search rendering)",
+       "date": "2026-08-10",
+       "quote": "OpenAI completed a secondary share sale totaling roughly $7 billion, allowing current and former employees to sell stock at the company's $852 billion valuation... OpenAI confidentially filed its prospectus with the Securities and Exchange Commission in June 2026... Bloomberg and Reuters have reported a target valuation range of $1.75 trillion to above $2 trillion, with a raise of up to $75 billion."
+      },
+      {
+       "url": "https://www.bloomberg.com/news/articles/2026-08-13/openai-s-revenue-run-rate-tops-40-billion-ahead-of-ipo",
+       "title": "OpenAI's Revenue Run Rate Tops $40 Billion Ahead of IPO",
+       "type": "news (Bloomberg; quote via search rendering)",
+       "date": "2026-08-13",
+       "quote": "OpenAI is on track to generate annualized revenue of more than $40 billion based on its current performance, roughly doubling its run rate from the end of 2025."
+      },
+      {
+       "url": "https://techcrunch.com/2025/11/06/sam-altman-says-openai-has-20b-arr-and-about-1-4-trillion-in-data-center-commitments/",
+       "title": "Sam Altman says OpenAI has $20B ARR and about $1.4 trillion in data center commitments",
+       "type": "news (TechCrunch; quote via search rendering)",
+       "date": "2025-11-06",
+       "quote": "Currently, OpenAI has committed to about 30 gigawatts of compute with a total cost of ownership of about $1.4 trillion... 'looking at commitments of about $1.4 trillion over the next 8 years.'"
+      },
+      {
+       "url": "https://siliconangle.com/2026/01/19/openai-reveals-data-center-capacity-tripled-1-9gw-2025/",
+       "title": "OpenAI reveals its data center capacity tripled to 1.9GW in 2025",
+       "type": "news (SiliconANGLE; quote via search rendering)",
+       "date": "2026-01-19",
+       "quote": "OpenAI's computing capacity more than tripled in 2025 to roughly 1.9 gigawatts... rose from 0.6 gigawatts to 1.9 gigawatts."
+      },
+      {
+       "url": "https://www.datacenterdynamics.com/en/news/openai-claims-to-have-secured-10gw-of-ai-infrastructure-capacity-ahead-of-2029-target/",
+       "title": "OpenAI claims to have secured 10GW of AI infrastructure capacity ahead of 2029 target",
+       "type": "trade news (DCD; quote via search rendering)",
+       "date": "2026-01 (approx.)",
+       "quote": "When OpenAI announced Stargate in January 2025, it committed to securing 10GW of AI infrastructure in the United States by 2029, but just over a year later, it has already surpassed that milestone, with more than 3GW added in the last 90 days alone."
+      },
+      {
+       "url": "https://www.tomshardware.com/tech-industry/artificial-intelligence/openais-colossal-ai-data-center-targets-would-consume-as-much-electricity-as-entire-nation-of-india-250gw-target-would-require-30-million-gpus-annually-to-ensure-continuous-operation-emit-twice-as-much-carbon-dioxide-as-exxonmobil",
+       "title": "OpenAI's colossal AI data center targets would consume as much electricity as entire nation of India (250GW target)",
+       "type": "news (Tom's Hardware; quote via search rendering)",
+       "date": "2025-11-14 (approx.)",
+       "quote": "In an internal memo from September, CEO Sam Altman said that OpenAI's 'audacious long-term goal is to build 250 gigawatts of capacity by 2033.'"
+      },
+      {
+       "url": "https://www.pymnts.com/artificial-intelligence-2/2025/openai-aims-to-add-1-gigawatt-of-compute-per-week/",
+       "title": "OpenAI Aims to Add 1 Gigawatt of Compute Per Week",
+       "type": "news (quote via search rendering)",
+       "date": "2025-10 (approx.)",
+       "quote": "Sam Altman announced... OpenAI would like to build an AI factory to make 1 gigawatt of compute per week of new capacity... 'at a greatly reduced cost relative to today.'"
+      },
+      {
+       "url": "https://investor.nvidia.com/news/press-release-details/2025/OpenAI-and-NVIDIA-Announce-Strategic-Partnership-to-Deploy-10-Gigawatts-of-NVIDIA-Systems/default.aspx",
+       "title": "OpenAI and NVIDIA Announce Strategic Partnership to Deploy 10 Gigawatts of NVIDIA Systems",
+       "type": "company IR (NVIDIA; quote via search rendering)",
+       "date": "2025-09-22",
+       "quote": "strategic partnership to deploy at least 10 gigawatts of AI data centers with NVIDIA systems, with NVIDIA intending to invest up to $100 billion in OpenAI progressively as each gigawatt is deployed. The first gigawatt of NVIDIA systems will be deployed in the second half of 2026."
+      },
+      {
+       "url": "https://ir.amd.com/news-events/press-releases/detail/1260/amd-and-openai-announce-strategic-partnership-to-deploy-6-gigawatts-of-amd-gpus",
+       "title": "AMD and OpenAI Announce Strategic Partnership to Deploy 6 Gigawatts of AMD GPUs",
+       "type": "company IR (AMD; quote via search rendering; also in AMD 10-K/A FY2025 on EDGAR)",
+       "date": "2025-10-06",
+       "quote": "product purchase agreement... to deploy 6 gigawatts of AMD GPUs, with the deployment of the first gigawatt... powered by the AMD Instinct MI450 series... AMD issued OpenAI a warrant to purchase up to an aggregate of 160 million shares of AMD's common stock at an exercise price of $0.01 per share... vest in tranches based on certain AMD Instinct GPU purchase milestones."
+      },
+      {
+       "url": "https://blogs.microsoft.com/blog/2025/10/28/the-next-chapter-of-the-microsoft-openai-partnership/",
+       "title": "The next chapter of the Microsoft\u2013OpenAI partnership (Official Microsoft Blog); corroborated by CNBC and DCD",
+       "type": "company blog + news (quotes via search rendering)",
+       "date": "2025-10-28",
+       "quote": "Microsoft gets a 27% equity stake in OpenAI's new for-profit entity, the OpenAI Group PBC (Public Benefit Corporation), a stake valued at approximately $135 billion... OpenAI has contracted to purchase an incremental $250 billion in Microsoft Azure cloud services... Microsoft will no longer have a 'right of first refusal' on new OpenAI cloud workloads... retain its intellectual property rights to OpenAI models and products through 2032... any declaration of AGI by OpenAI now subject to verification by an independent expert panel."
+      },
+      {
+       "url": "https://techcrunch.com/2026/02/28/billion-dollar-infrastructure-deals-ai-boom-data-centers-openai-oracle-nvidia-microsoft-google-meta/",
+       "title": "The billion-dollar infrastructure deals powering the AI boom",
+       "type": "news (TechCrunch; quote via search rendering)",
+       "date": "2026-02-28",
+       "quote": "Oracle inked a deal worth more than $300 billion over five years with OpenAI... described as a $300 billion cloud contract beginning in 2027... requires about 4.5 gigawatts... In November, OpenAI inked a $38 billion deal to secure cloud compute capacity from Amazon... covered $38 billion across seven years... hundreds of thousands of Nvidia GB200 and GB300 GPUs... multi-year collaboration with Broadcom to deploy 10 gigawatts of custom AI accelerators starting in the second half of 2026... CoreWeave... signed a $22.4 billion deal with OpenAI."
+      },
+      {
+       "url": "https://finance.yahoo.com/news/openai-sees-compute-spend-around-223950561.html",
+       "title": "OpenAI expects compute spend of around $600 billion through 2030, source says (Reuters via Yahoo)",
+       "type": "news (Reuters syndicated; quote via search rendering)",
+       "date": "2026 (date not confirmed)",
+       "quote": "OpenAI expects compute spend of around $600 billion through 2030, source says. [Separately, a WSJ-attributed report: 'OpenAI lifts planned compute spending to $750 billion through 2030.']"
+      }
+     ],
+     "caveats": "Private company: every financial figure is a press-reported transaction or company statement, not an audited filing. Direct fetches of openai.com, epoch.ai, seekingalpha.com, finance.yahoo.com and datacenterdynamics.com were blocked by the egress proxy, so ALL quotes above are search-engine renderings of those pages, cross-checked across multiple independent queries (per fallback rule b). Capacity caveats: the 30 GW committed figure dates to Nov 2025 (Altman) and is the latest verified committed total \u2014 deals signed since (e.g., the March 2026 $122B round with Amazon/NVIDIA investments) may imply a higher true figure; the 1.9 GW operational figure is as of end-2025/Jan-2026 and is stale by ~7 months; one search rendering claimed Abilene alone is live with 1.2 GW of OCI capacity (not independently confirmed). The vendor $ breakdown (Broadcom ~$350B, AMD ~$90B) is press estimation \u2014 neither company disclosed dollar terms. One rendering dated the Broadcom deal to 'May' \u2014 the announcement was 2025-10-13; treat rendered dates cautiously. Conflicting revenue reports exist ($25B ARR plateau claims from low-quality aggregators vs Bloomberg's >$40B run-rate of 2026-08-13; Bloomberg used as authoritative). The $1.75T\u2013$2T IPO valuation is a reported target, not a transaction. The 250 GW/2033 figure is from a leaked internal memo, aspirational. WSJ (reported 2026-04-28) flagged missed internal sales targets and an Altman\u2013Friar rift over affordability of the $1.4T commitments \u2014 affordability risk is real and press-documented.",
+     "confidence": "medium"
+    }
+   ],
+   "research_notes": "OPENAI-SIDE VERIFICATION (as of 2026-08-17). Method note: openai.com, epoch.ai, seekingalpha.com, finance.yahoo.com, datacenterdynamics.com are all blocked by this session's egress proxy, so every quote is a search-engine rendering cross-checked across multiple queries/results (fallback rule b). Oracle/Microsoft-side data was covered by the previous agent; this pass is OpenAI-side only.\n\n1) CAPACITY TRAJECTORY (confirmed): Jan 2025 Stargate launch = commitment to secure 10 GW US by 2029 ($500B) -> Sep 2025 five new sites = 'nearly 7 gigawatts of planned capacity and over $400 billion' -> Oct-Nov 2025 Altman: '~30 gigawatts of compute with a total cost of ownership of about $1.4 trillion' / 'about $1.4 trillion over the next 8 years' -> Jan 2026: OpenAI announced it SURPASSED the 10 GW Stargate-US secured milestone ~3 years early, 'more than 3GW added in the last 90 days alone' (OpenAI post 'Building the compute infrastructure for the Intelligence Age', openai.com/index/building-the-compute-infrastructure-for-the-intelligence-age/ \u2014 blocked, verified via Seeking Alpha/DCD/SiliconANGLE renderings); same disclosure: operational capacity tripled in 2025 from 0.6 GW to ~1.9 GW. Aspirational: Altman Sept-2025 internal memo (leaked Nov 2025): 'build 250 gigawatts of capacity by 2033'; plus the '1 gigawatt of new AI infrastructure every week' factory ambition. No verified NEW total-GW statement found for mid-2026 \u2014 30 GW committed (Nov 2025) remains best-supported committed total; flagged as possibly stale.\n\n2) COMPUTE DEALS one-line status: NVIDIA \u2014 LOI for >=10 GW of NVIDIA systems, NVIDIA to invest 'up to $100 billion... progressively as each gigawatt is deployed', first GW H2 2026 (NVIDIA IR 2025-09-22). AMD \u2014 definitive product purchase agreement, 6 GW Instinct GPUs, first 1 GW MI450 H2 2026, warrant for up to 160M AMD shares at $0.01 vesting on purchase/stock milestones, exercisable through Oct 5, 2030 (AMD IR 2025-10-06; also in AMD FY2025 10-K/A on EDGAR: sec.gov/Archives/edgar/data/2488/000000248826000021/amd-20251227.htm). Broadcom \u2014 10 GW of co-developed custom AI accelerators, deployments H2 2026 through 2029 (announced 2025-10-13; $ not disclosed, press estimates ~$350B). Microsoft \u2014 'incremental $250 billion' Azure purchase contract, ROFR removed (2025-10-28, official). Oracle \u2014 reported >$300B over 5 years from 2027, ~4.5 GW (WSJ-reported; never officially confirmed by either party with a dollar figure). AWS \u2014 $38B, 7 years, hundreds of thousands of GB200/GB300 GPUs (2025-11-03). CoreWeave \u2014 cumulative contracts ~$22.4B. NEW in 2026: March 2026 equity round investors include Amazon $50B (of which $35B contingent on IPO or AGI milestone), NVIDIA $30B, SoftBank $30B (Bloomberg). Compute-spend guidance reports conflict: Reuters source ~$600B through 2030; later WSJ-attributed report $750B through 2030.\n\n3) VALUATION (latest first): $852B \u2014 Aug 10, 2026 ~$7B employee tender/buyback at $852B (Bloomberg first, CNBC confirmed); $852B \u2014 Mar 31, 2026 completed $122B primary round (Bloomberg); $730B \u2014 ~Feb 2026 ($110B announced); $500B \u2014 Oct 2025 secondary. IPO: confidential S-1 filed June 2026; Bloomberg/Reuters-reported TARGET $1.75T-$2T+, raise up to $75B \u2014 aspiration, not a mark. Use $852B as the live mark.\n\n4) REVENUE: Bloomberg 2026-08-13: run-rate 'tops $40 billion', 'roughly doubling its run rate from the end of 2025' (end-2025 ~$20-21.4B; Altman himself said '>$20B ARR' Nov 2025). PRESS ESTIMATE label applies. Counter-signal: WSJ 2026-04-28 reported missed internal monthly sales targets early 2026 + Altman/Friar rift over the $1.4T commitments; low-quality aggregators claimed a ~$25B plateau through mid-2026 \u2014 not used.\n\n5) RESTRUCTURING (official, 2025-10-28): recapitalization complete \u2014 nonprofit OpenAI Foundation controls for-profit OpenAI Group PBC; Microsoft holds ~27% (as-converted diluted, ~$135B) vs prior 32.5% profit-participation; IP rights through 2032; AGI declaration subject to independent expert panel verification; ROFR on cloud dropped in exchange for $250B Azure commitment. Sources: Official Microsoft Blog, CNBC, Bloomberg, DCD, GeekWire \u2014 all consistent.\n\nSearch budget used: ~10 searches, 6 fetch attempts (all fetches egress-blocked). Remaining gaps: exact mid-2026 operational GW (Abilene 1.2 GW OCI claim unconfirmed), any official post-Jan-2026 total-GW update, GPU counts."
+  },
+  "private-ai-live": {
+   "companies": [
+    {
+     "name": "Anthropic",
+     "ticker": "private (no ticker)",
+     "as_of": "2026-08-17",
+     "capacity": {
+      "built_active_mw": 2200,
+      "contracted_or_secured_power_mw": 10900,
+      "contracted_unbuilt_mw": 3900,
+      "total_pipeline_mw": 10900,
+      "gpu_count": 500000,
+      "capacity_definition": "built_active_mw = reported ~2.2 GW power draw of AWS Project Rainier's flagship New Carlisle, IN campus (dedicated to Anthropic; opened Oct 2025, ~500K Trainium2 chips, scaling toward 1M+; a second Rainier campus in Canton, MS has 350+ MW ramping toward 1 GW and is NOT included). contracted_or_secured_power_mw = best-effort sum of announced maximum contracted/committed capacity: AWS 'up to 5 GW' (Apr 20, 2026 expanded partnership) + Google TPU ~1 GW in 2026 (Oct 2025 deal, ~1M TPUs) + Google/Broadcom ~3.5 GW from 2027 (Apr 6, 2026) + Microsoft/NVIDIA Azure 'up to 1 GW' (Nov 18, 2025) + TeraWulf 401 MW (Jul 6, 2026) = ~10.9 GW. EXCLUDES the unquantified CoreWeave multi-year deal (Apr 10, 2026, no MW/$ disclosed) and the $50B Anthropic/Fluidstack own-build in TX/NY (Nov 12, 2025, 'gigawatts of power' planned, sites coming online through 2026, no precise GW disclosed) \u2014 so this is simultaneously an upper bound on named 'up to' deals and an undercount of total pipeline. contracted_unbuilt_mw = minimum clearly not-yet-in-service: TeraWulf 401 MW (service H2 2027, full early 2028) + Broadcom/Google 3.5 GW (from 2027); portions of the AWS 5 GW are also unbuilt but not separable. gpu_count = Trainium2 chips at Project Rainier as of Oct 2025 opening ('nearly 500,000', plans for 1M+); separately ~1M Google TPUs secured for 2026 are not added to this figure."
+     },
+     "financials": {
+      "valuation_usd_m": 965000,
+      "valuation_basis": "Series H post-money valuation: $65B raised at $965B post-money, announced May 28, 2026, co-led by Altimeter, Dragoneer, Greenoaks, Sequoia (the $65B includes $15B previously committed hyperscaler investment, incl. $5B from Amazon). Prior marks: Series G $30B at $380B post-money closed Feb 12, 2026 (led by GIC/Coatue; term sheet had been $10B at $350B, Jan 7, 2026); Series F $13B at $183B, Sep 2025. The prior agent's '~$350B round early 2026' is stale \u2014 it became the $380B Series G and was superseded by the $965B Series H.",
+      "ntm_revenue_usd_m": 47000,
+      "revenue_basis": "Company-disclosed annualized run-rate revenue (not an NTM forecast): 'run-rate revenue crossed $47 billion' in mid-May 2026 per Anthropic's Series H announcement; earlier company-linked milestones: >$9B end-2025, $14B Feb 2026 (Series G), >$30B early Apr 2026 (Google/Broadcom announcement). Third-party trackers (Yipit ~$69B early July; TickerTrends ~$74B late July 2026) suggest materially higher current ARR \u2014 press/alt-data estimates, not company-confirmed.",
+      "ntm_ebitda_usd_m": null,
+      "net_debt_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "backlog_definition": "Not disclosed (private company). Note direction of obligations: Anthropic is the PAYER on huge compute purchase commitments \u2014 $100B AWS spend over a decade (Apr 2026), $30B Azure purchase (Nov 2025), ~$19B over 20 years to TeraWulf \u2014 these are cost commitments, not revenue backlog. No EBITDA or net-debt disclosure exists; the company is presumed heavily cash-consuming but holds very large recent equity proceeds ($30B Series G + $65B Series H in 2026)."
+     },
+     "sources": [
+      {
+       "url": "https://www.anthropic.com/news/series-h",
+       "title": "Anthropic raises $65B in Series H funding at $965B post-money valuation",
+       "type": "company press release (title/summary via search rendering)",
+       "date": "2026-05-28",
+       "quote": "Anthropic raises $65B in Series H funding at $965B post-money valuation ... Since their Series G in February, adoption has continued to grow across global enterprise customers, and their run-rate revenue crossed $47 billion earlier in May."
+      },
+      {
+       "url": "https://x.com/AnthropicAI/status/2060061348818518493",
+       "title": "Anthropic on X (run-rate revenue)",
+       "type": "company statement (via search rendering)",
+       "date": "2026-05",
+       "quote": "Earlier this month, our run-rate revenue crossed $47 billion."
+      },
+      {
+       "url": "https://www.nbcnews.com/tech/tech-news/anthropic-secures-965-billion-valuation-raising-65-billion-rcna347390",
+       "title": "Anthropic secures $965 billion valuation after raising $65 billion",
+       "type": "news (NBC News, via search rendering)",
+       "date": "2026-05-28",
+       "quote": "Anthropic secures $965 billion valuation after raising $65 billion"
+      },
+      {
+       "url": "https://techcrunch.com/2026/02/12/anthropic-raises-another-30-billion-in-series-g-with-a-new-value-of-380-billion/",
+       "title": "Anthropic raises another $30B in Series G, with a new value of $380B",
+       "type": "news (TechCrunch, via search rendering)",
+       "date": "2026-02-12",
+       "quote": "Anthropic closed a $30 billion Series G funding round on February 12, 2026, at a $380 billion post-money valuation ... led by GIC and Coatue and co-led by D. E. Shaw Ventures, Dragoneer, Founders Fund, ICONIQ, and MGX"
+      },
+      {
+       "url": "https://www.cnbc.com/2026/01/07/anthropic-funding-term-sheet-valuation.html",
+       "title": "Anthropic signs term sheet for $10 billion funding round at $350 billion valuation",
+       "type": "news (CNBC, via search rendering)",
+       "date": "2026-01-07",
+       "quote": "Anthropic signs term sheet for $10 billion funding round at $350 billion valuation"
+      },
+      {
+       "url": "https://www.anthropic.com/news/anthropic-amazon-compute",
+       "title": "Anthropic and Amazon expand collaboration for up to 5 gigawatts of new compute",
+       "type": "company press release (title via search rendering; anthropic.com blocked by proxy)",
+       "date": "2026-04-20",
+       "quote": "Anthropic and Amazon expand collaboration for up to 5 gigawatts of new compute [title]; per SiliconANGLE rendering: 'an immediate $5 billion of new equity into Anthropic, layers up to $20 billion in additional milestone-based commitments on top, and binds [the] Claude maker to spend $100 billion on Amazon Web Services over the next decade'"
+      },
+      {
+       "url": "https://www.cnbc.com/2025/10/29/amazon-opens-11-billion-ai-data-center-project-rainier-in-indiana.html",
+       "title": "Amazon opens $11 billion AI data center Project Rainier in Indiana",
+       "type": "news (CNBC, via search rendering)",
+       "date": "2025-10-29",
+       "quote": "roughly 500,000 of its own Trainium2 chips, devoted to a single customer \u2014 Anthropic ... Together, they draw a combined 2.2 gigawatts of electricity ... with plans to reach over 1 million chips."
+      },
+      {
+       "url": "https://x.com/AnthropicAI/status/1981460118354219180",
+       "title": "Anthropic on X (Google TPU expansion)",
+       "type": "company statement (via search rendering)",
+       "date": "2025-10",
+       "quote": "Today, we announced that we plan to expand our use of Google TPUs, securing approximately one million TPUs and more than a gigawatt of capacity in 2026."
+      },
+      {
+       "url": "https://www.tomshardware.com/tech-industry/broadcom-expands-anthropic-deal-to-3-5gw-of-google-tpu-capacity-from-2027",
+       "title": "Broadcom to supply Anthropic with 3.5 gigawatts of Google TPU capacity from 2027",
+       "type": "news (Tom's Hardware, headline via search rendering; corroborated by Broadcom 8-K on stocktitan)",
+       "date": "2026-04-06",
+       "quote": "Broadcom to supply Anthropic with 3.5 gigawatts of Google TPU capacity from 2027 \u2014 Claude pioneer says its annual revenue run rate has passed $30 billion ... This new Anthropic capacity is in addition to the 1 GW already coming online in 2026 under the Google Cloud agreement announced last October"
+      },
+      {
+       "url": "https://blogs.microsoft.com/blog/2025/11/18/microsoft-nvidia-and-anthropic-announce-strategic-partnerships/",
+       "title": "Microsoft, NVIDIA and Anthropic announce strategic partnerships",
+       "type": "company press release (via search rendering)",
+       "date": "2025-11-18",
+       "quote": "Anthropic has committed to purchase $30 billion of Azure compute capacity and to contract additional compute capacity up to one gigawatt. ... Microsoft will invest up to $5 billion into Anthropic, while Nvidia will invest up to $10 billion"
+      },
+      {
+       "url": "https://investors.terawulf.com/news-events/press-releases/detail/142/terawulf-announces-anthropic-lease-at-justified-data-campus-and-sale-of-majority-interest-in-abernathy-joint-venture-to-fluidstack",
+       "title": "TeraWulf Announces Anthropic Lease at Justified Data Campus and Sale of Majority Interest in Abernathy Joint Venture to Fluidstack",
+       "type": "company IR press release (via search rendering; direct fetch blocked)",
+       "date": "2026-07-06",
+       "quote": "20-year lease agreement with Anthropic ... at the Justified Data site in Hawesville, Kentucky. The campus will accommodate approximately 401 MW of critical IT load, and the lease is expected to generate approximately $19 billion of contracted revenue over the initial lease term ... ramping to the full 401 MW by early 2028."
+      },
+      {
+       "url": "https://investors.terawulf.com/news-events/press-releases/detail/144/terawulf-reports-second-quarter-2026-results",
+       "title": "TeraWulf Reports Second Quarter 2026 Results",
+       "type": "company IR press release (via search rendering)",
+       "date": "2026-08-05",
+       "quote": "Subsequent to quarter-end, TeraWulf entered into a 20-year lease with Anthropic for approximately 401 MW of critical IT capacity, with initial delivery expected in the second half of 2027 and full delivery expected in early 2028."
+      },
+      {
+       "url": "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Announces-Multi-Year-Agreement-With-Anthropic/default.aspx",
+       "title": "CoreWeave Announces Multi-Year Agreement With Anthropic",
+       "type": "company IR press release (via search rendering)",
+       "date": "2026-04-10",
+       "quote": "CoreWeave and Anthropic announced an agreement ... to support the development and deployment of Anthropic's Claude family of AI models. The multi-year agreement will bring compute online starting later this year ... Financial terms were not disclosed."
+      },
+      {
+       "url": "https://www.anthropic.com/news/anthropic-invests-50-billion-in-american-ai-infrastructure",
+       "title": "Anthropic invests $50 billion in American AI infrastructure",
+       "type": "company press release (via search rendering; anthropic.com blocked)",
+       "date": "2025-11-12",
+       "quote": "Anthropic announced a $50 billion investment in American computing infrastructure, building data centers with Fluidstack in Texas and New York, with more sites to come ... approximately 800 permanent jobs and 2,400 construction jobs, with sites coming online throughout 2026."
+      },
+      {
+       "url": "https://tech-insider.org/amazon-anthropic-5-billion-investment-trainium-2026/",
+       "title": "Amazon Q2 2026 earnings call (Jassy quote, secondary rendering)",
+       "type": "earnings call quote via secondary source \u2014 treat with caution",
+       "date": "2026-08",
+       "quote": "Our Chips revenue run rate is now over $25 billion ... the two leading AI labs in the world in Anthropic and OpenAI making multi-year, multi-gigawatt commitments to Trainium"
+      }
+     ],
+     "caveats": "All quotes captured from search-engine renderings of the cited pages: the sandbox egress proxy blocked ALL direct fetches, including anthropic.com, SEC EDGAR (efts.sec.gov/www.sec.gov), PRNewswire, and IR sites. Key figures are corroborated across 2+ independent outlets plus company-release titles/X posts. The 10.9 GW sum mixes 'up to' ceilings (AWS 5 GW, Azure 1 GW) with firm leases (TeraWulf 401 MW) and excludes unquantified CoreWeave and the $50B Fluidstack own-build, so true secured power is somewhere below the ceiling sum but the total pipeline is larger. Amazon's exact Q2 2026 call language ('multi-gigawatt commitments to Trainium') comes from a secondary rendering of the call, not a verified transcript; the 'up to 5 GW' figure itself is from Anthropic's own Apr 20, 2026 release title. Timing corrections vs. the prior agent's brief: TeraWulf lease announced Jul 6, 2026 (reiterated with Q2 results Aug 5, 2026); CoreWeave deal Apr 10, 2026 (not Aug 2026); the '~$350B round' closed larger as the $380B Series G (Feb 12, 2026) and was superseded by the $965B Series H (May 28, 2026).",
+     "confidence": "high"
+    },
+    {
+     "name": "xAI (subsidiary of SpaceX since Feb 2, 2026; previously xAI Holdings incl. X Corp)",
+     "ticker": "(within SPCX)",
+     "as_of": "2026-08-17",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": 2500,
+      "contracted_unbuilt_mw": 500,
+      "total_pipeline_mw": 2500,
+      "gpu_count": 555000,
+      "capacity_definition": "contracted_or_secured_power_mw = Memphis Colossus complex ~2 GW announced total capacity (after Jan 2026 purchase of a third building; Colossus 2 was reported by SemiAnalysis in Oct 2025 as the world's first gigawatt-scale AI datacenter) + Saudi/Humain Riyadh-area facility of 'more than 500 MW' (announced late 2025/early 2026; first phase ~18,000 NVIDIA GB300s; first operational phase scheduled end-2026, balance mid-2027 \u2014 NOT operational as of Jul 31, 2026 per available reporting, hence contracted_unbuilt_mw = 500). built_active_mw = null because precise in-service MW at Memphis is not disclosed \u2014 the 2 GW figure is announced capacity with a portion still being fitted out (Solaris expects >1.1 GW of turbines fully operating for xAI by Q2 2027). gpu_count = ~555,000 NVIDIA GPUs (H100/H200/GB200 mix) at the Memphis complex as of Jan-Feb 2026 reporting, purchased for ~$18B; Musk has indicated plans for 1M+ GPUs and has previously talked up '50M H100-equivalents by 2030'-type ambitions (aspiration, not verified this session, not included in any field)."
+     },
+     "financials": {
+      "valuation_usd_m": 250000,
+      "valuation_basis": "Last standalone mark: $250B \u2014 the value assigned to xAI in SpaceX's all-stock acquisition announced Feb 2, 2026 (combined entity $1.25T; xAI holders received 0.1433 SpaceX shares per xAI share per Reuters rendering). Immediately prior: $20B Series E closed Jan 6, 2026 at a reported ~$230B valuation (investors incl. NVIDIA, Cisco, Fidelity, QIA, MGX, Valor, StepStone, Tesla ~$2B); trajectory: $80B xAI/X merger Mar 2025 -> ~$200B reports late 2025 -> $230B Series E -> $250B acquisition value. Since Feb 2026 xAI has no standalone valuation \u2014 it is embedded in publicly traded SpaceX (Nasdaq: SPCX, ~$1.84T market cap as of Aug 17, 2026).",
+      "ntm_revenue_usd_m": 2000,
+      "revenue_basis": "Press estimate, weak: 'xAI told investors it's targeting about $2 billion in Grok revenue for the full 2026 year \u2014 a roughly 4x jump from 2025'; third-party mid-2026 annualized estimates for standalone xAI/Grok range widely from ~$0.5B ARR to ~$1.7-3.3B depending on whether X/infrastructure revenue is included. No company-confirmed run-rate exists; treat as low-reliability.",
+      "ntm_ebitda_usd_m": null,
+      "net_debt_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "backlog_definition": "No disclosed revenue backlog. xAI raised roughly $20B in combined equity+debt during 2025 plus the $20B Jan 2026 Series E; standalone net debt is no longer meaningful post-consolidation into SpaceX and was not separately disclosed. Widely reported ~$1B/month cash burn figures (2025) are press estimates."
+     },
+     "sources": [
+      {
+       "url": "https://www.cnbc.com/2026/02/03/musk-xai-spacex-biggest-merger-ever.html",
+       "title": "Musk's xAI, SpaceX combo is the biggest merger of all time, valued at $1.25 trillion",
+       "type": "news (CNBC, via search rendering)",
+       "date": "2026-02-03",
+       "quote": "Musk's xAI, SpaceX combo is the biggest merger of all time, valued at $1.25 trillion ... ($1T for SpaceX, $250B for xAI)"
+      },
+      {
+       "url": "https://www.bloomberg.com/news/articles/2026-02-02/elon-musk-s-spacex-said-to-combine-with-xai-ahead-of-mega-ipo",
+       "title": "SpaceX Acquires xAI as Musk Prepares for Mega IPO",
+       "type": "news (Bloomberg, headline via search rendering)",
+       "date": "2026-02-02",
+       "quote": "SpaceX Acquires xAI as Musk Prepares for Mega IPO"
+      },
+      {
+       "url": "https://www.cnbc.com/2026/01/06/elon-musk-xai-raises-20-billion-from-nvidia-cisco-investors.html",
+       "title": "Elon Musk's xAI raises $20 billion from investors including Nvidia, Cisco, Fidelity",
+       "type": "news (CNBC, via search rendering)",
+       "date": "2026-01-06",
+       "quote": "xAI closed a $20 billion Series E in January 2026 at a $230 billion valuation, upsized from an initial $15 billion target ... including Valor Equity Partners, StepStone Group, Fidelity ... Nvidia Corp., Cisco Investments, and Tesla Inc."
+      },
+      {
+       "url": "https://newsletter.semianalysis.com/p/xais-colossus-2-first-gigawatt-datacenter",
+       "title": "xAI's Colossus 2 - First Gigawatt Datacenter In The World",
+       "type": "industry research (SemiAnalysis, headline via search rendering)",
+       "date": "2025-10",
+       "quote": "xAI's Colossus 2 - First Gigawatt Datacenter In The World, Unique RL Methodology, Capital Raise"
+      },
+      {
+       "url": "https://introl.com/blog/xai-colossus-2-gigawatt-expansion-555k-gpus-january-2026",
+       "title": "xAI Colossus Hits 2 GW: 555,000 GPUs, $18B, Largest AI Site",
+       "type": "industry blog (lower-tier source, via search rendering)",
+       "date": "2026-01",
+       "quote": "Elon Musk announced xAI purchased a third building in Memphis, expanding Colossus to 2 gigawatts total capacity. The facility will house 555,000 NVIDIA GPUs purchased for approximately $18 billion ... Solaris expects to have over 1.1GW of fully operating turbines for xAI by Q2 2027."
+      },
+      {
+       "url": "https://www.theinformation.com/briefings/elon-musks-xai-build-500-mw-data-center-saudi-arabias-humain",
+       "title": "Elon Musk's xAI to Build 500 MW Data Center With Saudi Arabia's Humain",
+       "type": "news (The Information, via search rendering)",
+       "date": "2025-12",
+       "quote": "a planned facility of more than 500 MW that will expand xAI's supercluster footprint ... xAI will deploy approximately 18,000 NVIDIA GB300 GPUs in the first cluster ... The first operational phase is scheduled for end-2026 and the balance for mid-2027."
+      },
+      {
+       "url": "https://vision2030.ai/analysis/humain-data-centers-riyadh-dammam-status/",
+       "title": "HUMAIN Data Centers Riyadh & Dammam: Open Yet?",
+       "type": "analysis site (lower-tier, via search rendering)",
+       "date": "2026-07-31",
+       "quote": "No public evidence confirms the Riyadh or Dammam sites are operational as of 31 July 2026."
+      },
+      {
+       "url": "https://www.startuphub.ai/ai-news/ai-figures/2026/figure-elon-musk-xai-company-financial-breakdown-2026-05-26",
+       "title": "Elon Musk's xAI: $500M ARR, $1B Burn, $1.25T SpaceX Merger",
+       "type": "press estimate (lower-tier, via search rendering)",
+       "date": "2026-05-26",
+       "quote": "xAI told investors it's targeting about $2 billion in Grok revenue for the full 2026 year \u2014 a roughly 4x jump from 2025."
+      }
+     ],
+     "caveats": "All quotes are from search-engine renderings (egress proxy blocked all direct fetches). The corporate structure changed materially in 2026: xAI (which had absorbed X Corp in Mar 2025) was acquired by SpaceX in an all-stock deal announced Feb 2, 2026, and the combined company IPO'd Jun 12, 2026 \u2014 so xAI no longer has a standalone valuation; $250B is the final private acquisition mark. Memphis capacity figures (2 GW, 555K GPUs, $18B) come from second-tier trackers (Introl/Grokipedia-class) that are mutually consistent but not confirmed by a top-tier outlet in my searches; SemiAnalysis (credible) supports Colossus 2 as the first ~GW-scale DC in late 2025. The split between active vs. fitted-out MW at Memphis is genuinely unclear \u2014 power generation (turbines) lags announced capacity into 2027. Revenue figures are the weakest data here: estimates span ~$0.5B ARR to ~$3.3B annualized; the $2B FY2026 Grok target is a reported investor communication, not audited. The '50M H100-equivalents by 2030' Musk claim was not re-verified in this session and is excluded from all fields.",
+     "confidence": "medium"
+    },
+    {
+     "name": "SpaceX (Space Exploration Technologies Corp., incl. xAI)",
+     "ticker": "SPCX",
+     "as_of": "2026-08-17",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "YES \u2014 SpaceX has an AI-compute business as of Aug 2026, on two fronts, but MW fields are left null here to avoid double counting: (1) Terrestrial: via the Feb 2, 2026 acquisition of xAI, SpaceX consolidates the Memphis Colossus complex (~2 GW announced) and the Saudi/Humain 500+ MW project \u2014 those MW are reported in the xAI entry above. (2) Orbital: SpaceX has filed with the FCC to deploy up to one million satellites for orbital AI compute, with pilot testing of on-orbit compute nodes on Starlink V3 hardware planned for 2026; Musk's claim that launching 'one million tonnes per year of satellites generating 100kW of compute power per tonne would add 100 gigawatts of AI compute capacity annually' is an aspiration with no built capacity \u2014 zero orbital compute MW is in service as of Aug 2026. Precursor: SpaceX made a reported $2B investment in xAI in mid-2025 (part of a $5B equity raise), superseded by the full acquisition."
+     },
+     "financials": {
+      "valuation_usd_m": 1840000,
+      "valuation_basis": "Public market capitalization, Nasdaq: SPCX, ~$1.84T as of Aug 17, 2026 (share price ~$140). IPO Jun 12, 2026: priced at $135, raised a reported ~$75B, closed day one at $160.95 (+19%) for a ~$2.1T market cap \u2014 this supersedes all private marks (~$400B Dec 2025 tender reports; $1T implied in the Feb 2026 xAI merger; FT-reported $1.5T IPO target).",
+      "ntm_revenue_usd_m": null,
+      "revenue_basis": "Not compiled in this pass \u2014 no reliable consolidated NTM revenue figure was captured from primary sources within search budget; now that SPCX is public, its prospectus/10-Q on EDGAR is the correct source (EDGAR was blocked from this sandbox).",
+      "ntm_ebitda_usd_m": null,
+      "net_debt_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "backlog_definition": "Not compiled \u2014 SpaceX's launch/Starlink backlog figures were out of scope of this AI-compute-focused pass and require the IPO prospectus (blocked EDGAR)."
+     },
+     "sources": [
+      {
+       "url": "https://www.cnbc.com/2026/06/12/spacex-ipo-spcx-live-updates.html",
+       "title": "SpaceX IPO takeaways: SPCX closes at $161, jumping 19% after record debut",
+       "type": "news (CNBC, via search rendering)",
+       "date": "2026-06-12",
+       "quote": "SpaceX priced its IPO on June 11, 2026, and started trading on the Nasdaq the next day, June 12, 2026, under the ticker SPCX. The original IPO price was $135. The stock closed its first day at $160.95, up 19%"
+      },
+      {
+       "url": "https://www.cnbc.com/2026/06/12/spacex-stock-jumps-2-trillion.html",
+       "title": "SpaceX IPO: Market cap tops $2 trillion after shares gain 19%",
+       "type": "news (CNBC, headline via search rendering)",
+       "date": "2026-06-12",
+       "quote": "SpaceX IPO: Market cap tops $2 trillion after shares gain 19% ... raised a historic $75 billion"
+      },
+      {
+       "url": "https://companiesmarketcap.com/spacex/marketcap/",
+       "title": "SpaceX (SPCX) - Market capitalization",
+       "type": "market data aggregator (via search rendering)",
+       "date": "2026-08-17",
+       "quote": "As of August 2026, SpaceX has a market cap of $1.844 trillion USD ... SpaceX (SPCX) stock is priced at $140.56"
+      },
+      {
+       "url": "https://www.cnbc.com/2026/02/03/musk-xai-spacex-biggest-merger-ever.html",
+       "title": "Musk's xAI, SpaceX combo is the biggest merger of all time, valued at $1.25 trillion",
+       "type": "news (CNBC, via search rendering)",
+       "date": "2026-02-03",
+       "quote": "On February 2, 2026, SpaceX acquired Elon Musk's AI company xAI in an all-stock merger valuing the combined entity at $1.25 trillion ($1T for SpaceX, $250B for xAI)"
+      },
+      {
+       "url": "https://www.datacenterdynamics.com/en/news/spacex-files-for-million-satellite-orbital-ai-data-center-megaconstellation/",
+       "title": "SpaceX files for million satellite orbital AI data center megaconstellation",
+       "type": "trade press (DCD, headline via search rendering)",
+       "date": "2026",
+       "quote": "SpaceX files for million satellite orbital AI data center megaconstellation ... SpaceX plans to begin pilot testing of on-orbit compute nodes on Starlink V3 hardware in 2026 ... launching one million tonnes per year of satellites generating 100kW of compute power per tonne would add 100 gigawatts of AI compute capacity annually"
+      },
+      {
+       "url": "https://techcrunch.com/2025/07/13/elon-musks-spacex-might-invest-2-billion-in-musks-xai/",
+       "title": "Elon Musk's SpaceX might invest $2 billion in Musk's xAI",
+       "type": "news (TechCrunch, via search rendering; original report WSJ)",
+       "date": "2025-07-13",
+       "quote": "SpaceX has agreed to invest $2 billion in Elon Musk's AI startup xAI. The investment is part of a $5 billion equity raise ... This is SpaceX's first investment in xAI and one of its biggest investments in another company."
+      },
+      {
+       "url": "https://finance.yahoo.com/news/spacex-weighs-june-2026-ipo-050656741.html",
+       "title": "SpaceX weighs June 2026 IPO at $1.5 trillion valuation, FT says",
+       "type": "news (Yahoo/FT, via search rendering)",
+       "date": "2026",
+       "quote": "SpaceX weighs June 2026 IPO at $1.5 trillion valuation, FT says"
+      }
+     ],
+     "caveats": "The prior agent's framing ('does SpaceX have an AI-compute business? ~$400B Dec 2025 valuation') is badly stale: SpaceX ACQUIRED xAI on Feb 2, 2026 (all-stock, combined $1.25T) and went PUBLIC on Nasdaq (SPCX) on Jun 12, 2026 \u2014 it is now a ~$1.84T public company whose AI-compute business is xAI (terrestrial, see xAI entry) plus a pre-revenue orbital-compute program (FCC filing for up to 1M satellites; Starlink V3 compute pilots planned 2026; zero orbital MW in service). Capacity fields are null here purely to avoid double counting xAI's MW, not because no business exists. All quotes come from search-engine renderings \u2014 the egress proxy blocked every direct fetch including EDGAR, so the IPO prospectus figures (revenue, backlog, share count behind the market cap) could not be pulled; the $1.844T market cap is from an aggregator rendering dated Aug 17, 2026 and CNBC quote page listings. The Bloomberg merger headline and CNBC IPO coverage independently corroborate the two structural events, which I rate high-confidence.",
+     "confidence": "high"
+    }
+   ],
+   "research_notes": "METHODOLOGY / SOURCING LIMITATION: The sandbox egress proxy blocked ALL direct WebFetch/curl access \u2014 including SEC EDGAR (efts.sec.gov, www.sec.gov), anthropic.com, aboutamazon.com, prnewswire.com, IR sites (investors.terawulf.com, investors.coreweave.com), and trade press. Every quote in this output therefore comes from search-engine result renderings (titles + AI-summarized snippets), cross-checked across multiple independent queries and outlets per the fallback protocol. Headline numbers were only accepted when (a) they appeared in a company's own release title/X post surfaced in results, or (b) 2+ independent reputable outlets (CNBC, Bloomberg, NBC, TechCrunch, Tom's Hardware, The Information) agreed. Where only lower-tier sources existed (xAI Memphis GPU/GW detail, xAI revenue, Humain status), this is flagged and confidence reduced.\n\nKEY CORRECTIONS TO THE PRIOR AGENT'S PRE-2026 PICTURE:\n1. Anthropic valuation did not stop at ~$350B: Jan 7, 2026 term sheet $10B@$350B -> closed as $30B Series G @ $380B post-money (Feb 12, 2026, GIC/Coatue-led; Microsoft and NVIDIA money included) -> $65B Series H @ $965B post-money (May 28, 2026, Altimeter/Dragoneer/Greenoaks/Sequoia co-led; includes $15B previously committed hyperscaler money, $5B of it Amazon's). $965B is the latest closed mark.\n2. Anthropic revenue: company-linked milestones >$9B (end-2025), $14B (Feb 2026), >$30B (early Apr 2026), $47B (mid-May 2026, company X post). Alt-data trackers ~$69-74B ARR by late July 2026 (unofficial).\n3. Amazon 'up to 5 GW' was announced Apr 20, 2026 with the expanded partnership ($5B equity now + up to $20B milestones + Anthropic commits $100B AWS spend/decade), then referenced on the Q2 2026 AWS call ('multi-gigawatt commitments to Trainium' \u2014 Jassy quote via secondary rendering only).\n4. TeraWulf 401 MW / ~$19B / 20-yr lease announced Jul 6, 2026 (not with Aug results; reiterated in Q2 release Aug 5, 2026). CoreWeave-Anthropic deal announced Apr 10, 2026 (not Aug), no MW/$ disclosed. Google/Broadcom expansion (Apr 6, 2026) = ~3.5 GW next-gen TPU from 2027, additive to the ~1M TPU / >1 GW-in-2026 Oct 2025 deal. Microsoft/NVIDIA (Nov 18, 2025) = $30B Azure purchase + up to 1 GW (Grace Blackwell/Vera Rubin systems), MSFT up to $5B / NVDA up to $10B investment \u2014 both then appeared in Series G.\n5. Anthropic committed-GW best-effort sum: 5 (AWS ceiling) + ~1 (Google 2026) + 3.5 (Broadcom/Google 2027) + 1 (Azure ceiling) + 0.401 (TeraWulf) = ~10.9 GW, EXCLUDING unquantified CoreWeave + $50B Fluidstack own-build (TX/NY, 'gigawatts', sites online through 2026).\n6. STRUCTURAL CHANGE for entries 2-3: SpaceX acquired xAI Feb 2, 2026 (all-stock; xAI at $250B, SpaceX $1T, combined $1.25T \u2014 biggest merger ever per CNBC; Bloomberg corroborates), then the combined company IPO'd on Nasdaq as SPCX on Jun 12, 2026 ($135 IPO price, ~$75B raised, day-1 close $160.95 / ~$2.1T cap). Market cap ~$1.844T on Aug 17, 2026 (~$140/share). The Dec 2025 ~$400B tender talk and FT's $1.5T IPO-target report are superseded by the live public price. xAI's Jan 2026 $20B Series E (~$230B, NVIDIA/Cisco/Fidelity/QIA/MGX/Tesla) was its last standalone round; HUMAIN put $3B into that round.\n7. xAI Memphis: Colossus 2 = first ~GW-scale DC (SemiAnalysis, Oct 2025); ~555K GPUs / 2 GW announced total / ~$18B GPU spend after Jan 2026 third-building purchase (second-tier trackers, mutually consistent); Saudi/Humain 500+ MW not operational as of Jul 31, 2026 (first phase target end-2026). xAI revenue remains murky: ~$2B FY2026 Grok target told to investors; estimates $0.5-3.3B annualized.\n8. SpaceX AI compute: real and two-pronged post-merger \u2014 xAI terrestrial assets + orbital program (FCC filing for up to 1M compute satellites; Starlink V3 on-orbit compute pilots planned 2026; 0 MW in service). The 2025 $2B SpaceX->xAI investment (WSJ-reported, part of a $5B raise) is confirmed but superseded by the acquisition.\n\nRESIDUAL UNCERTAINTY: (a) exact Jassy Q2-2026 call wording unverified against a transcript; (b) xAI Memphis active-vs-announced MW split; (c) SPCX consolidated revenue/backlog need the EDGAR prospectus, unreachable from this sandbox; (d) all 'up to' figures (AWS 5 GW, Azure 1 GW, NVIDIA/MSFT investment caps) are ceilings, not deliveries."
+  },
+  "nbis-detail": {
+   "companies": [
+    {
+     "name": "Nebius Group N.V.",
+     "ticker": "NBIS",
+     "as_of": "2026-08-17",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": 3500,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": 5000,
+      "gpu_count": null,
+      "capacity_definition": "Nebius reports two power metrics. 'Contracted power' = capacity secured through land/power commitments, not necessarily built or energized; latest disclosed ACTUAL remains 3,500 MW (3.5 GW) at end Q1 2026 (round-1 figure; no updated Q2 actual surfaced \u2014 the Q2 letter of Aug 12, 2026 raised the YEAR-END 2026 target to 5 GW, up from 4 GW guided in May and 3 GW guided in February). 'Connected power' = power connected to fully built data centers; the mid-2026 actual was NOT retrievable (all direct document fetches blocked by egress proxy; search renderings only show guidance). Latest reaffirmed guidance: 800 MW-1 GW of connected power by end-2026 (vs ~220 MW targeted for end-2025 in the Q3 2025 letter), and management said connected power lags revenue by several months (commissioning, networking, GPU install). Beyond 2026: '>1 GW of new capacity annually starting in 2027'; total_pipeline_mw = 5,000 MW is the YE2026 contracted-power target, not a hard pipeline cap."
+     },
+     "financials": {
+      "contracted_revenue_backlog_usd_m": 40000,
+      "backlog_definition": "Contracted revenue backlog from committed customer contracts. Quote (July 2026 6-K, via search rendering): 'With more than $40 billion of additional contracted revenue from investment-grade customers such as Microsoft and Meta already in place, Nebius expects to raise more capital at similarly attractive terms.' Consistent with round-1's ~$40B committed backlog. Components include Microsoft (~$17.4B through 2031, expandable to ~$19.4B) and Meta (up to ~$27B: $12B dedicated capacity on NVIDIA Vera Rubin + up to $15B additional compute over five years, delivery starting early 2027). Q2 added four new core AI cloud contracts (Reflection, Cohere, a US Neolab, a US quant trading firm) averaging >$1B each at $20-25M revenue per MW.",
+      "net_debt_usd_m": 503.6,
+      "ntm_ebitda_usd_m": 1280,
+      "ntm_revenue_usd_m": 3200,
+      "revenue_basis": "ntm_revenue_usd_m = $3,200M is the midpoint of reaffirmed FY2026 revenue guidance of $3.0-3.4B (a proxy; true NTM Aug 2026-Aug 2027 would be higher given the ramp). Q2 2026 actual revenue $582M (+454% YoY, round-1: $582.3M); annualized run-rate revenue (ARR) reached $3.0B at end of June 2026. Quote (via search renderings of Q2 results): 'revenue up 454% year over year to $582 million and annualized run-rate revenue reaching $3 billion.'",
+      "valuation_usd_m": 75549,
+      "valuation_basis": "Market cap = 271,855,218 shares x $277.90 = ~$75.5B, sanity-checking the ~$75B round-1 figure. Shares quote (Q2 2026 results release, Aug 12, 2026, via search rendering): 'The total number of shares issued and outstanding as of June 30, 2026 was 271,855,218, including 238,400,165 Class A shares and 33,455,053 Class B shares, and excluding 50,185,726 Class A shares held in treasury.' No Class C shares outstanding were cited in the rendering. Enterprise value would add net debt of ~$0.5B (EV ~$76.1B), before any treatment of ~$9B expected 2026 customer prepayments."
+     },
+     "sources": [
+      {
+       "url": "https://mms.businesswire.com/media/20260812963359/en/2874372/1/SHLQ226.pdf",
+       "title": "Nebius Group Letter to shareholders Q2 2026 (August 12, 2026)",
+       "type": "company shareholder letter (6-K exhibit)",
+       "date": "2026-08-12",
+       "quote": "Via search rendering (direct fetch blocked): 'The company continues to expect 800 megawatts to 1 gigawatt of connected power by the end of 2026'; 'Nebius raised its year-end 2026 contracted-power target to 5GW and said it plans to deploy more than 1GW of new capacity annually starting in 2027'; 'Nebius expects customer prepayments to provide more than $9 billion during 2026'; '70% of deals had partial prepayment, with that prepayment often covering 50% to 60% of associated capital expenditures.'"
+      },
+      {
+       "url": "https://www.businesswire.com/news/home/20260812963359/en/Nebius-reports-second-quarter-2026-financial-results",
+       "title": "Nebius reports second quarter 2026 financial results",
+       "type": "company press release / 6-K exhibit (SEC: nbis-20260812xex99d1.htm)",
+       "date": "2026-08-12",
+       "quote": "Via search rendering: 'The total number of shares issued and outstanding as of June 30, 2026 was 271,855,218, including 238,400,165 Class A shares and 33,455,053 Class B shares, and excluding 50,185,726 Class A shares held in treasury.'"
+      },
+      {
+       "url": "https://www.stocktitan.net/sec-filings/NBIS/6-k-nebius-group-n-v-current-report-foreign-issuer-317e8515e46a.html",
+       "title": "Nebius posts Q2 revenue surge and positive Adjusted EBITDA | NBIS 6-K",
+       "type": "6-K balance-sheet summary (secondary rendering of SEC filing)",
+       "date": "2026-08-12",
+       "quote": "Via search rendering: 'As of Q2 2026, non-current debt reached $8,499.0 million (plus $46.7 million current debt)... Total debt rose to about $8.5 billion, reflecting proceeds from convertible notes and pre-funded warrants... cash and cash equivalents of $8,042.1 million.' Net debt = $8,545.7M - $8,042.1M = $503.6M (computed; confirms round-1)."
+      },
+      {
+       "url": "https://nebius.com/newsroom/nebius-group-announces-closing-of-private-offering-of-convertible-senior-notes-with-aggregate-gross-proceeds-of-approximately-4-3-billion",
+       "title": "Nebius Group announces closing of private offering of convertible senior notes (~$4.3 billion)",
+       "type": "company press release",
+       "date": "2026 (H1)",
+       "quote": "Via search rendering: 'Nebius closed its private offering of convertible senior notes in two series: 1.250% convertible notes due 2031 and 2.625% convertible notes due 2033, with total aggregate original principal amount of $4.3375 billion.' (This 2026 offering is in addition to the Dec 2025 convertible issuance referenced in round 1.)"
+      },
+      {
+       "url": "https://finance.yahoo.com/technology/ai/articles/nebius-q2-revenue-jumps-454-140044127.html",
+       "title": "Nebius Q2 revenue jumps 454% as AI capacity pricing and margins rise",
+       "type": "financial press (earnings coverage)",
+       "date": "2026-08-12",
+       "quote": "Via search rendering: 'Nebius Group adjusted EBITDA was $236 million, compared with a $21 million loss a year earlier and $129.5 million in the first quarter. Group adjusted EBITDA margin increased to 41% from 32% in Q1... Management reaffirmed its 2026 targets, including $3 billion-$3.4 billion in revenue and a roughly 40% adjusted EBITDA margin.' (Round-1's $236.2M adj EBITDA verified; no absolute FY EBITDA guidance found - margin guidance only.)"
+      },
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/0001513845/000110465926084452/tm2620683d1_ex99-1.htm",
+       "title": "Nebius Group N.V. Form 6-K exhibit (July 2026)",
+       "type": "SEC 6-K exhibit",
+       "date": "2026-07",
+       "quote": "Via search rendering: 'With more than $40 billion of additional contracted revenue from investment-grade customers such as Microsoft and Meta already in place, Nebius expects to raise more capital at similarly attractive terms.' Microsoft status: 'Nebius recently delivered the latest planned capacity tranche to Microsoft, and remains on track to deliver the remaining tranches consistent with the terms of the contracted schedule.'"
+      },
+      {
+       "url": "https://nebius.com/newsroom/nebius-signs-new-ai-infrastructure-agreement-with-meta",
+       "title": "Nebius signs new AI infrastructure agreement with Meta",
+       "type": "company press release",
+       "date": "2026-03-16",
+       "quote": "Via search rendering: 'a new long-term AI infrastructure supply agreement with Meta... contract value of up to approximately $27 billion,' comprising '$12 billion of dedicated capacity across multiple locations under a five-year agreement, based on one of the first large-scale deployments of the NVIDIA Vera Rubin platform' plus Meta's commitment 'to purchase additional available compute capacity across certain upcoming Nebius clusters up to a total of $15 billion over a five-year period,' with delivery 'starting early 2027.'"
+      },
+      {
+       "url": "https://www.cnbc.com/2025/09/08/nebius-stock-soars-on-ai-infrastructure-deal-with-microsoft-.html",
+       "title": "Nebius stock soars on AI infrastructure deal with Microsoft (deal terms)",
+       "type": "financial press / company 6-K (tm2525580d1_6k.htm)",
+       "date": "2025-09-08",
+       "quote": "Via search rendering: 'The total contract value is about $17.4 billion through 2031, with Microsoft able to acquire additional services and/or capacity that would increase the total contract value to about $19.4 billion,' for 'dedicated GPU infrastructure capacity in tranches at its new data center in Vineland, New Jersey over a five-year term.'"
+      },
+      {
+       "url": "https://finance.yahoo.com/technology/ai/articles/nebius-group-q2-earnings-call-150444472.html",
+       "title": "Nebius Group Q2 Earnings Call Highlights",
+       "type": "earnings-call coverage",
+       "date": "2026-08-12",
+       "quote": "Via search rendering: 'CEO Arkady Volozh said the company closed four landmark core AI cloud contracts during the quarter with Reflection, Cohere, a U.S. Neolab and a U.S.-based quantitative trading firm... averaged more than $1 billion each and carried yields of $20 million to $25 million per megawatt'; CIPO Andrey Korolenko 'said almost all of that contracted power is expected to come online over the next two to three-and-a-half years' and 'cautioned that connected power does not immediately translate into revenue.'"
+      }
+     ],
+     "caveats": "1) ALL quotes are from search-engine renderings, not direct document fetches - the egress proxy blocked every direct fetch attempted (sec.gov, efts.sec.gov, nebius.com/assets.nebius.com, businesswire, Yahoo, investing.com, DCD, Motley Fool, marketscreener, stocktitan, theregister, mlq.ai, substacks). Figures were cross-checked across multiple independent renderings where possible. 2) CONNECTED power ACTUAL as of Jun 30, 2026 was NOT retrievable - only the reaffirmed YE2026 guidance of 800 MW-1 GW surfaced; built_active_mw left null rather than guessing (~220 MW was the end-2025 target per the Q3 2025 letter; the round-1 hypothesis of ~390 MW mid-2026 could not be confirmed). 3) Contracted power actual: 3,500 MW is the end-Q1 2026 actual carried from round 1; the Q2 letter raised the YE2026 TARGET to 5 GW (target evolution: 3 GW in Feb, 4 GW in May, 5 GW in Aug) but no updated Q2 actual surfaced. 4) Net debt $503.6M is COMPUTED (total debt $8,545.7M = $8,499.0M non-current + $46.7M current, minus cash $8,042.1M), not company-stated; it ignores ~$9B of expected 2026 customer prepayments (deferred revenue) and treasury shares. 5) ntm_ebitda_usd_m $1,280M is IMPLIED (40% margin x $3.2B midpoint FY26 revenue guidance = $1.2-1.36B range), not guided in absolute terms, and understates true NTM given the ramp. 6) ntm_revenue is the FY26 guidance midpoint, also conservative vs true NTM.",
+     "confidence": "medium"
+    }
+   ],
+   "research_notes": "Gap-fill results for Nebius (NBIS), researched 2026-08-17. Environment constraint: the egress proxy blocked 100% of direct WebFetch attempts (including sec.gov, efts.sec.gov, assets.nebius.com, mms.businesswire.com), so every quote comes from search-engine renderings cross-checked across multiple queries, per the fallback protocol. Key findings: (1) Connected power - Q2 letter (Aug 12, 2026) reaffirmed 800 MW-1 GW connected by end-2026; the mid-2026 ACTUAL connected MW was not disclosed in any accessible rendering (multiple targeted queries failed), so it remains an open gap; management noted a multi-month lag between connection and revenue. (2) Contracted power - YE2026 target raised to 5 GW (from 4 GW in May, 3 GW in Feb) plus >1 GW/yr new deployments from 2027; latest actual remains round-1's 3.5 GW (end Q1 2026). (3) Debt verified: non-current debt $8,499.0M + current $46.7M = $8,545.7M total; cash $8,042.1M; net debt $503.6M (computed) - round-1 figure CONFIRMED. New 2026 convert offering: $4.3375B aggregate principal (1.250% due 2031 + 2.625% due 2033); balance also reflects pre-funded warrants. (4) Shares: 271,855,218 outstanding at Jun 30, 2026 (238,400,165 Class A + 33,455,053 Class B, ex 50,185,726 treasury Class A) - at $277.90 that is ~$75.5B market cap, matching the ~$75B round-1 figure; no Class C cited. (5) EBITDA: Q2 adj EBITDA $236M (round-1 $236.2M confirmed) at 41% margin (up from 32% in Q1, $129.5M); FY26 guidance reaffirmed at ~40% adj EBITDA margin on $3.0-3.4B revenue - margin guidance only, no absolute EBITDA guidance found. (6) MSFT: ~$17.4B through 2031 (expandable to ~$19.4B), Vineland NJ; July 2026 6-K says latest tranche delivered, on track for remaining tranches. Meta: up to ~$27B (Mar 16, 2026) = $12B dedicated Vera Rubin capacity + up to $15B additional over five years, delivery from early 2027. Bonus color: four new ~$1B+ AI cloud contracts in Q2 (Reflection, Cohere, US Neolab, US quant firm) at $20-25M/MW yields; >$9B customer prepayments expected in 2026; >$40B backlog quote reconfirmed."
+  },
+  "miner-balance-sheets": {
+   "companies": [
+    {
+     "name": "Hut 8 Corp.",
+     "ticker": "HUT",
+     "as_of": "2026-06-30 (Q2 2026 10-Q filed ~2026-08-04)",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "Capacity fields intentionally null - covered in round-1. No corrections observed, but note Q2 disclosed $7.5B of non-recourse project financing raised for 2 construction-stage AI campuses (relevant to round-1 pipeline figures)."
+     },
+     "financials": {
+      "net_debt_usd_m": 566,
+      "ntm_revenue_usd_m": null,
+      "ntm_ebitda_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "valuation_usd_m": null,
+      "revenue_basis": "Latest quarterly revenue: Q2 2026 (three months ended Jun 30, 2026) revenue $74.9M (vs $41.3M prior-year quarter, ~+81% YoY); net loss $177.1M. GAAP, consolidated (includes majority-owned American Bitcoin).",
+      "backlog_definition": "",
+      "valuation_basis": "Not requested this round. Net debt basis: ~$7.6B total debt (approx.; ~$7.5B is non-recourse project-level financing) minus $233.6M unrestricted cash minus ~$6.8B restricted cash (undrawn escrowed project-financing proceeds) = ~$566M. Debt figures approximate as rendered from filing/call."
+     },
+     "sources": [
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/0001964789/000110465926090025/hut-20260630x10q.htm",
+       "title": "Hut 8 Corp. - Form 10-Q - FY2026 (quarter ended June 30, 2026)",
+       "type": "10-Q (SEC EDGAR; located via search - direct fetch blocked, content via search renderings)",
+       "date": "2026-08-04",
+       "quote": "Cash and restricted cash increased to approximately $7 billion and total debt increased to approximately $7.6 billion."
+      },
+      {
+       "url": "https://www.prnewswire.com/news-releases/hut-8-reports-second-quarter-2026-results-302841830.html",
+       "title": "Hut 8 Reports Second Quarter 2026 Results",
+       "type": "Company press release (via search rendering)",
+       "date": "2026-08-04",
+       "quote": "approximately $8.1 billion in unrestricted cash, restricted cash and cash equivalents, and Bitcoin holdings, including $7.6 billion attributable to Hut 8 and $497.2 million attributable to American Bitcoin, as of June 30, 2026 ... Following the conversion of the Company's $150.0 million Coatue convertible note, Hut 8 carries no general recourse debt at the parent level ... refinanced its $200.0 million Bitcoin-backed credit facility through a new facility with FalconX, reducing facility cost of debt from 9.0% to 7.0%"
+      },
+      {
+       "url": "https://cryptoslate.com/hut-8s-7-billion-cash-balance-shrinks-to-233-million-outside-its-ai-projects/",
+       "title": "Hut 8's $7 billion cash balance shrinks to $233 million outside its AI projects",
+       "type": "News article quoting earnings call (via search rendering)",
+       "date": "2026-08",
+       "quote": "At June 30, we had approximately $233.6 million of unrestricted cash and approximately $6.8 billion of restricted cash and cash equivalents."
+      },
+      {
+       "url": "https://www.fool.com/earnings/call-transcripts/2026/08/11/hut-8-hut-q2-2026-earnings-call-transcript/",
+       "title": "Hut 8 (HUT) Q2 2026 Earnings Call Transcript",
+       "type": "Earnings call transcript (via search rendering)",
+       "date": "2026-08-11",
+       "quote": "Hut 8 reported 17,316 Bitcoin across its consolidated group, with 9,314 held by Hut 8 and 8,002 held by American Bitcoin. ... The company raised $7.5 billion of investment-grade long-duration project financing for 2 construction-stage campuses with no recourse to the parent."
+      }
+     ],
+     "caveats": "BTC EXCLUDED from net debt: consolidated 17,316 BTC at Jun 30, 2026 (9,314 held by Hut 8, 8,002 by majority-owned American Bitcoin) ~= $1.01B at the Jun 30 BTC price of ~$58,527 (price per RIOT filing, cross-consistent with HUT's $8.1B liquidity arithmetic); ABTC's portion of liquidity was $497.2M, so minority interest dilutes HUT's economic claim on part of the BTC. NET DEBT DEFINITION: ~$7.6B total debt - $7.0B cash incl. ~$6.8B RESTRICTED cash = ~$566M; the restricted cash is escrowed proceeds of the $7.5B non-recourse project financing for two construction-stage AI campuses (will be spent on construction), so on unrestricted cash only, net debt is ~$7.37B. No general-recourse parent debt after the $150M Coatue convertible converted; ~$200M BTC-backed facility refinanced with FalconX (released ~3,300 BTC of collateral). Total debt '~$7.6B' is as rendered/approximate - exact balance-sheet carrying value not captured. Net loss Q2 2026: $177.1M. All figures from search renderings of the 10-Q/press release/call (direct EDGAR fetch blocked).",
+     "confidence": "medium"
+    },
+    {
+     "name": "Galaxy Digital Inc.",
+     "ticker": "GLXY",
+     "as_of": "2026-06-30 (Q2 2026 10-Q, accession 0001859392-26-000091, filed early Aug 2026)",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "Capacity fields intentionally null - covered in round-1. Note: on Jul 28, 2026 (post-quarter) a Galaxy subsidiary completed a $3.5B senior secured notes offering due 2031 to fund Helios Phase II construction."
+     },
+     "financials": {
+      "net_debt_usd_m": 2364,
+      "ntm_revenue_usd_m": null,
+      "ntm_ebitda_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "valuation_usd_m": null,
+      "revenue_basis": "Latest quarterly revenue: Q2 2026 GAAP revenue $8,557.3M (gross presentation - includes counterparty digital-asset trading sales, NOT comparable to miners' service revenue); net loss $85.3M (EPS -$0.09).",
+      "backlog_definition": "",
+      "valuation_basis": "Not requested this round. Net debt basis: notes payable $3.26B (carrying; $2.1B exchangeable senior notes + Helios project credit facility borrowings) minus $896M cash = ~$2,364M. Excludes $1.6B stablecoins; including stablecoins as cash-like, net debt ~$764M."
+     },
+     "sources": [
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/0001859392/000185939226000091/glxy-20260630.htm",
+       "title": "Galaxy Digital Inc. - Form 10-Q - FY2026 (quarter ended June 30, 2026)",
+       "type": "10-Q (SEC EDGAR; located via search - direct fetch blocked, content via search renderings)",
+       "date": "2026-08",
+       "quote": "Q2 2026 revenues were $8,557,336 thousand and net loss was $(85,316) thousand. ... Total digital assets as of June 30, 2026 were $3,517,411 thousand. ... GDH LP issued $500 million of 3.00% exchangeable senior notes (2026 Exchangeable Notes) ... $402.5 million of 2.500% exchangeable senior notes (2029 Exchangeable Notes) ... and $1.3 billion of 0.50% exchangeable senior notes (2031 Exchangeable Notes)"
+      },
+      {
+       "url": "https://www.stocktitan.net/sec-filings/GLXY/10-q-galaxy-digital-inc-quarterly-earnings-report-be3331bb64f1.html",
+       "title": "Galaxy Digital posts Q2 2026 loss amid asset impairments | GLXY Quarterly Report (10-Q)",
+       "type": "10-Q summary (via search rendering)",
+       "date": "2026-08",
+       "quote": "Total assets reached $10.8 billion, total equity $2.7 billion, and cash and stablecoins $2.5 billion ... $896 million in cash and $1.6 billion in stablecoins. Digital assets totaled $3.52 billion, while notes payable were $3.26 billion, including $2.1 billion in exchangeable senior notes and a large project loan."
+      },
+      {
+       "url": "https://www.prnewswire.com/news-releases/galaxy-announces-second-quarter-2026-financial-results-302843529.html",
+       "title": "Galaxy Announces Second Quarter 2026 Financial Results",
+       "type": "Company press release (via search rendering)",
+       "date": "2026-08",
+       "quote": "On July 28, after the quarter ended, a Galaxy subsidiary completed a $3.5 billion offering of senior secured notes due in 2031 to fund Helios Phase II construction, which was not part of the June 30 balance sheet. ... The company recorded $465.8 million in digital asset impairments during the first half of 2026."
+      }
+     ],
+     "caveats": "DIGITAL-ASSET BALANCE SHEET SCALE (excluded from net debt): digital assets $3,517.4M at Jun 30, 2026 (largest of the five; BTC-count breakout not captured from renderings - GLXY holds a trading/treasury mix, not a single BTC stack), plus $1.6B stablecoins. Net debt of $2,364M = notes payable $3.26B - cash $896M; treating stablecoins as cash-equivalents (market convention for GLXY) cuts net debt to ~$764M. Debt composition: $2.1B carrying of exchangeable senior notes (issued: $500M 3.00% due 2026, $402.5M 2.50% due 2029, $1.3B 0.50% due 2031 - carrying below $2.2B aggregate issuance) + borrowings under a ~$1.4B Helios data-center project credit facility. POST-QUARTER: $3.5B senior secured notes due 2031 (Helios Phase II) closed Jul 28, 2026 - not in Jun 30 figures; pro-forma gross debt ~$6.8B before construction spend. Revenue is gross/counterparty-inclusive ($8.56B) - not comparable to peers. H1 2026 digital-asset impairments $465.8M. Total assets $10.8B; equity $2.7B. All figures from search renderings (direct EDGAR fetch blocked).",
+     "confidence": "medium"
+    },
+    {
+     "name": "Core Scientific, Inc.",
+     "ticker": "CORZ",
+     "as_of": "2026-06-30 (Q2 2026 10-Q, accession 0001839341-26-000014, filed 2026-07-28)",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "Capacity fields intentionally null - covered in round-1. Note: Q2 coverage referenced an AMD deal expanding the AI colocation/leasing pipeline (check against round-1 backlog)."
+     },
+     "financials": {
+      "net_debt_usd_m": 2528,
+      "ntm_revenue_usd_m": null,
+      "ntm_ebitda_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "valuation_usd_m": null,
+      "revenue_basis": "Latest quarterly revenue: Q2 2026 total revenue $164.2M, of which colocation (AI/HPC) $136.7M; bitcoin self-mining declining. Large GAAP net loss (~$1.2B H1, mainly non-cash items per coverage).",
+      "backlog_definition": "",
+      "valuation_basis": "Not requested this round. Net debt basis: long-term debt $4,298.0M (carrying, incl. convertible notes and new $3.30B 7.75% senior secured notes due 2031) minus cash and cash equivalents $1.77B = ~$2,528M. Including restricted cash (total cash+restricted $2.55B), net debt ~$1,748M."
+     },
+     "sources": [
+      {
+       "url": "https://investors.corescientific.com/sec-filings/all-sec-filings/content/0001839341-26-000014/core-20260630.htm",
+       "title": "Core Scientific, Inc. - Form 10-Q (quarter ended June 30, 2026), filed July 28, 2026",
+       "type": "10-Q (company IR/EDGAR; located via search - direct fetch blocked, content via search renderings)",
+       "date": "2026-07-28",
+       "quote": "total liabilities were $7,676.8 million, including $4,298.0 million of long-term debt, which includes convertible notes as well. ... Long-term debt increased after a $3.30 billion issuance of 7.75% Senior Secured Notes due 2031."
+      },
+      {
+       "url": "https://investors.corescientific.com/news-events/press-releases/detail/139/core-scientific-announces-second-quarter-2026-results",
+       "title": "Core Scientific Announces Second Quarter 2026 Results",
+       "type": "Company press release (via search rendering)",
+       "date": "2026-07-28",
+       "quote": "Liquidity included cash, cash equivalents and restricted cash of $2.55 billion and bitcoin holdings valued at $49.7 million as of June 30, 2026. ... Core Scientific reported $1.77 billion in cash and cash equivalents."
+      },
+      {
+       "url": "https://www.stocktitan.net/sec-filings/CORZ/10-q-core-scientific-inc-tx-quarterly-earnings-report-9b30ea6af304.html",
+       "title": "Core Scientific boosts AI colocation, logs $1.2B loss | CORZ Quarterly Report (10-Q)",
+       "type": "10-Q summary (via search rendering)",
+       "date": "2026-07",
+       "quote": "Total revenue was $164.2 million, led by colocation revenue of $136.7 million as more AI/HPC capacity came online and bitcoin self-mining activity decreased."
+      }
+     ],
+     "caveats": "BTC EXCLUDED from net debt: bitcoin holdings valued at $49.7M at Jun 30, 2026 (count not disclosed in captured renderings; ~850 BTC implied at the Jun 30 price of ~$58,527) - immaterial vs debt. Net debt $2,528M uses unrestricted cash & equivalents $1.77B; total cash+restricted was $2.55B (restricted ~$0.78B, likely tied to the new notes/interest reserves), giving ~$1,748M including restricted. Debt is carrying value of long-term debt $4,298.0M: $3.30B 7.75% senior secured notes due 2031 (new in period) plus pre-existing convertible notes (~$1.0B aggregate; per-series split not captured). Total liabilities $7,676.8M include large non-debt items (deferred revenue, leases). H1 2026 net loss ~$1.2B per coverage, largely non-cash (mark-to-market on converts/warrants). All figures from search renderings (direct EDGAR fetch blocked).",
+     "confidence": "medium"
+    },
+    {
+     "name": "Riot Platforms, Inc.",
+     "ticker": "RIOT",
+     "as_of": "2026-06-30 (Q2 2026 10-Q, accession 0001104659-26-093448, filed 2026-08-10)",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "Capacity fields intentionally null - covered in round-1. Note: with Q2 results (Aug 10, 2026) Riot announced Corsicana AI data center lease intent, a $28M impairment repurposing Rockdale for data centers, and a $573M Morgan Stanley interim financing facility for initial development costs (check vs round-1)."
+     },
+     "financials": {
+      "net_debt_usd_m": 323,
+      "ntm_revenue_usd_m": null,
+      "ntm_ebitda_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "valuation_usd_m": null,
+      "revenue_basis": "Latest quarterly revenue: Q2 2026 total revenue $174.2M (+14% YoY); GAAP net loss $237M (EPS -$0.68); adjusted EBITDA -$70M incl. $75M BTC mark-to-market loss.",
+      "backlog_definition": "",
+      "valuation_basis": "Not requested this round. Net debt basis: debt principal ~$794.4M ($594.4M 0.75% convertible senior notes due 2030 + $200M Coinbase bitcoin-backed credit facility, fully drawn) minus cash and cash equivalents $471.4M = ~$323M. Including restricted cash $77.5M, ~$245M."
+     },
+     "sources": [
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/1167419/000110465926093448/riot-20260630x10q.htm",
+       "title": "Riot Platforms, Inc. - Form 10-Q (quarter ended June 30, 2026), filed August 10, 2026",
+       "type": "10-Q (SEC EDGAR; located via search - direct fetch blocked, content via search renderings)",
+       "date": "2026-08-10",
+       "quote": "As of June 30, 2026, Riot had $471.4 million in cash and cash equivalents and $77.5 million in restricted cash. ... The $200 Million Credit Facility is a multiple drawdown term loan facility, and the Company has fully drawn against it. ... The convertible notes are currently convertible in Q3 2026, and their estimated fair value was about $1.2 billion as of June 30, 2026."
+      },
+      {
+       "url": "https://financefeeds.com/riot-platforms-sold-4300-bitcoin-in-q2-as-data-center-expansion-accelerated/",
+       "title": "Riot Platforms Sold 4,300 Bitcoin in Q2 as Data Center Expansion Accelerated",
+       "type": "News summary of 10-Q/PR (via search rendering)",
+       "date": "2026-08",
+       "quote": "Riot ended June with 11,380 BTC, worth approximately $666 million using Bitcoin's June 30 market price of $58,527. Of those holdings, 5,821 BTC were pledged as collateral."
+      },
+      {
+       "url": "https://www.riotplatforms.com/riot-platforms-reports-second-quarter-2026-financial-results-and-strategic-highlights/",
+       "title": "Riot Platforms Reports Second Quarter 2026 Financial Results and Strategic Highlights",
+       "type": "Company press release (via search rendering)",
+       "date": "2026-08-10",
+       "quote": "second-quarter 2026 total revenue of $174 million, up 14% year over year ... GAAP net loss of $237 million, or $0.68 per diluted share ... Liquidity of $1.2 billion at quarter end included $666 million in Bitcoin and $549 million in cash (including $77.5 million restricted cash and 5,821 BTC collateralizing a $200 million credit facility)."
+      }
+     ],
+     "caveats": "BTC EXCLUDED from net debt: 11,380 BTC at Jun 30, 2026, ~$666M at $58,527/BTC (5,821 BTC pledged against the fully drawn $200M Coinbase facility); netting BTC would put Riot in a net cash position (~-$343M). Total debt is MY SUM of the two disclosed instruments (no single 'total debt' line captured): $594.4M principal 0.75% converts due 2030 (carrying ~$583M net of issuance costs; fair value ~$1.2B - deep in the money and convertible in Q3 2026, so potential equity conversion rather than cash debt) + $200M drawn Coinbase BTC-backed facility; small other financings possible. The $573M Morgan Stanley interim development facility appears to be announced with Q2 results (not confirmed drawn at Jun 30 - excluded). Net debt uses unrestricted cash $471.4M; incl. restricted $77.5M it is ~$245M. All figures from search renderings (direct EDGAR fetch blocked).",
+     "confidence": "medium"
+    },
+    {
+     "name": "MARA Holdings, Inc.",
+     "ticker": "MARA",
+     "as_of": "2026-06-30 (Q2 2026 10-Q, accession 0001507605-26-000022, filed 2026-08-06)",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "Capacity fields intentionally null - covered in round-1. Note: $1.5B Long Ridge acquisition still PENDING at the Q2 filing (expected ~$144M annualized EBITDA, ~70% output under long-term contracts) - relevant to round-1 pipeline treatment."
+     },
+     "financials": {
+      "net_debt_usd_m": 2026,
+      "ntm_revenue_usd_m": null,
+      "ntm_ebitda_usd_m": null,
+      "contracted_revenue_backlog_usd_m": null,
+      "valuation_usd_m": null,
+      "revenue_basis": "Latest quarterly revenue: Q2 2026 revenue $174.9M (vs $238.5M Q2 2025, -27% YoY on ~28% lower average BTC price); net loss attributable to common $611.3M; adjusted EBITDA -$360.9M.",
+      "backlog_definition": "",
+      "valuation_basis": "Not requested this round. Net debt basis: total debt $2,447.2M (principal: convertible notes across five series + $150M bitcoin-collateralized line of credit) minus cash $421.3M = ~$2,026M. Cash+restricted was $433.3M (~$2,014M net incl. restricted)."
+     },
+     "sources": [
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/0001507605/000150760526000022/mara-20260630.htm",
+       "title": "MARA Holdings, Inc. - Form 10-Q (quarter ended June 30, 2026), filed August 6, 2026",
+       "type": "10-Q (SEC EDGAR; located via search - direct fetch blocked, content via search renderings)",
+       "date": "2026-08-06",
+       "quote": "As of June 30, 2026, MARA's total debt was $2,447,201 thousand ($2.45 billion), consisting of convertible notes including December 2026 Notes ($48,077k), September 2031 Notes ($300,000k), March 2030 Notes ($632,540k), June 2031 Notes ($291,584k), August 2032 Notes ($1,025,000k), and a line of credit of $150,000k."
+      },
+      {
+       "url": "https://www.stocktitan.net/sec-filings/MARA/10-q-mara-holdings-inc-quarterly-earnings-report-22d2588fc3e1.html",
+       "title": "MARA Holdings posts $611M loss, cuts debt | MARA Quarterly Report (10-Q)",
+       "type": "10-Q summary (via search rendering)",
+       "date": "2026-08",
+       "quote": "MARA held 35,577 bitcoin as of June 30, 2026, with a total bitcoin fair value of $2.08 billion, including bitcoin receivables. At June 30, 4,742 BTC had been loaned to third parties, while another 4,528 BTC were pledged as collateral, leaving 26,307 unrestricted BTC with a fair value of about $1.5 billion. ... Cash on hand was $421.3 million."
+      },
+      {
+       "url": "https://finance.yahoo.com/markets/crypto/articles/mara-sold-1-6-billion-132326380.html",
+       "title": "MARA sold $1.6 billion of bitcoin to cut debt and fund infrastructure growth during H1 2026: Q2 Earnings",
+       "type": "News summary of 10-Q/earnings (via search rendering)",
+       "date": "2026-08",
+       "quote": "Q2 2026 revenue was $174.9M, down from $238.5M in Q2 2025 ... Following the expected close of the Long Ridge acquisition, MARA anticipates assuming approximately $900 million of Long Ridge's debt. Subsequent to quarter end, MARA entered into 2 Bitcoin-backed credit facilities with Coinbase and Two Prime at a weighted average cost of debt of 7.56% for incremental borrowings of $600 million."
+      }
+     ],
+     "caveats": "BTC EXCLUDED from net debt: 35,577 BTC at Jun 30, 2026 (down from ~50k; sold 23,093 BTC for ~$1.6B in H1 2026), total BTC fair value $2.08B including bitcoin receivables (4,742 BTC loaned out, 4,528 BTC pledged as collateral; 26,307 unrestricted BTC ~$1.5B); total digital assets $2.09B (vs $4.71B at Dec 31, 2025). Netting all BTC would give near-zero net debt (~-$50M). Debt is principal: $2,447.2M (converts: $48.1M Dec-2026, $300.0M Sep-2031, $632.5M Mar-2030, $291.6M Jun-2031, $1,025.0M Aug-2032; plus $150M BTC-collateralized line of credit) - down from $3.6B at YE2025 after ~$1.0B repurchase of 0.00% converts. LONG RIDGE: $1.5B acquisition NOT closed at Jun 30 - upon close MARA expects to assume ~$900M of Long Ridge debt (not in these figures). POST-QUARTER: $600M incremental BTC-backed facilities (Coinbase, Two Prime; 18,750 BTC pledged; 7.56% WACD) - also not in Jun 30 debt. Net debt uses cash $421.3M; cash+restricted $433.3M. All figures from search renderings (direct EDGAR fetch blocked).",
+     "confidence": "high"
+    }
+   ],
+   "research_notes": "METHOD/LIMITATION: The sandbox egress proxy blocked ALL direct fetches - www.sec.gov, efts.sec.gov, data.sec.gov, company IR sites, and news domains all returned 403/EGRESS_BLOCKED for both curl and WebFetch. Per the task's fallback rules, every figure was therefore assembled from WebSearch result renderings of the actual Q2 2026 10-Qs, company press releases, and earnings-call transcripts, cross-checked across 2-4 independent queries/sources per company. All 'quotes' are verbatim from search renderings, not from directly fetched documents - they should be spot-checked against EDGAR before publication (canonical URLs provided per company). CROSS-CHECKS THAT PASSED: (1) Jun 30, 2026 BTC price ~$58,527 stated explicitly in RIOT coverage and implied independently by MARA (2.08B/35,577=~$58.5k) and HUT (liquidity arithmetic) figures; (2) MARA debt schedule components sum exactly to the stated $2,447,201k total; (3) HUT $8.1B liquidity = $233.6M unrestricted + ~$6.8B restricted + ~$1.01B BTC (17,316 x $58.5k), and ABTC's $497.2M ~= 8,002 BTC + cash. NET DEBT CONVENTIONS USED (all EXCLUDE bitcoin per instructions; BTC values in caveats): MARA $2,026M (debt principal $2,447.2M - cash $421.3M); RIOT $323M (sum of $594.4M convert principal + $200M drawn Coinbase facility - $471.4M unrestricted cash; converts are deep in-the-money, FV ~$1.2B); CORZ $2,528M ($4,298.0M LT debt carrying - $1.77B cash & equivalents; ~$1,748M incl. $0.78B restricted); HUT $566M (~$7.6B debt - $7.03B cash INCLUDING ~$6.8B restricted escrowed project-financing proceeds; on unrestricted cash only it is ~$7.37B - the restricted cash is the undrawn counterpart of the $7.5B non-recourse project debt, so including it is the economically meaningful view); GLXY $2,364M (notes payable $3.26B - cash $896M; excludes $1.6B stablecoins, ~$764M if included). SECTOR CONTEXT AT JUN 30, 2026: BTC ~$58.5k (bear tape - large fair-value losses at MARA/RIOT/HUT), miners pivoting hard to AI/HPC; big post-quarter financings NOT in Jun 30 balance sheets: GLXY $3.5B Helios Phase II notes (closed Jul 28), MARA $600M BTC-backed facilities + ~$900M Long Ridge debt assumption on close, RIOT $573M Morgan Stanley interim facility. Weakest data points: HUT total debt ('approximately $7.6 billion' - exact carrying value not captured), CORZ convert series split and BTC count (value $49.7M only), RIOT total debt (my sum of two disclosed instruments, no single quoted total), GLXY BTC-specific count within its $3.52B digital assets."
+  }
+ },
+ "verify": {
+  "neoclouds": {
+   "claims": [
+    {
+     "company": "CoreWeave",
+     "claim": "Contracted power ~3.7 GW and active power 1.5 GW as of Jun 30, 2026 (Q2 2026 earnings, Aug 11, 2026); contracted power '4.2 GW as of the most recent update' per the Q2 call.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "As of June 30, 2026, CoreWeave operated 51 active data centers with 1.5 gigawatts of active power and expanded contracted power to approximately 3.7 gigawatts. An additional 500 megawatts was added since quarter-end, bringing total contracted power to 4.2 gigawatts as of August 11, 2026.",
+     "evidence_url": "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Reports-Strong-Second-Quarter-2026-Results/default.aspx",
+     "note": "Quote from a search-engine rendering of the Aug 11, 2026 Q2 press release (direct fetch blocked by egress proxy); identical figures cross-checked in a second independent query rendering. Minor nuance: the 4.2 GW figure is stated in the press release itself as of Aug 11, 2026, not only on the call. Press release also on EDGAR: https://www.sec.gov/Archives/edgar/data/1769628/000176962826000362/coreweave2q26earningspress.htm"
+    },
+    {
+     "company": "CoreWeave",
+     "claim": "Revenue backlog ~$104B as of Jun 30, 2026, PLUS >$25B net new commitments in early Q3 2026 (Meta ~$21B incremental, Anthropic multi-year, Jane Street ~$6B).",
+     "verdict": "CORRECTED",
+     "corrected_value": "Backlog ~$104B (comprising $103.7B RPO + $0.5B other estimated future revenue) as of Jun 30, 2026 and >$25B net new commitments added early in Q3 are both accurate \u2014 but the parenthetical composition is wrong. The Meta ~$21B expansion (announced Apr 9, 2026), the Anthropic multi-year agreement (announced Apr 10, 2026) and the Jane Street ~$6B commitment (announced Apr 15, 2026) were all Q2 events already INSIDE the $104B Jun 30 backlog. The >$25B of early-Q3 commitments was not attributed to those three customers in the press release; attributing them to early Q3 double-counts them on top of the $104B.",
+     "evidence_quote": "Revenue backlog was approximately $104 billion as of June 30, 2026, and does not include more than $25 billion of net new customer commitments added in early Q3.",
+     "evidence_url": "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Reports-Strong-Second-Quarter-2026-Results/default.aspx",
+     "note": "Dating evidence for the correction (via search renderings): Businesswire URLs carry April 2026 datestamps \u2014 Meta $21B: businesswire.com/news/home/20260409138818 (Apr 9, 2026; also CNBC 2026/04/09); Anthropic: businesswire.com/news/home/20260410890996 (Apr 10, 2026; CNBC 2026/04/10); Jane Street $6B + $1B equity at $109.00/share: businesswire.com/news/home/20260415280149 (Apr 15, 2026). I could not identify which customers made up the >$25B early-Q3 additions from available snippets (CNBC described them only as commitments 'secured in the early weeks of the third quarter'); small residual possibility of further July expansions by the same customers, but no evidence of that was found."
+    },
+    {
+     "company": "CoreWeave",
+     "claim": "FY2026 revenue guidance $12.4-13.2B; adjusted operating income guidance $960M-$1.15B; year-end 2026 active power target >1.85 GW.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "CoreWeave raised its full-year 2026 revenue guidance to a range of $12.4 billion to $13.2 billion, with adjusted operating income expected between $960 million and $1.15 billion. ... raised its full-year active power target to more than 1.85 gigawatts.",
+     "evidence_url": "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Reports-Strong-Second-Quarter-2026-Results/default.aspx",
+     "note": "Quote from search-engine renderings, cross-checked across two independent queries and corroborated by Seeking Alpha headline 'CoreWeave expects $12.4B-$13.2B of 2026 revenue while raising year-end active power target to more than 1.85 GW'. These are guidance figures raised at the Aug 11, 2026 Q2 report (prior guidance was $12-13B)."
+    },
+    {
+     "company": "CoreWeave",
+     "claim": "Principal debt $35,551M and cash $5,524M at Jun 30, 2026 (10-Q).",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "CoreWeave reported principal debt totaling $35,551 million as of June 30, 2026, split between recourse and non-recourse facilities and multiple senior and convertible notes. ... As of June 30, 2026, CoreWeave had cash and cash equivalents of $5,524 million.",
+     "evidence_url": "https://www.sec.gov/Archives/edgar/data/0001769628/000176962826000366/crwv-20260630.htm",
+     "note": "Quote is from a search-engine rendering of the 10-Q (direct SEC fetch blocked by egress proxy). Corroborated by The Register headline 'CoreWeave revenue doubles as debt pile reaches $35.6B' (theregister.com, Aug 12, 2026). $35,551M is principal (not carrying) amount, matching the claim's framing."
+    },
+    {
+     "company": "CoreWeave",
+     "claim": "The Core Scientific acquisition was terminated (CORZ shareholders voted it down ~Oct 2025) - CORZ remains standalone as of Aug 2026.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "On October 30, 2025, pursuant to and in accordance with the Merger Agreement, Core Scientific terminated the Merger Agreement, effective immediately. ... requisite Company stockholders did not approve the Merger Agreement Proposal.",
+     "evidence_url": "https://investors.corescientific.com/news-events/press-releases/detail/124/core-scientific-announces-termination-of-merger-agreement-with-coreweave",
+     "note": "Quote via search rendering of the CORZ termination press release; corroborated by CNBC (2025/10/30) 'Core Scientific shareholders reject $9 billion CoreWeave offer, deal terminated' and Bloomberg (2025-10-30). Standalone status as of Aug 2026 corroborated: CORZ reported its own Q2 2026 results (revenue $164.2M), closed a $444M Polaris DS acquisition on Aug 13, 2026, and announced an AMD partnership \u2014 all as an independent Nasdaq-listed company (CORZ)."
+    },
+    {
+     "company": "Nebius",
+     "claim": "Contracted power 3,500 MW actual (as of ~Q1 2026); year-end 2026 target raised to 5 GW at Q2 2026 results (Aug 12, 2026); connected-power target 800 MW-1 GW by end-2026.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "In Q1 2026, Nebius had already contracted more than 3.5 gigawatts of power ... Nebius increased its contracted-power guidance from more than 4GW to 5GW at year-end 2026. ... The company continues to expect 800 megawatts to 1 gigawatt of connected power by the end of 2026.",
+     "evidence_url": "https://mms.businesswire.com/media/20260812963359/en/2874372/1/SHLQ226.pdf",
+     "note": "Composite of quotes from search renderings of the Q1 2026 results (May 13, 2026) and Q2 2026 shareholder letter/call (Aug 12, 2026); cross-checked across MLQ ('Nebius Raises Contracted Power Target to 5GW'), ABC Money, Motley Fool/Globe and Mail, and Yahoo Finance Q2 call coverage. Minor nuance: Q1 disclosure was 'more than 3.5 GW' rather than exactly 3,500 MW."
+    },
+    {
+     "company": "Nebius",
+     "claim": "'Committed backlog' ~$40B per CFO on Q2 2026 call (Microsoft $17.4B up to $19.4B; Meta up to $27B).",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "Nebius reported approximately $40 billion of committed backlog during its Q2 2026 call ... a five-year deal with Meta is worth up to $27 billion, and a separate contract with Microsoft runs between $17.4 billion and $19.4 billion.",
+     "evidence_url": "https://www.tradingview.com/news/zacks:7bf98d4c7094b:0-nebius-surges-34-post-q2-will-40b-backlog-power-further-growth/",
+     "note": "Quote from search rendering; the ~$40B committed-backlog figure is corroborated by the Zacks/TradingView headline ('Will $40B Backlog Power Further Growth?'), ad-hoc-news ('The $40 Billion Backlog and a New Financing Blueprint'), and the Investing.com Q2 2026 call transcript listing. Microsoft $17.4B (up to $19.4B, Sept 2025) and Meta up-to-$27B (5-year) figures also corroborated by Motley Fool ('Nebius Just Signed $46 Billion in AI Cloud Deals With Microsoft and Meta', Apr 2, 2026). Could not fetch the raw transcript directly (proxy-blocked), so 'per CFO' attribution rests on call-coverage renderings."
+    },
+    {
+     "company": "Nebius",
+     "claim": "Q2 2026 revenue $582.3M; ARR $3.0B at end of June 2026; FY2026 revenue guidance $3.0-3.4B reaffirmed; cash $8,042.1M.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "Total revenues increased by $477.2 million, or 454%, from $105.1 million in the second quarter of 2025 to $582.3 million in the second quarter of 2026. ... ARR reached $3.0 billion. ... Nebius reaffirmed its full-year 2026 revenue guidance of $3 billion to $3.4 billion. ... Cash and cash equivalents rose to $8,042.1 million.",
+     "evidence_url": "https://www.sec.gov/Archives/edgar/data/0001513845/000110465926094844/nbis-20260812xex99d1.htm",
+     "note": "Composite quote from search renderings of the Form 6-K exhibit (Aug 12, 2026 results release) and Q2 call coverage; revenue/guidance/cash figures each cross-checked in two independent query renderings (cryptobriefing, BigGo 'ARR Triples to $3B', stocktitan 6-K summary). ARR $3.0B is the AI-cloud ARR at/around end of June 2026 per the release."
+    },
+    {
+     "company": "IREN",
+     "claim": "Secured power portfolio 5 GW as of May 2026 (Childress 750 + Sweetwater1 1,400 + Sweetwater2 600 + BC 160 + Oklahoma 1,600 + Spain/Nostrum ~490).",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "On May 7, 2026, IREN announced the acquisition of Nostrum Group, adding approximately 490 MW of secured grid-connected power and bringing IREN's total power portfolio to 5 GW.",
+     "evidence_url": "https://iren.com/resources/news/nostrum-announcement",
+     "note": "Quote from search rendering; corroborated by stocktitan ('IREN buys Spain's Nostrum, adds 490MW') and DCD. Component breakdown corroborated by same renderings: Childress, Texas 750MW; Sweetwater 1 & 2, Texas 2,000MW (SW1 1.4GW energized April 2026, SW2 600MW targeted late 2027); Kiowa, Oklahoma 1,600MW; BC 160MW (Mackenzie 80 + Prince George 50 + Canal Flats 30); Spain ~490MW \u2014 summing to 5,000MW. Caveat: the acquisition was announced May 7, 2026 and completed later (completion coverage ~Aug 2026); portions (e.g. Oklahoma, Sweetwater 2) are secured/contracted rather than operating capacity."
+    },
+    {
+     "company": "IREN",
+     "claim": "Last cleanly disclosed operating data centers figure 810 MW (Oct 2025); Horizon 1 delivered to Microsoft Aug 2026; contracted ARR ~$3.4B as of Jul 20, 2026 vs >$4B end-2026 target; Microsoft AI cloud contract ~$9.7B/5yr; NVIDIA ~$3.4B/5yr; $2.8B new contracts Jul 20, 2026.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "IREN has 810MW of operating data centers underpinning three verticals: Bitcoin Mining, AI Cloud Services and AI Data Centers ... Horizon 1 has been delivered to and accepted by Microsoft ... raised its year-end AI Cloud annualized run-rate revenue (ARR) target from $3.7 billion to more than $4 billion, following new multi-year cloud services contracts with leading AI developers representing $2.8 billion in total contract value. Approximately 85% of the updated ARR target is now under contract.",
+     "evidence_url": "https://iren.gcs-web.com/news-releases/news-release-details/iren-signs-28bn-new-customer-contracts-leading-ai-developers",
+     "note": "Composite from search renderings of: IREN Q1 FY26 reporting (810MW, three verticals), the Aug 13, 2026 Horizon-1 acceptance/NVIDIA Exemplar Cloud announcement, and the Jul 20, 2026 $2.8B contracts release (globenewswire.com/news-release/2026/07/20/3329624). 'Contracted ARR ~$3.4B' is 85% of the >$4B target per the Jul 20 release \u2014 consistent with the claim. Microsoft: 'five-year, $9.7bn cloud services contract announced in November 2025' (Horizon 1-4, 200MW at Childress, ~$1.94B annualized when all four run). NVIDIA: 'in May [2026], IREN announced a five-year, $3.4 billion AI cloud contract with NVIDIA Corporation' (~60MW of Blackwell systems). One date nuance: I verified the 810MW figure in Q1 FY26 reporting (results released Nov 6, 2025) and Microsoft-deal-era coverage ('nearly 3GW of power, with 810MW operational'); I could not confirm a specifically October 2025 disclosure, so 'Oct 2025' may be off by ~2 weeks (early Nov 2025)."
+    },
+    {
+     "company": "IREN",
+     "claim": "Net debt ~$1,752M as of Mar 31, 2026 (Q3 FY26).",
+     "verdict": "UNVERIFIABLE",
+     "corrected_value": null,
+     "evidence_quote": "IREN long term debt for the quarter ending March 31, 2026 was $3.840B",
+     "evidence_url": "https://www.sec.gov/Archives/edgar/data/0001878848/000187884826000026/iren-20260331.htm",
+     "note": "Could not verify the exact $1,752M: IREN does not appear to disclose 'net debt' as a headline metric, direct fetches of the 10-Q (SEC) and aggregators were blocked by the egress proxy, and no search snippet rendered the figure. Components found via search renderings are directionally consistent: long-term debt $3.840B at Mar 31, 2026 (MacroTrends, sourced from the 10-Q at the URL given) and cash & equivalents of $2.21B at Mar 31, 2026 (Yahoo Finance Q3 FY26 coverage) imply net debt of roughly $1.6-1.8B depending on the current portion of debt and whether principal vs carrying value is used \u2014 so ~$1,752M is plausible as a derived figure, but I could not confirm the exact number or its precise construction. Note also the $2.6B (upsized to $3.0B, closed May 14, 2026) 1.00% convertible notes offering post-dates the Mar 31 balance sheet."
+    }
+   ],
+   "notes": "Method caveat: the sandbox egress proxy blocked ALL direct fetches (sec.gov, efts.sec.gov, investors.coreweave.com, nebius.com, businesswire, q4cdn, stocktitan, yahoo, etc.), so every evidence quote comes from search-engine renderings of the named primary sources, cross-checked across at least two independent queries per claim where possible. URLs given are the primary-source locations the renderings were drawn from. Key adversarial findings: (1) CoreWeave claim 2 is materially miscomposed \u2014 the Meta $21B, Anthropic, and Jane Street $6B deals were announced April 9/10/15, 2026 (Q2) and sit inside the $104B Jun 30 backlog; treating them as the '>$25B early-Q3 additions' double-counts ~$27B+. The >$25B early-Q3 figure itself is real but its customers were not named in the snippets I could access. (2) IREN's 810MW operating figure traces to Q1 FY26 reporting released Nov 6, 2025 (claim says Oct 2025) \u2014 minor date slippage. (3) IREN net debt $1,752M could not be pinned verbatim; components ($3.84B LT debt, $2.21B cash at Mar 31, 2026) make it plausible. All other figures (CoreWeave 3.7/1.5/4.2 GW, $12.4-13.2B guidance, $960M-$1.15B adj op income, >1.85 GW target, $35,551M debt / $5,524M cash; CORZ termination Oct 30, 2025; Nebius >3.5 GW Q1, 5 GW target, 800MW-1GW connected, ~$40B committed backlog, MSFT $17.4-19.4B, Meta up to $27B, $582.3M revenue, $3.0B ARR, $3.0-3.4B guidance, $8,042.1M cash; IREN 5 GW portfolio, $9.7B MSFT, $3.4B NVIDIA, $2.8B Jul 20 contracts, ~$3.4B contracted ARR vs >$4B target, Horizon 1 accepted Aug 13, 2026) checked out against the renderings."
+  },
+  "hyperscalers": {
+   "claims": [
+    {
+     "company": "Microsoft",
+     "claim": "Commercial RPO $678B as of Jun 30, 2026, +84% YoY, weighted-average duration ~2.3 years; at Dec 31, 2025 RPO was $625B with ~45% from OpenAI; OpenAI signed incremental $250B Azure commitment (Oct 28, 2025).",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "FY26 Q4 press release: \"commercial remaining performance obligation increased 84% to $678 billion\"; Q4 call transcript (hosted on Microsoft IR events page): \"RPO, including OpenAI, has a weighted average duration of 2.3 years.\"; FY26 Q2 press release: \"commercial remaining performance obligation increased 110% to $625 billion\"; Q2 call transcript: \"Approximately 45% of our commercial RPO balance is from OpenAI.\"",
+     "evidence_url": "https://www.microsoft.com/en-us/investor/earnings/fy-2026-q4/press-release-webcast",
+     "note": "All RPO figures verified by direct fetch of Microsoft IR press releases and the full call transcripts hosted at microsoft.com/en-us/investor/events/fy-2026/earnings-fy-2026-q4 and .../earnings-fy-2026-q2. One nuance: the ~2.5-year duration applied at Dec 31, 2025 and Mar 31, 2026; 2.3 years is the Jun 30, 2026 figure, matching the claim. The $250B OpenAI commitment is verified via search renderings of the Oct 28, 2025 Microsoft blog/8-K (\"OpenAI contracted to purchase an incremental $250 billion of Azure services\") at blogs.microsoft.com/blog/2025/10/28/the-next-chapter-of-the-microsoft-openai-partnership/ and sec.gov/Archives/edgar/data/789019/000119312525256310/msft-ex99_2.htm \u2014 direct fetch of those hosts was blocked by the egress proxy, so that quote came from search renderings cross-checked against GeekWire and DataCenterDynamics."
+    },
+    {
+     "company": "Microsoft",
+     "claim": "FY26 capacity statements: 'added nearly one gigawatt' in Q2 FY26, 'another gigawatt' in Q3 FY26, 'another gigawatt' in Q4 FY26; FY25: '>2 GW over the past 12 months', '400+ datacenters, 70 regions'.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "Q2 FY26 call: \"All up, we added nearly one gigawatt of total capacity this quarter alone.\" Q3 FY26 call: \"All up, we added another gigawatt of capacity this quarter, and remain on track to double our overall footprint in just two years.\" Q4 FY26 call: \"All up, we added another gigawatt of capacity this quarter and remain on track to roughly double our overall capacity in just two years.\" FY25 Q4 call: \"We stood up more than two gigawatts of new capacity over the past 12 months alone.\" and \"We opened new DCs across six continents, and now have over 400 datacenters across 70 regions, more than any other cloud provider.\"",
+     "evidence_url": "https://www.microsoft.com/en-us/investor/events/fy-2026/earnings-fy-2026-q4",
+     "note": "All quotes taken directly from full transcripts hosted on Microsoft's IR events pages (fy-2026 q2/q3/q4 and fy-2025 q4), fetched directly. Every element of the claim matches verbatim. Additional Q4 FY26 color: \"We added 31 new datacenters across 5 continents this quarter, bringing the total to 88 this year.\""
+    },
+    {
+     "company": "Amazon",
+     "claim": "AWS-related backlog (commitments note in 10-Q) ~$496B at Jun 30, 2026, weighted-average remaining life 6.4 years; $364B at Mar 31, 2026; $244B at Dec 31, 2025.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "\"For contracts with original terms that exceed one year, Amazon's commitments not yet recognized were approximately $496 billion as of June 30, 2026, with a weighted-average remaining life of 6.4 years.\" (search rendering of Q2 2026 10-Q, amzn-20260630.htm). Q1 2026 10-Q rendering: \"approximately $364 billion as of March 31, 2026, with weighted-average remaining life of 5.5 years.\" 2025 10-K rendering: \"$244 billion\" backlog at Dec 31, 2025, \"grew 40% year-over-year\".",
+     "evidence_url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000026/amzn-20260630.htm",
+     "note": "sec.gov (www/efts/data), q4cdn, aboutamazon.com and stocktitan were all blocked by the egress proxy, so these quotes come from search-engine renderings of the 10-Q/10-K text, cross-checked across multiple independent queries (stocktitan, techtimes, Yahoo). All three period figures and the 6.4-year life were consistent across renderings. Caveat: the note covers commitments 'primarily related to AWS' (Amazon's standard wording), not a pure AWS-only RPO; one call rendering paraphrased the life as 'more than five years' but the 10-Q figure is 6.4 years."
+    },
+    {
+     "company": "Amazon",
+     "claim": "AWS added 3.9 GW of power capacity in calendar 2025; on pace to double total power capacity by end-2027; committed up to 5 GW of capacity to Anthropic (Q2 2026 call).",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "Q2 2026 call rendering: \"AWS added 3.9 gigawatts of power capacity in 2025 and expects to double its total power capacity by the end of 2027. A lion's share of 2027 capacity is already largely reserved.\" Anthropic newsroom headline (Apr 2026): \"Anthropic and Amazon expand collaboration for up to 5 gigawatts of new compute\".",
+     "evidence_url": "https://www.anthropic.com/news/anthropic-amazon-compute",
+     "note": "Attribution nuance: the 'up to 5 GW' Anthropic commitment was announced via April 2026 Amazon/Anthropic press releases (alongside up to $25B additional Amazon investment and Anthropic committing >$100B of AWS spend over 10 years, per CNBC 2026/04/20), not first disclosed on the Q2 2026 call; on the call Jassy referenced \"multiyear, multi-gigawatt commitments from Anthropic and OpenAI\". The 3.9 GW / double-by-end-2027 statements were reiterated on the Q2 2026 call per renderings of the transcript (investing.com, MLQ, Fortune). Direct fetches of anthropic.com, investing.com and fool.com were blocked; quotes are from search renderings cross-checked across sources."
+    },
+    {
+     "company": "Amazon",
+     "claim": "AWS segment Q2 2026 revenue ~$35-36B; verify actual Q2 2026 AWS revenue and operating income, and trailing-12M AWS revenue ~$130B+.",
+     "verdict": "CORRECTED",
+     "corrected_value": "Q2 2026 AWS net sales $42.2B (+37% YoY, 36.7% per Jassy); AWS operating income $16.6B (vs $10.2B in Q2 2025); trailing-12M AWS revenue \u2248 $148.4B (Q3'25 $33.0B + Q4'25 $35.6B + Q1'26 $37.6B + Q2'26 $42.2B); annualized run rate $169B",
+     "evidence_quote": "Q2 2026 press release rendering: \"AWS segment sales increased 37% year-over-year to $42.2 billion... AWS segment operating income was $16.6 billion, compared with $10.2 billion in second quarter 2025.\" Jassy: \"AWS is booming, growing 36.7% year-over-year in Q2\u2014our fastest growth in 18 quarters\". Q4 2025 release: \"AWS segment sales increased 24% year-over-year to $35.6 billion\" and \"full year 2025... increased 20% year-over-year to $128.7 billion\"; Q1 2026 release: \"AWS segment sales increased 28% year-over-year to $37.6 billion\".",
+     "evidence_url": "https://ir.aboutamazon.com/files/doc_earnings/2026/q2/earnings-result/AMZN-Q2-2026-Earnings-Release.pdf",
+     "note": "The researcher's ~$35-36B is stale \u2014 that is roughly the Q4 2025 figure ($35.6B). Actual Q2 2026 AWS revenue was $42.2B. 'TTM ~$130B+' is technically true but materially understated: calendar-2025 AWS was already $128.7B and TTM through Jun 30, 2026 is ~$148B. Quotes are from search renderings of the official press releases (businesswire/ir.aboutamazon/stocktitan), as direct fetches of those hosts were blocked; figures were consistent across at least three independent renderings."
+    },
+    {
+     "company": "Alphabet",
+     "claim": "Google Cloud revenue backlog $513.9B (of $519.5B total Alphabet RPO) at Jun 30, 2026; $462.3B at Mar 31, 2026; just over 50% to be recognized within 24 months.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "Q2 2026 10-Q rendering: \"As of June 30, 2026, Alphabet had $519.5 billion of remaining performance obligations ('revenue backlog'), of which $513.9 billion related to Google Cloud... expects to recognize just over 50% of the revenue backlog as revenues over the next 24 months with the remainder to be recognized thereafter.\" Q1 2026 10-Q rendering: \"revenue backlog of $467.6 billion as of March 31, 2026, with $462.3 billion related to Google Cloud.\"",
+     "evidence_url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204426000071/goog-20260630.htm",
+     "note": "All three elements match. Quotes come from search renderings of the 10-Qs (sec.gov, abc.xyz and s206.q4cdn.com were blocked by the egress proxy), cross-checked across stocktitan, TIKR and the EDGAR-indexed result. Q1 renderings also note TPU hardware agreements are included in the Cloud backlog, with recognition beginning later in 2026 and the significant majority in 2027."
+    },
+    {
+     "company": "Alphabet",
+     "claim": "Google Cloud Q2 2026 revenue and operating income \u2014 verify actuals (annualized run-rate ~$99B claimed).",
+     "verdict": "CONFIRMED",
+     "corrected_value": "Q2 2026 Google Cloud revenues $24.8B (+82% YoY); Cloud operating income $8.8B (vs $2.8B in Q2 2025); annualized run-rate $24.8B x 4 = $99.2B, matching the ~$99B claim",
+     "evidence_quote": "\"Google Cloud saw a meaningful acceleration in growth as revenues increased 82% to $24.8 billion, led by an increase in Google Cloud Platform (GCP) across enterprise AI Solutions and enterprise AI Infrastructure... Cloud operating income reached $8.8 billion, up from $2.8 billion in the same period a year earlier.\" Total Alphabet: \"consolidated revenues increased 24% to $119.8 billion\".",
+     "evidence_url": "https://s206.q4cdn.com/479360582/files/doc_financials/2026/q2/2026q2-alphabet-earnings-release.pdf",
+     "note": "Verified via search renderings of the official Q2 2026 earnings release (8-K exhibit googexhibit991q22026.htm) cross-checked across Yahoo Finance, Futurum, tickeron and stocktitan; direct fetches of abc.xyz/q4cdn/sec.gov were blocked. The ~$99B annualized run-rate arithmetic checks out (24.8 x 4 = 99.2)."
+    },
+    {
+     "company": "Oracle",
+     "claim": "Total RPO $638B at May 31, 2026 (+363% YoY); trajectory $455B (Q1 FY26) -> ~$523B (Q2) -> $553B (Q3) -> $638B (Q4); FY2027 total revenue guidance ~$90B; FY2026 actual revenue $67.4B, IaaS $18.1B (+77%).",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "Q4 FY26 press release (fetched directly from oracle.com): \"Remaining Performance Obligations, or RPO, ended the quarter at $638 billion, up 363% USD year-over-year\"; \"Record FY 2026 Total Revenues $67.4 billion, up 17% USD\"; \"FY 2026 Cloud Infra (IaaS) Revenue $18.1 billion, up 77% USD\"; \"For fiscal year 2027, we confirm our prior revenue guidance of $90 billion total revenue\". Q1 FY26 release: \"Total Remaining Performance Obligations were up 359%... to $455 billion\"; Q2 FY26 release: \"up 438% year-over-year in USD to $523 billion\"; Q3 FY26 release: \"$553 billion, up 325%\".",
+     "evidence_url": "https://www.oracle.com/news/announcement/q4fy26-earnings-release-2026-06-10/",
+     "note": "Q4/FY26 figures verified by direct fetch of Oracle's press release; Q1 ($455B, Sep 9, 2025), Q2 ($523B, Dec 10, 2025) and Q3 ($553B, Mar 10, 2026) verified via search renderings of Oracle's releases at oracle.com/news (q1fy26, q2fy26, q3fy26 URLs). Internal consistency: Q4 release notes RPO up $85B sequentially (553+85=638) and Q3 up $29B sequentially (523+29\u2248553)."
+    },
+    {
+     "company": "Oracle",
+     "claim": "Delivered >1.2 GW of capacity to customers in FY2026; Q1 FY2027 delivery approaching 1 GW; OpenAI Stargate 4.5 GW partnership (Jul 2025); Abilene ~1.2 GW flagship '42% delivered'.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "Q4 FY26 call renderings: \"Oracle delivered over 1.2 gigawatts in fiscal year 2026, with Q1 FY 2027 delivery expected to approach 1 gigawatt\" and \"The Abilene, Texas facility delivered 42% of total capacity, with 35% more expected in 90 days and the remaining balance in the next quarter.\" OpenAI announcement (Jul 22, 2025): \"Stargate advances with 4.5 GW partnership with Oracle\" \u2014 \"Oracle and OpenAI entered an agreement to develop 4.5 gigawatts of additional Stargate data center capacity in the U.S.\"",
+     "evidence_url": "https://openai.com/index/stargate-advances-with-partnership-with-oracle/",
+     "note": "GW statements were made on the June 10, 2026 Q4 FY26 earnings call, not in the press release (the press release contains no gigawatt references \u2014 verified by direct fetch). Call quotes are from search renderings (fool.com/CNBC/ERP Today) as transcript hosts were blocked. Abilene nuance: renderings indicate the site is now expected to total ~1.2 GW when complete, scaled back from the ~2 GW initially planned (reportedly tied to OpenAI financing concerns) \u2014 consistent with the claim's '~1.2 GW flagship' but worth flagging. The 4.5 GW Stargate deal (Jul 22, 2025) is confirmed across OpenAI, CNBC, and American Public Power Association reports; combined with Abilene Stargate I it brought capacity under development to >5 GW."
+    },
+    {
+     "company": "Oracle",
+     "claim": "Net debt ~$97.6B (total borrowings $129,541M minus cash $31,289M minus $605M securities) per FY2026 10-K.",
+     "verdict": "UNVERIFIABLE",
+     "corrected_value": null,
+     "evidence_quote": "Corroborated pieces via search renderings: \"Oracle's long term debt for the quarter ending May 31, 2026 was $122.342 billion, which represents a 43.43% increase from 2025\" (non-current notes payable per balance-sheet aggregators) and \"Oracle held $31.3B in cash as of fiscal year 2026\" (rendering of the FY26 10-K).",
+     "evidence_url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312526277521/orcl-20260531.htm",
+     "note": "Could not retrieve the FY2026 10-K balance sheet itself: sec.gov, stocktitan, macrotrends, stock-analysis-on.net, q4cdn and the Fortune/Quartr 10-K mirror were all blocked by the egress proxy, and no search rendering surfaced the exact total-borrowings line ($129,541M), the current portion, or the $605M marketable securities. What I could corroborate is consistent and non-contradictory: non-current notes payable $122,342M at 5/31/26 plus an implied current portion of $7,199M would equal $129,541M (vs $7,271M current at FY25-end and $9,887M at Q3 FY26 \u2014 plausible), cash \u2248 $31.3B matches $31,289M, and the arithmetic 129,541 - 31,289 - 605 = 97,647 \u2248 $97.6B checks. FY26 context (Oracle raised $43B of debt in FY26; $3.8B commercial paper outstanding at Q3) supports the magnitude. Treat as plausible but not primary-source verified."
+    },
+    {
+     "company": "Meta",
+     "claim": "Named clusters: Prometheus ~1 GW (Ohio, 2026), Hyperion up to 5 GW (Louisiana, Blue Owl JV ~$27B), El Paso 1 GW (2028); Reuters-reported internal memo (Jul 2026): ~7 GW deployed in 2026 doubling to ~14 GW in 2027.",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "Prometheus: \"a 1 gigawatt facility coming online in 2026\" in New Albany, Ohio (NBC4/DCF renderings). Hyperion: \"Meta forms $27bn joint venture with Blue Owl to fund gigawatt-scale AI data center campus in Louisiana\" (DCD), with a 5 GW multi-year target. El Paso: \"The state-of-the-art data center campus will have 1 gigawatt of compute capacity\" with \"the venture expecting to begin bringing capacity online in 2028\" (Meta\u2013BlackRock announcement, Jul 28, 2026). Reuters memo (Jul 9, 2026): \"Meta this year plans to deploy seven gigawatts of computing infrastructure... plans to double capacity again next year to reach a total of 14 gigawatts in 2027.\"",
+     "evidence_url": "https://about.fb.com/news/2026/07/meta-announces-new-venture-with-blackrock-to-develop-data-center-in-el-paso/",
+     "note": "All four elements check out across multiple independent renderings (Meta newsroom, DCD, CNBC 2026/03/26 'Meta to spend $10 billion on AI data center in El Paso, 1GW by 2028', Reuters syndications via US News/WTVB dated 2026-07-09). Nuances: (1) the Blue Owl Hyperion JV is ~$27B with Blue Owl at 80% via the Beignet SPV, announced Oct 2025 \u2014 matches claim; Hyperion's 'up to 5 GW' is a multi-year stretch target with ~1.5 GW online by end-2027 per renderings; (2) El Paso is now structured as a Meta\u2013BlackRock venture (BlackRock 80%, announced Jul 28, 2026), >$10B investment; (3) Reuters' 7 GW for 2026 is a plan/target ('1 GW added in H1 plus ~5.5 GW forecast by year-end'), not capacity already deployed as of mid-2026 \u2014 the claim's phrasing '~7 GW deployed in 2026' should be read as full-year plan. Direct fetches of reuters/about.fb/prnewswire were blocked; quotes from cross-checked search renderings."
+    },
+    {
+     "company": "Meta",
+     "claim": "Q2 2026 revenue $60.80B, operating income ~$18.8B incl. $2.4B legal charge; 2026 capex guidance \u2014 verify current range; H1 2026 depreciation & amortization from the Q2 2026 10-Q cash-flow statement.",
+     "verdict": "CONFIRMED",
+     "corrected_value": "Current 2026 capex guidance (as of Q2 2026 call, Jul 29, 2026): $130-145B including principal payments on finance leases, narrowed from $125-145B; H1 2026 D&A: $12,355M (vs $8,242M in H1 2025)",
+     "evidence_quote": "Press-release renderings: \"Revenue was $60.80 billion, an increase of 28% year-over-year\"; \"Operating income was $18.78 billion\"; expenses \"included $2.4 billion in charges related to legal proceedings and $1.2 billion in severance expenses in connection with the May 2026 headcount reduction\"; \"Meta anticipates 2026 capital expenditures, including principal payments on finance leases, to be in the range of $130-145 billion, narrowed from their prior outlook of $125-145 billion.\" 10-Q cash-flow rendering: \"For the six months ended June 30, 2026, depreciation and amortization was $12.355 billion in the cash flow statement, compared to $8.242 billion for the same period in 2025.\"",
+     "evidence_url": "https://www.sec.gov/Archives/edgar/data/0001326801/000162828026050705/meta-20260630.htm",
+     "note": "Revenue $60.80B and operating income $18.78B (~$18.8B) confirmed across multiple renderings (TradingView headline 'revenue $60.80B, operating income $18.78B, EPS $6.18', stocktitan, Variety); the $2.4B legal charge is confirmed but note operating income also absorbed $1.2B of severance from the May 2026 headcount reduction \u2014 exclude both for a clean run-rate (op income would have been up ~9% YoY ex-items). Capex guidance $130-145B confirmed by two independent renderings. Caveat on D&A: the $12,355M/$8,242M six-month figures come from a single search rendering of the 10-Q cash-flow statement (sec.gov, q4cdn, investor.atmeta.com, prnewswire, aol all blocked for direct fetch); the prior-year $8.24B is consistent with Meta's H1 2025 filings and the FY25-26 depreciation ramp, but re-verify the exact H1 2026 figure against the 10-Q before publishing an EBITDA calc. Implied H1 2026 EBITDA \u2248 op income H1 + D&A H1; Q2 capex was $31.08B."
+    }
+   ],
+   "notes": "Method and source-access constraints: The sandbox egress proxy blocked ALL sec.gov hosts (www, efts, data), plus q4cdn, fool.com, investing.com, stocktitan, macrotrends, prnewswire, aol, fortune, reuters-adjacent hosts, abc.xyz, aboutamazon.com, ir.aboutamazon.com, anthropic.com, openai.com, blogs.microsoft.com and investor.atmeta.com. Directly fetchable primary sources were microsoft.com (IR press releases AND full earnings-call transcripts on the investor events pages \u2014 used for all Microsoft quotes) and oracle.com (Q4 FY26 press release). Everything else was verified via search-engine renderings of the primary filings/releases, cross-checked across at least two independent queries/sources per figure, per the stated fallback protocol; quotes so obtained are flagged in each entry's note. Verdict summary: 10 CONFIRMED (several with material nuances flagged in notes \u2014 Amazon backlog note wording covers commitments 'primarily related to AWS'; Anthropic 5 GW was an April 2026 announcement rather than a Q2-call disclosure; Oracle Abilene scaled back to ~1.2 GW from ~2 GW planned; Meta's Reuters 7 GW is a full-year 2026 deployment plan, not mid-year actual; Meta op income also includes $1.2B severance beyond the $2.4B legal charge), 1 CORRECTED (Amazon claim 5: AWS Q2 2026 revenue was $42.2B, not $35-36B; OI $16.6B; TTM \u2248 $148B not ~$130B), 1 UNVERIFIABLE (Oracle net debt components: non-current debt $122,342M and cash ~$31.3B corroborated and arithmetic internally consistent, but the exact $129,541M total-borrowings and $605M marketable-securities lines could not be retrieved from any accessible source)."
+  },
+  "miners-verify-a": {
+   "claims": [
+    {
+     "company": "Applied Digital (APLD)",
+     "claim": "1,410 MW of executed IT-load leases across five campuses: Polaris Forge 1 Ellendale ND 400 MW to CoreWeave (~$11B), Polaris Forge 2 200 MW (~$5B), Polaris Forge 3 300 MW (~$7.5B), Delta Forge 1 300 MW + Delta Forge 2 210 MW (~$20B, high investment-grade hyperscaler)",
+     "verdict": "CORRECTED",
+     "corrected_value": "1,410 MW across five campuses CONFIRMED; per-campus MW confirmed (PF1 400 MW CoreWeave ~$11B; PF2 200 MW ~$5B; PF3 300 MW ~$7.5B base/$18.2B w-renewals; DF1 lease 300 MW at a 430 MW campus ~$7.5B; DF2 210 MW ~$5.2B base/$12.7B w-renewals). But the '~$20B' does NOT belong to Delta Forge 1+2 (those two total ~$12.7B): ~$20B is the aggregate of the THREE 15-year leases signed in fiscal Q4 FY26 (DF1 $7.5B + PF3 $7.5B + DF2 $5.2B \u2248 $20.2B). Tenants: only CoreWeave (PF1) is named; PF2 tenant is an unnamed 'U.S. based investment grade hyperscaler'; PF3 is leased to the SAME unnamed 'U.S. based high investment-grade hyperscaler' as DF1; DF2 tenant is an unnamed U.S. based high investment-grade hyperscaler. DF1 is in Boyce, Louisiana; DF2 in an undisclosed southern state.",
+     "evidence_quote": "As of May 31, Applied Digital has executed long-term leases representing approximately 1,410 MW of contracted critical IT load across five campuses. The five AI Factory campuses are Polaris Forge 1, 2, and 3 in North Dakota, and Delta Forge 1 in Boyce, Louisiana, and Delta Forge 2 in an undisclosed southern state.",
+     "evidence_url": "https://ir.applieddigital.com/news-events/press-releases/detail/159/applied-digital-reports-fiscal-fourth-quarter-and-full-year",
+     "note": "Supporting quotes (all via search renderings; direct fetch blocked): DF1 (PR 4/23/26): 'This lease represents approximately $7.5 billion in total contracted value over an estimated 15-year lease term and covers 300 megawatts (MW) of critical IT load' at 'Delta Forge 1, a 430 MW AI Factory campus'. PF3 (PR 5/20/26): 'a 15-year take-or-pay agreement with a U.S. based high investment-grade hyperscaler previously signed at Delta Forge 1, valued at approximately $7.5 billion in base-term contracted revenue' delivering '300 MW of critical IT load'. DF2 (PR 6/8/26): '210 MW of critical IT load under a 15-year take-or-pay structure with renewal options, representing approximately $5.2 billion in base-term contracted revenue, or approximately $12.7 billion if all renewal options are exercised'; 'fifth AI Factory campus'; initial ops Q1 2028. PF2 (PR 10/22/25): 'approximately $5 billion in total contracted revenue over an estimated 15-year lease term' for 200 MW near Harwood ND, tenant unnamed. PF1: 'CoreWeave holds all three Polaris Forge 1 leases for 400 MW and approximately $11 billion in contracted revenue' (Q4 FY26 coverage); company X post: 'brings our total capacity to 400MW with $11B in contracted revenue'. StockTitan headline on the Q4 FY26 release: 'Applied Digital Signs Three 15-Year Leases With ~$20B Revenue' \u2014 source of the researcher's $20B, which covers DF1+PF3+DF2, not DF1+DF2."
+    },
+    {
+     "company": "Applied Digital (APLD)",
+     "claim": "~$36.2B total contracted lease revenue over initial terms (~$86B with renewals); 175 MW active at Polaris Forge 1; FY2026 revenue and net debt ~$800M",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "These leases represent approximately $36 billion of total contracted revenue over the initial 15-year base lease terms, or approximately $86 billion if all renewal options are exercised. [...] Applied Digital ended May 31, 2026 with $4.2 billion in cash, cash equivalents and restricted cash and $5.0 billion of debt.",
+     "evidence_url": "https://ir.applieddigital.com/news-events/press-releases/detail/159/applied-digital-reports-fiscal-fourth-quarter-and-full-year",
+     "note": "All four components check out (quotes via search renderings). The '$36.2B' precise figure appears in FY2026 10-K coverage (StockTitan headline: 'Applied Digital details $36.2B AI lease backlog'; 10-K filed as apld-20260531.htm); the earnings release rounds to ~$36B/~$86B. 175 MW: 'completed delivery of 100 MW at Polaris Forge 1 on time in October 2025, and on June 30, 2026, delivered Phase 1 of Building 2 (75 MW), bringing total live capacity at the campus to 175 MW' \u2014 note the 175 MW was reached June 30, 2026, i.e. just after the May 31 fiscal year-end. FY2026 revenue: $611.3 million (search rendering: 'full-year fiscal 2026 revenue reached $611.3 million, representing a 167% increase'); Q4 FY26 revenue $258.7M. Net debt: $5.0B debt less $4.2B cash/restricted cash = ~$0.8B, matching the ~$800M claim; total debt rose from $2.7B at Q3 after $2.15B Polaris Forge 2 senior secured notes. Also disclosed in Q4: separation of the Cloud Services Business (~96% of ChronoScale Holdings Corporation retained)."
+    },
+    {
+     "company": "Cipher (CIFR, renamed Cipher Digital Inc.)",
+     "claim": "Contracted HPC: Black Pearl 300 MW to AWS (~$5.5B, 15-yr, Amazon parent guarantee), Barber Lake 168 MW IT to Fluidstack (10-yr ~$3B, $1.4B Google backstop, +39 MW expansion), Stingray 70 MW pre-leased (~$2B); total ~$11.4B contracted revenue; ~2.4-5.3 GW pipeline; net debt ~$1,456M",
+     "verdict": "CORRECTED",
+     "corrected_value": "Leases and totals essentially CONFIRMED: Black Pearl 300 MW / ~$5.5B / 15-yr with Amazon.com guarantee of base rent plus three 5-yr extensions (announced Nov 3, 2025; some renderings note 300 MW gross supports 216 MW critical IT); Barber Lake 168 MW IT / 10-yr / ~$3B / $1.4B Google backstop, plus Nov 20, 2025 amendment adding 39 MW critical IT (max 56 MW gross) for ~$830M with Google backstop +$333M to $1.73B \u2014 Fluidstack now leases the entire 300 MW at Barber Lake; Stingray 70 MW IT fully pre-leased to Amazon Data Services, ~$2.0B over 15-yr base term (up to ~$5.7B with three 5-yr extensions), Amazon.com parent guarantee; total ~$11.4B contracted \u2713; net debt $1.46B \u2713. Pipeline figure STALE: per Q2 2026 update (Aug 4, 2026) it is a ~5.3 GW development portfolio = 700 MW contracted capacity + ~4.4 GW pipeline (including a new option on a ~900 MW Texas site near San Antonio) \u2014 not '2.4 GW'.",
+     "evidence_quote": "Cipher Digital showcased approximately $11.4 billion in contracted revenue in its Q2 2026 business update. [...] The company has a 5.3 gigawatt development portfolio, which includes 700 megawatts of contracted capacity and an additional 4.4 gigawatts in the pipeline. [...] Net debt stands at $1.46 billion, based on June 30, 2026 figures.",
+     "evidence_url": "https://investors.cipherdigital.com/news-releases/news-release-details/cipher-digital-provides-second-quarter-2026-business-update",
+     "note": "Quotes via search renderings of the Q2 2026 business update (8-K Aug 4, 2026) and Investing.com's slide coverage. Black Pearl: 'The Black Pearl facility secured a 15-year lease with Amazon Web Services for 300 MW of capacity, representing approximately $5.5 billion in contracted revenue... Amazon.com, Inc. guaranteeing base rent and operating expenses, with three additional 5-year extension options' (Nov 3, 2025 deal; Davis Polk deal page: 'Cipher Mining 300 MW, $5.5 billion lease agreement with Amazon Web Services'). Barber Lake amendment PR (Nov 20, 2025): 'Cipher will deliver an additional 39 MW of critical IT load, supported by a maximum of 56 MW of additional gross capacity, at its Barber Lake site in Colorado City, Texas' \u2014 PR headline says '56 MW' (gross) but the IT-load addition is 39 MW, so the claim's '+39 MW' is the right IT figure. Stingray: 'fully pre-leased to Amazon Data Services under a long-term triple-net agreement that includes annual rent escalators, parent guarantees from Amazon.com'; 'roughly $2.0 billion to $5.7 billion of total lease payments over a 15-year base term with three additional 5-year extension options'; funded by $810M Stingray senior secured notes (June 2026). Net-debt nuance: call rendering cites just over $6B aggregate corporate+project debt vs $832M unrestricted cash \u2014 the $1.46B net-debt figure from the Q2 slides nets out restricted prefunded project-financing cash; claim matches company presentation. Note company renamed from Cipher Mining to Cipher Digital Inc. during 2026."
+    },
+    {
+     "company": "TeraWulf (WULF)",
+     "claim": "Contracted 839 MW IT: Fluidstack ~360 MW Lake Mariner (Google backstop ~$3.2B), Core42 72.5 MW (~$1.1B), Anthropic 401 MW Justified Data Campus Hawesville KY (20-yr, ~$19B initial, ~$33B w/ extensions, announced Aug 2026). Total ~$27B contracted",
+     "verdict": "CORRECTED",
+     "corrected_value": "All figures CONFIRMED except the Anthropic announcement date: it was announced July 6, 2026, not August 2026. 839 MW contracted critical IT \u2713; Anthropic: 20-yr lease, ~401 MW critical IT at the Justified Data Campus (former Century Aluminum smelter site, Hawesville, KY), ~$19B initial-term contracted revenue, up to ~$33B if both five-year extension options are exercised \u2713; Fluidstack Lake Mariner: initial 200+ MW IT (~250 MW gross, ~$3.7B/10-yr) plus 160 MW CB-5 expansion = ~360+ MW, with Fluidstack contracted revenue lifted to ~$7.2B and Google's total backstop ~$3.2B \u2713; Core42 72.5 MW / ~$1.1B over 10 years \u2713; total contracted book >$27B \u2713 (19 + 7.2 + 1.1 \u2248 27.3).",
+     "evidence_quote": "TeraWulf reported 839 MW of contracted critical IT capacity across its platform and a 2.1 GW controlled development pipeline. [...] TeraWulf signed a 20-year lease with Anthropic covering roughly 401 MW at the Justified Data Campus, representing about $19 billion in contracted revenue over the initial term and up to $33 billion if both five-year extension options are exercised.",
+     "evidence_url": "https://investors.terawulf.com/news-events/press-releases/detail/144/terawulf-reports-second-quarter-2026-results",
+     "note": "Quotes via search renderings. Anthropic PR is dated July 6, 2026: 'TeraWulf Announces Anthropic Lease at Justified Data Campus and Sale of Majority Interest in Abernathy Joint Venture to Fluidstack' (globenewswire.com/news-release/2026/07/06/3322382; 8-K filed same day; CNBC covered it 2026-07-06). Fluidstack support quotes: initial deal (Aug 2025) 'more than 200 MW of critical IT load (representing ~250 MW of gross capacity)... approximately $3.7 billion in contracted revenue over the initial 10-year terms... approximately $8.7 billion' with extensions; CB-5 expansion 'an incremental 160 MW of critical IT load... Google's total backstop increases to approximately $3.2 billion, and its total pro forma equity ownership in TeraWulf increases to approximately 14%'. Core42: '72.5 MW of GPU-optimized capacity with approximately $1.1 billion in contracted revenue over ten years'. Total: Bernstein/The Block rendering: 'TeraWulf now has a contracted revenue book exceeding $27 billion across three deals with Anthropic, Fluidstack, and Core42', with Fluidstack 'lifting total contracted revenue to $7.2 billion over the 10-year term'. Implied Fluidstack MW from Q2 arithmetic: 839 - 401 - 72.5 = ~365.5 MW, consistent with '~360 MW'."
+    },
+    {
+     "company": "TeraWulf (WULF)",
+     "claim": "102 MW active HPC (WULF's operating HPC MW at Jun 30, 2026), net debt ~$2.7B (converts ~$3.4B?)",
+     "verdict": "CORRECTED",
+     "corrected_value": "At June 30, 2026 TeraWulf operated 81 MW of revenue-generating critical IT capacity at Lake Mariner; the 102 MW level was reached in EARLY JULY 2026 (post-quarter) upon completed delivery of CB-3. Net debt ~$2.7B CONFIRMED. Convertible notes are ~$2.5B at the TeraWulf parent level, not ~$3.4B \u2014 the ~$3.36B figure in the 10-Q is the FAIR VALUE of the 2030 Secured Notes (~$3.2B senior secured notes at WULF Compute).",
+     "evidence_quote": "TeraWulf operated 81 MW of revenue-generating critical IT capacity at Lake Mariner as of June 30, 2026 and completed delivery of CB-3 in early July, increasing revenue-generating capacity to 102 MW.",
+     "evidence_url": "https://investors.terawulf.com/news-events/press-releases/detail/144/terawulf-reports-second-quarter-2026-results",
+     "note": "Quotes via search renderings of the Q2 2026 release (8-K a_wulfearningsreleaseq22026.htm) and Q2 call/slides. Debt structure quote (call/slides rendering): 'The company's capital structure includes $2.5 billion in convertible notes at the TeraWulf parent level and $3.2 billion in senior secured notes at WULF Compute, resulting in $2.7 billion of net debt'; 'Cash and restricted cash totaled approximately $3.0 billion as of June 30, with approximately $1.2 billion of unrestricted cash at the parent level.' The 10-Q (wulf-20260630.htm) fair-value disclosure: 2030 Convertible Notes ~$1,532.0M, 2031 Convertible Notes $2,155.4M, 2032 Convertible Notes $1,513.7M (fair values, principal ~$2.5B), 2030 Secured Notes $3,356.8M fair value \u2014 the likely source of the researcher's '~$3.4B converts' misread. CB-3 delivery also made $600M of Google's credit support for Fluidstack's lease obligations effective."
+    },
+    {
+     "company": "GDS Holdings",
+     "claim": "Q2 2026 (Aug 13, 2026): area in service 684,977 sqm; commitment rate 92.4%; utilization 79.2%; H1 2026 new bookings 470 MW; MW backlog 757 MW; 2026 revenue guidance ~RMB 13.4-13.9B; net debt ~$4.6B",
+     "verdict": "CORRECTED",
+     "corrected_value": "Operating metrics CONFIRMED: area in service 684,977 sqm; commitment rate 92.4%; utilization 79.2%; Q2 bookings 260 MW bringing record H1 2026 to 470 MW; backlog 757 MW at mid-year (up from 450 MW at start of 2026), with FY26 bookings target raised to 1 GW. Guidance WRONG: 2026 revenue guidance was RAISED to RMB12,700-13,000 million (from RMB12,400-12,900 million), +11.1% to +13.7% YoY \u2014 not RMB13.4-13.9B. Adjusted EBITDA guidance raised to RMB5,900-6,100M; capex to ~RMB10,000M. Net debt ~$4.6B consistent: balance sheet shows RMB14,927.3M cash vs RMB9,209.5M short-term + RMB36,921.5M long-term debt = ~RMB31.2B net debt \u2248 US$4.6B (derived). No total-capacity-in-MW figure disclosed \u2014 GDS's MW disclosures are bookings/backlog (area metrics remain in sqm).",
+     "evidence_quote": "Commitment rate for area in service was 92.4% at the end of the second quarter of 2026 [...] Utilization rate (area utilized divided by area in service) was 79.2% as of June 30, 2026 [...] Area in service rose to 684,977 sqm, while area utilized reached 542,236 sqm. [...] GDS raised its 2026 revenue guidance from RMB12,400 million - RMB12,900 million to RMB12,700 million - RMB13,000 million, representing a year-over-year increase of between 11.1% to 13.7%.",
+     "evidence_url": "https://www.globenewswire.com/news-release/2026/08/13/3344406/0/en/gds-holdings-limited-reports-second-quarter-2026-results.html",
+     "note": "Quotes via search renderings of the Aug 13, 2026 release (also filed as 6-K, tm2621590d1_ex99-1.htm) and Q2 call transcript. Bookings/backlog quotes (call renderings): 'GDS Holdings achieved 260 megawatts of new bookings in the second quarter, bringing the total for the first half of 2026 to a record 470 megawatts'; 'The backlog reached 757 megawatts at the midpoint of the year, increasing from 450 megawatts at the beginning of 2026'; booked-but-not-billed adjusted EBITDA ~RMB1.6B at ~RMB2.2M per MW. Net debt cross-check: call rendering says 'net debt equal to 4.7 times last-quarter annualized adjusted EBITDA, and nearly RMB 20 billion of cash' (the RMB20B likely includes investments beyond the RMB14.9B cash line); 4.7x annualized Q2 adj-EBITDA \u2248 RMB31B, matching the derived ~RMB31.2B \u2248 US$4.6B at the release's ~6.785 RMB/USD. Q2 revenue RMB3,088.0M (+6.5% YoY), net income RMB837.6M. StockTitan headline confirms: 'GDS Raises 2026 Revenue Guidance to Up to RMB13B as Capex Rises'."
+    },
+    {
+     "company": "VNET",
+     "claim": "Q1 2026: wholesale in service 907 MW (util 75.7%), under construction 516 MW (85.8% pre-committed), total wholesale resource 2.48 GW; 2026 guidance revenue RMB 91-93B; net debt ~$2.0B; whether Q2 2026 was reported by Aug 17, 2026",
+     "verdict": "CORRECTED",
+     "corrected_value": "Q1 2026 wholesale metrics CONFIRMED: 907 MW in service at Mar 31, 2026 (vs 889 MW at Dec 31, 2025), utilization 75.7%, commitment rate 95.7%; 516 MW under construction with 85.8% pre-commitment. Total wholesale resource ~2.48 GW CONFIRMED by component sum: 907 in service + 516 under construction + 697 held for short-term future development + 359 held for long-term future development = 2,479 MW. Guidance WRONG: FY2026 net revenues guidance is RMB11.5-11.8 BILLION (+15.6% to +18.6% YoY) \u2014 not RMB91-93B (nor 9.1-9.3B). Net debt ~$2.0B consistent (derived): total debt RMB22.95B (RMB5.18B short-term + RMB17.77B long-term incl. RMB4.83B converts) less RMB8.80B cash/restricted cash/short-term investments \u2248 RMB14.2B \u2248 US$2.05B. Q2 2026 NOT yet reported as of Aug 17, 2026 \u2014 scheduled for Tuesday, August 18, 2026, so the Q1 MW figures remain the latest.",
+     "evidence_quote": "Capacity in service was 907MW as of March 31, 2026, compared with 889MW as of December 31, 2025 [...] Utilization rate of wholesale capacity was 75.7% as of March 31, 2026 [...] Capacity Under Construction was 516 megawatts, with a precommitment rate of 85.8% [...] VNET expects total net revenues to be in the range of RMB 11.5 billion to RMB 11.8 billion for the full year of 2026, representing year-over-year growth of 15.6% to 18.6%.",
+     "evidence_url": "https://www.prnewswire.com/news-releases/vnet-reports-unaudited-first-quarter-2026-financial-results-302781602.html",
+     "note": "Quotes via search renderings of VNET's Q1 2026 release (PRNewswire/ir.vnet.com) and Q1 call coverage. Future-capacity quote: 'Capacity held for short-term and long-term future development grew to 697 megawatts and 359 megawatts, respectively' \u2014 summing all four buckets gives exactly 2,479 MW \u2248 2.48 GW (VNET does not appear to quote a single '2.48 GW' headline number; it is a derived total). Debt quotes: 'total short-term debt was RMB 5.18 billion (US$750.4 million), and total long-term debt was RMB 17.77 billion (US$2.58 billion), comprised of long-term borrowings of RMB 12.93 billion and convertible notes of RMB 4.83 billion'; cash + restricted cash + short-term investments RMB8.80B (US$1.28B); release also cites net debt / LQA adjusted EBITDA of 3.8x. Q2 timing: IR notice 'VNET to Announce Unaudited Second Quarter 2026 Financial Results on August 18, 2026' (ir.vnet.com) \u2014 one day after the as-of date of this verification."
+    }
+   ],
+   "notes": "METHOD CAVEAT: The sandbox egress proxy blocked ALL direct HTTP fetches (www.sec.gov, efts.sec.gov, company IR domains, GlobeNewswire, PRNewswire, StockTitan, news mirrors all returned CONNECT 403). Per the task's fallback rules, every evidence quote above was captured from search-engine renderings of the primary sources (company press releases, 8-K/10-K/10-Q/6-K exhibits, earnings-call transcripts) and cross-checked across multiple independent queries; evidence_url fields point to the primary source documents, not the search pages. Quotes should be treated as search-rendered text of the primary source, not screen-verified page text. KEY CORRECTIONS FOUND: (1) APLD's '~$20B' belongs to the three fiscal-Q4-FY26 leases (Delta Forge 1 $7.5B + Polaris Forge 3 $7.5B + Delta Forge 2 $5.2B), not Delta Forge 1+2 (~$12.7B combined); no hyperscaler tenant is named \u2014 only CoreWeave (PF1) is public, and PF3's tenant is stated to be the same unnamed hyperscaler as DF1's. (2) WULF's Anthropic lease was announced July 6, 2026, not August 2026. (3) WULF had 81 MW revenue-generating HPC at 6/30/26; 102 MW was reached in early July post-quarter; converts are ~$2.5B principal (the ~$3.4B was a fair-value/secured-notes misread). (4) Cipher's pipeline is now a ~5.3 GW development portfolio (700 MW contracted + ~4.4 GW pipeline incl. a new ~900 MW San Antonio-area site option) \u2014 the 2.4 GW figure is stale; Barber Lake expansion is 39 MW IT / 56 MW gross; company renamed Cipher Digital Inc. (5) GDS 2026 revenue guidance is RMB12,700-13,000M (raised Aug 13, 2026), not RMB13.4-13.9B; GDS discloses MW only for bookings/backlog (470 MW H1, 757 MW backlog, 1 GW FY26 target), no total-capacity MW metric. (6) VNET 2026 guidance is RMB11.5-11.8B (the '91-93B' in the claim is off by ~8x); VNET's 2.48 GW total is a derived sum (907+516+697+359=2,479 MW); VNET Q2 2026 results were NOT out as of Aug 17 \u2014 they are scheduled for Aug 18, 2026. Net-debt figures for GDS (~RMB31.2B \u2248 $4.6B) and VNET (~RMB14.2B \u2248 $2.05B) are arithmetic derivations from balance-sheet lines quoted in search renderings, not company-stated USD net-debt figures; Cipher's $1.46B net debt is the company's own Q2-slide presentation (it nets restricted prefunded project cash against >$6B aggregate debt)."
+  },
+  "miners-verify-b": {
+   "claims": [
+    {
+     "company": "Hut 8 (HUT)",
+     "claim": "949 MW contracted IT capacity under signed AI-DC leases: Beacon Point TX 704 MW (incl. 352 MW 15-yr ~$9.8B lease; campus 1 GW gross, $19.6B campus base-term value) + River Bend LA 245 MW; total ~$26.6B base-term value; >$1.75B expected avg annual NOI; 0 MW energized (first deliveries 2027); pipeline ~8,660 MW; 10,800 BTC held; tenant identity",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "Contracted AI data center capacity reached 949 MW with approximately $26.6 billion of expected base-term contract value... more than $1.75 billion of expected average annual NOI, leased or backstopped exclusively by investment-grade counterparties... As of June 30, 2026, Hut 8's development pipeline totaled approximately 8,660 MW... Facilities representing 1,330 MW of utility capacity are in active construction across River Bend and Beacon Point, targeted for initial data hall delivery in Q2 2027 and Q3 2027, respectively. [Beacon Point PR title, verbatim: 'Hut 8 Fully Commercializes 1 GW Beacon Point AI Data Center Campus with Second 352 MW IT Lease, Bringing Campus-Level Base-Term Contract Value to $19.6 Billion'; 'second 15-year, $9.8 billion lease for 352 megawatts (MW) of IT capacity... leasing capacity with the said tenant stands at 704 MW'. River Bend PR title, verbatim: 'Hut 8 Signs 15-Year, 245 MW AI Data Center Lease at River Bend Campus with Total Contract Value of $7.0 Billion']",
+     "evidence_url": "https://www.sec.gov/Archives/edgar/data/0001964789/000110465926090041/tm2621890d1_ex99-1.htm",
+     "note": "Quotes are from search-engine renderings of the Aug 4, 2026 Q2 results release (PRNewswire 302841830 / 8-K ex-99.1 above) and the July 21, 2026 Beacon Point Phase 2 release (SEC: .../000110465926084862/tm2620835d1_ex99-1.htm) \u2014 direct fetches were blocked by the egress proxy. Arithmetic checks: 704+245=949 MW; $19.6B+$7.0B=$26.6B. TENANTS: Beacon Point tenant is NOT named \u2014 described only as an investment-grade counterparty (the same 'high-investment-grade company' took both 352 MW leases, per renderings; Beacon Point Phase 2 alone = ~$655M avg annual NOI, up to $50.2B with three 5-yr renewals). River Bend tenant IS named: Fluidstack, with Google providing a financial backstop of lease payments over the 15-yr base term (Dec 17, 2025 announcement; up to ~$17.7B with renewals; DCD reported it as part of Fluidstack's multi-GW Anthropic partnership). '0 MW energized' is supported indirectly: first data hall deliveries targeted Q2 2027 (River Bend) and Q3 2027 (Beacon Point), so no AI-lease MW were revenue-generating in Q2 2026 (Q2 revenue of $74.9M was compute/mining-driven). CAVEAT \u2014 BTC count: I could NOT verify 10,800 BTC; the only figure surfaced was subsidiary American Bitcoin's Q2 2026 strategic reserve of 'over 8,000 BTC' and Hut 8's '$8.1 billion in unrestricted cash, restricted cash and cash equivalents, and Bitcoin.' Treat 10,800 as unverified pending the 10-Q."
+    },
+    {
+     "company": "Galaxy (GLXY)",
+     "claim": "Helios: 526 MW critical IT contracted to CoreWeave (Phases I-III = 800 MW gross approved), Phase I 133 MW CIT in service Jun 30, 2026; $10.4B minimum contracted lease payments 15-yr; Helios approved capacity expanded to 1.63 GW gross; any new phase/customer mid-2026",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "Across Phases I through III, CoreWeave has committed to 526 MW of critical IT load \u2014 the full 800 MW of gross power currently approved and contracted at Helios \u2014 under 15-year leases that include two five-year extension options... Galaxy completed delivery of Phase I with 133 MW of critical IT load in service by quarter end... The minimum contracted lease payments total $10.4 billion over the 15-year initial term at 3% annual inflation, excluding a $100 million option payment. [ERCOT PR title, verbatim: 'Galaxy Completes ERCOT Interconnection Studies and Secures Approval for Additional 830 Megawatts at Helios Data Center Campus, Doubling Total Approved Power Capacity to over 1.6 Gigawatts'; 'Approved power capacity now totals 1.63 GW']",
+     "evidence_url": "https://www.prnewswire.com/news-releases/galaxy-announces-second-quarter-2026-financial-results-302843529.html",
+     "note": "Quotes from search renderings of the Aug 5, 2026 Q2 release, the ~Jul 10, 2026 Phase I completion release (PRNewswire 302818664), the Jan 2026 ERCOT release (PRNewswire 302662509), and Aug 2026 notes-offering coverage (Blockspace/Yahoo) \u2014 direct fetches blocked. Phase I 133 MW 'in service by quarter end' (Jun 30, 2026) confirmed; rent commenced scaling in Q2 2026, ~$80M leasing revenue guided for Q3 2026 at >90% project EBITDA margins. CAVEAT on $10.4B: the figure appears in coverage of the planned $3.507B senior secured notes offering (financing Phase II: two buildings, 400 MW utility / 260 MW CIT, Dickens County TX); renderings are ambiguous whether $10.4B covers the whole 526 MW CoreWeave complex or only lease collateral for the financed phase \u2014 $10.4B/15yr \u2248 $693M/yr, which fits 526 MW (~$110/kW-mo) far better than 260 MW alone, and matches Galaxy's stated >$1B avg annual revenue across three phases, so 'aggregate CoreWeave leases' is the more likely reading; confirm against the 10-Q/offering memo. NEW mid-2026 items: NO new Helios tenant or Phase IV lease found through Aug 17, 2026 \u2014 the new developments are the Jan 2026 ERCOT +830 MW approval (to 1.63 GW gross, expandable to a stated 3.6 GW potential) and the Aug 2026 $3.507B debt offering; Q2 slides also referenced a '$30B contract pipeline' (Investing.com headline)."
+    },
+    {
+     "company": "Core Scientific (CORZ)",
+     "claim": "CoreWeave acquisition terminated by shareholder vote ~Oct 2025; ~590 MW CoreWeave colocation (> $10B potential revenue); NEW AMD partnership with Q2 2026 results: ~530 MW anchor, 15-yr, ~$14B+ base contracted revenue, ~380 MW direct triple-net at Pecos TX/Denton TX/Muskogee OK, AMD reservation option up to 1,925 MW; leased capacity 1.1 GW",
+     "verdict": "CORRECTED",
+     "corrected_value": "AMD triple-net site list: ~380 MW delivered directly to AMD across Pecos, Hunt, and Muskogee \u2014 NOT Denton. The remaining ~150 MW (Auburn and Dalton) supports a neocloud under a modified gross lease with AMD full credit support for the 15-yr term. All other headline AMD-deal elements confirm: initial ~530 MW across five sites, >$14B base contracted revenue over 15 years, exclusive reservation rights up to 1,925 MW additional through Dec 28, 2028 (~2.5 GW if fully exercised).",
+     "evidence_quote": "Core Scientific's stockholders did not receive the votes necessary to approve the merger agreement with CoreWeave, and on October 30, 2025, Core Scientific terminated the merger agreement effective immediately... Approximately 380 MW will be delivered directly to AMD under a triple-net lease across Pecos, Hunt, and Muskogee. The remaining approximately 150 MW across Auburn and Dalton will support a Neocloud through a modified gross lease for which AMD will provide full credit support... The initial 530 MW generates more than $14 billion in base contracted revenue over 15 years... AMD also secured exclusive reservation rights for up to 1,925 MW of additional capacity through December 28, 2028. If exercised in full, the partnership would expand to approximately 2.5GW.",
+     "evidence_url": "https://www.datacenterdynamics.com/en/news/core-scientific-secures-amd-as-customer-at-five-sites/",
+     "note": "Merger termination: confirmed via renderings of the company PR (investors.corescientific.com/news-events/press-releases/detail/124/) and CNBC (2025-10-30) \u2014 $9B all-stock deal (signed Jul 7, 2025) voted down by stockholders Oct 30, 2025; CORZ standalone on Nasdaq since. AMD deal: announced with Q2 2026 results (~Jul 28, 2026 per BigGo/StockTitan 8-K coverage), cross-confirmed by DCD, MLQ, and BigGo renderings; build-out cost cited at ~$11-12M/MW (~$6B total). Site correction is from search renderings (medium-high confidence \u2014 Denton is where CoreWeave's colocation capacity sits, making AMD-at-Denton implausible; 'Hunt' likely Hunt County TX): verify the trio against the CORZ 8-K exhibit before publishing. NOT re-verified (search budget exhausted before follow-up): the ~590 MW CoreWeave colocation / >$10B figure and the exact 'leased capacity reached 1.1 GW' phrase \u2014 the 590 MW / >$10B is consistent with CORZ's pre-2026 disclosures (~590 MW, ~$10.2B total potential revenue) from my training memory, but that is memory, not a checked Q2 2026 source; 530 (AMD) + ~590 (CoreWeave) \u2248 1.1 GW is at least arithmetically coherent."
+    },
+    {
+     "company": "Riot (RIOT)",
+     "claim": "NEW 20-year lease with a 'leading frontier AI lab' announced with Q2 2026 results (Aug 10, 2026): 191 MW critical IT at Rockdale TX, ~$9.1B expected initial-term revenue (~$16.1B with extensions), phase 1 96 MW due Dec 2027; plus existing AMD 50 MW lease; total ~$9.8B contracted; Corsicana 1 GW LOI non-binding (could exceed $1B annual rent)",
+     "verdict": "CONFIRMED",
+     "corrected_value": null,
+     "evidence_quote": "[SEC 8-K ex-99.1 (Aug 10, 2026), title as rendered by search: 'Executed 20-year data center lease with a leading frontier ...'] The Data Center Lease carries an initial term of 20 years, running through June 2048, and is expected to generate approximately $9.1 billion in total initial contract revenue... two five-year extension options at the tenant's election, representing a total potential contract value of approximately $16.1 billion... Riot expects to deliver the first 96 IT MW in December 2027 and the full 191 IT MW by June 2028... Riot now has 241 MW of contracted critical IT capacity and approximately $9.8 billion of expected revenue under the initial contract terms... Corsicana sits on Riot-owned land with 1 GW of fully approved utility power, which could support 756 MW of net critical IT capacity; CEO Jason Les said Corsicana's full site is under a nonbinding LOI with one tenant.",
+     "evidence_url": "https://www.sec.gov/Archives/edgar/data/1167419/000110465926093406/riot-20260810xex99d1.htm",
+     "note": "Quotes from search renderings of the Aug 10, 2026 Q2 press release (riotplatforms.com) and 8-K ex-99.1 / 10-Q (riot-20260630x10q.htm) \u2014 direct fetches blocked. TENANT IDENTITY: Riot does NOT name the tenant ('leading frontier AI lab' in its own materials), but multiple media outlets identify it as ANTHROPIC \u2014 e.g., Blockspace: 'KBW maintains Outperform rating on Riot Platforms with $35 price target following Anthropic deal'; TechTimes (Aug 12, 2026): 'Starboard Predicted $9.1B; Riot Delivered: Anthropic Lease Closes Activist Loop in Six Months.' Treat Anthropic as media-reported, not company-confirmed. AMD: expansion brings AMD's contracted capacity to 50 MW; final 20 MW of initial deployment completed in Q2 with 25 MW of commissioned critical IT capacity online. 191+50=241 MW contracted; ~$9.8B combined initial-term revenue confirmed. Corsicana: non-binding LOI for the full 1 GW site (756 MW net CIT); Benzinga headline confirms Riot said it 'could top $1 billion in annual rent.' Q2 revenue $174.2M, mining $113.7M."
+    },
+    {
+     "company": "MARA",
+     "claim": "No third-party AI/HPC leases as of Q2 2026; 4.8 GW stated potential power portfolio; Long Ridge Energy acquisition (505 MW gas generation) closed?; any AI/HPC deal announced through Aug 17, 2026",
+     "verdict": "UNVERIFIABLE",
+     "corrected_value": null,
+     "evidence_quote": null,
+     "evidence_url": null,
+     "note": "Could not be checked: the session's WebSearch budget (200 calls, shared) was exhausted before any MARA query ran, and every direct-fetch route is blocked by the egress proxy (mara.com, ir.mara.com, sec.gov/data.sec.gov/efts.sec.gov, all newswires and financial-news domains all return 403 at the CONNECT stage). No element of this claim \u2014 the absence of third-party AI/HPC leases, the 4.8 GW potential-portfolio figure, the Long Ridge (505 MW) closing status, or any deal announced through Aug 17, 2026 \u2014 should be treated as verified. My training memory (pre-Jan 2026) is consistent with MARA having announced a Long Ridge gas-generation acquisition in late 2025 and having no signed third-party AI/HPC colocation lease at that time, but that is stale memory, not a checked source; the 4.8 GW figure and closing status are post-cutoff and entirely unchecked. Re-run against MARA's Q2 2026 8-K/10-Q and shareholder letter."
+    },
+    {
+     "company": "Cross-check (CRWV/NBIS/GOOGL/MSFT market data)",
+     "claim": "CoreWeave market cap ~$58.1B at ~$105.5/share (~550M shares) and Nebius ~$75.5B at ~$277.9/share (~272M shares) as of Aug 14, 2026; GOOGL ~$4.23T and MSFT ~$3.68T same date",
+     "verdict": "UNVERIFIABLE",
+     "corrected_value": null,
+     "evidence_quote": null,
+     "evidence_url": null,
+     "note": "Could not be checked: no quote/market-data source is reachable (Yahoo Finance, stockanalysis.com, MarketBeat, TIKR, Reuters all 403-blocked by the egress proxy) and the WebSearch budget was exhausted before this claim's queries ran. Internal-consistency checks only: $105.5 x ~550.7M shares = ~$58.1B (coherent); $277.9 x ~271.7M shares = ~$75.5B (coherent) \u2014 so each price/share-count/market-cap triple is at least arithmetically self-consistent, but neither the Aug 14, 2026 closing prices nor the share counts (CRWV share count should be taken from the latest 10-Q cover page across all classes A/B/C; NBIS from its latest 6-K/20-F) were verified against any source. GOOGL ~$4.23T and MSFT ~$3.68T are directionally plausible versus known 2025 levels (GOOGL crossed $3T in late 2025; MSFT was ~$3.7T mid-2025) but unverified for the claimed date. Re-check all four against live quote pages and latest filing share counts."
+    }
+   ],
+   "notes": "METHOD AND LIMITATIONS: This environment's egress proxy blocked EVERY direct fetch attempted \u2014 www.sec.gov, efts.sec.gov, data.sec.gov, prnewswire.com, morningstar.com, tradingview.com, stocktitan.net, company IR sites (hut8.com, investors.corescientific.com, riotplatforms.com, ir.mara.com), and all financial-news domains (403 at CONNECT). Per the stated fallback rules, all evidence quotes above therefore come from search-engine renderings of the primary documents (press releases, 8-K exhibits, earnings-call coverage), cross-checked across multiple independent queries/outlets; none is a quote I read directly in the primary document. Press-release TITLES cited (Hut 8 Beacon Point/River Bend, Galaxy ERCOT) are verbatim since they appear in the result listings themselves. Mid-verification the session's shared WebSearch budget hit its 200-call cap, which prevented: (a) any check of the MARA claim, (b) any check of the market-data claim, (c) re-verification of CORZ's ~590 MW CoreWeave/>$10B and '1.1 GW leased' figures, (d) pinning down Hut 8's 10,800 BTC count, and (e) resolving whether Galaxy's $10.4B covers all three CoreWeave phases or only the Phase II financing collateral. HIGHEST-PRIORITY FOLLOW-UPS for the parent: (1) CORZ AMD triple-net site trio \u2014 renderings say Pecos/Hunt/Muskogee, not the claimed Pecos/Denton/Muskogee (Denton is CoreWeave's site); check the CORZ 8-K. (2) Hut 8 BTC \u2014 only figure found is American Bitcoin's 'over 8,000 BTC' reserve; 10,800 unconfirmed. (3) Riot tenant \u2014 company says unnamed 'leading frontier AI lab'; Blockspace/KBW and TechTimes coverage identify Anthropic (media-reported only). Sources: [Hut 8 Q2 8-K ex-99.1](https://www.sec.gov/Archives/edgar/data/0001964789/000110465926090041/tm2621890d1_ex99-1.htm), [Hut 8 Q2 PR](https://www.prnewswire.com/news-releases/hut-8-reports-second-quarter-2026-results-302841830.html), [Beacon Point Phase 2 ex-99.1](https://www.sec.gov/Archives/edgar/data/1964789/000110465926084862/tm2620835d1_ex99-1.htm), [Beacon Point PR](https://www.prnewswire.com/news-releases/hut-8-fully-commercializes-1-gw-beacon-point-ai-data-center-campus-with-second-352-mw-it-lease-bringing-campus-level-base-term-contract-value-to-19-6-billion-302829514.html), [River Bend PR](https://www.prnewswire.com/news-releases/hut-8-signs-15-year-245-mw-ai-data-center-lease-at-river-bend-campus-with-total-contract-value-of-7-0-billion-302644600.html), [DCD Hut 8/Fluidstack/Anthropic](https://www.datacenterdynamics.com/en/news/hut-8-signs-245mw-capacity-deal-with-fluidstack-as-part-of-multi-gigawatt-partnership-with-anthropic/), [Galaxy Q2 PR](https://www.prnewswire.com/news-releases/galaxy-announces-second-quarter-2026-financial-results-302843529.html), [Galaxy Phase I PR](https://www.prnewswire.com/news-releases/galaxy-completes-phase-i-of-its-helios-data-center-campus-delivering-133-megawatts-of-critical-it-load-to-coreweave-302818664.html), [Galaxy ERCOT PR](https://www.prnewswire.com/news-releases/galaxy-completes-ercot-interconnection-studies-and-secures-approval-for-additional-830-megawatts-at-helios-data-center-campus-doubling-total-approved-power-capacity-to-over-1-6-gigawatts-302662509.html), [Blockspace Galaxy debt](https://blockspace.media/insight/galaxy-digital-helios-data-center-debt-offering/), [CORZ termination PR](https://investors.corescientific.com/news-events/press-releases/detail/124/core-scientific-announces-termination-of-merger-agreement-with-coreweave), [CNBC CORZ vote](https://www.cnbc.com/2025/10/30/core-scientific-shareholders-reject-9-billion-coreweave-offer-deal-terminated.html), [DCD CORZ-AMD](https://www.datacenterdynamics.com/en/news/core-scientific-secures-amd-as-customer-at-five-sites/), [MLQ CORZ-AMD](https://mlq.ai/news/core-scientific-signs-14b-15-year-amd-deal-for-530mw-across-five-campuses/), [Riot 8-K ex-99.1](https://www.sec.gov/Archives/edgar/data/1167419/000110465926093406/riot-20260810xex99d1.htm), [Riot 10-Q](https://www.sec.gov/Archives/edgar/data/0001167419/000110465926093448/riot-20260630x10q.htm), [Riot Q2 PR](https://www.riotplatforms.com/riot-platforms-reports-second-quarter-2026-financial-results-and-strategic-highlights/), [Blockspace Riot Q2](https://blockspace.media/insight/riot-platforms-signs-ai-lease-rockdale-2026/), [Blockspace KBW/Anthropic](https://blockspace.media/insight/riot-corsicana-loi-756mw-ai-data-center/), [TechTimes Riot/Anthropic](https://www.techtimes.com/articles/324046/20260812/starboard-predicted-91b-riot-delivered-anthropic-lease-closes-activist-loop-six-months.htm), [Benzinga Corsicana rent](https://www.benzinga.com/trading-ideas/movers/26/08/61101886/riot-says-massive-ai-data-center-deal-could-top-1-billion-in-annual-rent), [Investing.com Galaxy Q2 slides](https://www.investing.com/news/company-news/galaxy-digital-q2-2026-slides-show-30b-contract-pipeline-amid-losses-93CH-4838097), [Investing.com ABTC Q2](https://www.investing.com/news/company-news/american-bitcoin-q2-2026-slides-reserve-hits-8000-btc-amid-revenue-miss-93CH-4831423), [BigGo HUT Q2](https://finance.biggo.com/news/US_HUT_2026-08-04), [BigGo CORZ Q2](https://finance.biggo.com/news/US_CORZ_2026-07-28), [BigGo RIOT Q2](https://finance.biggo.com/news/US_RIOT_2026-08-10), [TechTimes Hut 8 Beacon Point](https://www.techtimes.com/articles/321209/20260721/former-bitcoin-miner-hut-8-fully-contracts-beacon-point-ai-campus-196b.htm), [Insider Monkey Hut 8](https://www.insidermonkey.com/blog/hut-8-hut-soars-as-beacon-point-secures-50-2-billion-revenue-potential-1803187/)."
+  }
+ }
+}
