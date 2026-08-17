@@ -1,0 +1,25 @@
+{
+  "description": "Verbatim transcription of the user's source screenshot: CoreWeave vs Nebius capacity/valuation comparison. Units: $ figures in USD millions unless noted; 'x' multiples on MW lines are $M per MW. This panel defines the row format replicated for all other companies.",
+  "columns": ["CoreWeave", "Nebius", "CRWV vs. NBIS Delta", "%"],
+  "rows": [
+    {"metric": "Enterprise Value", "CoreWeave": 72887, "Nebius": 46566, "delta": 26321, "pct": "56.5%"},
+    {"metric": "Contracted / Secured Power (MW)", "CoreWeave": 3500, "Nebius": 3500, "delta": null, "pct": null},
+    {"metric": "o/w Built & Active (MW)", "CoreWeave": 1000, "Nebius": 390, "delta": 610, "pct": "156.4%"},
+    {"metric": "o/w Contracted, Unbuilt (MW)", "CoreWeave": 2500, "Nebius": 3110, "delta": -610, "pct": "-19.6%"},
+    {"metric": "% Built & Active", "CoreWeave": "29%", "Nebius": "11%", "delta": "17%", "pct": null},
+    {"metric": "% Contracted, Unbuilt", "CoreWeave": "71%", "Nebius": "89%", "delta": "-17%", "pct": null},
+    {"metric": "Contracted Revenue Backlog", "CoreWeave": 99400, "Nebius": 45000, "delta": 54400, "pct": "120.9%"},
+    {"metric": "Backlog per Contracted MW ($M/MW)", "CoreWeave": 28.4, "Nebius": 12.9, "delta": 15.5, "pct": "120.9%"},
+    {"metric": "EV / Contracted Power MW ($M/MW)", "CoreWeave": 20.8, "Nebius": 13.3, "delta": 7.5, "pct": "56.5%"},
+    {"metric": "EV / Built & Active MW ($M/MW)", "CoreWeave": 72.9, "Nebius": 119.4, "delta": -46.5, "pct": "-39.0%"},
+    {"metric": "EV / Contracted, Unbuilt MW ($M/MW)", "CoreWeave": 29.2, "Nebius": 15.0, "delta": 14.2, "pct": "94.7%"},
+    {"metric": "NTM Revenue", "CoreWeave": 15672, "Nebius": 5079, "delta": 10593, "pct": "208.5%"},
+    {"metric": "NTM EBITDA", "CoreWeave": 9266, "Nebius": 2423, "delta": 6843, "pct": "282.4%"},
+    {"metric": "EV / NTM EBITDA", "CoreWeave": "7.9x", "Nebius": "19.2x", "delta": "-11.4x", "pct": "-59.1%"},
+    {"metric": "EV / NTM Revenue", "CoreWeave": "4.7x", "Nebius": "9.2x", "delta": "-4.5x", "pct": "-49.3%"},
+    {"metric": "Net Debt", "CoreWeave": -32881, "Nebius": -198, "delta": -32683, "pct": null, "note": "shown in parens = subtracted in EV-to-equity bridge"},
+    {"metric": "Minority Interest", "CoreWeave": null, "Nebius": -1, "delta": 1, "pct": null},
+    {"metric": "Equity Value", "CoreWeave": 40006, "Nebius": 46367, "delta": -6361, "pct": null},
+    {"metric": "Equity Value / Contracted Power MW ($M/MW)", "CoreWeave": 11.4, "Nebius": 13.2, "delta": -1.8, "pct": "-13.7%"}
+  ]
+}
