@@ -581,9 +581,11 @@ const DIFFICULTY = {
 
 /* AI war chest: every AI general is resupplied this much every 10 minutes */
 const AI_CASH_DROP = 30000;
-/* How many levels of one track the AI will sink into a single hull. It refits its
-   army to a solid standard rather than min-maxing one tank into a monument. */
-const AI_UPGRADE_MAX = 4;
+/* How many levels of one track the AI will sink into a single hull. Levels compound
+   now, so a general that stopped at four was leaving most of the curve unclaimed —
+   but it still refits the whole army to a standard rather than min-maxing one tank
+   into a monument, and the rising price per level is what stops it going further. */
+const AI_UPGRADE_MAX = 16;
 /* Ceiling on the mined-out "expand the economy" reflex. Without one, an exhausted
    map makes the AI request supply centers forever and nothing else ever gets built. */
 const AI_MAX_SUPPLY = 14;
@@ -746,9 +748,12 @@ const BUILDINGS = {
   },
   superweapon: {
     name: { coalition: 'Solaris Array', dynasty: 'Nuclear Silo', cartel: 'Rocket Storm Pit' },
-    icon: '☢️', cost: 4000, hp: 7500, size: 3, buildTime: 60, power: 6, armor: 'building',
+    /* Ten times the blast radius and three times the damage of a conventional strike
+       is not a $4,000 structure. It is priced and armoured like what it is: the single
+       largest investment on the map, two to a general and no more. */
+    icon: '☢️', cost: 300000, hp: 225000, size: 3, buildTime: 60, power: 6, armor: 'building',
     sight: 6, desc: 'Superweapon. 5-minute countdown, then unleash devastation anywhere on the map.',
-    swTimer: 300, limit: 4,
+    swTimer: 300, limit: 2,
     swByFaction: { coalition: 'solaris', dynasty: 'nuke', cartel: 'rocketstorm' },
   },
 };
@@ -1134,7 +1139,6 @@ const TROOP_CHASSIS = ['inf', 'rocketinf', 'commando'];
    deal than simply building more, which keeps the wallet the real limit. */
 const VEHICLE_CHASSIS = ['tank', 'heavytank', 'flametank', 'aatank', 'mlrs', 'buggy', 'demorig'];
 const FIELD_UP_COST_MUL = 0.3;          // Special levels, as a share of the unit's price
-const FIELD_UP_PREMIUM = 1.2;           // Gun/Armor cost this much over the going rate for the stat
 
 /* ---- what a Gun or Armor level costs ----
    A level adds a fixed fraction of the unit's BASE stat, so billing it as a fraction
@@ -1148,8 +1152,7 @@ const FIELD_UP_PREMIUM = 1.2;           // Gun/Armor cost this much over the goi
    rate for health and for damage. A point of armour costs the same whoever bolts it
    on, and a point of damage likewise, so upgrading is proportional by construction.
    The rate is the roster median rather than the mean so one outlier hull cannot drag
-   the whole economy, and the 1.2 premium keeps upgrading a slightly worse deal than
-   simply building more — the property that lets the levels stay uncapped. */
+   the whole economy. */
 let _upRate = null;
 function upgradeRates() {
   if (_upRate) return _upRate;
@@ -1225,12 +1228,177 @@ const SPECIALS = {
   truck:     { name: 'Overhauled Engine', short: 'Engine',  icon: '🔧', effect: 'speed' },
   radar:     { name: 'Overhauled Engine', short: 'Engine',  icon: '🔧', effect: 'speed' },
 };
-const FIELD_UP_STEP = 0.25;             // what one level of any field upgrade is worth
-/* Gun and Armor stack without limit; a Special tops out at exactly double. Doubling a
-   reload, a reach or a top speed is the whole point of the system — past that it stops
-   being a refit and starts rewriting what the hull is. */
+const FIELD_UP_STEP = 0.25;             // what one level of the ⚙ Special is worth
+/* A Special tops out at exactly double. Doubling a reload, a reach or a top speed is
+   the whole point of the system — past that it stops being a refit and starts
+   rewriting what the hull is. */
 const SPECIAL_MAX_MUL = 2;
 const SPECIAL_MAX_LEVEL = Math.round((SPECIAL_MAX_MUL - 1) / FIELD_UP_STEP);
+
+/* ---- Gun and Armor: fifty compounding levels ----
+   A quarter of the base stat added over and over is a straight line. The tenth level
+   was worth exactly what the first was, so there was never a reason to push one hull
+   further than any other: a veteran that had survived twenty engagements was no better
+   an investment than the tank that rolled off the line this minute.
+
+   Seven percent, compounded, is a curve. Level 1 adds 7% of the base. Level 50 adds
+   nearly two whole units' worth of stat in one purchase, because it is 7% of a figure
+   already twenty-seven times the base. The hull you keep alive is the one worth
+   spending on, and that is the entire point of the change.
+
+       level        1      10      20      30      40      50
+       multiplier   1.07   1.97    3.87    7.61    14.97   29.46
+
+   Fifty is the ceiling. Past that a refit stops being a refit. */
+const FIELD_UP_MAX_LEVEL = 50;
+const FIELD_UP_GROWTH = 1.07;
+function fieldMul(level) {
+  const n = Math.min(FIELD_UP_MAX_LEVEL, Math.max(0, level || 0));
+  return Math.pow(FIELD_UP_GROWTH, n);
+}
+/* what buying level n adds, as a fraction of the unit's base stat */
+function fieldStep(n) { return fieldMul(n) - fieldMul(n - 1); }
+
+/* ---- and what it costs ----
+   You pay for the stat the level actually adds, at the going rate. Because the stat
+   compounds the bill compounds with it, so cost per point would be flat forever — and
+   flat means indifference: refitting and building would be the same deal at every
+   level, which is no incentive to do either.
+
+   So the going rate carries a premium that starts as a discount and grows into a
+   penalty: 0.70x at level 1, parity around level 12, three times the rate by level 50.
+   Early refits are the cheapest firepower on the map — that is what pulls you towards
+   improving what you already own. Late ones cost multiples of building fresh, which is
+   what stops the army collapsing into one gold-plated tank and keeps the factories
+   worth running. */
+const FIELD_UP_PREMIUM = 0.7;           // level-1 price against the going rate
+const FIELD_UP_PREMIUM_GROWTH = 1.03;   // ...and how fast the premium climbs
+function fieldUpPremium(n) {
+  return FIELD_UP_PREMIUM * Math.pow(FIELD_UP_PREMIUM_GROWTH, Math.max(0, n - 1));
+}
+
+/* ---- Combat levels ----
+   Guns and plating are bought. Levels are not for sale at any price: a unit earns them
+   by fighting, one through thirty, off the same kill XP that awards its stars. At six
+   milestones it learns something the factory never fitted, ending in an ability the
+   player triggers by hand.
+
+   That is the other half of the compounding bargain. Money makes a hull stronger;
+   only survival makes it *better*. A level-30 tank cannot be ordered from a factory —
+   it can only be one you kept alive, which is exactly the unit worth pouring gun and
+   armour levels into. Veterancy stars are unchanged and run alongside: five ranks of
+   raw stat bonus, thirty levels of learned behaviour. */
+const UNIT_MAX_LEVEL = 30;
+const LEVEL_XP_BASE = 35;               // xp for level 2 — the curve is quadratic from there
+/* total kill XP needed to BE a given level. A Warlord kill is worth ~175, so level 10
+   is roughly seventeen kills, level 20 about seventy, and level 30 a hundred and
+   sixty-eight — a full campaign in one hull. */
+function levelXpFor(level) {
+  return level <= 1 ? 0 : Math.round(LEVEL_XP_BASE * Math.pow(level - 1, 2));
+}
+const LEVEL_XP = Array.from({ length: UNIT_MAX_LEVEL + 1 }, (_, i) => levelXpFor(i));
+function levelForXp(xp) {
+  let n = 1;
+  while (n < UNIT_MAX_LEVEL && xp >= LEVEL_XP[n + 1]) n++;
+  return n;
+}
+
+const ABILITY_DUR = 12;                 // how long the level-30 ability runs
+const ABILITY_CD = 90;                  // and how long before it can run again
+
+/* Three ability tracks, one per kind of hull. Every entry declares the single effect
+   it changes, so nothing downstream has to know ability names — it asks for an effect
+   and gets a multiplier. */
+const LEVEL_ABILITIES = {
+  vehicle: [
+    { lvl: 5,  key: 'optics',    effect: 'range',  mul: 1.12, icon: '🔭', name: 'Ranging Optics',
+      desc: 'Laid sights and a ranging drum: +12% weapon range.' },
+    { lvl: 10, key: 'reactive',  effect: 'tough',  mul: 0.85, icon: '🧱', name: 'Reactive Plating',
+      desc: 'Bolt-on reactive blocks: takes 15% less damage from everything.' },
+    { lvl: 15, key: 'drill',     effect: 'rof',    mul: 1.20, icon: '🔁', name: 'Loader Drill',
+      desc: 'A crew that has done it ten thousand times: +20% rate of fire.' },
+    { lvl: 20, key: 'spall',     effect: 'splash', mul: 0.60, icon: '🛡️', name: 'Spall Liner',
+      desc: 'Kevlar liner behind the armour: takes 40% less splash damage.' },
+    { lvl: 25, key: 'welds',     effect: 'regen',  mul: 2,    icon: '🔧', name: 'Field Welds',
+      desc: 'The crew patch their own hull twice as fast between fights.' },
+    { lvl: 30, key: 'overdrive', effect: 'active', mul: 2, speed: 1.35, icon: '⚡', name: 'Overdrive',
+      desc: 'Governors off: 12 s of double rate of fire and +35% speed. 90 s cooldown.' },
+  ],
+  air: [
+    { lvl: 5,  key: 'fueltrim',  effect: 'speed',  mul: 1.12, icon: '💨', name: 'Fuel Trim',
+      desc: 'A pilot who knows the airframe: +12% speed.' },
+    { lvl: 10, key: 'chaff',     effect: 'rocket', mul: 0.75, icon: '✨', name: 'Chaff Dispenser',
+      desc: 'Breaks missile locks: takes 25% less rocket damage.' },
+    { lvl: 15, key: 'bay',       effect: 'rof',    mul: 1.20, icon: '🔁', name: 'Weapons Bay',
+      desc: 'Rebuilt release gear: +20% rate of fire.' },
+    { lvl: 20, key: 'composite', effect: 'flak',   mul: 0.80, icon: '🧱', name: 'Composite Frame',
+      desc: 'Shrapnel-tolerant airframe: takes 20% less flak damage.' },
+    { lvl: 25, key: 'crew',      effect: 'rearm',  mul: 2,    icon: '🔧', name: 'Ground Crew Priority',
+      desc: 'First on the pad, first off it: rearms and repairs twice as fast.' },
+    { lvl: 30, key: 'strafe',    effect: 'active', mul: 2.2, speed: 1.2, icon: '⚡', name: 'Strafing Run',
+      desc: 'Everything in the rack, now: 12 s of 2.2x rate of fire. 90 s cooldown.' },
+  ],
+  inf: [
+    { lvl: 5,  key: 'fieldcraft', effect: 'range',  mul: 1.12, icon: '🔭', name: 'Fieldcraft',
+      desc: 'Reads the ground and shoots from it: +12% weapon range.' },
+    { lvl: 10, key: 'dugin',      effect: 'tough',  mul: 0.85, icon: '🧱', name: 'Dug In',
+      desc: 'Digs the moment it stops: takes 15% less damage from everything.' },
+    { lvl: 15, key: 'rapid',      effect: 'rof',    mul: 1.20, icon: '🔁', name: 'Rapid Fire',
+      desc: 'Muscle memory on the reload: +20% rate of fire.' },
+    { lvl: 20, key: 'scatter',    effect: 'splash', mul: 0.60, icon: '🛡️', name: 'Scatter Drill',
+      desc: 'Never bunches up: takes 40% less splash damage.' },
+    { lvl: 25, key: 'medic',      effect: 'regen',  mul: 2,    icon: '🔧', name: 'Combat Medic',
+      desc: 'Patches itself twice as fast between engagements.' },
+    { lvl: 30, key: 'discipline', effect: 'active', mul: 2, speed: 1.2, icon: '⚡', name: 'Fire Discipline',
+      desc: 'Sustained aimed fire: 12 s of double rate of fire. 90 s cooldown.' },
+  ],
+};
+
+function unitTrack(u) {
+  const d = (u && u.def) || u;
+  if (!d || !d.chassis) return null;
+  if (d.air) return 'air';
+  if (isGroundVehicle(u)) return 'vehicle';
+  if (TROOP_CHASSIS.includes(d.chassis)) return 'inf';
+  return null;
+}
+function unitLevel(u) { return (u && u.level) || 1; }
+/* every ability this unit has actually earned */
+function abilitiesOf(u) {
+  const t = unitTrack(u);
+  if (!t) return [];
+  const lvl = unitLevel(u);
+  return LEVEL_ABILITIES[t].filter(a => lvl >= a.lvl);
+}
+function abilityTrack(u) {
+  const t = unitTrack(u);
+  return t ? LEVEL_ABILITIES[t] : [];
+}
+/* the level-30 ability, whether or not it is unlocked yet */
+function ultimateOf(u) {
+  const track = abilityTrack(u);
+  return track.length ? track[track.length - 1] : null;
+}
+function hasAbility(u, key) {
+  const t = unitTrack(u);
+  if (!t) return false;
+  const a = LEVEL_ABILITIES[t].find(x => x.key === key);
+  return !!a && unitLevel(u) >= a.lvl;
+}
+/* multiplier this unit's earned abilities apply to one effect, 1 if it has none */
+function abilityMul(u, effect) {
+  const t = unitTrack(u);
+  if (!t) return 1;
+  const lvl = unitLevel(u);
+  let m = 1;
+  for (const a of LEVEL_ABILITIES[t]) if (a.effect === effect && lvl >= a.lvl) m *= a.mul;
+  return m;
+}
+function ultimateReady(u) {
+  return !!u && !u.dead && !!ultimateOf(u) &&
+    unitLevel(u) >= UNIT_MAX_LEVEL && (u.abilityCd || 0) <= 0;
+}
+function ultimateOn(u) { return !!u && (u.abilityT || 0) > 0; }
 
 function specialOf(u) { return SPECIALS[chassisOf(u)] || null; }
 function specialMul(u, effect) {
@@ -1238,39 +1406,77 @@ function specialMul(u, effect) {
   if (!s || s.effect !== effect) return 1;
   return 1 + FIELD_UP_STEP * Math.min(SPECIAL_MAX_LEVEL, u.specialLvl || 0);
 }
-/* the unit's effective numbers once its ⚙ system is counted */
-function effCd(w, u) { return w.cd / specialMul(u, 'rof'); }
-function effRange(w, u) { return w.range * specialMul(u, 'range'); }
-function effSpeed(u) { return u.def.speed * specialMul(u, 'speed'); }
+/* the unit's effective numbers once its ⚙ system, its earned abilities and any
+   running level-30 ability are all counted */
+function effCd(w, u) {
+  let cd = w.cd / specialMul(u, 'rof') / abilityMul(u, 'rof');
+  if (ultimateOn(u)) cd /= (ultimateOf(u) || { mul: 1 }).mul;
+  return cd;
+}
+function effRange(w, u) { return w.range * specialMul(u, 'range') * abilityMul(u, 'range'); }
+function effSpeed(u) {
+  let s = u.def.speed * specialMul(u, 'speed') * abilityMul(u, 'speed');
+  if (ultimateOn(u)) s *= (ultimateOf(u) || {}).speed || 1;
+  return s;
+}
+/* what a unit's abilities do to incoming damage. `splash` marks a blast rather than
+   a direct hit, which the Spall Liner and Scatter Drill answer specifically. */
+function damageTakenMul(u, dtype, splash) {
+  if (!u || u.kind !== 'unit') return 1;
+  let m = abilityMul(u, 'tough');
+  if (splash) m *= abilityMul(u, 'splash');
+  if (dtype) m *= abilityMul(u, dtype);
+  return m;
+}
 
 function fieldUpLevel(u, kind) {
   return (kind === 'gun' ? u.gunLvl : kind === 'armor' ? u.armorLvl : u.specialLvl) || 0;
 }
+function fieldUpMax(kind) { return kind === 'special' ? SPECIAL_MAX_LEVEL : FIELD_UP_MAX_LEVEL; }
 function canFieldUpgrade(u, kind) {
   if (!u || u.dead || u.kind !== 'unit' || !isFieldUpgradable(u, kind)) return false;
-  return kind !== 'special' || fieldUpLevel(u, 'special') < SPECIAL_MAX_LEVEL;
+  return fieldUpLevel(u, kind) < fieldUpMax(kind);
 }
 /* Apply one purchased level. The caller has already paid; this is the only place
    that knows what a level does, so the player's command grid and the AI's refit
    routine can never disagree about it. */
 function applyFieldUpgrade(u, kind) {
+  if (!canFieldUpgrade(u, kind)) return false;
   if (kind === 'gun') u.gunLvl = fieldUpLevel(u, 'gun') + 1;
   else if (kind === 'special') u.specialLvl = fieldUpLevel(u, 'special') + 1;
   else {
     u.armorLvl = fieldUpLevel(u, 'armor') + 1;
-    const nm = Math.round(u.def.hp * VET_HP[u.vetRank] * (1 + FIELD_UP_STEP * u.armorLvl));
-    u.hp += nm - u.maxHp;
-    u.maxHp = nm;
+    refreshMaxHp(u);
   }
+  return true;
+}
+/* The single place that knows what a hull's health adds up to: base, veterancy rank
+   and compounding plating. Promotion and plating both used to inline this sum, and
+   both inlined the old additive formula. */
+function armorPool(u) {
+  return Math.round(u.def.hp * VET_HP[u.vetRank] * fieldMul(u.armorLvl || 0));
+}
+/* resize the pool and carry the damage already taken across with it */
+function refreshMaxHp(u) {
+  const nm = armorPool(u);
+  u.hp += nm - u.maxHp;
+  u.maxHp = nm;
+  return nm;
 }
 
 function fieldUpCost(u, faction, kind) {
   const d = u.def || u;
   const r = upgradeRates();
-  if (kind === 'gun') return Math.max(10, Math.round(FIELD_UP_STEP * unitAlpha(d) / r.dmgPer$ * FIELD_UP_PREMIUM));
-  if (kind === 'armor') return Math.max(10, Math.round(FIELD_UP_STEP * d.hp / r.hpPer$ * FIELD_UP_PREMIUM));
   // the Special is capped at 2x, so it cannot run away and stays priced off the hull
-  return Math.max(10, Math.round(uCost(u.key, faction) * FIELD_UP_COST_MUL));
+  if (kind === 'special') return Math.max(10, Math.round(uCost(u.key, faction) * FIELD_UP_COST_MUL));
+  const n = fieldUpLevel(u, kind) + 1;
+  const share = fieldStep(n) * fieldUpPremium(n);
+  /* A $10 floor used to be harmless when a level bought a quarter of the base stat.
+     A first level buys 7% of it now, so on the cheap hulls the floor was the price —
+     and it broke proportionality outright: a Gun Truck paid $5 per point of damage
+     against a Warlord's $1.85, purely because its true price rounded below ten. */
+  if (kind === 'gun') return Math.max(1, Math.round(share * unitAlpha(d) / r.dmgPer$));
+  return Math.max(1, Math.round(share * d.hp / r.hpPer$));
 }
 
 /* ---- transport loading rules ----
@@ -2369,7 +2575,7 @@ function effDamage(w, attacker) {
   let d = w.dmg;
   if (attacker && attacker.kind === 'unit') {
     d *= VET_DMG[attacker.vetRank];
-    if (attacker.gunLvl) d *= 1 + attacker.gunLvl * 0.25;        // field gun upgrades
+    if (attacker.gunLvl) d *= fieldMul(attacker.gunLvl);         // compounding gun levels
     if (attacker.def.horde && attacker.hordeOn) d *= 1.25;
     if (hasCloak(attacker) && isStealthed(attacker)) d *= 1.5;   // strike from the shadows
   }
@@ -2382,7 +2588,7 @@ function effDamage(w, attacker) {
 
 /* central damage entry point. fromAir: delivered by an aircraft —
    air power hits units at 70% and structures at only 30% */
-function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
+function applyDamage(target, rawDmg, dtype, attacker, fromAir, splash) {
   if (!target || target.dead || target.embarked) return;
   // pure recon planes (unarmed stealth) are untouchable — nothing harms them
   if (target.kind === 'unit' && target.def.stealthAir && !target.def.weapon) return;
@@ -2393,6 +2599,8 @@ function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   if (target.kind === 'building' && target.upgrades && target.upgrades.plating) dmg *= 0.75;
   // an active cloak scatters targeting locks: stealthed aircraft still take half damage
   if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.5;
+  // earned abilities: reactive plating, spall liners, chaff, composite frames
+  dmg *= damageTakenMul(target, dtype, splash);
   if (dmg <= 0) return;
   target.hp -= dmg;
   target.lastHitT = game.t;
@@ -2476,9 +2684,19 @@ function killEnt(e, attacker) {
       attacker.vetXp += val / 8;
       while (attacker.vetRank < 5 && attacker.vetXp >= VET_XP[attacker.vetRank + 1]) {
         attacker.vetRank++;
-        attacker.maxHp = Math.round(attacker.def.hp * VET_HP[attacker.vetRank] * (1 + 0.25 * (attacker.armorLvl || 0)));
+        attacker.maxHp = armorPool(attacker);
         attacker.hp = Math.min(attacker.maxHp, attacker.hp + attacker.def.hp * 0.3);
         if (attacker.owner === 0) { FX.text(attacker.x, attacker.y - 20, '★ PROMOTED'); SFX.promote(); }
+      }
+      // combat levels run off the same XP: thirty of them, with an ability at six of them
+      const nl = levelForXp(attacker.vetXp);
+      while ((attacker.level || 1) < nl) {
+        attacker.level = (attacker.level || 1) + 1;
+        const learned = abilityTrack(attacker).find(a => a.lvl === attacker.level);
+        if (attacker.owner === 0 && learned) {
+          FX.text(attacker.x, attacker.y - 34, learned.icon + ' ' + learned.name.toUpperCase(), '#8fe3ff');
+          SFX.promote();
+        }
       }
     }
     const ap = game.players[attacker.owner];
@@ -2502,6 +2720,17 @@ function addPlayerXp(pi, amt) {
   }
 }
 
+/* Fire a unit's level-30 ability. The single gate both the command grid and the AI go
+   through, so neither can trigger one that is locked, dead or still cooling. */
+function triggerUltimate(u) {
+  if (!ultimateReady(u) || ultimateOn(u)) return false;
+  u.abilityT = ABILITY_DUR;
+  u.abilityCd = ABILITY_CD;
+  const a = ultimateOf(u);
+  if (u.owner === 0 && a) { FX.text(u.x, u.y - 26, a.icon + ' ' + a.name.toUpperCase(), '#ffd76a'); }
+  return true;
+}
+
 function dealSplash(x, y, dmg, dtype, radius, ownerIdx, srcEnt, hitAir, fromAir) {
   const victims = entsInRadius(x, y, radius, e => !e.dead && (hitAir || !(e.kind === 'unit' && e.def.air)));
   for (const v of victims) {
@@ -2510,7 +2739,7 @@ function dealSplash(x, y, dmg, dtype, radius, ownerIdx, srcEnt, hitAir, fromAir)
     let fall = U.clamp(1 - (d / (radius + 18)) * 0.75, 0.3, 1);
     let amount = dmg * fall;
     if (v.owner === ownerIdx) amount *= 0.25;      // reduced friendly fire
-    applyDamage(v, amount, dtype, srcEnt && !srcEnt.dead ? srcEnt : null, fromAir);
+    applyDamage(v, amount, dtype, srcEnt && !srcEnt.dead ? srcEnt : null, fromAir, true);
   }
 }
 
@@ -2573,6 +2802,9 @@ class Unit {
     this.path = null; this.pathI = 0;
     this.cool = 0;
     this.vetXp = 0; this.vetRank = 0;
+    this.level = 1;                       // combat level 1-30, earned by kills
+    this.abilityT = 0;                    // level-30 ability: seconds still running
+    this.abilityCd = 0;                   // ...and seconds until it can run again
     this.cargo = (this.def.capacity || this.def.tankSlots) && !this.def.harvester ? [] : null;   // transport passengers (unit ids)
     this.guardX = x; this.guardY = y;
     this.stuckT = 0; this.lastX = x; this.lastY = y;
@@ -2735,10 +2967,14 @@ class Unit {
   update(dt) {
     if (this.embarked) return;                     // riding inside a transport
     if (this.cool > 0) this.cool -= dt;
+    // level-30 ability: runs for its duration, then sits on cooldown
+    if (this.abilityT > 0) { this.abilityT -= dt; if (this.abilityT <= 0) this.abilityT = 0; }
+    if (this.abilityCd > 0) { this.abilityCd -= dt; if (this.abilityCd <= 0) this.abilityCd = 0; }
 
-    // veterans patch themselves up in the field — faster with every star.
+    // veterans patch themselves up in the field — faster with every star, and faster
+    // again with Field Welds or a Combat Medic.
     // Runs BEFORE the aircraft branch so veteran pilots heal too.
-    const regen = vetRegenRate(this);
+    const regen = vetRegenRate(this) * abilityMul(this, 'regen');
     if (regen && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
     // special-forces conditioning: self-heal once out of combat for 8 s
     if (this.def.fieldRegen && this.hp < this.maxHp && game.t - (this.lastHitT || -99) > 8) {
@@ -2802,7 +3038,7 @@ class Unit {
           world.crates.splice(i, 1);
           if (this.vetRank < 5) {
             this.vetRank++;
-            this.maxHp = Math.round(this.def.hp * VET_HP[this.vetRank] * (1 + 0.25 * (this.armorLvl || 0)));
+            this.maxHp = armorPool(this);
             this.hp = Math.min(this.maxHp, this.hp + this.def.hp * 0.35);
             if (this.owner === 0) { FX.text(this.x, this.y - 20, '★ SALVAGE UPGRADE'); SFX.promote(); }
           } else {
@@ -3422,7 +3658,8 @@ class Unit {
       case 'rearm': {
         if (!pad) { this.jetState = this.guardPost ? 'guardmove' : 'idle'; break; }
         this.x = U.lerp(this.x, pad.x, dt * 4); this.y = U.lerp(this.y, pad.y, dt * 4);
-        this.rearmT += dt;
+        // Ground Crew Priority (level 25) halves the turnaround
+        this.rearmT += dt * abilityMul(this, 'rearm');
         if (this.rearmT > (pad.upgrades && pad.upgrades.fastrepair ? 2.8 : 4)) {
           this.ammo = def.ammo;
           if (pad.upgrades && pad.upgrades.restore && this.hp < this.maxHp * 0.5) this.hp = this.maxHp * 0.5;
@@ -6749,6 +6986,14 @@ const RENDER = (() => {
       ctx.fillStyle = '#ffd76a'; ctx.font = 'bold 9px sans-serif';
       ctx.fillText('★'.repeat(e.vetRank), x + w + 3, y + 4);
     }
+    // combat level, once the hull has learned its first ability
+    if (e.kind === 'unit' && unitLevel(e) >= 5) {
+      ctx.fillStyle = ultimateOn(e) ? '#ffd76a' : '#8fe3ff';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('L' + unitLevel(e), x - 3, y + 4);
+      ctx.textAlign = 'left';
+    }
   }
 
   /* ================= placement ghost ================= */
@@ -6944,10 +7189,20 @@ const AI = (() => {
     return v;
   }
 
+  /* Army composition, as ratios. Infantry weights run about half again what they were.
+     A general kept roughly one rifleman per tank, which sounds even but is not: bodies
+     die in droves and armour does not, so the line it actually fielded was armour with
+     a thin escort — nothing to screen the tanks, hold ground already taken, or soak an
+     emplacement. Infantry is also the one thing a barracks can keep turning out while
+     the factories are saving for a heavy hull.
+
+     Doubling them was too far in the other direction: it measured 76% infantry and cost
+     the general a third of its armour, because the army cap is binding and every extra
+     rifleman displaces a tank. Half again lands near sixty. */
   const COMPS = {
-    coalition: { ranger: 3, rocketeer: 2, commando: 1, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1.6, seraph: 1, umbra: 1, spyplane: 1, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
-    dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1.6, behemoth: 1, spyplane: 1, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
-    cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1.6, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
+    coalition: { ranger: 5, rocketeer: 3.5, commando: 1.5, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1.6, seraph: 1, umbra: 1, spyplane: 1, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
+    dynasty:   { rifleman: 8, rpg: 5, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1.6, behemoth: 1, spyplane: 1, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
+    cartel:    { raider: 8, rocketraider: 5, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1.6, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
   };
   /* units that counter each enemy composition trend, per faction */
   const COUNTERS = {
@@ -7337,7 +7592,7 @@ const AI = (() => {
       if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + buf(800) && game.t > 220) return 'airfield';
       if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + buf(1200) && game.t > 320) return 'repairbay';
       if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 420 &&
-          money >= BUILDINGS.superweapon.cost + buf(1000)) return 'superweapon';
+          money >= BUILDINGS.superweapon.cost + buf(20000)) return 'superweapon';
       /* Extra silos used to be an unconditional early return. A superweapon costs
          $4,000, so from t>700 the AI always wanted another one and never reached the
          wealth-scaled plan below — its treasury climbed to half a million while
@@ -7354,10 +7609,15 @@ const AI = (() => {
         // fortress guns are a late, rich-general structure: base want 0 so they are
         // bought purely out of surplus, never at the expense of the core base
         { key: 'artfort',   want: affordCount(0, 90000, 3),  t: 540, extra: 12000, w: 1.25 },
-        { key: 'superweapon', want: game.swAllowed !== false && diff.superweapon ? affordCount(1, 45000, 3) : 0,
-          t: 700, extra: 6000, w: 0.8 },
+        // a silo is $300,000 now: two to a general, and only ever out of deep surplus
+        { key: 'superweapon', want: game.swAllowed !== false && diff.superweapon ? affordCount(0, 260000, 2) : 0,
+          t: 700, extra: 20000, w: 0.8 },
         { key: 'airfield',  want: affordCount(1, 26000, 10), t: 290, extra: 1500, w: 1.1 },
-        { key: 'barracks',  want: affordCount(1, 28000, 9),  t: 250, extra: 700,  w: 0.95 },
+        /* Barracks used to be the poor relation of the factory — nine against twelve,
+           at a higher price threshold and two thirds of the weight — so a general's
+           armour column outgrew its infantry three to one and the line had no bodies
+           in it. They are built on comparable terms now. */
+        { key: 'barracks',  want: affordCount(1, 17000, 14), t: 240, extra: 700,  w: 1.3 },
         { key: 'market',    want: affordCount(2, 11000, 26), t: 240, extra: 900,  w: 0.85 },
         { key: 'cc',        want: affordCount(1, 55000, 7),  t: 400, extra: 4000, w: 0.9 },
         { key: 'repairbay', want: affordCount(1, 40000, 7),  t: 330, extra: 1200, w: 0.6 },
@@ -7653,21 +7913,28 @@ const AI = (() => {
       }
       S.lastComp = comp;                        // exposed for diagnostics/tests
       const army = combatUnits();
-      /* At the cap the general used to stop producing altogether, so a line filled
-         with sixty riflemen never left room for a siege train and the treasury simply
-         grew. Past the cap it keeps building, but only heavy hulls and only out of
-         real surplus — trading quantity for quality instead of banking the money. */
+      /* At the cap the general used to stop producing altogether, so a line filled with
+         sixty riflemen never left room for a siege train and the treasury simply grew.
+         The fix for that was heavy-hulls-only past the cap — which turned out to be its
+         own trap: a barracks trains no heavy hulls, so once the cap was reached infantry
+         losses were never replaced and the army decayed into pure armour. Measured over
+         twenty minutes it built 232 riflemen and finished with 21 standing, against 61
+         tanks. That is what "the AI doesn't field infantry" actually was.
+
+         Replacing a casualty does not grow the army, so the cap has no business blocking
+         it. Past the cap production carries on by the same worst-deficit ranking below —
+         which already reaches for the siege train, because a comp share of 1.6 against
+         two standing outranks a share of 8 against sixty — and only out of real surplus,
+         so a capped general still banks rather than bleeds. */
       const atCap = army.length >= armyCapEff();
       if (atCap && p().money < 90000) return;
-      const HEAVY = ['annihilator', 'siege', 'leviathan', 'citadel', 'goliath'];
       const counts = {};
       for (const u of army) counts[u.key] = (counts[u.key] || 0) + 1;
       const po = posture();
       const qDepth = po === 'desperate' || po === 'pushing' ? 5 : 4;
       for (const b of myBuildings()) {
         if (!b.constructed || b.queue.length >= qDepth) continue;
-        let trainable = bTrains(b.key, fac).filter(k => comp[k]);
-        if (atCap) trainable = trainable.filter(k => HEAVY.includes(k));
+        const trainable = bTrains(b.key, fac).filter(k => comp[k]);
         if (!trainable.length) continue;
         /* Rank every option by how far short of its share it is, then take the best
            one actually affordable. Picking only the single worst-off type meant one
@@ -8118,8 +8385,29 @@ const AI = (() => {
       S.upgradeT -= dt2;
       if (S.upgradeT <= 0) { S.upgradeT = 6; manageUpgrades(); }
       manageAttack(dt2);
+      useUltimates();
       S.powerUseT -= dt2;
       if (S.powerUseT <= 0) { S.powerUseT = 12; usePowers(); useSuperweapon(); }
+    }
+
+    /* A level-30 hull's ability is free and on a 90-second timer, so the only question
+       is whether anything is close enough to be worth it. Fired the moment the unit is
+       actually in contact — holding it back for a better moment is a human habit that
+       just leaves it unused. */
+    function useUltimates() {
+      for (const u of myUnits()) {
+        if (!ultimateReady(u) || ultimateOn(u)) continue;
+        const foe = nearestEnemyUnitTo(u.x, u.y, 420);
+        if (foe) triggerUltimate(u);
+      }
+    }
+    function nearestEnemyUnitTo(x, y, r) {
+      const r2 = r * r;
+      for (const e of game.ents) {
+        if (e.dead || e.owner < 0 || !isEnemyEnt(e)) continue;
+        if (U.dist2(x, y, e.x, e.y) <= r2) return e;
+      }
+      return null;
     }
 
     function onUnitDone(u) {
@@ -8703,7 +8991,7 @@ const INPUT = (() => {
 
   return {
     init, updateCamera, prune, centerOn, centerOnBase, resetMatch,
-    beginPlace, beginTargeting, stopSelected, issueAttackMove, issueSmartOrder,
+    beginPlace, tryPlace, beginTargeting, stopSelected, issueAttackMove, issueSmartOrder,
     idleWorkers, cycleIdleWorker,
     get keys() { return keys; },
     get mouse() { return mouse; },
@@ -9065,8 +9353,13 @@ const UI = (() => {
       const nm = e.kind === 'unit' ? uName(e.key, game.players[e.owner]?.faction) : bName(e.key, game.players[e.owner]?.faction);
       let extra = '';
       if (e.kind === 'unit' && e.vetRank) extra += ` &nbsp;<span style="color:#ffd76a">${'★'.repeat(e.vetRank)}</span>`;
-      if (e.gunLvl) extra += ` &nbsp;<span style="color:#ffb070">⚔+${e.gunLvl * 25}%</span>`;
-      if (e.armorLvl) extra += ` &nbsp;<span style="color:#8fc7ff">🛡+${e.armorLvl * 25}%</span>`;
+      if (e.kind === 'unit' && unitTrack(e)) {
+        const lv = unitLevel(e);
+        extra += ` &nbsp;<span style="color:#8fe3ff" title="combat level — earned by kills, never bought">Lv${lv}${lv >= UNIT_MAX_LEVEL ? ' MAX' : ''}</span>`;
+      }
+      // the multiplier itself, not a percentage: at level 40 "+2,900%" reads as noise
+      if (e.gunLvl) extra += ` &nbsp;<span style="color:#ffb070">⚔ L${e.gunLvl} ×${fieldMul(e.gunLvl).toFixed(2)}</span>`;
+      if (e.armorLvl) extra += ` &nbsp;<span style="color:#8fc7ff">🛡 L${e.armorLvl} ×${fieldMul(e.armorLvl).toFixed(2)}</span>`;
       if (e.specialLvl) {
         const sp = specialOf(e);
         extra += ` &nbsp;<span style="color:#c9a7ff" title="${sp.name}">${sp.icon}+${e.specialLvl * 25}%</span>`;
@@ -9111,7 +9404,7 @@ const UI = (() => {
     if (e.kind === 'unit') {
       const w = d.weapon;
       if (w) {
-        const dmg = Math.round(w.dmg * VET_DMG[e.vetRank] * (1 + 0.25 * (e.gunLvl || 0)));
+        const dmg = Math.round(w.dmg * VET_DMG[e.vetRank] * fieldMul(e.gunLvl || 0));
         const per = w.projectile === 'nukebomb' ? ' per bomb' :
           w.projectile === 'napalm' ? ' per payload' : ' per missile';
         bits.push(`⚔ ${dmg} ${w.dtype}${d.air ? per : ''}`);
@@ -9128,6 +9421,16 @@ const UI = (() => {
       if (d.detect) bits.push(`detects stealth ${d.detect}`);
       if (hasCloak(e)) bits.push(isStealthed(e) ? '🌑 cloaked' : '⚠ visible');
       bits.push(`<b>kills ${e.kills || 0}</b>`);
+      // what this hull has learned, and what the next level would teach it
+      const track = abilityTrack(e);
+      if (track.length) {
+        const got = abilitiesOf(e);
+        if (got.length) bits.push(got.map(a => `<span style="color:#8fe3ff" title="${a.name}: ${a.desc}">${a.icon} ${a.name}</span>`).join(' · '));
+        const next = track.find(a => a.lvl > unitLevel(e));
+        if (next) bits.push(`<span style="opacity:.7">next: ${next.icon} ${next.name} at Lv${next.lvl}</span>`);
+        if (ultimateOn(e)) bits.push('<b style="color:#ffd76a">⚡ ACTIVE</b>');
+        else if (e.abilityCd > 0) bits.push(`⚡ ready in ${Math.ceil(e.abilityCd)}s`);
+      }
     } else {
       const w = d.weaponByFaction ? buildingWeapon(e) : null;
       if (w) {
@@ -9258,6 +9561,9 @@ const UI = (() => {
       if (gunEligible.length) curCmds[8] = { type: 'tankup', kind: 'gun', units: gunEligible };
       if (armorEligible.length) curCmds[9] = { type: 'tankup', kind: 'armor', units: armorEligible };
       if (specialEligible.length) curCmds[10] = { type: 'tankup', kind: 'special', units: specialEligible };
+      // level-30 hulls carry an ability the player fires by hand (V)
+      const ults = units.filter(u => unitLevel(u) >= UNIT_MAX_LEVEL && ultimateOf(u));
+      if (ults.length) curCmds[11] = { type: 'ultimate', units: ults };
       // transports with troops aboard get an Unload command (F)
       const transports = units.filter(u => isTransport(u));
       if (transports.length) curCmds[7] = { type: 'unloadbtn', transports };
@@ -9353,6 +9659,15 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">${face.icon}</span><span>${face.label} L${next}</span><span class="cost">${money}${n > 1 ? '×' + n : ''}</span>`;
         b.classList.add('upg');
         if (p.money < Math.min(...each)) b.classList.add('disabled');
+      } else if (c.type === 'ultimate') {
+        const ready = c.units.filter(u => ultimateReady(u)).length;
+        const running = c.units.filter(u => ultimateOn(u)).length;
+        const cd = Math.min(...c.units.map(u => u.abilityCd || 0));
+        const a = ultimateOf(c.units[0]);
+        const state = running ? 'ACTIVE' : ready ? 'READY' : Math.ceil(cd) + 's';
+        b.innerHTML = `${hk}<span class="icon">${a.icon}</span><span>${a.name.split(' ')[0]}</span><span class="cost">${state}</span>`;
+        b.classList.add('upg');
+        if (!ready) b.classList.add('disabled');
       } else if (c.type === 'unloadbtn') {
         const n = c.transports.reduce((a, t) => a + t.cargo.length, 0);
         b.innerHTML = `${hk}<span class="icon">🪂</span><span>Unload</span><span class="cost">${n} aboard</span>`;
@@ -9380,9 +9695,9 @@ const UI = (() => {
      and falls back to a generic face when a mixed selection carries several. */
   function cmdFace(c) {
     if (c.kind === 'gun') return { icon: '\u2694\ufe0f', label: 'Gun', title: 'Gun Upgrade',
-      desc: '+25% weapon damage per level, stacking with veterancy and never capping. Each level is priced on the firepower it actually adds, so a point of damage costs the same whichever hull you bolt it onto.' };
+      desc: `+7% weapon damage per level, compounding, to ${FIELD_UP_MAX_LEVEL} levels \u2014 ${fieldMul(FIELD_UP_MAX_LEVEL).toFixed(1)}x at the cap, and it stacks on top of veterancy. Each level is priced on the firepower it actually adds, so a point of damage costs the same whichever hull you bolt it onto. Early levels come at a 30% discount on that rate and late ones at a growing premium: refit what you have, but never stop building.` };
     if (c.kind === 'armor') return { icon: '\ud83d\udee1\ufe0f', label: 'Armor', title: 'Armor Plating',
-      desc: '+25% maximum health per level, stacking with veterancy and never capping; the crew patches in the new plating immediately. Each level is priced on the health it actually adds, so a point of armour costs the same on a scout truck as on a Leviathan.' };
+      desc: `+7% maximum health per level, compounding, to ${FIELD_UP_MAX_LEVEL} levels \u2014 ${fieldMul(FIELD_UP_MAX_LEVEL).toFixed(1)}x at the cap; the crew patches in the new plating immediately. Each level is priced on the health it actually adds, so a point of armour costs the same on a scout truck as on a Leviathan, with the same early discount and late premium as the gun.` };
     const specs = c.units.map(u => specialOf(u)).filter(Boolean);
     const same = specs.length && specs.every(x => x.name === specs[0].name) ? specs[0] : null;
     if (!same) return { icon: '\u2699\ufe0f', label: 'Special', title: 'Special Systems',
@@ -9444,6 +9759,14 @@ const UI = (() => {
         feed(up.name + ' installed on ' + bName(bld.key, p.faction), 'gold');
         SFX.cash();
         refreshCmd();
+        break;
+      }
+      case 'ultimate': {
+        let n = 0;
+        for (const u of c.units) if (triggerUltimate(u)) n++;
+        if (n) { SFX.promote(); feed(`${ultimateOf(c.units[0]).name} — ${n} unit${n > 1 ? 's' : ''}`, 'gold'); }
+        else { feed('Still cooling down', 'bad'); SFX.error(); }
+        refreshSel(); refreshCmd();
         break;
       }
       case 'tankup': {
@@ -9575,8 +9898,13 @@ const UI = (() => {
       tooltipHtml(el, `<h4>${cmdFace(c).icon} ${cmdFace(c).title}</h4>
         <div class="tt-cost">${c.kind === 'special'
           ? `30% of the unit's cost per level · up to ${SPECIAL_MAX_LEVEL} levels (${SPECIAL_MAX_MUL}x maximum)`
-          : 'priced on the health or firepower it adds, at the going rate · unlimited levels'} · no veterancy needed · hotkey ${c.kind === 'gun' ? 'Z' : c.kind === 'armor' ? 'X' : 'C'}</div>
+          : `priced on the health or firepower it adds, at the going rate · up to level ${FIELD_UP_MAX_LEVEL}`} · no veterancy needed · hotkey ${c.kind === 'gun' ? 'Z' : c.kind === 'armor' ? 'X' : 'C'}</div>
         <div class="tt-desc">${cmdFace(c).desc}</div>`);
+    } else if (c.type === 'ultimate') {
+      const a = ultimateOf(c.units[0]);
+      tooltipHtml(el, `<h4>${a.icon} ${a.name}</h4>
+        <div class="tt-cost">earned at level ${UNIT_MAX_LEVEL} · ${ABILITY_DUR}s · ${ABILITY_CD}s cooldown · free · hotkey V</div>
+        <div class="tt-desc">${a.desc} Levels cannot be bought — this unit fought for it.</div>`);
     } else if (c.type === 'unloadbtn') {
       tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
     } else if (c.type === 'guardbtn') {

@@ -17,10 +17,20 @@ const AI = (() => {
     return v;
   }
 
+  /* Army composition, as ratios. Infantry weights run about half again what they were.
+     A general kept roughly one rifleman per tank, which sounds even but is not: bodies
+     die in droves and armour does not, so the line it actually fielded was armour with
+     a thin escort — nothing to screen the tanks, hold ground already taken, or soak an
+     emplacement. Infantry is also the one thing a barracks can keep turning out while
+     the factories are saving for a heavy hull.
+
+     Doubling them was too far in the other direction: it measured 76% infantry and cost
+     the general a third of its armour, because the army cap is binding and every extra
+     rifleman displaces a tank. Half again lands near sixty. */
   const COMPS = {
-    coalition: { ranger: 3, rocketeer: 2, commando: 1, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1.6, seraph: 1, umbra: 1, spyplane: 1, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
-    dynasty:   { rifleman: 5, rpg: 3, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1.6, behemoth: 1, spyplane: 1, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
-    cartel:    { raider: 5, rocketraider: 3, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1.6, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
+    coalition: { ranger: 5, rocketeer: 3.5, commando: 1.5, bulwark: 5, viper: 2, aegis: 1, thunder: 2, falcon: 2, kestrel: 2, goliath: 2, siege: 1.6, seraph: 1, umbra: 1, spyplane: 1, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
+    dynasty:   { rifleman: 8, rpg: 5, warlord: 3, flak: 2, aegis: 1, salamander: 2, vulture: 2, kestrel: 2, goliath: 2, siege: 1.6, behemoth: 1, spyplane: 1, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
+    cartel:    { raider: 8, rocketraider: 5, jackal: 5, guntruck: 2, aegis: 1, barrage: 2, demorig: 2, goliath: 2, siege: 1.6, citadel: 0.7, leviathan: 0.35, annihilator: 1.2 },
   };
   /* units that counter each enemy composition trend, per faction */
   const COUNTERS = {
@@ -410,7 +420,7 @@ const AI = (() => {
       if (F.buildings.includes('airfield') && !has('airfield') && money >= BUILDINGS.airfield.cost + buf(800) && game.t > 220) return 'airfield';
       if (!has('repairbay') && money >= BUILDINGS.repairbay.cost + buf(1200) && game.t > 320) return 'repairbay';
       if (game.swAllowed !== false && diff.superweapon && !has('superweapon') && game.t > 420 &&
-          money >= BUILDINGS.superweapon.cost + buf(1000)) return 'superweapon';
+          money >= BUILDINGS.superweapon.cost + buf(20000)) return 'superweapon';
       /* Extra silos used to be an unconditional early return. A superweapon costs
          $4,000, so from t>700 the AI always wanted another one and never reached the
          wealth-scaled plan below — its treasury climbed to half a million while
@@ -427,10 +437,15 @@ const AI = (() => {
         // fortress guns are a late, rich-general structure: base want 0 so they are
         // bought purely out of surplus, never at the expense of the core base
         { key: 'artfort',   want: affordCount(0, 90000, 3),  t: 540, extra: 12000, w: 1.25 },
-        { key: 'superweapon', want: game.swAllowed !== false && diff.superweapon ? affordCount(1, 45000, 3) : 0,
-          t: 700, extra: 6000, w: 0.8 },
+        // a silo is $300,000 now: two to a general, and only ever out of deep surplus
+        { key: 'superweapon', want: game.swAllowed !== false && diff.superweapon ? affordCount(0, 260000, 2) : 0,
+          t: 700, extra: 20000, w: 0.8 },
         { key: 'airfield',  want: affordCount(1, 26000, 10), t: 290, extra: 1500, w: 1.1 },
-        { key: 'barracks',  want: affordCount(1, 28000, 9),  t: 250, extra: 700,  w: 0.95 },
+        /* Barracks used to be the poor relation of the factory — nine against twelve,
+           at a higher price threshold and two thirds of the weight — so a general's
+           armour column outgrew its infantry three to one and the line had no bodies
+           in it. They are built on comparable terms now. */
+        { key: 'barracks',  want: affordCount(1, 17000, 14), t: 240, extra: 700,  w: 1.3 },
         { key: 'market',    want: affordCount(2, 11000, 26), t: 240, extra: 900,  w: 0.85 },
         { key: 'cc',        want: affordCount(1, 55000, 7),  t: 400, extra: 4000, w: 0.9 },
         { key: 'repairbay', want: affordCount(1, 40000, 7),  t: 330, extra: 1200, w: 0.6 },
@@ -726,21 +741,28 @@ const AI = (() => {
       }
       S.lastComp = comp;                        // exposed for diagnostics/tests
       const army = combatUnits();
-      /* At the cap the general used to stop producing altogether, so a line filled
-         with sixty riflemen never left room for a siege train and the treasury simply
-         grew. Past the cap it keeps building, but only heavy hulls and only out of
-         real surplus — trading quantity for quality instead of banking the money. */
+      /* At the cap the general used to stop producing altogether, so a line filled with
+         sixty riflemen never left room for a siege train and the treasury simply grew.
+         The fix for that was heavy-hulls-only past the cap — which turned out to be its
+         own trap: a barracks trains no heavy hulls, so once the cap was reached infantry
+         losses were never replaced and the army decayed into pure armour. Measured over
+         twenty minutes it built 232 riflemen and finished with 21 standing, against 61
+         tanks. That is what "the AI doesn't field infantry" actually was.
+
+         Replacing a casualty does not grow the army, so the cap has no business blocking
+         it. Past the cap production carries on by the same worst-deficit ranking below —
+         which already reaches for the siege train, because a comp share of 1.6 against
+         two standing outranks a share of 8 against sixty — and only out of real surplus,
+         so a capped general still banks rather than bleeds. */
       const atCap = army.length >= armyCapEff();
       if (atCap && p().money < 90000) return;
-      const HEAVY = ['annihilator', 'siege', 'leviathan', 'citadel', 'goliath'];
       const counts = {};
       for (const u of army) counts[u.key] = (counts[u.key] || 0) + 1;
       const po = posture();
       const qDepth = po === 'desperate' || po === 'pushing' ? 5 : 4;
       for (const b of myBuildings()) {
         if (!b.constructed || b.queue.length >= qDepth) continue;
-        let trainable = bTrains(b.key, fac).filter(k => comp[k]);
-        if (atCap) trainable = trainable.filter(k => HEAVY.includes(k));
+        const trainable = bTrains(b.key, fac).filter(k => comp[k]);
         if (!trainable.length) continue;
         /* Rank every option by how far short of its share it is, then take the best
            one actually affordable. Picking only the single worst-off type meant one
@@ -1191,8 +1213,29 @@ const AI = (() => {
       S.upgradeT -= dt2;
       if (S.upgradeT <= 0) { S.upgradeT = 6; manageUpgrades(); }
       manageAttack(dt2);
+      useUltimates();
       S.powerUseT -= dt2;
       if (S.powerUseT <= 0) { S.powerUseT = 12; usePowers(); useSuperweapon(); }
+    }
+
+    /* A level-30 hull's ability is free and on a 90-second timer, so the only question
+       is whether anything is close enough to be worth it. Fired the moment the unit is
+       actually in contact — holding it back for a better moment is a human habit that
+       just leaves it unused. */
+    function useUltimates() {
+      for (const u of myUnits()) {
+        if (!ultimateReady(u) || ultimateOn(u)) continue;
+        const foe = nearestEnemyUnitTo(u.x, u.y, 420);
+        if (foe) triggerUltimate(u);
+      }
+    }
+    function nearestEnemyUnitTo(x, y, r) {
+      const r2 = r * r;
+      for (const e of game.ents) {
+        if (e.dead || e.owner < 0 || !isEnemyEnt(e)) continue;
+        if (U.dist2(x, y, e.x, e.y) <= r2) return e;
+      }
+      return null;
     }
 
     function onUnitDone(u) {

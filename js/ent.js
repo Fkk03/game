@@ -61,7 +61,7 @@ function effDamage(w, attacker) {
   let d = w.dmg;
   if (attacker && attacker.kind === 'unit') {
     d *= VET_DMG[attacker.vetRank];
-    if (attacker.gunLvl) d *= 1 + attacker.gunLvl * 0.25;        // field gun upgrades
+    if (attacker.gunLvl) d *= fieldMul(attacker.gunLvl);         // compounding gun levels
     if (attacker.def.horde && attacker.hordeOn) d *= 1.25;
     if (hasCloak(attacker) && isStealthed(attacker)) d *= 1.5;   // strike from the shadows
   }
@@ -74,7 +74,7 @@ function effDamage(w, attacker) {
 
 /* central damage entry point. fromAir: delivered by an aircraft —
    air power hits units at 70% and structures at only 30% */
-function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
+function applyDamage(target, rawDmg, dtype, attacker, fromAir, splash) {
   if (!target || target.dead || target.embarked) return;
   // pure recon planes (unarmed stealth) are untouchable — nothing harms them
   if (target.kind === 'unit' && target.def.stealthAir && !target.def.weapon) return;
@@ -85,6 +85,8 @@ function applyDamage(target, rawDmg, dtype, attacker, fromAir) {
   if (target.kind === 'building' && target.upgrades && target.upgrades.plating) dmg *= 0.75;
   // an active cloak scatters targeting locks: stealthed aircraft still take half damage
   if (target.kind === 'unit' && isStealthed(target)) dmg *= 0.5;
+  // earned abilities: reactive plating, spall liners, chaff, composite frames
+  dmg *= damageTakenMul(target, dtype, splash);
   if (dmg <= 0) return;
   target.hp -= dmg;
   target.lastHitT = game.t;
@@ -168,9 +170,19 @@ function killEnt(e, attacker) {
       attacker.vetXp += val / 8;
       while (attacker.vetRank < 5 && attacker.vetXp >= VET_XP[attacker.vetRank + 1]) {
         attacker.vetRank++;
-        attacker.maxHp = Math.round(attacker.def.hp * VET_HP[attacker.vetRank] * (1 + 0.25 * (attacker.armorLvl || 0)));
+        attacker.maxHp = armorPool(attacker);
         attacker.hp = Math.min(attacker.maxHp, attacker.hp + attacker.def.hp * 0.3);
         if (attacker.owner === 0) { FX.text(attacker.x, attacker.y - 20, '★ PROMOTED'); SFX.promote(); }
+      }
+      // combat levels run off the same XP: thirty of them, with an ability at six of them
+      const nl = levelForXp(attacker.vetXp);
+      while ((attacker.level || 1) < nl) {
+        attacker.level = (attacker.level || 1) + 1;
+        const learned = abilityTrack(attacker).find(a => a.lvl === attacker.level);
+        if (attacker.owner === 0 && learned) {
+          FX.text(attacker.x, attacker.y - 34, learned.icon + ' ' + learned.name.toUpperCase(), '#8fe3ff');
+          SFX.promote();
+        }
       }
     }
     const ap = game.players[attacker.owner];
@@ -194,6 +206,17 @@ function addPlayerXp(pi, amt) {
   }
 }
 
+/* Fire a unit's level-30 ability. The single gate both the command grid and the AI go
+   through, so neither can trigger one that is locked, dead or still cooling. */
+function triggerUltimate(u) {
+  if (!ultimateReady(u) || ultimateOn(u)) return false;
+  u.abilityT = ABILITY_DUR;
+  u.abilityCd = ABILITY_CD;
+  const a = ultimateOf(u);
+  if (u.owner === 0 && a) { FX.text(u.x, u.y - 26, a.icon + ' ' + a.name.toUpperCase(), '#ffd76a'); }
+  return true;
+}
+
 function dealSplash(x, y, dmg, dtype, radius, ownerIdx, srcEnt, hitAir, fromAir) {
   const victims = entsInRadius(x, y, radius, e => !e.dead && (hitAir || !(e.kind === 'unit' && e.def.air)));
   for (const v of victims) {
@@ -202,7 +225,7 @@ function dealSplash(x, y, dmg, dtype, radius, ownerIdx, srcEnt, hitAir, fromAir)
     let fall = U.clamp(1 - (d / (radius + 18)) * 0.75, 0.3, 1);
     let amount = dmg * fall;
     if (v.owner === ownerIdx) amount *= 0.25;      // reduced friendly fire
-    applyDamage(v, amount, dtype, srcEnt && !srcEnt.dead ? srcEnt : null, fromAir);
+    applyDamage(v, amount, dtype, srcEnt && !srcEnt.dead ? srcEnt : null, fromAir, true);
   }
 }
 
@@ -265,6 +288,9 @@ class Unit {
     this.path = null; this.pathI = 0;
     this.cool = 0;
     this.vetXp = 0; this.vetRank = 0;
+    this.level = 1;                       // combat level 1-30, earned by kills
+    this.abilityT = 0;                    // level-30 ability: seconds still running
+    this.abilityCd = 0;                   // ...and seconds until it can run again
     this.cargo = (this.def.capacity || this.def.tankSlots) && !this.def.harvester ? [] : null;   // transport passengers (unit ids)
     this.guardX = x; this.guardY = y;
     this.stuckT = 0; this.lastX = x; this.lastY = y;
@@ -427,10 +453,14 @@ class Unit {
   update(dt) {
     if (this.embarked) return;                     // riding inside a transport
     if (this.cool > 0) this.cool -= dt;
+    // level-30 ability: runs for its duration, then sits on cooldown
+    if (this.abilityT > 0) { this.abilityT -= dt; if (this.abilityT <= 0) this.abilityT = 0; }
+    if (this.abilityCd > 0) { this.abilityCd -= dt; if (this.abilityCd <= 0) this.abilityCd = 0; }
 
-    // veterans patch themselves up in the field — faster with every star.
+    // veterans patch themselves up in the field — faster with every star, and faster
+    // again with Field Welds or a Combat Medic.
     // Runs BEFORE the aircraft branch so veteran pilots heal too.
-    const regen = vetRegenRate(this);
+    const regen = vetRegenRate(this) * abilityMul(this, 'regen');
     if (regen && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
     // special-forces conditioning: self-heal once out of combat for 8 s
     if (this.def.fieldRegen && this.hp < this.maxHp && game.t - (this.lastHitT || -99) > 8) {
@@ -494,7 +524,7 @@ class Unit {
           world.crates.splice(i, 1);
           if (this.vetRank < 5) {
             this.vetRank++;
-            this.maxHp = Math.round(this.def.hp * VET_HP[this.vetRank] * (1 + 0.25 * (this.armorLvl || 0)));
+            this.maxHp = armorPool(this);
             this.hp = Math.min(this.maxHp, this.hp + this.def.hp * 0.35);
             if (this.owner === 0) { FX.text(this.x, this.y - 20, '★ SALVAGE UPGRADE'); SFX.promote(); }
           } else {
@@ -1114,7 +1144,8 @@ class Unit {
       case 'rearm': {
         if (!pad) { this.jetState = this.guardPost ? 'guardmove' : 'idle'; break; }
         this.x = U.lerp(this.x, pad.x, dt * 4); this.y = U.lerp(this.y, pad.y, dt * 4);
-        this.rearmT += dt;
+        // Ground Crew Priority (level 25) halves the turnaround
+        this.rearmT += dt * abilityMul(this, 'rearm');
         if (this.rearmT > (pad.upgrades && pad.upgrades.fastrepair ? 2.8 : 4)) {
           this.ammo = def.ammo;
           if (pad.upgrades && pad.upgrades.restore && this.hp < this.maxHp * 0.5) this.hp = this.maxHp * 0.5;

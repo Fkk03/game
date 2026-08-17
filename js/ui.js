@@ -338,8 +338,13 @@ const UI = (() => {
       const nm = e.kind === 'unit' ? uName(e.key, game.players[e.owner]?.faction) : bName(e.key, game.players[e.owner]?.faction);
       let extra = '';
       if (e.kind === 'unit' && e.vetRank) extra += ` &nbsp;<span style="color:#ffd76a">${'★'.repeat(e.vetRank)}</span>`;
-      if (e.gunLvl) extra += ` &nbsp;<span style="color:#ffb070">⚔+${e.gunLvl * 25}%</span>`;
-      if (e.armorLvl) extra += ` &nbsp;<span style="color:#8fc7ff">🛡+${e.armorLvl * 25}%</span>`;
+      if (e.kind === 'unit' && unitTrack(e)) {
+        const lv = unitLevel(e);
+        extra += ` &nbsp;<span style="color:#8fe3ff" title="combat level — earned by kills, never bought">Lv${lv}${lv >= UNIT_MAX_LEVEL ? ' MAX' : ''}</span>`;
+      }
+      // the multiplier itself, not a percentage: at level 40 "+2,900%" reads as noise
+      if (e.gunLvl) extra += ` &nbsp;<span style="color:#ffb070">⚔ L${e.gunLvl} ×${fieldMul(e.gunLvl).toFixed(2)}</span>`;
+      if (e.armorLvl) extra += ` &nbsp;<span style="color:#8fc7ff">🛡 L${e.armorLvl} ×${fieldMul(e.armorLvl).toFixed(2)}</span>`;
       if (e.specialLvl) {
         const sp = specialOf(e);
         extra += ` &nbsp;<span style="color:#c9a7ff" title="${sp.name}">${sp.icon}+${e.specialLvl * 25}%</span>`;
@@ -384,7 +389,7 @@ const UI = (() => {
     if (e.kind === 'unit') {
       const w = d.weapon;
       if (w) {
-        const dmg = Math.round(w.dmg * VET_DMG[e.vetRank] * (1 + 0.25 * (e.gunLvl || 0)));
+        const dmg = Math.round(w.dmg * VET_DMG[e.vetRank] * fieldMul(e.gunLvl || 0));
         const per = w.projectile === 'nukebomb' ? ' per bomb' :
           w.projectile === 'napalm' ? ' per payload' : ' per missile';
         bits.push(`⚔ ${dmg} ${w.dtype}${d.air ? per : ''}`);
@@ -401,6 +406,16 @@ const UI = (() => {
       if (d.detect) bits.push(`detects stealth ${d.detect}`);
       if (hasCloak(e)) bits.push(isStealthed(e) ? '🌑 cloaked' : '⚠ visible');
       bits.push(`<b>kills ${e.kills || 0}</b>`);
+      // what this hull has learned, and what the next level would teach it
+      const track = abilityTrack(e);
+      if (track.length) {
+        const got = abilitiesOf(e);
+        if (got.length) bits.push(got.map(a => `<span style="color:#8fe3ff" title="${a.name}: ${a.desc}">${a.icon} ${a.name}</span>`).join(' · '));
+        const next = track.find(a => a.lvl > unitLevel(e));
+        if (next) bits.push(`<span style="opacity:.7">next: ${next.icon} ${next.name} at Lv${next.lvl}</span>`);
+        if (ultimateOn(e)) bits.push('<b style="color:#ffd76a">⚡ ACTIVE</b>');
+        else if (e.abilityCd > 0) bits.push(`⚡ ready in ${Math.ceil(e.abilityCd)}s`);
+      }
     } else {
       const w = d.weaponByFaction ? buildingWeapon(e) : null;
       if (w) {
@@ -531,6 +546,9 @@ const UI = (() => {
       if (gunEligible.length) curCmds[8] = { type: 'tankup', kind: 'gun', units: gunEligible };
       if (armorEligible.length) curCmds[9] = { type: 'tankup', kind: 'armor', units: armorEligible };
       if (specialEligible.length) curCmds[10] = { type: 'tankup', kind: 'special', units: specialEligible };
+      // level-30 hulls carry an ability the player fires by hand (V)
+      const ults = units.filter(u => unitLevel(u) >= UNIT_MAX_LEVEL && ultimateOf(u));
+      if (ults.length) curCmds[11] = { type: 'ultimate', units: ults };
       // transports with troops aboard get an Unload command (F)
       const transports = units.filter(u => isTransport(u));
       if (transports.length) curCmds[7] = { type: 'unloadbtn', transports };
@@ -626,6 +644,15 @@ const UI = (() => {
         b.innerHTML = `${hk}<span class="icon">${face.icon}</span><span>${face.label} L${next}</span><span class="cost">${money}${n > 1 ? '×' + n : ''}</span>`;
         b.classList.add('upg');
         if (p.money < Math.min(...each)) b.classList.add('disabled');
+      } else if (c.type === 'ultimate') {
+        const ready = c.units.filter(u => ultimateReady(u)).length;
+        const running = c.units.filter(u => ultimateOn(u)).length;
+        const cd = Math.min(...c.units.map(u => u.abilityCd || 0));
+        const a = ultimateOf(c.units[0]);
+        const state = running ? 'ACTIVE' : ready ? 'READY' : Math.ceil(cd) + 's';
+        b.innerHTML = `${hk}<span class="icon">${a.icon}</span><span>${a.name.split(' ')[0]}</span><span class="cost">${state}</span>`;
+        b.classList.add('upg');
+        if (!ready) b.classList.add('disabled');
       } else if (c.type === 'unloadbtn') {
         const n = c.transports.reduce((a, t) => a + t.cargo.length, 0);
         b.innerHTML = `${hk}<span class="icon">🪂</span><span>Unload</span><span class="cost">${n} aboard</span>`;
@@ -653,9 +680,9 @@ const UI = (() => {
      and falls back to a generic face when a mixed selection carries several. */
   function cmdFace(c) {
     if (c.kind === 'gun') return { icon: '\u2694\ufe0f', label: 'Gun', title: 'Gun Upgrade',
-      desc: '+25% weapon damage per level, stacking with veterancy and never capping. Each level is priced on the firepower it actually adds, so a point of damage costs the same whichever hull you bolt it onto.' };
+      desc: `+7% weapon damage per level, compounding, to ${FIELD_UP_MAX_LEVEL} levels \u2014 ${fieldMul(FIELD_UP_MAX_LEVEL).toFixed(1)}x at the cap, and it stacks on top of veterancy. Each level is priced on the firepower it actually adds, so a point of damage costs the same whichever hull you bolt it onto. Early levels come at a 30% discount on that rate and late ones at a growing premium: refit what you have, but never stop building.` };
     if (c.kind === 'armor') return { icon: '\ud83d\udee1\ufe0f', label: 'Armor', title: 'Armor Plating',
-      desc: '+25% maximum health per level, stacking with veterancy and never capping; the crew patches in the new plating immediately. Each level is priced on the health it actually adds, so a point of armour costs the same on a scout truck as on a Leviathan.' };
+      desc: `+7% maximum health per level, compounding, to ${FIELD_UP_MAX_LEVEL} levels \u2014 ${fieldMul(FIELD_UP_MAX_LEVEL).toFixed(1)}x at the cap; the crew patches in the new plating immediately. Each level is priced on the health it actually adds, so a point of armour costs the same on a scout truck as on a Leviathan, with the same early discount and late premium as the gun.` };
     const specs = c.units.map(u => specialOf(u)).filter(Boolean);
     const same = specs.length && specs.every(x => x.name === specs[0].name) ? specs[0] : null;
     if (!same) return { icon: '\u2699\ufe0f', label: 'Special', title: 'Special Systems',
@@ -717,6 +744,14 @@ const UI = (() => {
         feed(up.name + ' installed on ' + bName(bld.key, p.faction), 'gold');
         SFX.cash();
         refreshCmd();
+        break;
+      }
+      case 'ultimate': {
+        let n = 0;
+        for (const u of c.units) if (triggerUltimate(u)) n++;
+        if (n) { SFX.promote(); feed(`${ultimateOf(c.units[0]).name} — ${n} unit${n > 1 ? 's' : ''}`, 'gold'); }
+        else { feed('Still cooling down', 'bad'); SFX.error(); }
+        refreshSel(); refreshCmd();
         break;
       }
       case 'tankup': {
@@ -848,8 +883,13 @@ const UI = (() => {
       tooltipHtml(el, `<h4>${cmdFace(c).icon} ${cmdFace(c).title}</h4>
         <div class="tt-cost">${c.kind === 'special'
           ? `30% of the unit's cost per level · up to ${SPECIAL_MAX_LEVEL} levels (${SPECIAL_MAX_MUL}x maximum)`
-          : 'priced on the health or firepower it adds, at the going rate · unlimited levels'} · no veterancy needed · hotkey ${c.kind === 'gun' ? 'Z' : c.kind === 'armor' ? 'X' : 'C'}</div>
+          : `priced on the health or firepower it adds, at the going rate · up to level ${FIELD_UP_MAX_LEVEL}`} · no veterancy needed · hotkey ${c.kind === 'gun' ? 'Z' : c.kind === 'armor' ? 'X' : 'C'}</div>
         <div class="tt-desc">${cmdFace(c).desc}</div>`);
+    } else if (c.type === 'ultimate') {
+      const a = ultimateOf(c.units[0]);
+      tooltipHtml(el, `<h4>${a.icon} ${a.name}</h4>
+        <div class="tt-cost">earned at level ${UNIT_MAX_LEVEL} · ${ABILITY_DUR}s · ${ABILITY_CD}s cooldown · free · hotkey V</div>
+        <div class="tt-desc">${a.desc} Levels cannot be bought — this unit fought for it.</div>`);
     } else if (c.type === 'unloadbtn') {
       tooltipHtml(el, `<h4>🪂 Unload</h4><div class="tt-desc">Deploy every soldier aboard onto open ground below the transport. Hotkey F.</div>`);
     } else if (c.type === 'guardbtn') {

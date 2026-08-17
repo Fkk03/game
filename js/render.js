@@ -2445,6 +2445,14 @@ const RENDER = (() => {
       ctx.fillStyle = '#ffd76a'; ctx.font = 'bold 9px sans-serif';
       ctx.fillText('★'.repeat(e.vetRank), x + w + 3, y + 4);
     }
+    // combat level, once the hull has learned its first ability
+    if (e.kind === 'unit' && unitLevel(e) >= 5) {
+      ctx.fillStyle = ultimateOn(e) ? '#ffd76a' : '#8fe3ff';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('L' + unitLevel(e), x - 3, y + 4);
+      ctx.textAlign = 'left';
+    }
   }
 
   /* ================= placement ghost ================= */

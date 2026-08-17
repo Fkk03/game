@@ -65,9 +65,19 @@ python3 -m http.server 8080
 - **Generals who refit** — an AI does not just build units, it upgrades them. Surplus
   cash goes into ⚔ Gun, 🛡 Armor and ⚙ Special levels on the army it already has,
   spread a level at a time across the whole force so tanks *and* aircraft improve
-  rather than one pet veteran becoming a monument. Construction outranks it: if there
-  is a structure the general wants, its price is reserved first. Expect a mature AI
+  rather than one pet veteran becoming a monument. It rides the compounding curve
+  **sixteen levels deep** — stopping at four left most of the curve unclaimed — and the
+  rising price per level is what stops it going further. Construction outranks it: if
+  there is a structure the general wants, its price is reserved first. Expect a mature AI
   column to be running a quarter to a half of its hulls at multiple upgrade levels
+- **Generals who bring bodies** — infantry ratios are half again what they were and a
+  general builds **five or six barracks instead of three**, so the line has cheap hulls
+  in it to screen the armour, hold ground already taken and soak an emplacement.
+  The army cap no longer freezes composition either: it used to permit heavy hulls only
+  once the cap was reached, and since a barracks trains no heavy hulls, infantry losses
+  were never replaced — measured over twenty minutes the AI built 232 riflemen and
+  finished with 21 standing against 61 tanks. Replacing a casualty does not grow an army,
+  so the cap has no business blocking it
 - **Generals who bring the big guns** — the endgame hulls are in their plans now. A
   hard AI fields **Longbow siege guns and Annihilators**, Citadels and Leviathans, and
   a rich one plants fortress artillery. Artillery weighting climbs the more you
@@ -229,7 +239,11 @@ python3 -m http.server 8080
   can genuinely refuse a strike. They are not yours to command, either; a sortie ignores
   orders, cannot be selected, and flies its run regardless. The off-map artillery powers
   (barrage, demolition, vengeance) still arrive as shells, because that is what they are
-- **Superweapons** — Solaris Beam / Nuclear Missile / Rocket Storm, on a 5-minute countdown
+- **Superweapons — $300,000, two to a general** — a weapon with ten times the blast radius
+  and three times the damage of a conventional strike is not a $4,000 structure. A silo now
+  costs **$300,000**, stands up to **30× the punishment** it used to (225,000 hp, so it
+  cannot be sniped by a raiding party), and **no general may hold more than two**.
+  Solaris Beam / Nuclear Missile / Rocket Storm, on a 5-minute countdown
   that both players can see. All three are **3× the damage and 10× the blast radius** of a
   conventional strike: one Nuclear Missile does 43,200 in a 2,300-px radius, erasing heavy
   armour out to two thousand pixels and taking a whole base with it. The multi-shot strikes
@@ -239,27 +253,55 @@ python3 -m http.server 8080
 - **Full stats on click** — select any unit or building to see its complete combat
   card: damage per shot/missile, range, blast, speed, armor class, sight, ammo,
   personal kill count, cloak state, income/power for structures, and owned upgrades
-- **Field upgrades on every unit, without limit** — select anything and buy
-  ⚔ Gun (+25% damage, hotkey **Z**) and 🛡 Armor (+25% health, hotkey **X**).
-  **There is no veterancy gate and no level cap**: a hull fresh off the line can be
-  refitted immediately, and one you keep alive can be improved for as long as you are
-  willing to pay. Twenty levels is +500% damage and +500% health on the same tank.
-  **Each level is priced on the stat it actually adds**, at the roster's going rate —
-  a point of health costs $2 and a point of damage $11.20 whichever hull you bolt it
-  onto. Pricing levels as a flat share of the *unit's* price instead used to let cheap,
-  stat-efficient hulls buy absolute power far more cheaply than expensive ones (twenty
-  levels put a Goliath at $0.42 per point of health while a Leviathan paid $1.56 and an
-  Annihilator $18.15), so mass simply out-scaled quality forever. Now an Annihilator
-  pays the most in the game to improve its 6,000-damage shell and very little to plate
-  its modest hull, which is exactly what those numbers are worth. Tanks, artillery carriages, gunships, strike jets, bombers and
-  infantry squads all qualify; the unarmed support hulls (dozer, supply truck, radar van,
-  recon plane) take plating only, having no gun to bore out. Bonuses stack with veterancy
-  and survive promotions, the button names the level your next click buys, and a mixed
-  selection buys cheapest-first so a tight budget fits as many units as it can instead of
-  one expensive hull eating the whole purse.
-  The economics stay honest at any level: a level costs 1.2× what that much health or
-  damage costs as fresh units, so buying levels is always a slightly worse deal than
-  simply building more — which is what lets them stay uncapped
+- **Field upgrades that compound, to level 50** — select anything and buy ⚔ Gun
+  (hotkey **Z**) and 🛡 Armor (hotkey **X**). **There is no veterancy gate**: a hull
+  fresh off the line can be refitted immediately. Each level multiplies rather than
+  adds — **+7% compounding, fifty levels deep**:
+
+  | level | 1 | 10 | 20 | 30 | 40 | 50 |
+  |---|---|---|---|---|---|---|
+  | multiplier | 1.07× | 1.97× | 3.87× | 7.61× | 14.97× | **29.46×** |
+
+  A flat quarter of the base added over and over is a straight line: the tenth level was
+  worth exactly what the first was, so there was never a reason to push one hull further
+  than any other. Compounding is a curve — level 50 adds nearly two whole units' worth of
+  stat in a single purchase, because it is 7% of a figure already twenty-seven times the
+  base. **The hull you keep alive is the one worth spending on**, which is the entire
+  point.
+  **Each level is priced on the stat it actually adds**, at the roster's going rate, so a
+  point of health costs the same whichever hull you bolt it onto — and because the stat
+  compounds, so does the bill (a Bulwark's first plating level is $282, its fiftieth is
+  $33,014). On top of that the rate carries a premium that **starts as a discount and
+  grows into a penalty**: 0.70× at level 1, parity around level 12, three times the going
+  rate by level 50. Early refits are the cheapest firepower on the map — that is the pull
+  towards improving what you own. Late ones cost multiples of building fresh, which is
+  what stops the army collapsing into one gold-plated tank and keeps the factories worth
+  running. Tanks, artillery carriages, gunships, strike jets, bombers and infantry squads
+  all qualify; the unarmed support hulls (dozer, supply truck, radar van, recon plane) take
+  plating only, having no gun to bore out. Bonuses stack with veterancy and survive
+  promotions, the button names the level your next click buys, and a mixed selection buys
+  cheapest-first so a tight budget fits as many units as it can
+- **Combat levels 1–30, and six abilities you cannot buy** — money buys guns and plating;
+  **levels are not for sale at any price**. A unit earns them by fighting, off the same
+  kill XP that awards its stars — roughly seventeen kills to level 10, seventy to level 20,
+  a hundred and sixty-eight to level 30. At six milestones it learns something the factory
+  never fitted, and what it learns depends on what it is:
+
+  | level | 🛡 tanks & artillery | ✈ aircraft | 🪖 infantry |
+  |---|---|---|---|
+  | **5** | Ranging Optics — +12% range | Fuel Trim — +12% speed | Fieldcraft — +12% range |
+  | **10** | Reactive Plating — −15% damage taken | Chaff Dispenser — −25% rocket damage | Dug In — −15% damage taken |
+  | **15** | Loader Drill — +20% rate of fire | Weapons Bay — +20% rate of fire | Rapid Fire — +20% rate of fire |
+  | **20** | Spall Liner — −40% splash damage | Composite Frame — −20% flak damage | Scatter Drill — −40% splash damage |
+  | **25** | Field Welds — 2× self-repair | Ground Crew — 2× rearm & repair | Combat Medic — 2× self-repair |
+  | **30** | ⚡ **Overdrive** | ⚡ **Strafing Run** | ⚡ **Fire Discipline** |
+
+  The level-30 ability is the only one you fire by hand — hotkey **V**, free, 12 seconds,
+  90-second cooldown. **Overdrive** is double rate of fire and +35% speed; **Strafing Run**
+  is 2.2× rate of fire; **Fire Discipline** is double rate of fire. A level-30 hull cannot
+  be ordered from a factory. It can only be one you kept alive — which is exactly the unit
+  worth pouring gun and armour levels into. Levels show on the health bar from level 5, and
+  the full ability list is on the unit's card
 - **⚙ Specials — a third upgrade track, different on every hull** (hotkey **C**, +25% a
   level, no veterancy gate, 30% of the unit's price, **up to 4 levels — exactly double
   and no further**). Doubling a reload, a reach or a top speed is the whole point of the

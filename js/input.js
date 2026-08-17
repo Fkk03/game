@@ -514,7 +514,7 @@ const INPUT = (() => {
 
   return {
     init, updateCamera, prune, centerOn, centerOnBase, resetMatch,
-    beginPlace, beginTargeting, stopSelected, issueAttackMove, issueSmartOrder,
+    beginPlace, tryPlace, beginTargeting, stopSelected, issueAttackMove, issueSmartOrder,
     idleWorkers, cycleIdleWorker,
     get keys() { return keys; },
     get mouse() { return mouse; },
