@@ -31,6 +31,13 @@
 | **GDS** | 11,494 | n.d. (sqm-based) | n.d. | — | — | — | 1,894 | 757MW committed-unbuilt backlog; 470MW H1 bookings |
 | **VNET** | 4,161 | 1,423 (derived) | 907 (wholesale) | — | — | — | 1,717 | +516MW under constr. 85.8% pre-committed |
 
+### Global DC REITs
+
+| | EV | Active MW | Under-constr. MW | Buildable/pipeline | Backlog | NTM Rev | NTM EBITDA | Notes |
+|---|---|---|---|---|---|---|---|---|
+| **Equinix** | 129,914 | n.d. (cabinets: 282 DCs, ~78% util) | ~700 (co-wide) | ~3GW developable land | 15,000 (RPO) | 10,245 | 5,240 | xScale 196MW under dev., 182MW leased; "Build Bolder" capex raised to $5-7B/yr |
+| **Digital Realty** | 88,874 | 3,100 (IT load, 89.8% occ.) | 1,400 (63% pre-leased, ~$20B) | ~8.5GW buildable (incl. UC) | $1.9B *annualized rent* (not TCV — excluded from $ column) | 6,900 | 3,800 | EV/derived 4.5GW = $19.8M/MW; EV/active = $28.7M/MW |
+
 ### Hyperscalers (segment capacity/backlog vs **group** EV — EV/MW multiples n.m.)
 
 | | Group EV | Capacity disclosures (no MW stock reported) | Backlog (RPO) | Segment NTM Rev |

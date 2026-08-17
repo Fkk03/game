@@ -1,0 +1,370 @@
+{
+ "research": {
+  "eqix": {
+   "companies": [
+    {
+     "name": "Equinix, Inc.",
+     "ticker": "NASDAQ: EQIX",
+     "as_of": "2026-08-17 (Q2 2026 results as of June 30, 2026, reported July 29, 2026; Q2 2026 10-Q filed early August 2026)",
+     "capacity": {
+      "built_active_mw": null,
+      "total_pipeline_mw": 3000,
+      "contracted_or_secured_power_mw": 3000,
+      "contracted_unbuilt_mw": 182,
+      "gpu_count": null,
+      "capacity_definition": "Equinix reports retail capacity in cabinet equivalents, not MW; no company-wide operational MW figure is disclosed (built_active_mw = null). Operating footprint per Q2 2026 materials: 282 IBX data centers across 77 markets in 36 countries (the FY2025 10-K said 280 across 77 markets/36 countries), 10,500+ customers, 230 cloud on-ramps, 522,700 total interconnections (record +9,700 net adds in Q2). Cabinet utilization ~78% overall as of June 30, 2026; stabilized data centers ~82% utilized; 4,200 net billed cabinets added in Q2; MRR per cabinet $2,538 (+6% y/y normalized/constant-currency). total_pipeline_mw = 3,000 MW: on the Q2 2026 call management said Equinix controls ~3 GW of land/developable capacity with ~700 MW under active construction across 52 major projects in 33 markets (new projects announced in Chicago, Istanbul and Johor in Q2). contracted_or_secured_power_mw = 3,000 MW per management's call statement that for the 3 GW it 'either has contracted power or a high degree of confidence that power will be contracted' \u2014 i.e., a mix of contracted and high-confidence, not fully contracted. contracted_unbuilt_mw = 182 MW is the pre-leased portion of the 196 MW of xScale (hyperscale JV) capacity under development; in Q2 alone Equinix closed 134 MW of xScale leases in the Americas (including the Hampton, GA transaction that generated ~$120M of non-recurring fees). 2025 analyst day 'Build Bolder' plan (June 25, 2025): double data center capacity by 2029 \u2014 building as much in five years as in the prior 27 \u2014 on ~3 GW of developable capacity, originally with $4-5B/yr capex; at Q2 2026 the long-term outlook was raised to $5-7B capex annually through 2029 (2026 capex now $5-6B). AI commentary: CEO Adaire Fox-Martin \u2014 'The AI infrastructure cycle is accelerating, especially inference'; majority of large deals were AI-driven; demand strength cited in inference and sovereign AI workloads; ~7,000 cabinets being accelerated from 2027 into Q4 2026."
+     },
+     "financials": {
+      "ntm_revenue_usd_m": 10245,
+      "ntm_ebitda_usd_m": 5240,
+      "revenue_basis": "FY2026 guidance midpoints used as NTM proxy (calendar-2026 guidance, not a true next-twelve-months figure). Raised FY2026 guidance from the July 29, 2026 release: revenues $10.205-10.285B (+~11-12% y/y, as-reported and normalized/constant-currency); adjusted EBITDA $5.210-5.270B (~51% margin, ~+2pp expansion); AFFO $4.240-4.300B (+13-14% as-reported); AFFO per share $42.69-43.29 (+11-13% as-reported, 10-12% normalized/CC). Management called it 'the largest single guidance raise in the history of our company.' Q2 2026 actuals: revenue $2.625B (+16% y/y as-reported, +11% normalized/CC MRR basis), adjusted EBITDA $1.396B (53% margin, +300bps y/y), AFFO/share $11.78 (+20% as-reported per press release rendering; Zacks computes +18.9%), boosted by ~$120-124M of non-recurring xScale/JV fees (Hampton). Long-term outlook raised: 2027-2029 revenue growth 10-13%/yr and AFFO/share growth 9-12%/yr (vs. analyst-day 5-9% AFFO/share).",
+      "contracted_revenue_backlog_usd_m": 15000,
+      "backlog_definition": "Remaining performance obligations (RPO) per the Q2 2026 Form 10-Q (eqix-20260630.htm): approximately $15.0B as of June 30, 2026 (figure via StockTitan/search renderings of the 10-Q; direct EDGAR fetch blocked by egress proxy). This is ASC 606 RPO \u2014 contracted future colocation/interconnection/services revenue not yet recognized \u2014 distinct from annualized bookings (Q2 annualized gross bookings $424M, +23%, second-highest ever).",
+      "net_debt_usd_m": 21174,
+      "ntm_ebitda_usd_m_note": null,
+      "valuation_usd_m": null,
+      "valuation_basis": "Market cap / EV not extracted \u2014 not verifiable against primary sources in this session (equity market data sites blocked by egress proxy); left null rather than estimated.",
+      "net_debt_basis_note": null
+     },
+     "sources": [
+      {
+       "url": "https://newsroom.equinix.com/2026-07-29-Equinix-Reports-Second-Quarter-Results,-Raises-2026-Guidance-and-Long-Term-Outlook",
+       "title": "Equinix Reports Second-Quarter Results, Raises 2026 Guidance and Long-Term Outlook (also at prnewswire.com 302838047 and investor.equinix.com detail/1114)",
+       "type": "company press release (via search-engine rendering; direct fetch blocked)",
+       "date": "2026-07-29",
+       "quote": "For the full year of 2026, total revenues are expected to range between $10.205 and $10.285 billion, an increase of approximately 11-12% over the previous year... Adjusted EBITDA is expected to range between $5.210 and $5.270 billion, reflecting an adjusted EBITDA margin of approximately 51%... AFFO is expected to range between $4.240 and $4.300 billion, an increase of 13-14%... AFFO per share is expected to range between $42.69 and $43.29."
+      },
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000110123926000147/eqix-20260630.htm",
+       "title": "Equinix Inc. Form 10-Q for the quarter ended June 30, 2026 (data extracted via StockTitan 10-Q summary and EDGAR search renderings; direct sec.gov fetch blocked by proxy)",
+       "type": "SEC 10-Q",
+       "date": "2026-08 (filed early August 2026)",
+       "quote": "Equinix disclosed approximately $15.0B of remaining performance obligations as of June 30, 2026... Cash and cash equivalents: $979 million... Senior notes: $19,689 million carrying amount; mortgages and other loans payable: $20 million... Total debt principal outstanding: $22,153 million as of June 30, 2026... $2.2 billion of cash, cash equivalents and short-term investments as of June 30, 2026."
+      },
+      {
+       "url": "https://www.theglobeandmail.com/investing/markets/stocks/EQIX/pressreleases/3730144/equinix-eqix-q2-2026-earnings-call-transcript/",
+       "title": "Equinix (EQIX) Q2 2026 Earnings Call Transcript (also AOL, Investing.com renderings)",
+       "type": "earnings call transcript (via search-engine rendering)",
+       "date": "2026-07-29",
+       "quote": "Net leverage was 3.6 times annualized adjusted EBITDA... approximately $7.7 billion of available liquidity, including its recently upsized revolving credit facility... The xScale portfolio signed 134 megawatts of leasing in the Americas during the quarter, including one transaction that contributed approximately $120 million in nonrecurring fees... Equinix has 196 megawatts of xScale capacity under development \u2014 182 megawatts of which is leased... Equinix has 3 gigawatts of land under control and is building about 700 megawatts of that right now... 52 major projects underway across 33 markets."
+      },
+      {
+       "url": "https://commercialobserver.com/2026/07/data-center-equinix-q2-earnings/",
+       "title": "Data Center Giant Equinix Ups Its 2026 Forecast Behind Robust Q2 - Commercial Observer",
+       "type": "news article",
+       "date": "2026-07",
+       "quote": "'This is the largest single guidance raise in the history of our company,' Fox-Martin said... Equinix said it controls 3 gigawatts of land under development, with about 700 megawatts under active construction."
+      },
+      {
+       "url": "https://www.investing.com/news/company-news/equinix-q2-2026-slides-record-bookings-drive-major-outlook-raise-93CH-4822034",
+       "title": "Equinix Q2 2026 slides: record bookings drive major outlook raise - Investing.com",
+       "type": "earnings presentation summary (via search-engine rendering)",
+       "date": "2026-07-29",
+       "quote": "Equinix reported second-quarter revenue of $2.625 billion, up 16% year-over-year... Adjusted EBITDA reached $1.396 billion with a margin of 53%, representing a 300 basis point expansion... AFFO per share grew 20% year-over-year on an as-reported basis to $11.78... Cabinet utilization stood at approximately 78% as of June 30, 2026... stabilized data centers remained approximately 82 percent utilized... 282 data centers across 77 markets in 36 countries... approximately 3 gigawatts of developable capacity... added a record 9,700 net interconnections... total to 522,700. MRR per cabinet increased to $2,538."
+      },
+      {
+       "url": "https://finance.biggo.com/news/US_EQIX_2026-07-29",
+       "title": "EQIX Q2 2026 Earnings Call: Equinix Lifts Long-Term Targets, Plans $5B-$7B Annual Capex as AI Demand Accelerates",
+       "type": "earnings call summary (via search-engine rendering)",
+       "date": "2026-07-29",
+       "quote": "Through 2029, Equinix expects total revenue growth in the 10%-13% range annually, with AFFO per share growing 9%-12% during the same period. The company plans to invest $5 billion to $7 billion in CapEx annually through 2029... For 2026 capital expenditures, the company expects a range between $5 billion-$6 billion."
+      },
+      {
+       "url": "https://www.prnewswire.com/news-releases/equinix-agrees-to-form-greater-than-15b-jv-to-expand-hyperscale-data-centers-in-the-us-and-support-growing-ai-and-cloud-innovation-302263523.html",
+       "title": "Equinix Agrees to Form Greater Than $15B JV to Expand Hyperscale Data Centers in the U.S. (with GIC and CPP Investments)",
+       "type": "company press release (via search-engine rendering)",
+       "date": "2024-10-01",
+       "quote": "GIC and CPP Investments will each control a 37.5% equity interest, and Equinix will have a 25% equity interest... plans to purchase land to build new xScale facilities on multiple greater-than-100-megawatt campuses in the U.S., aiming to add more than 1.5 gigawatts of capacity for hyperscalers... At full buildout, this new JV will nearly triple the investment capital of the Equinix xScale program."
+      },
+      {
+       "url": "https://newsroom.equinix.com/2026-02-11-Equinix-Provides-Robust-2026-Outlook-Driven-by-Strong-Fourth-Quarter-Results-and-Accelerating-Business-Momentum",
+       "title": "Equinix Provides Robust 2026 Outlook Driven by Strong Fourth-Quarter Results (Q4 2025 release - xScale program scale)",
+       "type": "company press release (via search-engine rendering)",
+       "date": "2026-02-11",
+       "quote": "In January 2026, Equinix contributed the Hampton, Georgia asset to its xScale joint venture in the United States, an important first step to deploying $15 billion of capital with its JV partners in major metros... global xScale program is expected to represent more than $23 billion of total investment or ~2GW of power capacity for hyperscale customers across its Americas, EMEA and APAC joint ventures."
+      },
+      {
+       "url": "https://blog.ocolo.io/td-cowen-takeaways-from-equinix-analyst-day/",
+       "title": "TD Cowen Takeaways from Equinix Analyst Day (June 25, 2025 'Build Bolder')",
+       "type": "analyst-day summary (secondary; via search-engine rendering)",
+       "date": "2025-06",
+       "quote": "'Build Bolder' is a plan for Equinix to double its data center capacity by 2029, the equivalent of building as much capacity in the next five years as it has over the past 27 years... total developable capacity of approximately 3 gigawatts... guided for significantly higher long-term capex of $4-5 billion per year through 2029, totaling an estimated $20-25 billion... 58 major projects underway globally, including 12 xScale projects."
+      },
+      {
+       "url": "https://futurumgroup.com/insights/equinix-q2-fy-2026-enterprise-ai-fuels-the-next-phase-of-data-center-growth/",
+       "title": "Equinix Q2 FY 2026: Enterprise AI Fuels the Next Phase of Data Center Growth - Futurum (CEO quotes)",
+       "type": "analyst commentary quoting press release (via search-engine rendering)",
+       "date": "2026-07/08",
+       "quote": "'We delivered an exceptionally strong Q2. Monthly recurring revenue grew double digits for the third straight quarter, new interconnections on our platform hit a record level, and disciplined execution drove robust profit growth,' said Adaire Fox-Martin, CEO and President, Equinix... 'The AI infrastructure cycle is accelerating, especially inference.'"
+      },
+      {
+       "url": "https://www.tradingview.com/news/zacks:494e30dbc094b:0-equinix-s-q2-affo-beat-estimates-on-strong-demand-xscale-fees/",
+       "title": "Equinix's Q2 AFFO Beat Estimates on Strong Demand & xScale Fees (Zacks via TradingView)",
+       "type": "news article",
+       "date": "2026-07-30",
+       "quote": "adjusted funds from operations (AFFO) per share of $11.78, up 18.9% year over year and above the Zacks Consensus Estimate of $11.25... revenues rising 16.4% to $2.63 billion... Equinix now expects revenue growth of 11% to 12% and adjusted funds from operations (AFFO) per share growth of 10% to 12%, alongside a jump in planned capital expenditures to a range of $5 billion to $6 billion."
+      }
+     ],
+     "caveats": "SOURCING: The sandbox egress proxy blocked ALL direct fetches (sec.gov, efts.sec.gov, newsroom.equinix.com, investor.equinix.com, prnewswire.com, stocktitan.net, cloudfront PDFs, transcript sites), so every figure was extracted from search-engine renderings of the primary documents (press release, 10-Q, call transcripts) and cross-checked across 2+ independent renderings where possible; quotes are verbatim as rendered by the search tool, not re-verified character-for-character against EDGAR. NET DEBT: $21,174M = total debt principal $22,153M minus cash & equivalents $979M (strict task definition). Including short-term investments (cash+STI $2.2B), net debt is ~$20.0B, which reconciles with the company-stated net leverage of 3.6x annualized adjusted EBITDA (3.6 x $1.396B x 4 = ~$20.1B). Gross debt ~$22B carries a ~3.0% blended after-tax rate and 6.4-year weighted average maturity; finance lease liabilities are excluded from the $22,153M principal figure. Total debt is above the $17-20B range suggested in the task brief \u2014 Equinix has been issuing to fund the Build Bolder capex ramp. CAPACITY: built/active MW is genuinely not disclosed (cabinet-based reporting); the 3 GW is a land-bank/developable figure, only ~700 MW of it under active construction, and power is 'contracted or high-confidence' rather than fully contracted. xScale MW largely sits in unconsolidated JVs (~2 GW program at full buildout, >$23B total investment; Equinix holds 20-25% equity stakes \u2014 25% in the US GIC/CPPIB JV) and xScale revenue reaches Equinix mainly as fees/equity income, so JV MW is NOT on Equinix's balance sheet; the 134 MW Q2 leasing included ~$120M one-time Hampton fees that flattered Q2 revenue/AFFO growth (Americas +25% included $124M non-recurring JV services). MINOR DISCREPANCIES: data center count 282 (Q2 2026 rendering) vs 280 (FY2025 10-K); major projects 52 across 33 markets (Q2 call) vs 58 at the June 2025 analyst day; AFFO/share growth +20% (press release, as-reported) vs +18.9% (Zacks calc). RPO 'approximately $15.0B' came from a single-source rendering of the 10-Q (StockTitan) though repeated consistently across two separate searches. FY guidance figures are company guidance (calendar 2026), used as NTM proxies. One search result referenced a '$4B atNorth acquisition in Q1 2026' from a low-authority blog \u2014 unverified, excluded. Valuation/market cap deliberately left null (no reachable primary source).",
+     "confidence": "medium"
+    }
+   ],
+   "research_notes": "Method: All direct document fetches were blocked by the network egress proxy (sec.gov, efts.sec.gov full-text search, newsroom/investor.equinix.com, prnewswire, stocktitan, theglobeandmail, cloudfront-hosted IR PDFs all returned EGRESS_BLOCKED; curl CONNECT 403). Per the fallback rule, I relied on cross-checked search-engine renderings of the primary documents, running 12 targeted queries. Key primary documents identified: Q2 2026 press release dated 2026-07-29 (newsroom.equinix.com / PRNewswire 302838047 / investor.equinix.com detail 1114); Q2 2026 Form 10-Q at sec.gov/Archives/edgar/data/0001101239/000110123926000147/eqix-20260630.htm; Q2 2026 earnings presentation PDF on d1io3yog0oux5.cloudfront.net; Q2 2026 call transcripts (Globe and Mail, AOL, Investing.com, Motley Fool). Core findings each corroborated by at least two independent renderings: Q2 revenue $2.625B (+16%), adj EBITDA $1.396B (53% margin), AFFO/sh $11.78; raised FY26 guidance (rev $10.205-10.285B, adj EBITDA $5.210-5.270B, AFFO $4.240-4.300B, AFFO/sh $42.69-43.29) \u2014 'largest single guidance raise in company history'; raised long-term 2027-2029 outlook (rev +10-13%/yr, AFFO/sh +9-12%/yr, capex $5-7B/yr vs analyst-day $4-5B); RPO ~$15.0B at 6/30/26; total debt principal $22,153M, cash $979M (cash+STI $2.2B), net leverage 3.6x, liquidity ~$7.7B; capacity: cabinets-based (util ~78%, stabilized ~82%), 282 DCs/77 markets/36 countries, 3 GW land under control with ~700 MW under construction, xScale 196 MW under development (182 MW leased), Q2 xScale leasing 134 MW incl Hampton (~$120M one-time fees); xScale JV structure: >$15B US JV with GIC/CPP (EQIX 25%, GIC 37.5%, CPP 37.5%, >1.5 GW target), overall xScale program >$23B / ~2 GW across Americas/EMEA/APAC unconsolidated JVs. Confidence marked medium solely because primary documents could not be opened directly; the figures themselves are internally consistent (e.g., 3.6x leverage reconciles with $22.15B debt less $2.2B cash+STI against annualized Q2 adj EBITDA)."
+  },
+  "dlr": {
+   "companies": [
+    {
+     "name": "Digital Realty Trust, Inc.",
+     "ticker": "NYSE: DLR",
+     "as_of": "2026-06-30 (Q2 2026 results reported 2026-07-23; market data as of 2026-08-17)",
+     "capacity": {
+      "built_active_mw": 3100,
+      "contracted_or_secured_power_mw": 4500,
+      "contracted_unbuilt_mw": 1400,
+      "total_pipeline_mw": 11600,
+      "gpu_count": null,
+      "capacity_definition": "IT load MW (DLR's standard disclosure basis). built_active_mw = ~3.1 GW of in-service IT capacity across ~310 data centers ('approximately 3.1 gigawatts of IT capacity'), consolidated portfolio occupancy 89.8% at 6/30/26 (White Space IT Load basis, excludes capacity under active development/held for development; Americas 95.2%, EMEA 81.9%, APAC 85.9%; up from 89.3% at YE25; FY26 guidance for occupancy +75-125 bps). contracted_unbuilt_mw = 1.4 GW under construction at ~$20B total cost, 63% pre-leased (pro forma for hyperscale leases signed in July 2026) at an 11.5% average expected stabilized yield; pipeline doubled in 1H26 (Q2: delivered 76 MW ~60% pre-leased, started 312 MW). contracted_or_secured_power_mw = in-service 3.1 GW + 1.4 GW under active construction (powered/secured); excludes the Kansas City land buy (~$475M, up to 2 GW of utility power) closed in Q2. total_pipeline_mw = 3.1 GW in-service + ~8.5 GW of 'buildable IT capacity under active development and held for future development' (i.e., ~7.1 GW of land/shell held for future development beyond the 1.4 GW under construction). gpu_count: n/a - DLR is a landlord (wholesale/colo REIT), does not own GPUs."
+     },
+     "financials": {
+      "contracted_revenue_backlog_usd_m": 1900,
+      "backlog_definition": "Record backlog of signed-but-not-yet-commenced leases = $1.9B of ANNUALIZED GAAP base rent at 100% share at 6/30/26 ($1.4B at DLR's pro-rata share, +75% YTD, ~30% of in-place data center rent). Commencement cadence per call: ~$635M of annualized rent scheduled to commence in 2H26 and ~$480M in 2027, remainder thereafter. This is an annualized-rent figure, NOT total contract value - hyperscale leases run long (e.g., the 288 MW NoVA assets carry 15-year leases with 3.6% escalators), so cumulative contracted revenue is a large multiple of $1.9B. The 10-Q lessor schedule of total future minimum lease payments receivable (the biggest contracted-$ figure) could not be retrieved because the egress proxy blocks sec.gov/EDGAR; DLR discloses the full multi-year schedule in filings (10-K/10-Q) but no search-indexed rendering of the 6/30/26 total was found, so it is deliberately not estimated here. Q2'26 bookings: $307M annualized GAAP base rent at 100% share / $208M at DLR share, comprising $87.8M 0-1MW (42%), record $20.5M interconnection (10%, +18% YoY), and $99.8M >1MW (48%); 0-1MW + interconnection = record $108M, third straight quarterly record. Headline deal: 200 MW AI-inference hyperscale lease in Charlotte, the largest MW transaction in company history; renewals >$261M signed at cash re-leasing spreads above 25% (0-1MW +5.2% cash MTM; >1MW +66.7%).",
+      "net_debt_usd_m": 16740,
+      "ntm_ebitda_usd_m": 3800,
+      "ntm_revenue_usd_m": 6900,
+      "revenue_basis": "FY2026 guidance midpoints as proxy for NTM (raised at Q2'26 print): total revenue $6,850-$6,950M excluding promote income (raised from $6,600-$6,700M); Adjusted EBITDA $3,750-$3,850M (raised from $3,600-$3,700M); Core FFO/sh ex-net-promote $8.15-$8.20 (from $8.00-$8.10); constant-currency Core FFO/sh ex-net-promote $8.10-$8.15; net capex guidance $4.25-$4.75B. Actual Q2'26: total revenue ~$1.9B (+18% QoQ, +29% YoY), Adjusted EBITDA $978M (+6% QoQ, +19% YoY), Core FFO/sh $2.65 reported incl. $0.52 of net promote ($188M net promote income from the Blackstone development JV), $2.13 ex-promote (+14% YoY vs $1.87).",
+      "valuation_usd_m": 72770,
+      "valuation_basis": "Equity market capitalization ~$72.77B (stockanalysis.com, ~mid-Aug 2026; ~376.7M shares, ~$193/sh implied). Adding consolidated net debt (~$16.7B) and preferred implies EV ~$90B; company-reported debt-plus-preferred-to-total-enterprise-value was 22.3% at Q2'26. Net debt built as: total debt ~$18.6B at 6/30/26 ($17.0B unsecured + ~$1.6B secured/other) minus $1.86B cash = ~$16.74B consolidated. Company-defined net leverage (includes pro-rata share of unconsolidated JV debt and pro-rata EBITDA): net debt-to-Adjusted-EBITDA 4.7x at Q2'26 (down 0.4 turns over 12 months); fixed charge coverage 5.2x. Per-share JV debt at DLR share not separately retrievable from blocked supplemental, but the 4.7x on ~$3.9B annualized adj. EBITDA implies pro-rata net debt ~$18B+, i.e., roughly $1.5-2B of net JV-share debt on top of the consolidated figure."
+     },
+     "sources": [
+      {
+       "url": "https://investor.digitalrealty.com/news-releases/news-release-details/digital-realty-reports-second-quarter-2026-results",
+       "title": "Digital Realty Reports Second Quarter 2026 Results (press release, 2026-07-23)",
+       "type": "company press release (8-K EX-99.1 also at sec.gov/Archives/edgar/data/0001297996/000110465926086270/dlr-20260723xex99d1.htm)",
+       "date": "2026-07-23",
+       "quote": "Signed total bookings during 2Q26 that are expected to generate $307 million of annualized GAAP base rent at 100% share; at Digital Realty's share, bookings were $208 million, including a $108 million contribution from the 0-1 megawatt plus interconnection category"
+      },
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/0001297996/000110465926086270/dlr-20260723xex99d2.htm",
+       "title": "DLR Form 8-K EX-99.2 - Q2 2026 (backlog disclosure)",
+       "type": "8-K exhibit / earnings materials",
+       "date": "2026-07-23",
+       "quote": "The backlog of signed-but-not-commenced leases at quarter-end was $1.9 billion of annualized GAAP base rent at 100% share, and $1.4 billion at Digital Realty's share"
+      },
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/0001297996/000110465926086270/dlr-20260723xex99d1.htm",
+       "title": "DLR Q2 2026 earnings release - balance sheet section",
+       "type": "8-K exhibit / press release",
+       "date": "2026-07-23",
+       "quote": "Digital Realty had approximately $18.6 billion of total debt outstanding as of June 30, 2026, comprised of $17.0 billion of unsecured debt and approximately $1.6 billion of secured debt and other debt... net debt-to-Adjusted EBITDA was 4.7x... Debt-plus-preferred-to-total enterprise value was 22.3% and fixed charge coverage was 5.2x"
+      },
+      {
+       "url": "https://www.sec.gov/Archives/edgar/data/0001297996/000110465926089296/dlr-20260630x10q.htm",
+       "title": "DLR Form 10-Q for quarter ended June 30, 2026",
+       "type": "SEC 10-Q",
+       "date": "2026-08 (filed after 7/23/26 release)",
+       "quote": "Digital Realty held $1.86 billion in cash and cash equivalents at June 30, 2026... down from $3.45 billion at year-end 2025, with the decline reflecting $4.25 billion of investing outflows partially offset by operating cash flow and equity and debt financing"
+      },
+      {
+       "url": "https://www.investing.com/news/company-news/digital-realty-q2-2026-slides-record-bookings-drive-guidance-raise-93CH-4810221",
+       "title": "Digital Realty Q2 2026 slides: record bookings drive guidance raise (Investing.com)",
+       "type": "earnings presentation coverage",
+       "date": "2026-07-23/24",
+       "quote": "Total revenue guidance (excluding promote income) rose to $6,850-$6,950 million from $6,600-$6,700 million, while adjusted EBITDA guidance increased to $3,750-$3,850 million from $3,600-$3,700 million"
+      },
+      {
+       "url": "https://www.gurufocus.com/news/8976599/digital-realty-trust-dlr-reports-strong-q2-2026-earnings-and-raises-guidance",
+       "title": "Digital Realty Trust (DLR) Reports Strong Q2 2026 Earnings and Raises Guidance",
+       "type": "earnings coverage (cross-check of press release)",
+       "date": "2026-07-23/24",
+       "quote": "raised its 2026 Core FFO per share (excluding net promote) outlook to $8.15 - $8.20 and its 2026 Constant-Currency Core FFO per share (excluding net promote) outlook to $8.10 - $8.15... Core FFO excluding net promote income reached $2.13 per share, up 14% from a year earlier, while reported core FFO was $2.65 per share, including $0.52 per share from net promote income... Adjusted EBITDA of $978 million, up 6% sequentially and 19% year-over-year"
+      },
+      {
+       "url": "https://www.investing.com/news/transcripts/earnings-call-transcript-digital-realty-lifts-2026-outlook-after-record-q2-2026-93CH-4810202",
+       "title": "Earnings call transcript: Digital Realty lifts 2026 outlook after record Q2 2026",
+       "type": "earnings call transcript coverage",
+       "date": "2026-07-23/24",
+       "quote": "delivered 76 megawatts of new IT capacity, about 60% of which was pre-leased, and began development of 312 megawatts of additional capacity... 1.4 gigawatts of development capacity currently under construction at a total cost of $20 billion... Pro forma for hyperscale leases signed in July, the pipeline is 63% pre-leased at an average expected stabilized yield of 11.5%... a 200 MW AI inference-focused hyperscale lease in Charlotte, the largest megawatt transaction in the company's history... signed more than $261 million of renewals at cash re-leasing spreads above 25%... During the second quarter, Digital Realty recognized $188 million of net promote income in Core FFO related to the successful development and leasing of three data centers in its development joint venture... Along with the dry powder that remains with their hyperscale development joint venture, Digital Realty estimates they have over $12 billion of remaining capacity to support hyperscale data center development"
+      },
+      {
+       "url": "https://investor.digitalrealty.com/news-releases/news-release-details/digital-realty-announces-purchase-blackstone-interest-three",
+       "title": "Digital Realty Announces Purchase of Blackstone Interest in Three Northern Virginia Data Centers (2026-06-29)",
+       "type": "company press release (also 8-K EX-99.1 at sec.gov/Archives/edgar/data/0001297996/000119312526288761/d100507dex991.htm)",
+       "date": "2026-06-29",
+       "quote": "purchase from Blackstone-affiliated funds a stake in three fully leased data centers containing 288 megawatts of total IT capacity in Northern Virginia at a gross value of $7.8 billion, reflecting an expected initial stabilized capitalization rate of over 6.5%. Total consideration paid to Blackstone for their blended 64% equity interest in the assets will be $3.5 billion, including $1.2 billion of cash and $2.3 billion in shares of Digital Realty... supported by 15-year leases with a blended average AA- customer credit rating and 3.6% annual rent escalators"
+      },
+      {
+       "url": "https://investor.digitalrealty.com/news-releases/news-release-details/digital-realty-announces-final-close-325-billion-us-hyperscale",
+       "title": "Digital Realty Announces Final Close of $3.25 billion U.S. Hyperscale Data Center Fund (2026-03-30)",
+       "type": "company press release",
+       "date": "2026-03-30",
+       "quote": "final close of its inaugural U.S. hyperscale data center fund... securing $3.25 billion of total equity commitments from a diverse group of global institutional investors... Digital Realty will retain a 20% ownership interest in the Fund's portfolio and serves as the manager of the Fund"
+      },
+      {
+       "url": "https://www.globenewswire.com/news-release/2026/07/23/3332571/0/en/Digital-Realty-Reports-Second-Quarter-2026-Results.html",
+       "title": "Digital Realty Reports Second Quarter 2026 Results (GlobeNewswire, portfolio and occupancy details)",
+       "type": "press release wire copy",
+       "date": "2026-07-23",
+       "quote": "Portfolio comprised of approximately 3.1 gigawatts of IT capacity, as well as approximately 8.5 gigawatts of buildable IT capacity under active development and held for future development, located throughout North America, Europe, South America, Asia, Australia, and Africa... As of June 30, 2026, Digital Realty's consolidated portfolio occupancy was 89.8% (based on White Space IT Load...): Americas: 95.2%, EMEA: 81.9%, APAC: 85.9%... total revenues of $1.9 billion in the second quarter of 2026, an 18% increase from the previous quarter and a 29% increase from the same quarter last year"
+      },
+      {
+       "url": "https://stockanalysis.com/stocks/dlr/statistics/",
+       "title": "Digital Realty Trust (DLR) Statistics & Valuation - stockanalysis.com",
+       "type": "market data",
+       "date": "2026-08 (accessed 2026-08-17)",
+       "quote": "DLR has a market cap of $72.77 billion... 376.68 million shares outstanding"
+      },
+      {
+       "url": "https://finance.biggo.com/news/US_DLR_2026-07-23",
+       "title": "DLR Q2 2026 Earnings Call - Record $2.13 Core FFO, Raises 2026 Outlook on 25%+ Renewal Spreads and $1.9B Backlog (BigGo Finance)",
+       "type": "earnings call coverage (cross-check)",
+       "date": "2026-07-23",
+       "quote": "0-1 MW deployments contributing $87.8 million (42% of total bookings), interconnection adding $20.5 million (10%), and larger deployments over 1 MW accounting for $99.8 million... $480 million in annualized rent is scheduled to commence in 2027, following $635 million of annualized rent scheduled to commence in the second half of 2026... At Digital Realty's share, the backlog increased by 75% since the beginning of the year to a record $1.4 billion, and this backlog now represents approximately 30% of the company's in-place data center rent"
+      }
+     ],
+     "caveats": "SOURCING: The sandbox egress proxy blocked ALL direct fetches (sec.gov, efts.sec.gov, data.sec.gov, investor.digitalrealty.com, globenewswire, stocktitan, investing.com, etc.), so every figure and 'verbatim' quote here comes from cross-checked search-engine renderings of the primary documents (press release/8-K, supplemental, 10-Q, call transcript) rather than the documents themselves; quotes are as rendered by search results and should be re-verified against EDGAR before publication. Figures were accepted only when consistent across 2+ independent renderings. One outlier rejected: an InfotechLead rendering claimed Q2 revenue of '$1.54B, +16% YoY' - contradicted by multiple sources showing ~$1.9B total revenue (+29% YoY) and by the $978M Adjusted EBITDA margin. CAPACITY: exact in-service MW from the supplemental's MW table (to the single MW) was not retrievable; '~3.1 GW in service / ~8.5 GW buildable' is the company's own summary disclosure. contracted_or_secured_power_mw (4,500) is my construction (in-service + under-construction), not a company-defined metric. BACKLOG: $1.9B/$1.4B is ANNUALIZED GAAP rent, not total contract value; the 10-Q total future minimum lease payments receivable (would be the largest contracted-$ figure, tens of billions given 15-yr hyperscale terms) could not be extracted - left null rather than estimated. NET DEBT: $16.74B is consolidated (total debt $18.6B - cash $1.86B) and excludes DLR's pro-rata share of unconsolidated JV debt; company's own 4.7x net-debt/adjusted-EBITDA is calculated on a pro-rata basis and implies ~$18B+ pro-rata net debt. Share-of-JV-debt was not separately disclosed in retrievable text. Market cap is a point-in-time secondary-source figure.",
+     "confidence": "medium"
+    }
+   ],
+   "research_notes": "METHOD: Direct WebFetch was blocked by the egress proxy for every relevant domain (sec.gov/EDGAR incl. efts full-text search, investor.digitalrealty.com, GlobeNewswire, StockTitan, Investing.com, Manila Times, InfotechLead, Yahoo). Per the task's fallback rule, all extraction was done via search-engine renderings of the primary documents, cross-checked across independent outlets; SEC Archives URLs for the actual exhibits (8-K EX-99.1/99.2 dated 2026-07-23, 10-Q dlr-20260630x10q.htm) surfaced in results and are cited even though not directly fetchable from this sandbox.\n\nKEY Q2 2026 (reported 2026-07-23) FACTS, cross-verified: Total revenue ~$1.9B (+18% QoQ, +29% YoY); Adjusted EBITDA $978M (+19% YoY); Core FFO/sh $2.65 reported / $2.13 ex-net-promote (+14% YoY), including $188M ($0.52/sh) net promote income from the Blackstone development JV. Bookings: $307M annualized GAAP rent at 100% share / $208M at DLR share ($87.8M 0-1MW, record $20.5M interconnection, $99.8M >1MW; $108M 0-1MW+interconnection = third straight record). Record 200 MW AI-inference hyperscale lease in Charlotte (largest MW deal in company history); renewals >$261M at >25% cash spreads (>1MW +66.7%). Backlog: record $1.9B annualized GAAP rent at 100% / $1.4B at share (+75% YTD, ~30% of in-place rent; $635M commencing 2H26, $480M 2027). Capacity: ~3.1 GW in-service IT load, 89.8% occupied (Americas 95.2/EMEA 81.9/APAC 85.9); 1.4 GW under construction ($20B cost, 63% pre-leased pro forma July, 11.5% expected stabilized yield; doubled in 1H26); ~8.5 GW buildable under active development + held for future development; Q2 adds: 76 MW delivered (~60% pre-leased), 312 MW starts, Kansas City land ~$475M (up to 2 GW utility power), 16.5 MW Malaysia + 14 MW land. Guidance (raised): revenue ex-promote $6,850-6,950M; Adj EBITDA $3,750-3,850M; Core FFO ex-promote $8.15-8.20; CC $8.10-8.15; net capex $4.25-4.75B; occupancy +75-125 bps. Balance sheet: total debt ~$18.6B ($17.0B unsecured/$1.6B secured), cash $1.86B (down from $3.45B YE25 on $4.25B investing outflows), consolidated net debt ~$16.7B; company pro-rata net debt/adj EBITDA 4.7x (-0.4 turns YoY), debt+pref/TEV 22.3%, FCC 5.2x.\n\nJV/PRIVATE-CAPITAL PLATFORM (item 5): (a) Blackstone $7B hyperscale development JV (Dec-2023; 4 campuses Frankfurt/Paris/NoVA, ~500 MW at full build, Blackstone 80%/DLR 20%) - on 2026-06-29 DLR agreed to buy Blackstone's blended 64% equity interest in the three NoVA assets (2x96 MW Manassas at 80%, 1x96 MW Sterling at 50%; 288 MW total, fully leased, 15-yr leases, AA- blended credit, 3.6% escalators) for $3.5B ($1.2B cash + $2.3B DLR stock) at $7.8B gross value, >6.5% initial stabilized cap rate; stabilizations 1H27/1H27/1H28; this drove the $188M Q2 promote. (b) Inaugural U.S. Hyperscale Data Center Fund: final close 2026-03-30 at $3.25B equity commitments (pensions, SWFs, endowments, insurers); DLR retains 20% and is manager; target metros NoVA, Santa Clara, Dallas, Atlanta, Charlotte, NY. (c) Management said fund + hyperscale-JV dry powder give 'over $12 billion of remaining capacity to support hyperscale data center development'. (d) Legacy stabilized JVs: TPG Real Estate (80% of $1.5B 3-DC NoVA portfolio), GI Partners (65% of two Chicago hyperscale DCs), Mitsubishi Corp (MC Digital Realty, Japan), Brookfield (Ascenty LatAm). The ~$0.5B gap between 100%-share and DLR-share backlog (and $307M vs $208M bookings) shows roughly a quarter-to-third of development economics sitting in JVs/fund at partner share.\n\nGAPS: 10-Q lessor total future minimum lease payments receivable not retrievable (left null - would be the largest defensible contracted-$ figure); exact single-MW in-service figure from the supplemental MW table not retrievable; DLR pro-rata share of JV debt not separately quantified in retrievable text (inferable ~$1.5-2B from 4.7x pro-rata leverage vs consolidated net debt)."
+  },
+  "mkt": {
+   "companies": [
+    {
+     "name": "Equinix",
+     "ticker": "EQIX",
+     "as_of": "2026-08-14",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "Not collected in this pass (market-data task only)."
+     },
+     "financials": {
+      "valuation_usd_m": 108740,
+      "valuation_basis": "market cap \u2014 $108.74B as displayed on quote pages after the Fri 2026-08-14 close: share price $1,102.06 (+$28.32 / +2.64% on the day; previous close $1,073.76; day range $1,072.60-$1,105.94) x ~98.62M shares outstanding (per stockanalysis.com statistics) \u2248 $108.7B, internally consistent.",
+      "net_debt_usd_m": 21980,
+      "ntm_revenue_usd_m": null,
+      "ntm_ebitda_usd_m": null,
+      "revenue_basis": "Not collected in this pass.",
+      "contracted_revenue_backlog_usd_m": null,
+      "backlog_definition": "Not collected in this pass.",
+      "valuation_usd_m_note_removed": null
+     },
+     "sources": [
+      {
+       "url": "https://www.kraken.com/stocks/eqix",
+       "title": "Equinix (EQIX) Stock price today - quote & chart (Kraken)",
+       "type": "market-data",
+       "date": "2026-08-14",
+       "quote": "Stock Price: $1,102.06; +2.64% since the market opened; Market Cap: $108.74B; day range $1,072.60-$1,105.94; previous closing price $1,073.76."
+      },
+      {
+       "url": "https://stockanalysis.com/stocks/eqix/statistics/",
+       "title": "Equinix (EQIX) Statistics & Valuation (stockanalysis.com)",
+       "type": "market-data",
+       "date": "2026-08",
+       "quote": "Market cap of $102.06 billion; enterprise value $124.04 billion; 98.62 million shares outstanding (snapshot a few trading days before Aug 14; EV minus market cap implies ~$22.0B net debt)."
+      },
+      {
+       "url": "https://companiesmarketcap.com/equinix/marketcap/",
+       "title": "Equinix (EQIX) - Market capitalization (companiesmarketcap.com)",
+       "type": "market-data",
+       "date": "2026-08-07",
+       "quote": "Equinix market cap as of August 07, 2026 is $102.88B."
+      },
+      {
+       "url": "https://www.nasdaq.com/market-activity/stocks/eqix",
+       "title": "Nasdaq - EQIX quote page (requested primary source; unreachable from this environment)",
+       "type": "market-data",
+       "date": "2026-08-17",
+       "quote": "Direct fetch blocked by network egress proxy (EGRESS_BLOCKED); could not be used despite being the dataset's primary source."
+      }
+     ],
+     "caveats": "Nasdaq primary source and all quote sites were blocked for direct fetch by the sandbox egress proxy; figures come from web-search snapshots of quote pages, not live pages. Price ($1,102.06) and market cap ($108.74B) are from an end-of-week snapshot consistent with the Fri Aug 14, 2026 close and cross-check against ~98.62M shares outstanding. Net debt (~$21,980M) is implied from stockanalysis.com EV ($124.04B) minus its market-cap snapshot ($102.06B), taken at a slightly earlier price (~$1,035/sh); at the Aug 14 price, implied EV is ~$130.7B. Ex-dividend $5.16/sh on Aug 19, 2026.",
+     "confidence": "medium"
+    },
+    {
+     "name": "Digital Realty Trust",
+     "ticker": "DLR",
+     "as_of": "2026-08-14",
+     "capacity": {
+      "built_active_mw": null,
+      "contracted_or_secured_power_mw": null,
+      "contracted_unbuilt_mw": null,
+      "total_pipeline_mw": null,
+      "gpu_count": null,
+      "capacity_definition": "Not collected in this pass (market-data task only)."
+     },
+     "financials": {
+      "valuation_usd_m": 72134,
+      "valuation_basis": "market cap \u2014 computed as $191.50/share (latest close snapshot, +0.36% on the day; previous close $190.81) x 376.68M shares outstanding (per stockanalysis.com statistics) \u2248 $72.1B. Displayed market caps across sources ranged $70.86B (Kraken) to $72.77B (stockanalysis) to $74.06B (CNBC, which may include OP units), so ~$72B is the best point estimate.",
+      "net_debt_usd_m": 17980,
+      "ntm_revenue_usd_m": null,
+      "ntm_ebitda_usd_m": null,
+      "revenue_basis": "Not collected in this pass.",
+      "contracted_revenue_backlog_usd_m": null,
+      "backlog_definition": "Not collected in this pass."
+     },
+     "sources": [
+      {
+       "url": "https://www.kraken.com/stocks/dlr",
+       "title": "Digital Realty Trust (DLR) Stock price today - quote & chart (Kraken)",
+       "type": "market-data",
+       "date": "2026-08-14",
+       "quote": "Stock price $191.50, +0.36% since the market opened, previous closing price $190.81; market capitalization $70.86B."
+      },
+      {
+       "url": "https://stockanalysis.com/stocks/dlr/statistics/",
+       "title": "Digital Realty Trust (DLR) Statistics & Valuation (stockanalysis.com)",
+       "type": "market-data",
+       "date": "2026-08",
+       "quote": "Market cap $72.77 billion; enterprise value $90.75 billion; 376.68 million shares outstanding; last earnings July 23, 2026 (EV minus market cap implies ~$18.0B net debt; separately ~$19.75B debt less $3.55B cash \u2248 $16.2B)."
+      },
+      {
+       "url": "https://www.cnbc.com/quotes/DLR",
+       "title": "DLR: Digital Realty Trust, Inc. - Stock Price, Quote and News (CNBC)",
+       "type": "market-data",
+       "date": "2026-08",
+       "quote": "Trading at 190.45 USD, +5.550 (+3.00%); previous close 184.90; market cap 74.063B; after-hours 190.29 (earlier-week snapshot)."
+      },
+      {
+       "url": "https://www.nasdaq.com/market-activity/stocks/dlr",
+       "title": "Nasdaq - DLR quote page (requested primary source; unreachable from this environment)",
+       "type": "market-data",
+       "date": "2026-08-17",
+       "quote": "Direct fetch blocked by network egress proxy (EGRESS_BLOCKED); could not be used despite being the dataset's primary source."
+      }
+     ],
+     "caveats": "Nasdaq primary source and all quote sites were blocked for direct fetch; figures come from web-search snapshots whose cache dates vary by a few days, so the exact Aug 14 close could not be pinned to the cent. Snapshots cluster at $190-192/share and ~$71-74B market cap; one search summary claimed an Aug 14 close of $200.15, which is inconsistent with every other snapshot and was discarded as likely erroneous. Net debt (~$17,980M) is stockanalysis.com EV ($90.75B) minus its market cap ($72.77B); a balance-sheet-based figure (~$19.75B debt less $3.55B cash) gives ~$16.2B \u2014 treat as ~$16-18B. CNBC's higher $74.06B cap may reflect a fully diluted / OP-unit-inclusive share count.",
+     "confidence": "medium"
+    }
+   ],
+   "research_notes": "Environment constraint: the sandbox egress proxy blocked direct fetches to every quote domain attempted (nasdaq.com \u2014 the dataset's designated primary source \u2014 plus stockanalysis.com, wsj.com, cnn.com, finance.yahoo.com, macrotrends.net, companiesmarketcap.com). All figures therefore come from web-search snapshots of those quote pages, cross-checked across 3+ independent sources per ticker. EQIX is well-triangulated: close $1,102.06 (+2.64%) on Fri 2026-08-14, market cap $108.74B, consistent with ~98.62M shares; 52-wk range $720.62-$1,128.68; snapshot-based net debt ~$22B (stockanalysis EV $124.04B vs cap $102.06B a few days earlier). DLR snapshots disagree by a few days: best estimate close ~$191.50 on 2026-08-14, market cap ~$72.1B (computed from 376.68M shares), displayed caps $70.86B-$74.06B; EV $90.75B implying ~$18B net debt (~$16.2B on a debt-minus-cash basis). An outlier claim of a $200.15 Aug 14 close for DLR appeared in one search summary and was rejected as inconsistent with all other snapshots. Confidence set to medium for both because the primary Nasdaq page was unreachable and per-source snapshot timing varies within Aug 10-14, 2026."
+  }
+ },
+ "verify": {
+  "claims": [
+   {
+    "company": "Equinix, Inc.",
+    "claim": "contracted/secured=3000MW, active=null MW, unbuilt=182MW, pipeline=3000MW; 282 IBX data centers across 77 markets in 36 countries (FY2025 10-K: 280); backlog=$15,000M RPO per Q2 2026 10-Q; NTM rev=$10,245M and EBITDA=$5,240M as FY2026 guidance midpoints; net debt=$21,174M",
+    "verdict": "CORRECTED",
+    "corrected_value": "MW fields need relabeling: contracted/secured is NOT ~3,000 MW \u2014 the ~3 GW figure is 'developable capacity' / land under development (a pipeline figure, so pipeline=3,000MW is correct but the same number cannot also be 'contracted/secured'). The only contracted-MW disclosure is xScale: 182 MW leased out of 196 MW under development. unbuilt/under-construction is NOT 182 MW \u2014 it is ~700 MW under active construction company-wide (or 196 MW if restricted to xScale under development); 182 MW is the pre-LEASED share of the 196 MW, i.e., a contracted figure, not an unbuilt-capacity figure. Everything else checks out: active=null is correct (no company-wide operational MW disclosed; retail capacity reported in cabinets); 282 data centers / 77 markets / 36 countries per Q2 2026 materials (FY2025 10-K said 280/77/36 \u2014 confirmed); RPO \u2248 $15.0B at 6/30/26; FY2026 guidance revenue $10.205\u2013$10.285B (midpoint $10,245M) and adjusted EBITDA $5.210\u2013$5.270B (midpoint $5,240M), raised July 29, 2026; net debt $21,174M = total debt principal $22,153M \u2212 cash & equivalents $979M (exact arithmetic match; note Equinix's own 3.6x 'net leverage' nets cash PLUS short-term investments (~$2.2B), implying a company-defined net debt nearer ~$20B).",
+    "evidence_quote": "\"total revenues are expected to range between $10.205 and $10.285 billion, an increase of approximately 11 - 12% over the previous year\"; \"Adjusted EBITDA is expected to range between $5.210 and $5.270 billion, reflecting an adjusted EBITDA margin of approximately 51%\"; \"282 data centers across 77 markets in 36 countries with approximately 3 gigawatts of developable capacity\"; \"3 gigawatts of land under development, with about 700 megawatts under active construction\" (Q2 2026 earnings call); \"196 megawatts of xScale capacity under development \u2014 182 megawatts of which is leased\"; \"approximately $15.0 billion of remaining performance obligations as of June 30, 2026. About 65% of this is expected to be recognized as revenue over the next two years\" (10-Q); \"total debt principal outstanding was $22,153 million as of June 30, 2026\" and \"cash and cash equivalents of $979 million\"; FY2025 10-K: \"280 data centers, in 77 markets in 36 countries\"",
+    "evidence_url": "https://newsroom.equinix.com/2026-07-29-Equinix-Reports-Second-Quarter-Results,-Raises-2026-Guidance-and-Long-Term-Outlook",
+    "note": "Additional primary sources: Q2 2026 Form 10-Q https://www.sec.gov/Archives/edgar/data/0001101239/000110123926000147/eqix-20260630.htm (RPO, debt, cash); FY2025 10-K https://www.sec.gov/Archives/edgar/data/1101239/000110123926000032/eqix-20251231.htm (280/77/36 baseline); earnings presentation https://d1io3yog0oux5.cloudfront.net/_dffbc0672baa862647cc7f6d882d9ba9/equinix/db/2183/27054/earnings_presentation/Equinix+Q2+26+Earnings+Presentation+Final.pdf. Adversarial checks: (a) the researcher double-counted the single ~3 GW developable-capacity figure as both 'contracted/secured' and 'pipeline' \u2014 it is a land/power development pipeline, not contracted revenue capacity; (b) 182 MW is a leased-vs-under-development (contracted) figure that was misfiled as 'unbuilt'; (c) guidance midpoints are correctly labeled as calendar-2026 guidance, not true NTM; (d) guidance was raised at the July 29, 2026 print ('the largest single guidance raise in the history of our company') \u2014 figures quoted are the post-raise ranges, not stale; (e) net debt of $21,174M is a derived figure (gross principal minus cash equivalents only) \u2014 consistent, but differs from the definition behind Equinix's published 3.6x net-leverage ratio."
+   },
+   {
+    "company": "Digital Realty Trust, Inc.",
+    "claim": "contracted/secured=4500MW, active=3100MW (~310 data centers), unbuilt=1400MW, pipeline=11600MW (IT load basis); occupancy 89.8% at 6/30/26; backlog $1.9B annualized GAAP base rent at 100% share ($1.4B DLR share, +75% YTD, ~30% of in-place rent); NTM rev=$6,900M and EBITDA=$3,800M as raised FY2026 guidance midpoints (revenue $6,850\u2013$6,950M raised from $6,600\u2013$6,700M); net debt=$16,740M",
+    "verdict": "CORRECTED",
+    "corrected_value": "Two MW fields are researcher-derived, not disclosed: contracted/secured=4,500MW appears nowhere in DLR's Q2 2026 disclosures \u2014 it is simply 3.1 GW in-service + 1.4 GW under construction relabeled; DLR's actual 'contracted' disclosures are the $1.9B backlog and the fact that the 1.4 GW under construction is 63% pre-leased. pipeline=11,600MW is also not disclosed \u2014 DLR discloses approximately 8.5 GW of 'buildable IT capacity,' which is DEFINED as land + shell + data center under construction (i.e., it already INCLUDES the 1.4 GW under construction); 11.6 GW is only the undisclosed sum of 3.1 GW in-service + 8.5 GW buildable, and listing 8.5\u219211.6 GW as 'pipeline' alongside a separate 1,400 MW 'unbuilt' line double-counts the under-construction capacity. Correct disclosed frame: ~3.1 GW in-service across 310 data centers; 1.4 GW under construction (63% pre-leased, ~$20B total cost); ~8.5 GW total buildable (incl. the 1.4 GW). All remaining figures CONFIRMED: consolidated occupancy 89.8% (Americas 95.2%, EMEA 81.9%, APAC 85.9%); backlog $1.9B at 100% share / $1.4B at DLR share, +75% since beginning of year, ~30% of in-place data center rent (commencing $635M 2H26, $480M 2027, $312M 2028+); FY2026 revenue guidance ex-promote raised to $6,850\u2013$6,950M from $6,600\u2013$6,700M (midpoint $6,900M) and Adjusted EBITDA raised to $3,750\u2013$3,850M from $3,600\u2013$3,700M (midpoint $3,800M); net debt \u2248 $16.74B = ~$18.6B total debt ($17.0B unsecured + ~$1.6B secured/other) \u2212 $1.86B cash, consistent with disclosed 4.7x net debt-to-Adjusted EBITDA.",
+    "evidence_quote": "\"record total backlog of $1.9 billion of annualized GAAP base rent at 100% share at the end of 2Q26; at Digital Realty's share, the backlog was $1.4 billion\"; backlog \"has risen 75% since the beginning of the year and now represents about 30% of in-place data center rent\"; \"310 data centers and about 3.1 gigawatts of IT capacity\"; \"1.4 gigawatts of development capacity under construction is 63% pre-leased... at a total cost of $20 billion\"; \"approximately 8.5 gigawatts of buildable IT capacity under active development and held for future development\"; \"Buildable IT Capacity is defined as the sum of Land, Shell, and Data Center under Construction\"; consolidated \"portfolio occupancy of 89.8%\" at June 30, 2026; \"Total revenue guidance (excluding promote income) rose to $6,850-$6,950 million from $6,600-$6,700 million, while adjusted EBITDA guidance increased to $3,750-$3,850 million from $3,600-$3,700 million\"; \"approximately $18.6 billion of total debt outstanding as of June 30, 2026, comprised of $17.0 billion of unsecured debt and approximately $1.6 billion of secured debt and other debt\"; \"$1.86 billion in cash and cash equivalents at June 30, 2026\"; \"net debt-to-Adjusted EBITDA was 4.7x\"",
+    "evidence_url": "https://www.globenewswire.com/news-release/2026/07/23/3332571/0/en/digital-realty-reports-second-quarter-2026-results.html",
+    "note": "Additional primary sources: 8-K press-release exhibit https://www.sec.gov/Archives/edgar/data/0001297996/000110465926086270/dlr-20260723xex99d1.htm; Q2 2026 Form 10-Q https://www.sec.gov/Archives/edgar/data/0001297996/000110465926089296/dlr-20260630x10q.htm; earnings-call and supplemental coverage at investing.com and finance.yahoo.com. Adversarial checks: (a) backlog is correctly labeled as ANNUALIZED GAAP base rent, not total contract value, and the 100%-share vs pro-rata-share ($1.9B vs $1.4B) distinction in the claim is right; (b) guidance figures are the post-raise Q2'26 ranges (reported July 23, 2026), not the stale pre-raise ranges \u2014 EBITDA midpoint $3,800M matches the raised $3,750\u2013$3,850M range; (c) MW figures are on DLR's IT-load basis as claimed; (d) net debt $16,740M is a derived figure (total debt minus cash) consistent with disclosed components and the 4.7x ratio, though DLR's press release states total debt and the leverage ratio rather than a standalone $16.74B net-debt line."
+   }
+  ],
+  "notes": "Methodology caveat: the sandbox egress proxy blocked ALL direct fetches \u2014 SEC EDGAR (www.sec.gov, efts.sec.gov, data.sec.gov), both companies' IR sites, PRNewswire, GlobeNewswire, and StockTitan all returned EGRESS_BLOCKED/403. Per the stated fallback rules, every figure was verified through multiple independent search-engine renderings of the primary sources (Q2 2026 press releases dated July 29, 2026 for EQIX and July 23, 2026 for DLR; the Q2 2026 Forms 10-Q eqix-20260630.htm and dlr-20260630x10q.htm; earnings presentations; and earnings-call transcripts), cross-checked across at least two renderings per figure. Quotes are verbatim as rendered by those intermediaries and could not be character-checked against the underlying EDGAR HTML. Confidence is high on all dollar figures (each matched across independent renderings, and derived net-debt arithmetic reconciles exactly for EQIX: $22,153M \u2212 $979M = $21,174M; and to the dollar-rounding for DLR: $18.6B \u2212 $1.86B \u2248 $16.74B). The two substantive corrections are MW-taxonomy errors, not number errors: EQIX's ~3 GW is developable capacity (pipeline), not contracted; EQIX's 182 MW is pre-leased xScale capacity, not an unbuilt total (~700 MW is under active construction); DLR's 4.5 GW 'contracted/secured' and 11.6 GW 'pipeline' are undisclosed derived sums \u2014 the disclosed figures are 3.1 GW in-service, 1.4 GW under construction (63% pre-leased), and 8.5 GW buildable (which includes the 1.4 GW)."
+ }
+}
