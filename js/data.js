@@ -300,6 +300,15 @@ const UNITS = {
     weapon: { dmg: 330, dtype: 'rocket', range: 240, cd: 2.0, projectile: 'missile', splash: 26, aa: false, ga: true },
     gunWeapon: { dmg: 33, dtype: 'gatling', range: 220, cd: 0.1, projectile: 'bullet', aa: false, ga: true },
   },
+  /* The airframe an air-power sortie arrives in. It is a real, damageable unit rather
+     than a decoration: shoot one down before it reaches its release point and its
+     bombs never fall. It carries no weapon of its own and takes no orders. */
+  sortie: {
+    name: { coalition: 'Strike Sortie', dynasty: 'Strike Sortie', cartel: 'Strike Sortie' },
+    icon: '✈️', cost: 0, hp: 1600, speed: 330, sight: 7, radius: 15,
+    armor: 'air', buildTime: 0, chassis: 'jet', air: true, sortie: true, noAutoAttack: true,
+    desc: 'Off-map aircraft flying a single bombing run. It can be shot down before it releases.',
+  },
   spyplane: {
     name: { coalition: 'Specter Spy Plane', dynasty: 'Shadow Spy Plane' },
     icon: '🛰️', cost: 1600, hp: 300, speed: 265, sight: 18, radius: 13,
@@ -481,6 +490,19 @@ const POWERS = {
     desc: '10 improvised rockets rain down from off-map.' },
   vengeance:  { name: 'Vengeance Strike', icon: '⚰️', tier: 3, cd: 300,
     desc: 'Three brutal waves of rockets pound the target area.' },
+};
+
+/* General's Power strike payloads. Every figure here is five times the original
+   design: these are the rewards for a general's rank, and they were landing for less
+   than a tank shell. The air strikes are delivered by real aircraft that fly in, drop
+   and leave — and that can be shot down on the way in. */
+const POWER_STRIKES = {
+  airstrike:  { dmg: 1100, splash: 55,  fxSize: 1.1 },
+  thermobomb: { dmg: 8000, splash: 190, fxSize: 3 },
+  carpet:     { dmg: 1300, splash: 60,  fxSize: 1.2 },
+  barrage:    { dmg: 850,  splash: 48,  fxSize: 0.9 },
+  demo:       { dmg: 900,  splash: 52,  fxSize: 1.0 },
+  vengeance:  { dmg: 1000, splash: 55,  fxSize: 1.0 },
 };
 
 /* superweapon strikes */

@@ -437,6 +437,7 @@ class Unit {
       this.hp = Math.min(this.maxHp, this.hp + this.def.fieldRegen * dt);
     }
 
+    if (this.def.sortie) { this.updateSortie(dt); return; }
     if (this.def.heli) { this.updateHeli(dt); return; }
     if (this.def.air) { this.updateJet(dt); return; }
 
@@ -890,6 +891,44 @@ class Unit {
       dropped++;
     }
     if (dropped && this.owner === 0) { SFX.ack(); FX.text(this.x, this.y - 26, '▼ ' + dropped + ' deployed', '#9fdc7c'); }
+  }
+
+  /* --------- General's Power strike aircraft ---------
+     A scripted one-way run: fly in from off-map, release over the aim point, fly out
+     the far side and vanish. Nothing here is decoration — the aircraft is a normal
+     damageable unit, so anti-air can and will engage it, and a flight shot down
+     before it reaches the release point never drops its bombs at all. */
+  updateSortie(dt) {
+    const s = this.sortieRun;
+    if (!s) { this.dead = true; return; }
+    const goX = s.phase === 'in' ? s.tx : s.ex, goY = s.phase === 'in' ? s.ty : s.ey;
+    const want = U.angTo(this.x, this.y, goX, goY);
+    this.angle = U.turnToward(this.angle, want, 2.4 * dt);
+    const spd = this.def.speed;
+    this.x += Math.cos(this.angle) * spd * dt;
+    this.y += Math.sin(this.angle) * spd * dt;
+    this.moving = true;
+    const d = U.dist(this.x, this.y, goX, goY);
+    if (s.phase === 'in') {
+      if (d < s.releaseAt) { this.releasePayload(); s.phase = 'out'; }
+      return;
+    }
+    // clear of the map, or arrived at the egress point: leave the field, no wreck
+    if (d < 90 || this.x < -400 || this.y < -400 ||
+        this.x > world.pw + 400 || this.y > world.ph + 400) this.dead = true;
+  }
+
+  releasePayload() {
+    const s = this.sortieRun;
+    if (!s || !s.payload) return;
+    for (const b of s.payload) {
+      game.projs.push({ kind: 'bomb', tx: b.x, ty: b.y, t: 0, fly: b.fly,
+        dmg: b.dmg, dtype: b.dtype || 'explosive', splash: b.splash,
+        owner: this.owner, dead: false, x: b.x, y: b.y, fxSize: b.fxSize || 1.1 });
+    }
+    s.payload = null;
+    this.ammo = 0;                       // belly bomb is gone on the way out
+    if (world.isVisible(this.x, this.y)) SFX.explo(this.x, this.y, 0.6);
   }
 
   /* --------- jets --------- */

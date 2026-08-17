@@ -1342,14 +1342,17 @@ const RENDER = (() => {
     u._prevA = u.angle;
     u._bank = U.lerp(u._bank || 0, U.clamp(turn * 22, -0.5, 0.5), 0.15);
     ctx.scale(1, 1 - Math.abs(u._bank));
-    const burning = u.jetState === 'attack' || u.jetState === 'moveto' || u.jetState === 'return';
+    // a strike sortie is on the burner for its whole run — it only ever transits
+    const burning = u.def.sortie || u.jetState === 'attack' || u.jetState === 'moveto' || u.jetState === 'return';
     const g = ctx.createLinearGradient(0, -10, 0, 10);
     g.addColorStop(0, U.shade(c1, 1.3)); g.addColorStop(1, c2);
     ctx.fillStyle = g;
     ctx.strokeStyle = c2; ctx.lineWidth = 1;
     const flame = a => `rgba(255,180,80,${a * (0.5 + 0.4 * Math.sin(game.renderT * 40))})`;
 
-    switch (u.key) {
+    // off-map strike aircraft borrow the heavy bomber silhouette — the belly bomb
+    // reads as loaded on the way in and gone on the way out
+    switch (u.def.sortie ? 'vulture' : u.key) {
       case 'vulture': {   // heavy attack plane: straight wide wings, blunt nose, engine pods, belly bomb
         if (burning) {
           ctx.fillStyle = flame(0.9);

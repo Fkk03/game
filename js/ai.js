@@ -1217,6 +1217,10 @@ const AI = (() => {
       }
     }
 
+    // seed the roster so a brain is coherent from the moment it exists, rather than
+    // only after its first tick — otherwise baseAnchor() reads an empty cache
+    refreshRoster();
+
     return { pi, tick, notifyAttack, spend, onUnitDone, S, posture,
       // exposed for diagnostics and tests
       enemyDefenses, threatAt, rankedTargets, pickApproach, planAssault, forcePower,

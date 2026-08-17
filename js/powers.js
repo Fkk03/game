@@ -45,27 +45,30 @@ const POWERS_SYS = (() => {
         break;
 
       case 'airstrike': {
-        // two strafing runs of 3 bombs each along a line through the target
-        const ang = U.rand(0, Math.PI * 2);
-        for (let run = 0; run < 2; run++) {
+        // two jets run in line abreast, three bombs each along the attack heading
+        const S = POWER_STRIKES.airstrike;
+        launchSortie(pi, x, y, 2, 70, (ang, i) => {
+          const out = [];
           for (let b = 0; b < 3; b++) {
             const off = (b - 1) * 55;
-            const px = x + Math.cos(ang) * off + U.rand(-18, 18);
-            const py = y + Math.sin(ang) * off + (run - 0.5) * 60 + U.rand(-18, 18);
-            game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 1.2 + run * 0.7 + b * 0.22,
-              dmg: 220, dtype: 'explosive', splash: 55, owner: pi, dead: false, x: px, y: py, fxSize: 1.1 });
+            out.push({ x: x + Math.cos(ang) * off + U.rand(-18, 18),
+              y: y + Math.sin(ang) * off + (i - 0.5) * 60 + U.rand(-18, 18),
+              fly: 0.5 + b * 0.22, dmg: S.dmg, splash: S.splash, fxSize: S.fxSize });
           }
-        }
+          return out;
+        });
         strikeWarning(pi, x, y, 90);
         break;
       }
 
-      case 'thermobomb':
-        game.projs.push({ kind: 'bomb', tx: x, ty: y, t: 0, fly: 3.0,
-          dmg: 1600, dtype: 'explosive', splash: 190, owner: pi, dead: false, x, y, fxSize: 3 });
+      case 'thermobomb': {
+        const S = POWER_STRIKES.thermobomb;
+        launchSortie(pi, x, y, 1, 0, () =>
+          [{ x, y, fly: 1.6, dmg: S.dmg, splash: S.splash, fxSize: S.fxSize }]);
         strikeWarning(pi, x, y, 190);
         if (world.isVisible(x, y)) SFX.klaxon();
         break;
+      }
 
       case 'supplydrop': {
         const p = game.players[pi];
@@ -121,7 +124,8 @@ const POWERS_SYS = (() => {
         for (let i = 0; i < 10; i++) {
           const px = x + U.rand(-95, 95), py = y + U.rand(-95, 95);
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 0.8 + i * 0.28,
-            dmg: 170, dtype: 'explosive', splash: 48, owner: pi, dead: false, x: px, y: py, fxSize: 0.9 });
+            dmg: POWER_STRIKES.barrage.dmg, dtype: 'explosive', splash: POWER_STRIKES.barrage.splash,
+            owner: pi, dead: false, x: px, y: py, fxSize: POWER_STRIKES.barrage.fxSize });
         }
         strikeWarning(pi, x, y, 100);
         break;
@@ -145,14 +149,18 @@ const POWERS_SYS = (() => {
       }
 
       case 'carpet': {
-        const ang = U.rand(0, Math.PI * 2);
-        for (let i = 0; i < 12; i++) {
-          const off = (i - 5.5) * 45;
-          const px = x + Math.cos(ang) * off + U.rand(-12, 12);
-          const py = y + Math.sin(ang) * off + U.rand(-12, 12);
-          game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 1.5 + i * 0.16,
-            dmg: 260, dtype: 'explosive', splash: 60, owner: pi, dead: false, x: px, y: py, fxSize: 1.2 });
-        }
+        // the stick falls along the bomber's own heading, so the line follows the plane
+        const S = POWER_STRIKES.carpet;
+        launchSortie(pi, x, y, 1, 0, ang => {
+          const out = [];
+          for (let i = 0; i < 12; i++) {
+            const off = (i - 5.5) * 45;
+            out.push({ x: x + Math.cos(ang) * off + U.rand(-12, 12),
+              y: y + Math.sin(ang) * off + U.rand(-12, 12),
+              fly: 0.6 + i * 0.16, dmg: S.dmg, splash: S.splash, fxSize: S.fxSize });
+          }
+          return out;
+        });
         strikeWarning(pi, x, y, 260);
         break;
       }
@@ -175,7 +183,8 @@ const POWERS_SYS = (() => {
         for (let i = 0; i < 10; i++) {
           const px = x + U.rand(-90, 90), py = y + U.rand(-90, 90);
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 0.7 + i * 0.3,
-            dmg: 180, dtype: 'explosive', splash: 52, owner: pi, dead: false, x: px, y: py, fxSize: 1.0 });
+            dmg: POWER_STRIKES.demo.dmg, dtype: 'explosive', splash: POWER_STRIKES.demo.splash,
+            owner: pi, dead: false, x: px, y: py, fxSize: POWER_STRIKES.demo.fxSize });
         }
         strikeWarning(pi, x, y, 100);
         break;
@@ -186,13 +195,38 @@ const POWERS_SYS = (() => {
           for (let i = 0; i < 7; i++) {
             const px = x + U.rand(-110, 110), py = y + U.rand(-110, 110);
             game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 0.9 + wave * 2.0 + i * 0.22,
-              dmg: 200, dtype: 'explosive', splash: 55, owner: pi, dead: false, x: px, y: py, fxSize: 1.0 });
+              dmg: POWER_STRIKES.vengeance.dmg, dtype: 'explosive', splash: POWER_STRIKES.vengeance.splash,
+              owner: pi, dead: false, x: px, y: py, fxSize: POWER_STRIKES.vengeance.fxSize });
           }
         }
         strikeWarning(pi, x, y, 130);
         break;
       }
     }
+  }
+
+  /* Fly a strike in from off-map. The aircraft are ordinary damageable units on a
+     scripted one-way run, so anti-air gets a chance at them and a flight destroyed
+     short of its release point drops nothing. `makePayload(ang, i)` is handed the
+     attack heading so a bomb line can follow the aircraft that lays it. */
+  function launchSortie(pi, x, y, count, abreast, makePayload) {
+    const ang = U.rand(0, Math.PI * 2);
+    const IN = 1100;                      // stand-off start, a few seconds of run-in
+    const nx = Math.cos(ang + Math.PI / 2), ny = Math.sin(ang + Math.PI / 2);
+    for (let i = 0; i < count; i++) {
+      const off = (i - (count - 1) / 2) * abreast;
+      const aimX = x + nx * off, aimY = y + ny * off;
+      const u = new Unit(pi, 'sortie', aimX - Math.cos(ang) * IN, aimY - Math.sin(ang) * IN);
+      u.angle = ang;
+      u.sortieRun = {
+        tx: aimX, ty: aimY,
+        ex: aimX + Math.cos(ang) * IN, ey: aimY + Math.sin(ang) * IN,
+        phase: 'in', releaseAt: 60, payload: makePayload(ang, i),
+      };
+      u.ammo = u.sortieRun.payload.length;   // drawn as a slung bomb until released
+      game.addEnt(u);
+    }
+    if (world.isVisible(x, y)) SFX.jetpass(x, y);
   }
 
   function strikeWarning(pi, x, y, r) {

@@ -215,6 +215,20 @@ python3 -m http.server 8080
 - **General's promotions** — combat XP earns ranks; spend points on 5 powers per faction:
   recon sweeps, airstrikes, artillery barrages, paradrops, emergency supply drops, war frenzy,
   sabotage, ambushes, carpet bombing, thermobaric bombs…
+- **Strikes that flatten things** — every offensive General's Power hits **5× as hard**
+  as it used to: an airstrike bomb 1,100, carpet bombing 1,300 a bomb across a
+  twelve-bomb line, an artillery barrage shell 850, a demolition barrage 900, a
+  vengeance strike 1,000, and the thermobaric bomb 8,000 in one blast. A carpet run
+  measured 9,945 damage into a parked column, an airstrike 10,100, a single
+  thermobaric bomb 28,503
+- **Real aircraft fly the air strikes** — airstrikes, carpet bombing and the thermobaric
+  bomb no longer conjure damage out of the sky. Bombers come in low from off-map, run
+  the target, release, and disappear off the far side. They are **ordinary damageable
+  aircraft**: flak and every other anti-air engages them on its own, and a flight shot
+  down short of its release point **drops nothing at all** — so a well-defended base
+  can genuinely refuse a strike. They are not yours to command, either; a sortie ignores
+  orders, cannot be selected, and flies its run regardless. The off-map artillery powers
+  (barrage, demolition, vengeance) still arrive as shells, because that is what they are
 - **Superweapons** — Solaris Beam / Nuclear Missile / Rocket Storm, on a 5-minute countdown
   that both players can see. All three are **3× the damage and 10× the blast radius** of a
   conventional strike: one Nuclear Missile does 43,200 in a 2,300-px radius, erasing heavy

@@ -835,6 +835,15 @@ const UNITS = {
     weapon: { dmg: 330, dtype: 'rocket', range: 240, cd: 2.0, projectile: 'missile', splash: 26, aa: false, ga: true },
     gunWeapon: { dmg: 33, dtype: 'gatling', range: 220, cd: 0.1, projectile: 'bullet', aa: false, ga: true },
   },
+  /* The airframe an air-power sortie arrives in. It is a real, damageable unit rather
+     than a decoration: shoot one down before it reaches its release point and its
+     bombs never fall. It carries no weapon of its own and takes no orders. */
+  sortie: {
+    name: { coalition: 'Strike Sortie', dynasty: 'Strike Sortie', cartel: 'Strike Sortie' },
+    icon: '✈️', cost: 0, hp: 1600, speed: 330, sight: 7, radius: 15,
+    armor: 'air', buildTime: 0, chassis: 'jet', air: true, sortie: true, noAutoAttack: true,
+    desc: 'Off-map aircraft flying a single bombing run. It can be shot down before it releases.',
+  },
   spyplane: {
     name: { coalition: 'Specter Spy Plane', dynasty: 'Shadow Spy Plane' },
     icon: '🛰️', cost: 1600, hp: 300, speed: 265, sight: 18, radius: 13,
@@ -1016,6 +1025,19 @@ const POWERS = {
     desc: '10 improvised rockets rain down from off-map.' },
   vengeance:  { name: 'Vengeance Strike', icon: '⚰️', tier: 3, cd: 300,
     desc: 'Three brutal waves of rockets pound the target area.' },
+};
+
+/* General's Power strike payloads. Every figure here is five times the original
+   design: these are the rewards for a general's rank, and they were landing for less
+   than a tank shell. The air strikes are delivered by real aircraft that fly in, drop
+   and leave — and that can be shot down on the way in. */
+const POWER_STRIKES = {
+  airstrike:  { dmg: 1100, splash: 55,  fxSize: 1.1 },
+  thermobomb: { dmg: 8000, splash: 190, fxSize: 3 },
+  carpet:     { dmg: 1300, splash: 60,  fxSize: 1.2 },
+  barrage:    { dmg: 850,  splash: 48,  fxSize: 0.9 },
+  demo:       { dmg: 900,  splash: 52,  fxSize: 1.0 },
+  vengeance:  { dmg: 1000, splash: 55,  fxSize: 1.0 },
 };
 
 /* superweapon strikes */
@@ -1419,6 +1441,14 @@ const SFX = (() => {
       const t = ctx.currentTime, v = spatialGain(0.16, wx, wy);
       if (v < 0.01) return;
       noise(0.07, v, t, 'bandpass', 1800, 500, 1.2);
+    },
+    /* a strike flight running in overhead */
+    jetpass(wx, wy) {
+      if (!ensure() || muted || throttled('jetpass', 0.25)) return;
+      const t = ctx.currentTime, v = spatialGain(0.34, wx, wy);
+      if (v < 0.01) return;
+      noise(1.1, v, t, 'bandpass', 620, 220, 0.8);
+      osc('sawtooth', 190, 95, 1.1, v * 0.3, t);
     },
     gatling(wx, wy) {
       if (!ensure() || muted || throttled('gat', 0.05)) return;
@@ -2715,6 +2745,7 @@ class Unit {
       this.hp = Math.min(this.maxHp, this.hp + this.def.fieldRegen * dt);
     }
 
+    if (this.def.sortie) { this.updateSortie(dt); return; }
     if (this.def.heli) { this.updateHeli(dt); return; }
     if (this.def.air) { this.updateJet(dt); return; }
 
@@ -3168,6 +3199,44 @@ class Unit {
       dropped++;
     }
     if (dropped && this.owner === 0) { SFX.ack(); FX.text(this.x, this.y - 26, '▼ ' + dropped + ' deployed', '#9fdc7c'); }
+  }
+
+  /* --------- General's Power strike aircraft ---------
+     A scripted one-way run: fly in from off-map, release over the aim point, fly out
+     the far side and vanish. Nothing here is decoration — the aircraft is a normal
+     damageable unit, so anti-air can and will engage it, and a flight shot down
+     before it reaches the release point never drops its bombs at all. */
+  updateSortie(dt) {
+    const s = this.sortieRun;
+    if (!s) { this.dead = true; return; }
+    const goX = s.phase === 'in' ? s.tx : s.ex, goY = s.phase === 'in' ? s.ty : s.ey;
+    const want = U.angTo(this.x, this.y, goX, goY);
+    this.angle = U.turnToward(this.angle, want, 2.4 * dt);
+    const spd = this.def.speed;
+    this.x += Math.cos(this.angle) * spd * dt;
+    this.y += Math.sin(this.angle) * spd * dt;
+    this.moving = true;
+    const d = U.dist(this.x, this.y, goX, goY);
+    if (s.phase === 'in') {
+      if (d < s.releaseAt) { this.releasePayload(); s.phase = 'out'; }
+      return;
+    }
+    // clear of the map, or arrived at the egress point: leave the field, no wreck
+    if (d < 90 || this.x < -400 || this.y < -400 ||
+        this.x > world.pw + 400 || this.y > world.ph + 400) this.dead = true;
+  }
+
+  releasePayload() {
+    const s = this.sortieRun;
+    if (!s || !s.payload) return;
+    for (const b of s.payload) {
+      game.projs.push({ kind: 'bomb', tx: b.x, ty: b.y, t: 0, fly: b.fly,
+        dmg: b.dmg, dtype: b.dtype || 'explosive', splash: b.splash,
+        owner: this.owner, dead: false, x: b.x, y: b.y, fxSize: b.fxSize || 1.1 });
+    }
+    s.payload = null;
+    this.ammo = 0;                       // belly bomb is gone on the way out
+    if (world.isVisible(this.x, this.y)) SFX.explo(this.x, this.y, 0.6);
   }
 
   /* --------- jets --------- */
@@ -3967,27 +4036,30 @@ const POWERS_SYS = (() => {
         break;
 
       case 'airstrike': {
-        // two strafing runs of 3 bombs each along a line through the target
-        const ang = U.rand(0, Math.PI * 2);
-        for (let run = 0; run < 2; run++) {
+        // two jets run in line abreast, three bombs each along the attack heading
+        const S = POWER_STRIKES.airstrike;
+        launchSortie(pi, x, y, 2, 70, (ang, i) => {
+          const out = [];
           for (let b = 0; b < 3; b++) {
             const off = (b - 1) * 55;
-            const px = x + Math.cos(ang) * off + U.rand(-18, 18);
-            const py = y + Math.sin(ang) * off + (run - 0.5) * 60 + U.rand(-18, 18);
-            game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 1.2 + run * 0.7 + b * 0.22,
-              dmg: 220, dtype: 'explosive', splash: 55, owner: pi, dead: false, x: px, y: py, fxSize: 1.1 });
+            out.push({ x: x + Math.cos(ang) * off + U.rand(-18, 18),
+              y: y + Math.sin(ang) * off + (i - 0.5) * 60 + U.rand(-18, 18),
+              fly: 0.5 + b * 0.22, dmg: S.dmg, splash: S.splash, fxSize: S.fxSize });
           }
-        }
+          return out;
+        });
         strikeWarning(pi, x, y, 90);
         break;
       }
 
-      case 'thermobomb':
-        game.projs.push({ kind: 'bomb', tx: x, ty: y, t: 0, fly: 3.0,
-          dmg: 1600, dtype: 'explosive', splash: 190, owner: pi, dead: false, x, y, fxSize: 3 });
+      case 'thermobomb': {
+        const S = POWER_STRIKES.thermobomb;
+        launchSortie(pi, x, y, 1, 0, () =>
+          [{ x, y, fly: 1.6, dmg: S.dmg, splash: S.splash, fxSize: S.fxSize }]);
         strikeWarning(pi, x, y, 190);
         if (world.isVisible(x, y)) SFX.klaxon();
         break;
+      }
 
       case 'supplydrop': {
         const p = game.players[pi];
@@ -4043,7 +4115,8 @@ const POWERS_SYS = (() => {
         for (let i = 0; i < 10; i++) {
           const px = x + U.rand(-95, 95), py = y + U.rand(-95, 95);
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 0.8 + i * 0.28,
-            dmg: 170, dtype: 'explosive', splash: 48, owner: pi, dead: false, x: px, y: py, fxSize: 0.9 });
+            dmg: POWER_STRIKES.barrage.dmg, dtype: 'explosive', splash: POWER_STRIKES.barrage.splash,
+            owner: pi, dead: false, x: px, y: py, fxSize: POWER_STRIKES.barrage.fxSize });
         }
         strikeWarning(pi, x, y, 100);
         break;
@@ -4067,14 +4140,18 @@ const POWERS_SYS = (() => {
       }
 
       case 'carpet': {
-        const ang = U.rand(0, Math.PI * 2);
-        for (let i = 0; i < 12; i++) {
-          const off = (i - 5.5) * 45;
-          const px = x + Math.cos(ang) * off + U.rand(-12, 12);
-          const py = y + Math.sin(ang) * off + U.rand(-12, 12);
-          game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 1.5 + i * 0.16,
-            dmg: 260, dtype: 'explosive', splash: 60, owner: pi, dead: false, x: px, y: py, fxSize: 1.2 });
-        }
+        // the stick falls along the bomber's own heading, so the line follows the plane
+        const S = POWER_STRIKES.carpet;
+        launchSortie(pi, x, y, 1, 0, ang => {
+          const out = [];
+          for (let i = 0; i < 12; i++) {
+            const off = (i - 5.5) * 45;
+            out.push({ x: x + Math.cos(ang) * off + U.rand(-12, 12),
+              y: y + Math.sin(ang) * off + U.rand(-12, 12),
+              fly: 0.6 + i * 0.16, dmg: S.dmg, splash: S.splash, fxSize: S.fxSize });
+          }
+          return out;
+        });
         strikeWarning(pi, x, y, 260);
         break;
       }
@@ -4097,7 +4174,8 @@ const POWERS_SYS = (() => {
         for (let i = 0; i < 10; i++) {
           const px = x + U.rand(-90, 90), py = y + U.rand(-90, 90);
           game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 0.7 + i * 0.3,
-            dmg: 180, dtype: 'explosive', splash: 52, owner: pi, dead: false, x: px, y: py, fxSize: 1.0 });
+            dmg: POWER_STRIKES.demo.dmg, dtype: 'explosive', splash: POWER_STRIKES.demo.splash,
+            owner: pi, dead: false, x: px, y: py, fxSize: POWER_STRIKES.demo.fxSize });
         }
         strikeWarning(pi, x, y, 100);
         break;
@@ -4108,13 +4186,38 @@ const POWERS_SYS = (() => {
           for (let i = 0; i < 7; i++) {
             const px = x + U.rand(-110, 110), py = y + U.rand(-110, 110);
             game.projs.push({ kind: 'bomb', tx: px, ty: py, t: 0, fly: 0.9 + wave * 2.0 + i * 0.22,
-              dmg: 200, dtype: 'explosive', splash: 55, owner: pi, dead: false, x: px, y: py, fxSize: 1.0 });
+              dmg: POWER_STRIKES.vengeance.dmg, dtype: 'explosive', splash: POWER_STRIKES.vengeance.splash,
+              owner: pi, dead: false, x: px, y: py, fxSize: POWER_STRIKES.vengeance.fxSize });
           }
         }
         strikeWarning(pi, x, y, 130);
         break;
       }
     }
+  }
+
+  /* Fly a strike in from off-map. The aircraft are ordinary damageable units on a
+     scripted one-way run, so anti-air gets a chance at them and a flight destroyed
+     short of its release point drops nothing. `makePayload(ang, i)` is handed the
+     attack heading so a bomb line can follow the aircraft that lays it. */
+  function launchSortie(pi, x, y, count, abreast, makePayload) {
+    const ang = U.rand(0, Math.PI * 2);
+    const IN = 1100;                      // stand-off start, a few seconds of run-in
+    const nx = Math.cos(ang + Math.PI / 2), ny = Math.sin(ang + Math.PI / 2);
+    for (let i = 0; i < count; i++) {
+      const off = (i - (count - 1) / 2) * abreast;
+      const aimX = x + nx * off, aimY = y + ny * off;
+      const u = new Unit(pi, 'sortie', aimX - Math.cos(ang) * IN, aimY - Math.sin(ang) * IN);
+      u.angle = ang;
+      u.sortieRun = {
+        tx: aimX, ty: aimY,
+        ex: aimX + Math.cos(ang) * IN, ey: aimY + Math.sin(ang) * IN,
+        phase: 'in', releaseAt: 60, payload: makePayload(ang, i),
+      };
+      u.ammo = u.sortieRun.payload.length;   // drawn as a slung bomb until released
+      game.addEnt(u);
+    }
+    if (world.isVisible(x, y)) SFX.jetpass(x, y);
   }
 
   function strikeWarning(pi, x, y, r) {
@@ -5543,14 +5646,17 @@ const RENDER = (() => {
     u._prevA = u.angle;
     u._bank = U.lerp(u._bank || 0, U.clamp(turn * 22, -0.5, 0.5), 0.15);
     ctx.scale(1, 1 - Math.abs(u._bank));
-    const burning = u.jetState === 'attack' || u.jetState === 'moveto' || u.jetState === 'return';
+    // a strike sortie is on the burner for its whole run — it only ever transits
+    const burning = u.def.sortie || u.jetState === 'attack' || u.jetState === 'moveto' || u.jetState === 'return';
     const g = ctx.createLinearGradient(0, -10, 0, 10);
     g.addColorStop(0, U.shade(c1, 1.3)); g.addColorStop(1, c2);
     ctx.fillStyle = g;
     ctx.strokeStyle = c2; ctx.lineWidth = 1;
     const flame = a => `rgba(255,180,80,${a * (0.5 + 0.4 * Math.sin(game.renderT * 40))})`;
 
-    switch (u.key) {
+    // off-map strike aircraft borrow the heavy bomber silhouette — the belly bomb
+    // reads as loaded on the way in and gone on the way out
+    switch (u.def.sortie ? 'vulture' : u.key) {
       case 'vulture': {   // heavy attack plane: straight wide wings, blunt nose, engine pods, belly bomb
         if (burning) {
           ctx.fillStyle = flame(0.9);
@@ -8038,6 +8144,10 @@ const AI = (() => {
       }
     }
 
+    // seed the roster so a brain is coherent from the moment it exists, rather than
+    // only after its first tick — otherwise baseAnchor() reads an empty cache
+    refreshRoster();
+
     return { pi, tick, notifyAttack, spend, onUnitDone, S, posture,
       // exposed for diagnostics and tests
       enemyDefenses, threatAt, rankedTargets, pickApproach, planAssault, forcePower,
@@ -8326,7 +8436,7 @@ const INPUT = (() => {
     const y0 = Math.min(box.y0, box.y1), y1 = Math.max(box.y0, box.y1);
     const units = [], buildings = [];
     for (const e of game.ents) {
-      if (e.dead || e.owner !== 0) continue;
+      if (e.dead || e.owner !== 0 || e.def.sortie) continue;   // strike flights take no orders
       const sx = RENDER.toScreenX(e.x), sy = RENDER.toScreenY(e.y);
       if (sx < x0 || sx > x1 || sy < y0 || sy > y1) continue;
       if (e.kind === 'unit') units.push(e); else buildings.push(e);
@@ -8346,7 +8456,9 @@ const INPUT = (() => {
   }
 
   /* ---------------- orders ---------------- */
-  function myUnitsSelected() { return selection.filter(e => e.kind === 'unit' && e.owner === 0); }
+  function myUnitsSelected() {
+    return selection.filter(e => e.kind === 'unit' && e.owner === 0 && !e.def.sortie);
+  }
 
   function issueSmartOrder(wx, wy, shift) {
     const units = myUnitsSelected();

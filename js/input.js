@@ -247,7 +247,7 @@ const INPUT = (() => {
     const y0 = Math.min(box.y0, box.y1), y1 = Math.max(box.y0, box.y1);
     const units = [], buildings = [];
     for (const e of game.ents) {
-      if (e.dead || e.owner !== 0) continue;
+      if (e.dead || e.owner !== 0 || e.def.sortie) continue;   // strike flights take no orders
       const sx = RENDER.toScreenX(e.x), sy = RENDER.toScreenY(e.y);
       if (sx < x0 || sx > x1 || sy < y0 || sy > y1) continue;
       if (e.kind === 'unit') units.push(e); else buildings.push(e);
@@ -267,7 +267,9 @@ const INPUT = (() => {
   }
 
   /* ---------------- orders ---------------- */
-  function myUnitsSelected() { return selection.filter(e => e.kind === 'unit' && e.owner === 0); }
+  function myUnitsSelected() {
+    return selection.filter(e => e.kind === 'unit' && e.owner === 0 && !e.def.sortie);
+  }
 
   function issueSmartOrder(wx, wy, shift) {
     const units = myUnitsSelected();

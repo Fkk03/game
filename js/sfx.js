@@ -89,6 +89,14 @@ const SFX = (() => {
       if (v < 0.01) return;
       noise(0.07, v, t, 'bandpass', 1800, 500, 1.2);
     },
+    /* a strike flight running in overhead */
+    jetpass(wx, wy) {
+      if (!ensure() || muted || throttled('jetpass', 0.25)) return;
+      const t = ctx.currentTime, v = spatialGain(0.34, wx, wy);
+      if (v < 0.01) return;
+      noise(1.1, v, t, 'bandpass', 620, 220, 0.8);
+      osc('sawtooth', 190, 95, 1.1, v * 0.3, t);
+    },
     gatling(wx, wy) {
       if (!ensure() || muted || throttled('gat', 0.05)) return;
       const t = ctx.currentTime, v = spatialGain(0.11, wx, wy);
