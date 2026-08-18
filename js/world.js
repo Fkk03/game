@@ -9,11 +9,12 @@ class World {
     this.playerTeams = playerTeams || [0, 1];   // team id per player slot
     this.startAng = startAng;                   // player team's ring angle (undefined = default SW)
     this.terrain = new Uint8Array(wTiles * hTiles);     // 0 sand, 1 rough, 2 cliff (impassable)
-    this.blocked = new Uint8Array(wTiles * hTiles);     // 0 free, 1 building, 2 supply pile
+    this.height = new Uint8Array(wTiles * hTiles);      // 0 flat … 4 peak — rock silhouette only
+    this.blocked = new Uint8Array(wTiles * hTiles);     // 0 free, 1 building, 2 oil field
     this.explored = new Uint8Array(wTiles * hTiles);    // player fog
     this.visible = new Uint8Array(wTiles * hTiles);
     this.props = [];        // decorative rocks / scrub {x,y,type,s,rot}
-    this.docks = [];        // supply piles {x,y,amount,max,tiles:[{tx,ty}]}
+    this.docks = [];        // oil fields {x,y,amount,max,tiles:[{tx,ty}]}
     this.crates = [];       // salvage {x,y,kind,val,t}
     this.reveals = [];      // temp vision {x,y,r,until}
     this.starts = [];       // [{x,y}] world coords, index = player id
@@ -33,24 +34,69 @@ class World {
     const rng = U.seededRng(this.seed);
     const noise = U.makeNoise(rng, 64);
 
-    // base terrain from fractal noise — mirrored across the diagonal for fairness
+    // the map's climate, drawn from the seed so a given map always looks like itself
+    this.biomeKey = BIOME_KEYS[Math.floor(rng() * BIOME_KEYS.length)];
+    this.biome = BIOMES[this.biomeKey];
+
+    /* Base terrain from fractal noise — mirrored across the diagonal for fairness.
+       The same field that decides where rock is also decides how HIGH it stands: a
+       tile barely over the threshold is a knee-high outcrop, one well over it is a
+       mountain. Nothing about pathing changes — rock is rock — but the map stops
+       reading as a flat plane with grey patches on it. */
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
         // mirror: sample using canonical coords so (x,y) and (w-1-x → mirrored) match
         const mx = Math.min(x, w - 1 - y), my = Math.min(y, h - 1 - x);
         const n = U.fractal(noise, mx * 0.09, my * 0.09, 4, 2.1, 0.5);
         const r = U.fractal(noise, mx * 0.23 + 31, my * 0.23 + 17, 3, 2.0, 0.5);
-        let t = 0;
-        if (n > 0.66) t = 2;            // cliffs / rock outcrops
-        else if (r > 0.60) t = 1;       // rough ground (visual only)
+        let t = 0, ht = 0;
+        if (n > 0.66) {                 // cliffs, outcrops and mountain massifs
+          t = 2;
+          ht = 1 + Math.min(3, Math.floor((n - 0.66) / 0.055));
+        } else if (r > 0.60) t = 1;     // rough ground (visual only)
         this.terrain[this.idx(x, y)] = t;
+        this.height[this.idx(x, y)] = ht;
       }
     }
+    /* Shape the massifs. Height straight off the noise made every tile in a cluster the
+       same height, so rock read as a plateau of identical blocks rather than a mountain.
+       A flood fill outward from the edge of each rock mass gives the distance to open
+       ground, and that is the profile: the rim is a low outcrop, the interior climbs,
+       the deepest tile is the peak. The noise still decides how tall a given mass is
+       allowed to get, so a broad low mesa and a narrow spire both stay possible. */
+    {
+      const dist = new Int16Array(w * h).fill(-1);
+      const q = [];
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const i = this.idx(x, y);
+        if (this.terrain[i] !== 2) { dist[i] = 0; q.push(i); }
+      }
+      for (let head = 0; head < q.length; head++) {
+        const i = q[head], x = i % w, y = (i / w) | 0;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + dx, ny = y + dy;
+          if (!this.inb(nx, ny)) continue;
+          const j = this.idx(nx, ny);
+          if (dist[j] !== -1) continue;
+          dist[j] = dist[i] + 1;
+          q.push(j);
+        }
+      }
+      for (let i = 0; i < w * h; i++) {
+        if (this.terrain[i] !== 2) { this.height[i] = 0; continue; }
+        const d = dist[i] < 0 ? 4 : dist[i];      // fully enclosed rock is a peak
+        this.height[i] = Math.max(1, Math.min(this.height[i], d));
+      }
+    }
+
     // map border cliffs
     for (let i = 0; i < w; i++) {
       for (let b = 0; b < 2; b++) {
-        this.terrain[this.idx(i, b)] = 2; this.terrain[this.idx(i, h - 1 - b)] = 2;
-        this.terrain[this.idx(b, i)] = 2; this.terrain[this.idx(w - 1 - b, i)] = 2;
+        for (const [bx, by] of [[i, b], [i, h - 1 - b], [b, i], [w - 1 - b, i]]) {
+          this.terrain[this.idx(bx, by)] = 2;
+          // the rim of the world is a mountain wall, not a kerb
+          this.height[this.idx(bx, by)] = Math.max(this.height[this.idx(bx, by)], 3 + (b === 0 ? 1 : 0));
+        }
       }
     }
 
@@ -77,7 +123,7 @@ class World {
       });
     }
 
-    // supply docks: one rich dock near each base + many scattered across the map
+    // oil fields: one rich field near each base + many scattered across the map
     for (const st of this.starts) {
       const dir = Math.atan2(cy - st.ty, cx - st.tx);
       const dx = U.clamp(st.tx + Math.round(Math.cos(dir) * 9), 6, w - 8);
@@ -120,7 +166,9 @@ class World {
       if (nearStart) continue;
       this.props.push({
         x: (tx + 0.5) * TILE + U.rand(-12, 12), y: (ty + 0.5) * TILE + U.rand(-12, 12),
-        type: rng() < 0.55 ? 'scrub' : 'rock', s: U.rand(0.6, 1.5), rot: U.rand(0, Math.PI * 2),
+        // a frozen waste is mostly stone and a steppe mostly scrub — the mix is the biome's
+        type: rng() < this.biome.props.scrub ? 'scrub' : 'rock',
+        s: U.rand(0.6, 1.5), rot: U.rand(0, Math.PI * 2),
       });
     }
   }
@@ -129,7 +177,10 @@ class World {
     for (let y = cy - r; y <= cy + r; y++)
       for (let x = cx - r; x <= cx + r; x++)
         if (this.inb(x, y) && x > 1 && y > 1 && x < this.w - 2 && y < this.h - 2)
-          if (U.dist(x, y, cx, cy) <= r) this.terrain[this.idx(x, y)] = this.terrain[this.idx(x, y)] === 1 ? 1 : 0;
+          if (U.dist(x, y, cx, cy) <= r) {
+            this.terrain[this.idx(x, y)] = this.terrain[this.idx(x, y)] === 1 ? 1 : 0;
+            this.height[this.idx(x, y)] = 0;      // levelled ground has no rock silhouette
+          }
   }
 
   makeDock(cx, cy, amount, rng) {
@@ -138,12 +189,16 @@ class World {
     for (let y = cy; y < cy + 2; y++) for (let x = cx; x < cx + 2; x++) {
       if (!this.inb(x, y)) continue;
       this.terrain[this.idx(x, y)] = 0;
+      this.height[this.idx(x, y)] = 0;
       this.blocked[this.idx(x, y)] = 2;
       tiles.push({ tx: x, ty: y });
     }
     // clear ring around so trucks can path in
     for (let y = cy - 2; y < cy + 4; y++) for (let x = cx - 2; x < cx + 4; x++) {
-      if (this.inb(x, y) && this.blocked[this.idx(x, y)] === 0) this.terrain[this.idx(x, y)] = Math.min(this.terrain[this.idx(x, y)], 1);
+      if (this.inb(x, y) && this.blocked[this.idx(x, y)] === 0) {
+        this.terrain[this.idx(x, y)] = Math.min(this.terrain[this.idx(x, y)], 1);
+        this.height[this.idx(x, y)] = 0;
+      }
     }
     this.docks.push({
       x: (cx + 1) * TILE, y: (cy + 1) * TILE,
@@ -194,7 +249,7 @@ class World {
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
         if (this.inb(x + dx, y + dy) && x + dx > 1 && y + dy > 1 && x + dx < this.w - 2 && y + dy < this.h - 2) {
           const i = this.idx(x + dx, y + dy);
-          if (this.terrain[i] === 2) this.terrain[i] = 1;
+          if (this.terrain[i] === 2) { this.terrain[i] = 1; this.height[i] = 0; }
         }
       }
     }

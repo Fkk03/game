@@ -432,7 +432,7 @@ ul.howto b { color:#ffe9a0; }
           <h3>How to play</h3>
           <ul class="howto">
             <li><b>Build</b> with your <b>Dozer / Worker</b> — select it and pick a structure from the command grid (bottom right).</li>
-            <li><b>Money</b>: build a <b>Supply Center</b> near supply piles; it produces <b>Supply Trucks</b> that haul crates automatically. Markets give a steady trickle.</li>
+            <li><b>Money</b>: build a <b>Supply Center</b> near an <b>oil field</b>; it produces <b>Tankers</b> that haul crude automatically. Markets give a steady trickle.</li>
             <li><b>Power</b>: most structures need it — keep the ⚡ bar green or everything slows down and defenses go offline. The Scorpion Cartel needs no power at all.</li>
             <li><b>Army</b>: Barracks trains infantry, War Factory builds vehicles, Airfield builds strike jets (jets rearm at the airfield).</li>
             <li><b>Promotions</b>: combat earns ★ ranks — spend points on General's Powers (top bar): airstrikes, ambushes, carpet bombs…</li>
@@ -593,6 +593,78 @@ const AI_MAX_SUPPLY = 14;
 const AI_UNIT_COST_MUL = 0.5;
 const AI_BUILDTIME_MUL = 0.5;
 
+/* =====================================================================
+   BIOMES — the map's climate. Chosen from the world seed, it sets the whole
+   palette (ground, rough scrub, rock faces, mountain caps), what grows on it,
+   and which weather the sky is allowed to produce. Every biome is still a
+   playable desert-war map: the terrain shapes are identical, only the world
+   they sit in changes.
+===================================================================== */
+const BIOMES = {
+  desert: {
+    label: 'Deep Desert',
+    sand: [194, 162, 106], sandLo: [122, 96, 58], sandHi: [236, 214, 158],
+    rough: [134, 108, 66], rock: [126, 112, 90], rockLit: [186, 168, 132],
+    cap: null,                       // no snowline
+    scrub: '#6d7a3f', stone: '#8d8271', stoneLit: '#a99d89',
+    props: { scrub: 0.55, rock: 0.45 },
+    weather: ['clear', 'clear', 'haze', 'sandstorm', 'overcast'],
+    sky: null,
+  },
+  steppe: {
+    label: 'Dry Steppe',
+    sand: [172, 168, 108], sandLo: [104, 104, 58], sandHi: [214, 214, 156],
+    rough: [108, 116, 60], rock: [116, 116, 96], rockLit: [172, 172, 146],
+    cap: null,
+    scrub: '#7c8f42', stone: '#85857a', stoneLit: '#a4a496',
+    props: { scrub: 0.75, rock: 0.25 },
+    weather: ['clear', 'overcast', 'haze', 'rain', 'clear'],
+    sky: 'rgba(120,140,90,0.05)',
+  },
+  tundra: {
+    label: 'Frozen Waste',
+    sand: [206, 212, 220], sandLo: [140, 152, 170], sandHi: [242, 246, 252],
+    rough: [150, 164, 178], rock: [104, 116, 132], rockLit: [166, 180, 198],
+    cap: [246, 250, 255],            // permanent snowline on the high ground
+    capFrom: 1,                      // ...from the lowest rock upward
+    scrub: '#5f7060', stone: '#7d8792', stoneLit: '#aab4c0',
+    props: { scrub: 0.3, rock: 0.7 },
+    weather: ['snow', 'overcast', 'snow', 'blizzard', 'clear'],
+    sky: 'rgba(150,180,220,0.10)',
+  },
+  highland: {
+    label: 'Broken Highlands',
+    sand: [166, 134, 104], sandLo: [96, 74, 54], sandHi: [214, 186, 152],
+    rough: [122, 92, 66], rock: [98, 88, 82], rockLit: [158, 146, 138],
+    cap: [238, 242, 248],            // snow on the peaks only
+    capFrom: 3,
+    scrub: '#63713c', stone: '#7a706a', stoneLit: '#9c918a',
+    props: { scrub: 0.4, rock: 0.6 },
+    weather: ['clear', 'overcast', 'rain', 'snow', 'haze'],
+    sky: 'rgba(90,100,120,0.06)',
+  },
+};
+const BIOME_KEYS = Object.keys(BIOMES);
+
+/* =====================================================================
+   WEATHER — the sky, and it moves. A match opens on whatever its biome
+   rolls and drifts to a new state every few minutes, blending across the
+   change rather than cutting. It is a mood, not a mechanic: nothing here
+   touches sight, speed or damage, so a storm never decides a battle.
+===================================================================== */
+const WEATHER = {
+  clear:     { label: 'Clear',      tint: null,                       parts: null,  density: 0, wind: 0.2, dark: 0 },
+  haze:      { label: 'Heat Haze',  tint: 'rgba(228,196,138,0.16)',   parts: 'dust',  density: 0.25, wind: 0.5, dark: 0.02 },
+  overcast:  { label: 'Overcast',   tint: 'rgba(70,74,86,0.20)',      parts: null,  density: 0, wind: 0.4, dark: 0.10 },
+  sandstorm: { label: 'Sandstorm',  tint: 'rgba(206,158,86,0.34)',    parts: 'dust',  density: 1, wind: 2.4, dark: 0.16 },
+  rain:      { label: 'Rain',       tint: 'rgba(58,72,96,0.26)',      parts: 'rain',  density: 0.8, wind: 0.9, dark: 0.20 },
+  snow:      { label: 'Snowfall',   tint: 'rgba(196,212,236,0.16)',   parts: 'snow',  density: 0.6, wind: 0.5, dark: 0.06 },
+  blizzard:  { label: 'Blizzard',   tint: 'rgba(212,226,244,0.34)',   parts: 'snow',  density: 1.5, wind: 2.0, dark: 0.14 },
+};
+const WEATHER_MIN = 100;                // shortest a front holds, seconds
+const WEATHER_MAX = 220;                // ...and the longest
+const WEATHER_BLEND = 18;               // seconds to cross from one to the next
+
 const MAPSIZES = {
   small:  { label: 'Small',  w: 72,  h: 72 },
   medium: { label: 'Medium', w: 96,  h: 96 },
@@ -675,7 +747,7 @@ const BUILDINGS = {
   supply: {
     name: { coalition: 'Supply Center', dynasty: 'Supply Depot', cartel: 'Supply Stash' },
     icon: '📦', cost: 1200, hp: 4800, size: 3, buildTime: 18, power: 2, armor: 'building',
-    sight: 7, desc: 'Drop-off point for supplies. Builds Supply Trucks.',
+    sight: 7, desc: 'Refinery and depot for crude hauled in from the oil fields. Builds Tankers.',
     trains: ['truck'],
   },
   barracks: {
@@ -772,9 +844,9 @@ const UNITS = {
     builder: true, noAutoAttack: true,
   },
   truck: {
-    name: { coalition: 'Supply Truck', dynasty: 'Supply Truck', cartel: 'Scrap Hauler' },
+    name: { coalition: 'Tanker', dynasty: 'Tanker', cartel: 'Scrap Hauler' },
     icon: '🚚', cost: 600, hp: 380, speed: 92, sight: 5, radius: 15, armor: 'light',
-    buildTime: 7, chassis: 'truck', desc: 'Hauls supplies from piles to your Supply Center. $300 per load.',
+    buildTime: 7, chassis: 'truck', desc: 'Hauls crude from an oil field to your Supply Center. $300 per load.',
     harvester: true, capacity: 300, noAutoAttack: true,
   },
 
@@ -1753,11 +1825,12 @@ class World {
     this.playerTeams = playerTeams || [0, 1];   // team id per player slot
     this.startAng = startAng;                   // player team's ring angle (undefined = default SW)
     this.terrain = new Uint8Array(wTiles * hTiles);     // 0 sand, 1 rough, 2 cliff (impassable)
-    this.blocked = new Uint8Array(wTiles * hTiles);     // 0 free, 1 building, 2 supply pile
+    this.height = new Uint8Array(wTiles * hTiles);      // 0 flat … 4 peak — rock silhouette only
+    this.blocked = new Uint8Array(wTiles * hTiles);     // 0 free, 1 building, 2 oil field
     this.explored = new Uint8Array(wTiles * hTiles);    // player fog
     this.visible = new Uint8Array(wTiles * hTiles);
     this.props = [];        // decorative rocks / scrub {x,y,type,s,rot}
-    this.docks = [];        // supply piles {x,y,amount,max,tiles:[{tx,ty}]}
+    this.docks = [];        // oil fields {x,y,amount,max,tiles:[{tx,ty}]}
     this.crates = [];       // salvage {x,y,kind,val,t}
     this.reveals = [];      // temp vision {x,y,r,until}
     this.starts = [];       // [{x,y}] world coords, index = player id
@@ -1777,24 +1850,69 @@ class World {
     const rng = U.seededRng(this.seed);
     const noise = U.makeNoise(rng, 64);
 
-    // base terrain from fractal noise — mirrored across the diagonal for fairness
+    // the map's climate, drawn from the seed so a given map always looks like itself
+    this.biomeKey = BIOME_KEYS[Math.floor(rng() * BIOME_KEYS.length)];
+    this.biome = BIOMES[this.biomeKey];
+
+    /* Base terrain from fractal noise — mirrored across the diagonal for fairness.
+       The same field that decides where rock is also decides how HIGH it stands: a
+       tile barely over the threshold is a knee-high outcrop, one well over it is a
+       mountain. Nothing about pathing changes — rock is rock — but the map stops
+       reading as a flat plane with grey patches on it. */
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
         // mirror: sample using canonical coords so (x,y) and (w-1-x → mirrored) match
         const mx = Math.min(x, w - 1 - y), my = Math.min(y, h - 1 - x);
         const n = U.fractal(noise, mx * 0.09, my * 0.09, 4, 2.1, 0.5);
         const r = U.fractal(noise, mx * 0.23 + 31, my * 0.23 + 17, 3, 2.0, 0.5);
-        let t = 0;
-        if (n > 0.66) t = 2;            // cliffs / rock outcrops
-        else if (r > 0.60) t = 1;       // rough ground (visual only)
+        let t = 0, ht = 0;
+        if (n > 0.66) {                 // cliffs, outcrops and mountain massifs
+          t = 2;
+          ht = 1 + Math.min(3, Math.floor((n - 0.66) / 0.055));
+        } else if (r > 0.60) t = 1;     // rough ground (visual only)
         this.terrain[this.idx(x, y)] = t;
+        this.height[this.idx(x, y)] = ht;
       }
     }
+    /* Shape the massifs. Height straight off the noise made every tile in a cluster the
+       same height, so rock read as a plateau of identical blocks rather than a mountain.
+       A flood fill outward from the edge of each rock mass gives the distance to open
+       ground, and that is the profile: the rim is a low outcrop, the interior climbs,
+       the deepest tile is the peak. The noise still decides how tall a given mass is
+       allowed to get, so a broad low mesa and a narrow spire both stay possible. */
+    {
+      const dist = new Int16Array(w * h).fill(-1);
+      const q = [];
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const i = this.idx(x, y);
+        if (this.terrain[i] !== 2) { dist[i] = 0; q.push(i); }
+      }
+      for (let head = 0; head < q.length; head++) {
+        const i = q[head], x = i % w, y = (i / w) | 0;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + dx, ny = y + dy;
+          if (!this.inb(nx, ny)) continue;
+          const j = this.idx(nx, ny);
+          if (dist[j] !== -1) continue;
+          dist[j] = dist[i] + 1;
+          q.push(j);
+        }
+      }
+      for (let i = 0; i < w * h; i++) {
+        if (this.terrain[i] !== 2) { this.height[i] = 0; continue; }
+        const d = dist[i] < 0 ? 4 : dist[i];      // fully enclosed rock is a peak
+        this.height[i] = Math.max(1, Math.min(this.height[i], d));
+      }
+    }
+
     // map border cliffs
     for (let i = 0; i < w; i++) {
       for (let b = 0; b < 2; b++) {
-        this.terrain[this.idx(i, b)] = 2; this.terrain[this.idx(i, h - 1 - b)] = 2;
-        this.terrain[this.idx(b, i)] = 2; this.terrain[this.idx(w - 1 - b, i)] = 2;
+        for (const [bx, by] of [[i, b], [i, h - 1 - b], [b, i], [w - 1 - b, i]]) {
+          this.terrain[this.idx(bx, by)] = 2;
+          // the rim of the world is a mountain wall, not a kerb
+          this.height[this.idx(bx, by)] = Math.max(this.height[this.idx(bx, by)], 3 + (b === 0 ? 1 : 0));
+        }
       }
     }
 
@@ -1821,7 +1939,7 @@ class World {
       });
     }
 
-    // supply docks: one rich dock near each base + many scattered across the map
+    // oil fields: one rich field near each base + many scattered across the map
     for (const st of this.starts) {
       const dir = Math.atan2(cy - st.ty, cx - st.tx);
       const dx = U.clamp(st.tx + Math.round(Math.cos(dir) * 9), 6, w - 8);
@@ -1864,7 +1982,9 @@ class World {
       if (nearStart) continue;
       this.props.push({
         x: (tx + 0.5) * TILE + U.rand(-12, 12), y: (ty + 0.5) * TILE + U.rand(-12, 12),
-        type: rng() < 0.55 ? 'scrub' : 'rock', s: U.rand(0.6, 1.5), rot: U.rand(0, Math.PI * 2),
+        // a frozen waste is mostly stone and a steppe mostly scrub — the mix is the biome's
+        type: rng() < this.biome.props.scrub ? 'scrub' : 'rock',
+        s: U.rand(0.6, 1.5), rot: U.rand(0, Math.PI * 2),
       });
     }
   }
@@ -1873,7 +1993,10 @@ class World {
     for (let y = cy - r; y <= cy + r; y++)
       for (let x = cx - r; x <= cx + r; x++)
         if (this.inb(x, y) && x > 1 && y > 1 && x < this.w - 2 && y < this.h - 2)
-          if (U.dist(x, y, cx, cy) <= r) this.terrain[this.idx(x, y)] = this.terrain[this.idx(x, y)] === 1 ? 1 : 0;
+          if (U.dist(x, y, cx, cy) <= r) {
+            this.terrain[this.idx(x, y)] = this.terrain[this.idx(x, y)] === 1 ? 1 : 0;
+            this.height[this.idx(x, y)] = 0;      // levelled ground has no rock silhouette
+          }
   }
 
   makeDock(cx, cy, amount, rng) {
@@ -1882,12 +2005,16 @@ class World {
     for (let y = cy; y < cy + 2; y++) for (let x = cx; x < cx + 2; x++) {
       if (!this.inb(x, y)) continue;
       this.terrain[this.idx(x, y)] = 0;
+      this.height[this.idx(x, y)] = 0;
       this.blocked[this.idx(x, y)] = 2;
       tiles.push({ tx: x, ty: y });
     }
     // clear ring around so trucks can path in
     for (let y = cy - 2; y < cy + 4; y++) for (let x = cx - 2; x < cx + 4; x++) {
-      if (this.inb(x, y) && this.blocked[this.idx(x, y)] === 0) this.terrain[this.idx(x, y)] = Math.min(this.terrain[this.idx(x, y)], 1);
+      if (this.inb(x, y) && this.blocked[this.idx(x, y)] === 0) {
+        this.terrain[this.idx(x, y)] = Math.min(this.terrain[this.idx(x, y)], 1);
+        this.height[this.idx(x, y)] = 0;
+      }
     }
     this.docks.push({
       x: (cx + 1) * TILE, y: (cy + 1) * TILE,
@@ -1938,7 +2065,7 @@ class World {
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
         if (this.inb(x + dx, y + dy) && x + dx > 1 && y + dy > 1 && x + dx < this.w - 2 && y + dy < this.h - 2) {
           const i = this.idx(x + dx, y + dy);
-          if (this.terrain[i] === 2) this.terrain[i] = 1;
+          if (this.terrain[i] === 2) { this.terrain[i] = 1; this.height[i] = 0; }
         }
       }
     }
@@ -3200,7 +3327,7 @@ class Unit {
         const take = Math.min(this.def.capacity - this.carrying, dock.amount);
         world.depleteDock(dock, take);
         this.carrying += take;
-        if (dock.amount <= 0 && this.owner === 0) UI.feed('Supply pile exhausted', 'bad');
+        if (dock.amount <= 0 && this.owner === 0) UI.feed('Oil field pumped dry', 'bad');
       }
     } else {
       if (!this.path) this.setPathTo(dock.x + U.rand(-20, 20), dock.y + U.rand(-20, 20));
@@ -4590,9 +4717,12 @@ const RENDER = (() => {
     const c = terrainCtx;
     const rng = U.seededRng(world.seed + 7);
     const noise = U.makeNoise(rng, 64);
+    const B = world.biome || BIOMES.desert;
+    const rgb = a => `rgb(${a[0]},${a[1]},${a[2]})`;
+    const rgba = (a, al) => `rgba(${a[0]},${a[1]},${a[2]},${al})`;
 
-    // base sand
-    c.fillStyle = '#c2a26a';
+    // base ground, in the biome's own colour
+    c.fillStyle = rgb(B.sand);
     c.fillRect(0, 0, terrainCv.width, terrainCv.height);
 
     // organic shading sampled at half-tile resolution (not grid-aligned)
@@ -4605,15 +4735,15 @@ const RENDER = (() => {
         const n = U.fractal(noise, x * 0.13 + 5, y * 0.13 + 9, 4, 2.1, 0.55);
         if (ter === 2) {
           const v = 0.5 + n * 0.42;
-          c.fillStyle = `rgb(${Math.round(126 * v)},${Math.round(112 * v)},${Math.round(90 * v)})`;
+          c.fillStyle = `rgb(${Math.round(B.rock[0] * v)},${Math.round(B.rock[1] * v)},${Math.round(B.rock[2] * v)})`;
           c.fillRect(x * st, y * st, st + 0.5, st + 0.5);
         } else if (ter === 1) {
-          c.fillStyle = `rgba(134,108,66,${0.16 + n * 0.30})`;
+          c.fillStyle = rgba(B.rough, 0.16 + n * 0.30);
           c.fillRect(x * st, y * st, st + 0.5, st + 0.5);
         } else {
-          // smooth light/dark sand variation
+          // smooth light/dark ground variation
           const l = U.clamp((n - 0.5) * 1.6, -0.45, 0.5);
-          c.fillStyle = l > 0 ? `rgba(236,214,158,${l * 0.55})` : `rgba(122,96,58,${-l * 0.45})`;
+          c.fillStyle = l > 0 ? rgba(B.sandHi, l * 0.55) : rgba(B.sandLo, -l * 0.45);
           c.fillRect(x * st, y * st, st + 0.5, st + 0.5);
         }
       }
@@ -4623,8 +4753,7 @@ const RENDER = (() => {
       const bx = rng() * terrainCv.width, by = rng() * terrainCv.height;
       const br = (8 + rng() * 18) * TILE * TS;
       const g2 = c.createRadialGradient(bx, by, br * 0.2, bx, by, br);
-      const warm = rng() < 0.5;
-      g2.addColorStop(0, warm ? 'rgba(214,158,92,0.16)' : 'rgba(126,98,64,0.15)');
+      g2.addColorStop(0, rng() < 0.5 ? rgba(B.sandHi, 0.16) : rgba(B.sandLo, 0.15));
       g2.addColorStop(1, 'rgba(0,0,0,0)');
       c.fillStyle = g2;
       c.beginPath(); c.arc(bx, by, br, 0, 7); c.fill();
@@ -4634,29 +4763,38 @@ const RENDER = (() => {
     for (let i = 0; i < world.w * world.h / 34; i++) {
       const x = rng() * terrainCv.width, y = rng() * terrainCv.height;
       const len = 20 + rng() * 60, a = -0.5 + rng() * 0.3;
-      c.strokeStyle = rng() < 0.5 ? 'rgba(240,220,170,0.13)' : 'rgba(100,78,46,0.11)';
+      c.strokeStyle = rng() < 0.5 ? rgba(B.sandHi, 0.15) : rgba(B.sandLo, 0.12);
       c.beginPath();
       c.moveTo(x, y);
       c.quadraticCurveTo(x + Math.cos(a) * len * 0.5, y + Math.sin(a) * len * 0.5 - 4 - rng() * 6,
         x + Math.cos(a) * len, y + Math.sin(a) * len);
       c.stroke();
     }
-    // sand grain speckle
+    /* Braided dry channels. Real ground drains, and a few wandering washes cutting
+       across the plain do more for the eye than any amount of extra speckle. */
+    for (let i = 0; i < Math.max(3, world.w * world.h / 900); i++) {
+      let x = rng() * terrainCv.width, y = rng() * terrainCv.height;
+      let a = rng() * Math.PI * 2;
+      c.strokeStyle = rgba(B.sandLo, 0.20);
+      c.lineWidth = 3 + rng() * 5;
+      c.lineCap = 'round';
+      c.beginPath(); c.moveTo(x, y);
+      for (let k = 0; k < 26; k++) {
+        a += (rng() - 0.5) * 0.9;
+        x += Math.cos(a) * 34; y += Math.sin(a) * 34;
+        c.lineTo(x, y);
+      }
+      c.stroke();
+      c.strokeStyle = rgba(B.sandHi, 0.13); c.lineWidth = 1.4; c.stroke();
+    }
+    c.lineCap = 'butt';
+    // ground grain speckle
     for (let i = 0; i < world.w * world.h * 2.2; i++) {
       const x = rng() * terrainCv.width, y = rng() * terrainCv.height;
-      c.fillStyle = rng() < 0.5 ? 'rgba(255,240,200,0.10)' : 'rgba(90,70,40,0.10)';
+      c.fillStyle = rng() < 0.5 ? rgba(B.sandHi, 0.12) : rgba(B.sandLo, 0.10);
       c.fillRect(x, y, 1.5, 1.5);
     }
-    // cliff edge highlight/shadow for depth
-    for (let y = 0; y < world.h; y++) {
-      for (let x = 0; x < world.w; x++) {
-        if (world.terrain[world.idx(x, y)] !== 2) continue;
-        const below = world.inb(x, y + 1) && world.terrain[world.idx(x, y + 1)] !== 2;
-        const above = world.inb(x, y - 1) && world.terrain[world.idx(x, y - 1)] !== 2;
-        if (below) { c.fillStyle = 'rgba(30,22,12,0.55)'; c.fillRect(x * t, (y + 1) * t - 3, t, 4); }
-        if (above) { c.fillStyle = 'rgba(255,235,190,0.30)'; c.fillRect(x * t, y * t, t, 2.5); }
-      }
-    }
+    drawMassifs(c, t, B, rng);
 
     // fog canvases — 3 px per tile, soft radial vision circles
     const fs = 3;
@@ -4673,6 +4811,86 @@ const RENDER = (() => {
     visibleCtx = visibleCv.getContext('2d');
 
     buildMinimapBase();
+  }
+
+  /* ---------------- rock, cliffs and mountains ----------------
+     Rock used to be a flat grey patch with a dark line under it. Every rock tile now
+     carries a height from the same noise field that put it there, and gets drawn as a
+     mass with a lit north-west face, a shadowed south-east one, a ridge line along its
+     crest and — where the biome has a snowline — a cap. Bakes into the terrain canvas
+     once at map build, so it costs nothing per frame. */
+  function drawMassifs(c, t, B, rng) {
+    const H = (x, y) => (world.inb(x, y) && world.terrain[world.idx(x, y)] === 2)
+      ? world.height[world.idx(x, y)] : 0;
+    const rgb = a => `rgb(${a[0]},${a[1]},${a[2]})`;
+    const rgba = (a, al) => `rgba(${a[0]},${a[1]},${a[2]},${al})`;
+    // tallest first so near peaks overlap the ridges behind them
+    const tiles = [];
+    for (let y = 0; y < world.h; y++) for (let x = 0; x < world.w; x++) {
+      const h = H(x, y);
+      if (h) tiles.push({ x, y, h });
+    }
+    tiles.sort((a, b) => (a.y - b.y) || (a.x - b.x));
+
+    const STEP = t * 0.34;                         // world px of lift per height level
+    for (const tile of tiles) {
+      const { x, y, h } = tile;
+      const px = x * t, py = y * t;
+      const lift = h * STEP;
+      /* Terrace against the neighbours rather than only against open ground. A face is
+         drawn wherever this tile stands taller than the one beside it, and only as far
+         down as that neighbour's own crest, so a massif reads as stacked benches
+         climbing to a peak instead of one flat slab with a skirt. */
+      const dS = (h - H(x, y + 1)) * STEP;
+      if (dS > 0) {
+        const g = c.createLinearGradient(px, py + t - lift, px, py + t - lift + dS);
+        g.addColorStop(0, rgb(B.rock));
+        g.addColorStop(1, rgba([18, 14, 10], 0.78));
+        c.fillStyle = g;
+        c.fillRect(px, py + t - lift, t, dS);
+      }
+      const dE = (h - H(x + 1, y)) * STEP;
+      if (dE > 0) {
+        const g = c.createLinearGradient(px + t - dE * 0.6, py, px + t, py);
+        g.addColorStop(0, rgb(B.rock));
+        g.addColorStop(1, rgba([22, 18, 14], 0.66));
+        c.fillStyle = g;
+        c.fillRect(px + t - dE * 0.6, py - lift, dE * 0.6, t + dE);
+      }
+      // the crest itself, lifted and lit from the north-west
+      const shade2 = 0.72 + h * 0.09;              // higher ground catches more light
+      const cg = c.createLinearGradient(px, py - lift, px + t, py + t - lift);
+      cg.addColorStop(0, rgb(B.rockLit.map(v => Math.min(255, Math.round(v * shade2 * 1.18)))));
+      cg.addColorStop(1, rgb(B.rock.map(v => Math.round(v * shade2))));
+      c.fillStyle = cg;
+      c.fillRect(px, py - lift, t, t);
+      // broken rock: a couple of facet lines so the mass is not a smooth slab
+      c.strokeStyle = rgba([20, 16, 12], 0.28); c.lineWidth = 1;
+      for (let k = 0; k < 2; k++) {
+        const fx = px + rng() * t, fy = py - lift + rng() * t;
+        c.beginPath(); c.moveTo(fx, fy);
+        c.lineTo(fx + (rng() - 0.5) * t * 0.9, fy + rng() * t * 0.7); c.stroke();
+      }
+      // ridge highlight wherever the ground to the north drops away
+      if (H(x, y - 1) < h) {
+        c.fillStyle = rgba(B.rockLit, 0.6);
+        c.fillRect(px, py - lift, t, 2 + h * 0.8);
+      }
+      /* Snowline: a cap on anything high enough for the biome to hold snow, drawn as a
+         ragged edge that reaches further down the taller the peak is. */
+      if (B.cap && h >= (B.capFrom || 3)) {
+        const reach = 0.22 + (h - (B.capFrom || 3)) * 0.16;
+        c.fillStyle = rgba(B.cap, 0.92);
+        c.beginPath();
+        c.moveTo(px, py - lift);
+        c.lineTo(px + t, py - lift);
+        c.lineTo(px + t, py - lift + t * reach * (0.6 + rng() * 0.8));
+        for (let k = 4; k >= 0; k--) {
+          c.lineTo(px + t * (k / 4), py - lift + t * reach * (0.4 + rng() * 1.1));
+        }
+        c.closePath(); c.fill();
+      }
+    }
   }
 
   function addDecal(x, y, r) {
@@ -4805,7 +5023,7 @@ const RENDER = (() => {
       drawProp(pr);
     }
 
-    // supply docks
+    // oil fields
     for (const d of world.docks) {
       if (d.amount <= 0 || !onScreen(d.x, d.y, 90)) continue;
       drawDock(d);
@@ -4897,6 +5115,9 @@ const RENDER = (() => {
 
     ctx.restore();
 
+    // weather sits above the world and under the HUD (screen space)
+    drawWeather();
+
     // cinematic color grade (screen space)
     if (gradeCv) ctx.drawImage(gradeCv, 0, 0);
 
@@ -4925,6 +5146,72 @@ const RENDER = (() => {
 
     FX.drawFlashes(ctx, W, H);
     drawCursor();
+  }
+
+  /* ---------------- weather ----------------
+     Screen-space, and deliberately cheap: one tint, one darkening pass and a field of
+     particles driven straight off the clock rather than a simulated list. Nothing is
+     stored per flake, so a blizzard costs the same as a clear sky plus the draw calls.
+     Two fronts are mixed while the sky is crossing between them, so the change is a
+     drift rather than a cut. */
+  const WX_SEED = 1337;
+  function wxParticles(kind, amount, wind, tSec) {
+    if (!kind || amount <= 0.01) return;
+    const n = Math.round(amount * (kind === 'rain' ? 260 : kind === 'snow' ? 220 : 190));
+    const rng = U.seededRng(WX_SEED);
+    const drift = tSec * 60;
+    ctx.save();
+    if (kind === 'rain') {
+      ctx.strokeStyle = `rgba(196,214,240,${0.30 * Math.min(1, amount)})`;
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const sp = 620 + rng() * 520, len = 12 + rng() * 12;
+        const x = (rng() * (W + 400) + drift * wind * 0.7) % (W + 400) - 200;
+        const y = (rng() * H + tSec * sp) % (H + 60) - 30;
+        ctx.moveTo(x, y); ctx.lineTo(x - wind * 6, y + len);
+      }
+      ctx.stroke();
+    } else if (kind === 'snow') {
+      for (let i = 0; i < n; i++) {
+        const sp = 34 + rng() * 60, r = 1 + rng() * 2.2;
+        const sway = Math.sin(tSec * (0.8 + rng()) + i) * (7 + wind * 9);
+        const x = ((rng() * (W + 300) + drift * wind * 0.5 + sway) % (W + 300)) - 150;
+        const y = (rng() * H + tSec * sp) % (H + 40) - 20;
+        ctx.fillStyle = `rgba(250,253,255,${(0.35 + rng() * 0.45) * Math.min(1, amount)})`;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+      }
+    } else {                                   // blown dust: long, flat, fast streaks
+      ctx.lineWidth = 1.6;
+      for (let i = 0; i < n; i++) {
+        const sp = 240 + rng() * 460, len = 26 + rng() * 60;
+        const x = ((rng() * (W + 600) + tSec * sp * wind) % (W + 600)) - 300;
+        const y = (rng() * (H + 80) + Math.sin(tSec * 0.6 + i) * 12) % (H + 80) - 40;
+        ctx.strokeStyle = `rgba(226,196,140,${(0.10 + rng() * 0.22) * Math.min(1, amount)})`;
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + len, y + len * 0.14); ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawWeather() {
+    const wx = game.weather;
+    if (!wx) return;
+    const to = WEATHER[wx.key] || WEATHER.clear;
+    const from = WEATHER[wx.from] || WEATHER.clear;
+    const k = U.clamp(wx.blend, 0, 1);
+    const tSec = game.renderT;
+    const sky = world && world.biome ? world.biome.sky : null;
+    if (sky) { ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H); }
+    // the two tints cross-fade rather than swapping
+    if (from.tint && k < 1) { ctx.globalAlpha = 1 - k; ctx.fillStyle = from.tint; ctx.fillRect(0, 0, W, H); }
+    if (to.tint) { ctx.globalAlpha = k; ctx.fillStyle = to.tint; ctx.fillRect(0, 0, W, H); }
+    ctx.globalAlpha = 1;
+    const dark = U.lerp(from.dark, to.dark, k);
+    if (dark > 0.005) { ctx.fillStyle = `rgba(8,10,16,${dark})`; ctx.fillRect(0, 0, W, H); }
+    const wind = U.lerp(from.wind, to.wind, k);
+    if (from.parts && k < 1) wxParticles(from.parts, from.density * (1 - k), wind, tSec);
+    if (to.parts) wxParticles(to.parts, to.density * k, wind, tSec);
   }
 
   function onScreen(x, y, pad) {
@@ -4983,15 +5270,47 @@ const RENDER = (() => {
     ctx.restore();
   }
 
+  /* ---------------- oil fields ----------------
+     The map's resource is crude, not crates: a derrick over the wellhead, nodding
+     pumpjacks working the field, storage tanks and a slick of spilled oil. How much
+     is left decides how many pumps are still nodding and how wide the slick is, so a
+     field reads as rich or nearly dry from across the map. */
+  function drawPumpjack(px, py, s, phase, working) {
+    ctx.save();
+    ctx.translate(px, py); ctx.scale(s, s);
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.ellipse(0, 4, 15, 6, 0, 0, 7); ctx.fill();
+    // concrete pad and A-frame
+    ctx.fillStyle = '#5d564a'; ctx.fillRect(-13, 0, 26, 4);
+    ctx.strokeStyle = '#3b352c'; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(-2, 0); ctx.lineTo(1, -13); ctx.lineTo(4, 0); ctx.stroke();
+    // walking beam, nodding on its own phase so a field never marches in step
+    const nod = working ? Math.sin(game.renderT * 1.5 + phase) * 0.32 : 0;
+    ctx.save();
+    ctx.translate(1.5, -13); ctx.rotate(nod);
+    ctx.strokeStyle = '#2f2a22'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(10, 0); ctx.stroke();
+    ctx.fillStyle = '#241f18';          // horsehead
+    ctx.beginPath(); ctx.moveTo(10, -2); ctx.lineTo(14, 1); ctx.lineTo(10, 4); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // counterweight crank
+    ctx.fillStyle = '#443c30';
+    ctx.beginPath(); ctx.arc(-10, -7, 4, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+
   function drawDock(d) {
     const f = d.amount / d.max;
     const rng = U.seededRng(d.seed);
     if (f <= 0) {
-      // exhausted: leftover pallet marks + regeneration countdown
+      // pumped dry: capped wellhead, stained ground, and the countdown to a new strike
       ctx.save();
       ctx.translate(d.x, d.y);
-      ctx.fillStyle = 'rgba(40,32,20,0.35)';
+      ctx.fillStyle = 'rgba(28,22,14,0.40)';
       ctx.beginPath(); ctx.ellipse(0, 4, 40, 19, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#4a423a';
+      ctx.fillRect(-6, -2, 12, 7);
+      ctx.fillStyle = '#2b251e'; ctx.fillRect(-3, -7, 6, 5);
       if (d.regenAt > game.t) {
         const left = Math.max(0, d.regenAt - game.t);
         ctx.font = 'bold 13px system-ui';
@@ -5001,27 +5320,55 @@ const RENDER = (() => {
         ctx.font = '10px system-ui';
         ctx.fillStyle = 'rgba(220,205,160,0.7)';
         const nextFrac = [1, 0.75, 0.5, 0.25][Math.min(d.stage + 1, 3)];
-        ctx.fillText('resupply ' + Math.round(nextFrac * 100) + '%', 0, 8);
+        ctx.fillText('new strike ' + Math.round(nextFrac * 100) + '%', 0, 8);
       }
       ctx.restore();
       return;
     }
     ctx.save();
     ctx.translate(d.x, d.y);
-    ctx.fillStyle = 'rgba(0,0,0,0.18)';
-    ctx.beginPath(); ctx.ellipse(3, 6, 46, 22, 0, 0, 7); ctx.fill();
-    const piles = Math.max(1, Math.ceil(f * 5));
-    for (let i = 0; i < piles; i++) {
-      const px = (rng() - 0.5) * 62, py = (rng() - 0.5) * 40;
-      const s = 0.7 + rng() * 0.6;
-      // crate stack
-      ctx.save(); ctx.translate(px, py);
-      ctx.fillStyle = '#2c5a8a'; ctx.fillRect(-12 * s, -8 * s, 24 * s, 15 * s);
-      ctx.fillStyle = '#3d7edb'; ctx.fillRect(-12 * s, -12 * s, 24 * s, 6 * s);
-      ctx.strokeStyle = '#1c3a5a'; ctx.lineWidth = 1;
-      ctx.strokeRect(-12 * s, -12 * s, 24 * s, 19 * s);
-      ctx.beginPath(); ctx.moveTo(0, -12 * s); ctx.lineTo(0, 7 * s); ctx.stroke();
-      ctx.restore();
+    // the slick: wide and black on a rich field, a stain on a spent one
+    const slick = 26 + f * 22;
+    const sg = ctx.createRadialGradient(0, 2, slick * 0.25, 0, 2, slick);
+    sg.addColorStop(0, `rgba(12,10,8,${0.42 + f * 0.28})`);
+    sg.addColorStop(0.7, `rgba(24,20,14,${0.20 + f * 0.16})`);
+    sg.addColorStop(1, 'rgba(30,24,16,0)');
+    ctx.fillStyle = sg;
+    ctx.beginPath(); ctx.ellipse(0, 3, slick * 1.25, slick * 0.62, 0, 0, 7); ctx.fill();
+    // a wet sheen on the crude so it does not read as a burn mark
+    ctx.fillStyle = `rgba(96,86,132,${0.10 + f * 0.13})`;
+    ctx.beginPath(); ctx.ellipse(-8, 0, slick * 0.42, slick * 0.20, -0.4, 0, 7); ctx.fill();
+
+    // storage tanks on the edge of the pad
+    for (let i = 0; i < 2; i++) {
+      const tx2 = -46 + i * 16, ty2 = 16 + (i & 1) * 6;
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.beginPath(); ctx.ellipse(tx2 + 1, ty2 + 5, 9, 4, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#8a7f68'; ctx.fillRect(tx2 - 8, ty2 - 9, 16, 13);
+      ctx.fillStyle = '#a89c80';
+      ctx.beginPath(); ctx.ellipse(tx2, ty2 - 9, 8, 3.4, 0, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#5d5445'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(tx2 - 8, ty2 - 3); ctx.lineTo(tx2 + 8, ty2 - 3); ctx.stroke();
+    }
+    // the derrick over the wellhead
+    ctx.strokeStyle = '#3a332a'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-11, 8); ctx.lineTo(-4, -30); ctx.lineTo(4, -30); ctx.lineTo(11, 8);
+    ctx.moveTo(-8, -5); ctx.lineTo(8, -5);
+    ctx.moveTo(-6, -17); ctx.lineTo(6, -17);
+    ctx.moveTo(-11, 8); ctx.lineTo(8, -5);
+    ctx.moveTo(11, 8); ctx.lineTo(-8, -5);
+    ctx.stroke();
+    ctx.fillStyle = '#2b251e'; ctx.fillRect(-5, -34, 10, 5);
+
+    /* Pumpjacks: how many are still nodding is the field's meter. A full field works
+       five; a nearly dry one has a single jack on it and the rest standing idle. */
+    const jacks = 5;
+    const working = Math.max(1, Math.ceil(f * jacks));
+    for (let i = 0; i < jacks; i++) {
+      const a = (i / jacks) * 6.28 + 0.6;
+      const px = Math.cos(a) * (40 + rng() * 16), py = Math.sin(a) * (24 + rng() * 10) + 4;
+      drawPumpjack(px, py, 0.72 + rng() * 0.3, i * 1.9, i < working);
     }
     ctx.restore();
   }
@@ -5034,6 +5381,8 @@ const RENDER = (() => {
 
   function drawUnit(u) {
     const [c1, c2] = teamColors(u);
+    const pl = game.players[u.owner];
+    curFac = pl ? pl.faction : 'coalition';
     ctx.save();
     ctx.translate(u.x, u.y);
 
@@ -5113,9 +5462,32 @@ const RENDER = (() => {
     ctx.beginPath(); ctx.arc(0, 0, 4.6, 0, 7); ctx.fill();
     ctx.fillStyle = c1;
     ctx.beginPath(); ctx.arc(0, -1.5, 3.1, 0, 7); ctx.fill();
-    // helmet
-    ctx.fillStyle = '#d8cfa8';
-    ctx.beginPath(); ctx.arc(0, -2.5, 2.1, 0, 7); ctx.fill();
+    /* Headgear, and it is the army's not the soldier's: a Coalition rifleman wears a
+       composite helmet with a visor, a Dynasty conscript a broad steel pot, a Cartel
+       fighter a wrapped headscarf. At this size it is the only place a man-shaped
+       sprite has room to say who he fights for. */
+    if (curFac === 'coalition') {
+      ctx.fillStyle = '#c9d2d8';
+      ctx.beginPath(); ctx.arc(0, -2.5, 2.1, 0, 7); ctx.fill();
+      ctx.fillStyle = 'rgba(120,200,255,0.75)';
+      ctx.fillRect(0.4, -3.4, 2.2, 1.2);                       // visor
+      ctx.strokeStyle = '#8d99a2'; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(-1.6, -4.4); ctx.lineTo(-2.4, -6.4); ctx.stroke();  // antenna
+    } else if (curFac === 'dynasty') {
+      ctx.fillStyle = '#9aa08e';                               // wide steel brim
+      ctx.beginPath(); ctx.ellipse(0, -2.3, 3, 2.1, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#b4baa6';
+      ctx.beginPath(); ctx.arc(0, -3, 1.7, 0, 7); ctx.fill();
+    } else {
+      ctx.fillStyle = '#cfc0a0';                               // wrapped scarf
+      ctx.beginPath(); ctx.arc(0, -2.5, 2.2, 0, 7); ctx.fill();
+      ctx.fillStyle = '#a89478';
+      ctx.beginPath();
+      ctx.moveTo(-2, -2.2); ctx.lineTo(-5.4, 0.6); ctx.lineTo(-3.4, 1.2);
+      ctx.closePath(); ctx.fill();                             // trailing tail of it
+      ctx.fillStyle = 'rgba(30,26,18,0.8)';
+      ctx.fillRect(-1.4, -3, 2.8, 1);                          // eye slit
+    }
     // weapon
     ctx.save();
     ctx.rotate(u.tAngle);
@@ -5284,13 +5656,89 @@ const RENDER = (() => {
       ctx.beginPath(); ctx.arc(wx, h / 2 - tw / 2, 1.7, 0, 7); ctx.fill();
     }
   }
+  /* The hull outline every ground vehicle is built on — and, like the roofs, it is the
+     ARMY's shape rather than the model's. A Goliath is a Goliath in all three armies,
+     but a Coalition one is a machined wedge, a Dynasty one a riveted slab with a sloped
+     glacis, and a Cartel one an out-of-true box under bolted-on scrap. */
+  function hullPath(fac, w, h, r) {
+    const x = -w / 2 + 2, y = -h / 2 + 3, ww = w - 4, hh = h - 6;
+    if (fac === 'coalition') {
+      // faceted wedge: nose cut to a point, tail cut back
+      const n = Math.min(ww * 0.3, hh * 0.42);
+      ctx.beginPath();
+      ctx.moveTo(x + ww, y + hh * 0.28); ctx.lineTo(x + ww, y + hh * 0.72);
+      ctx.lineTo(x + ww - n * 0.5, y + hh); ctx.lineTo(x + n * 0.5, y + hh);
+      ctx.lineTo(x, y + hh * 0.76); ctx.lineTo(x, y + hh * 0.24);
+      ctx.lineTo(x + n * 0.5, y); ctx.lineTo(x + ww - n * 0.5, y);
+      ctx.closePath();
+    } else if (fac === 'cartel') {
+      // welded from whatever was to hand: no two corners agree, and a scrap ram
+      // juts off the nose because someone bolted one on and nobody took it off
+      ctx.beginPath();
+      ctx.moveTo(x + ww + 3, y + hh * 0.34); ctx.lineTo(x + ww + 1, y + hh * 0.62);
+      ctx.lineTo(x + ww * 0.98, y + hh * 0.92); ctx.lineTo(x + ww * 0.2, y + hh + 1.5);
+      ctx.lineTo(x - 2, y + hh * 0.72); ctx.lineTo(x + 0.5, y + hh * 0.18);
+      ctx.lineTo(x + ww * 0.26, y - 2); ctx.lineTo(x + ww * 0.9, y + hh * 0.08);
+      ctx.closePath();
+    } else {
+      // a heavy slab that overhangs its own tracks: wider than anything else on the
+      // field, stepped down at the tail where the engine deck sits
+      ctx.beginPath();
+      ctx.moveTo(x + ww, y - 1.5); ctx.lineTo(x + ww, y + hh + 1.5);
+      ctx.lineTo(x + ww * 0.24, y + hh + 1.5); ctx.lineTo(x + ww * 0.24, y + hh * 0.86);
+      ctx.lineTo(x, y + hh * 0.86); ctx.lineTo(x, y + hh * 0.14);
+      ctx.lineTo(x + ww * 0.24, y + hh * 0.14); ctx.lineTo(x + ww * 0.24, y - 1.5);
+      ctx.closePath();
+    }
+  }
+
   function hullPlate(w, h, c1, c2, r = 3) {
+    const fac = curFac;
     const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
     g.addColorStop(0, U.shade(c1, 1.15)); g.addColorStop(0.5, c1); g.addColorStop(1, c2);
     ctx.fillStyle = g;
-    roundRect(-w / 2 + 2, -h / 2 + 3, w - 4, h - 6, r); ctx.fill();
+    hullPath(fac, w, h, r); ctx.fill();
     ctx.strokeStyle = c2; ctx.lineWidth = 1;
-    roundRect(-w / 2 + 2, -h / 2 + 3, w - 4, h - 6, r); ctx.stroke();
+    hullPath(fac, w, h, r); ctx.stroke();
+    hullSkin(fac, w, h, c1, c2);
+  }
+
+  /* what the plating looks like up close, per army */
+  function hullSkin(fac, w, h, c1, c2) {
+    if (fac === 'coalition') {
+      // panel seams and a lit chine down the spine
+      ctx.strokeStyle = 'rgba(190,225,255,0.28)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(-w * 0.3, 0); ctx.lineTo(w * 0.36, 0); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.12, -h / 2 + 3.5); ctx.lineTo(-w * 0.12, h / 2 - 3.5); ctx.stroke();
+    } else if (fac === 'dynasty') {
+      // rivet lines along both flanks and a sloped glacis wedge at the nose
+      ctx.fillStyle = 'rgba(18,12,8,0.42)';
+      for (let x = -w / 2 + 5; x < w / 2 - 3; x += 5) {
+        ctx.fillRect(x, -h / 2 + 4.2, 1.4, 1.4);
+        ctx.fillRect(x, h / 2 - 5.6, 1.4, 1.4);
+      }
+      ctx.fillStyle = 'rgba(255,240,210,0.16)';
+      ctx.beginPath();
+      ctx.moveTo(w * 0.22, -h * 0.3); ctx.lineTo(w / 2 - 2, -h * 0.16);
+      ctx.lineTo(w / 2 - 2, h * 0.16); ctx.lineTo(w * 0.22, h * 0.3);
+      ctx.closePath(); ctx.fill();
+    } else {
+      // bolted-on scrap plate, sand-worn, never quite aligned
+      ctx.fillStyle = 'rgba(122,104,74,0.6)';
+      ctx.fillRect(-w * 0.06, -h * 0.34, w * 0.3, h * 0.3);
+      ctx.strokeStyle = 'rgba(34,26,16,0.55)'; ctx.lineWidth = 1;
+      ctx.strokeRect(-w * 0.06, -h * 0.34, w * 0.3, h * 0.3);
+      ctx.fillStyle = 'rgba(20,16,10,0.5)';
+      for (let i = 0; i < 4; i++) {
+        ctx.fillRect(-w * 0.05 + i * w * 0.09, -h * 0.33, 1.3, 1.3);
+        ctx.fillRect(-w * 0.05 + i * w * 0.09, -h * 0.07, 1.3, 1.3);
+      }
+      // exposed frame rail along the low side
+      ctx.strokeStyle = 'rgba(48,40,28,0.75)'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(-w * 0.36, h * 0.30); ctx.lineTo(w * 0.34, h * 0.26); ctx.stroke();
+    }
   }
 
   /* Bulwark — modern MBT: angular wedge hull, hexagonal turret, one long gun w/ muzzle brake */
@@ -5783,6 +6231,8 @@ const RENDER = (() => {
 
   function drawHeli(u) {
     const [c1, c2] = teamColors(u);
+    const pl = game.players[u.owner];
+    curFac = pl ? pl.faction : 'coalition';
     // shadow far below
     ctx.fillStyle = 'rgba(0,0,0,0.22)';
     ctx.beginPath(); ctx.ellipse(u.x + 22, u.y + 30, 15, 6, u.angle, 0, 7); ctx.fill();
@@ -5860,6 +6310,8 @@ const RENDER = (() => {
 
   function drawJet(u) {
     const [c1, c2] = teamColors(u);
+    const pl = game.players[u.owner];
+    curFac = pl ? pl.faction : 'coalition';
     // shadow far below
     ctx.fillStyle = 'rgba(0,0,0,0.22)';
     ctx.beginPath(); ctx.ellipse(u.x + 26, u.y + 34, 13, 5, u.angle, 0, 7); ctx.fill();
@@ -6128,8 +6580,46 @@ const RENDER = (() => {
         ctx.beginPath(); ctx.ellipse(9, 0, 4, 1.9, 0, 0, 7); ctx.fill();
       }
     }
+    facAirMark(curFac, c1);
     ctx.restore();
     drawHpBar(u);
+  }
+
+  /* Tail and markings. Airframes are per model, but every army finishes one its own
+     way, so a shared type still reads as theirs from above. */
+  function facAirMark(fac, c1) {
+    if (fac === 'coalition') {
+      // canted twin fins and a chevron flash
+      ctx.fillStyle = U.shade(c1, 0.7);
+      for (const s of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(-11, 3 * s); ctx.lineTo(-17, 8 * s); ctx.lineTo(-13.5, 8.5 * s);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(190,230,255,0.8)'; ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(2, -4); ctx.lineTo(-2, 0); ctx.lineTo(2, 4); ctx.stroke();
+    } else if (fac === 'dynasty') {
+      // one tall slab fin, and a heavy bar across the spine
+      ctx.fillStyle = U.shade(c1, 0.62);
+      ctx.beginPath();
+      ctx.moveTo(-10, 0); ctx.lineTo(-19, -1.6); ctx.lineTo(-19, 1.6);
+      ctx.closePath(); ctx.fill();
+      ctx.fillRect(-13, -6.5, 3.4, 13);
+      ctx.fillStyle = 'rgba(255,235,210,0.55)';
+      ctx.fillRect(-1, -5.5, 2.4, 11);
+    } else {
+      // a bent fin, a scrap patch riveted over the spine, and a hand-painted stripe
+      ctx.fillStyle = U.shade(c1, 0.55);
+      ctx.beginPath();
+      ctx.moveTo(-10, -1); ctx.lineTo(-18, -6); ctx.lineTo(-15, -1.5); ctx.lineTo(-17, 4);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(126,108,76,0.8)';
+      ctx.fillRect(-6, -4.5, 7, 6);
+      ctx.strokeStyle = 'rgba(30,24,16,0.7)'; ctx.lineWidth = 0.9;
+      ctx.strokeRect(-6, -4.5, 7, 6);
+      ctx.strokeStyle = 'rgba(240,220,150,0.7)'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(6, -3); ctx.lineTo(2, 4); ctx.stroke();
+    }
   }
 
   /* ================= buildings ================= */
@@ -6219,9 +6709,118 @@ const RENDER = (() => {
     drawHpBar(b);
   }
 
+  /* Which army's design language the next volume is drawn in. Set once per structure
+     (and per vehicle) so the shared prism / hull helpers can shape themselves without
+     every call site having to pass a faction down. */
+  let curFac = 'coalition';
+
+  /* the ground each army works from: machined apron, poured slab, or scraped dirt */
+  function facPad(fac, s, ghost) {
+    if (ghost) { ctx.fillStyle = '#3a3a34'; ctx.fillRect(0, 0, s - 2, s - 2); return; }
+    if (fac === 'coalition') {
+      ctx.fillStyle = '#8b8d8a';
+      roofPath('coalition', 0, 0, s - 2, s - 2, 0); ctx.fill();
+      ctx.strokeStyle = 'rgba(150,215,255,0.35)'; ctx.lineWidth = 1.4; ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.07)';
+      for (let i = 1; i < 4; i++) ctx.fillRect(0, (s - 2) * i / 4, s - 2, 1);
+    } else if (fac === 'cartel') {
+      // scraped earth with a berm of spoil pushed up around it
+      ctx.fillStyle = '#7a6a4e';
+      ctx.fillRect(0, 0, s - 2, s - 2);
+      ctx.fillStyle = 'rgba(96,80,54,0.75)';
+      ctx.fillRect(0, 0, s - 2, 4); ctx.fillRect(0, s - 6, s - 2, 4);
+      ctx.fillStyle = 'rgba(40,32,20,0.20)';
+      for (let i = 0; i < 7; i++) ctx.fillRect((i * 37 % (s - 10)), (i * 23 % (s - 10)), 6, 4);
+    } else {
+      ctx.fillStyle = '#7d7660';
+      ctx.fillRect(0, 0, s - 2, s - 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.16)';                    // heavy expansion joints
+      for (let i = 1; i < 3; i++) { ctx.fillRect(0, (s - 2) * i / 3, s - 2, 2); ctx.fillRect((s - 2) * i / 3, 0, 2, s - 2); }
+    }
+    ctx.fillStyle = 'rgba(255,245,220,0.14)';
+    ctx.fillRect(0, 0, s - 2, 2.5); ctx.fillRect(0, 0, 2.5, s - 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.fillRect(0, s - 4.5, s - 2, 2.5); ctx.fillRect(s - 4.5, 0, 2.5, s - 2);
+  }
+
+  /* the thing every one of an army's structures carries, whatever else it is */
+  function facSignature(fac, b, s, c1, c2) {
+    if (fac === 'coalition') {
+      // slim sensor mast with a blinking beacon
+      ctx.strokeStyle = '#b9c4cc'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(s * 0.9, s * 0.16); ctx.lineTo(s * 0.9, s * 0.16 - s * 0.3); ctx.stroke();
+      ctx.strokeStyle = 'rgba(185,196,204,0.9)'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(s * 0.84, s * 0.16 - s * 0.24); ctx.lineTo(s * 0.96, s * 0.16 - s * 0.24);
+      ctx.stroke();
+      const bl = 0.4 + 0.6 * Math.abs(Math.sin(game.renderT * 1.6 + b.id));
+      ctx.fillStyle = `rgba(140,220,255,${bl})`;
+      ctx.beginPath(); ctx.arc(s * 0.9, s * 0.16 - s * 0.31, 2.2, 0, 7); ctx.fill();
+    } else if (fac === 'dynasty') {
+      // a poured buttress skirt that steps out past the footprint — Dynasty structures
+      // are visibly wider at the base than anything else on the field
+      ctx.fillStyle = '#6b6459';
+      for (let i = 0; i < 3; i++) {
+        const bx = s * (0.16 + i * 0.3);
+        ctx.beginPath();
+        ctx.moveTo(bx, s * 0.92); ctx.lineTo(bx + s * 0.14, s * 0.92);
+        ctx.lineTo(bx + s * 0.17, s * 1.04); ctx.lineTo(bx - s * 0.03, s * 1.04);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(-s * 0.02, s * 1.02, s * 1.04, 2);
+      // squat industrial stack, always working
+      cyl(s * 0.87, s * 0.2, s * 0.055, s * 0.2, '#6a6058');
+      ctx.fillStyle = '#241f1a';
+      ctx.beginPath(); ctx.ellipse(s * 0.87, s * 0.0, s * 0.045, s * 0.02, 0, 0, 7); ctx.fill();
+      if (Math.random() < 0.05) FX.smokePuff(b.tx * TILE + s * 0.87, b.ty * TILE + s * 0.02, 0.8);
+      // banner chevron in the owner's colour
+      ctx.fillStyle = c1;
+      ctx.beginPath();
+      ctx.moveTo(s * 0.06, s * 0.06); ctx.lineTo(s * 0.24, s * 0.06);
+      ctx.lineTo(s * 0.15, s * 0.17); ctx.closePath(); ctx.fill();
+    } else {
+      /* A lean-to bolted onto the side, standing off the pad on scaffold poles. Every
+         Cartel structure sprawls past its own footprint, which is what makes one
+         recognisable from a Dynasty block at a distance rather than only up close. */
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.fillRect(s * 0.94, s * 0.42, s * 0.2, s * 0.42);
+      ctx.fillStyle = '#8a7a5c';
+      ctx.beginPath();
+      ctx.moveTo(s * 0.92, s * 0.36); ctx.lineTo(s * 1.16, s * 0.44);
+      ctx.lineTo(s * 1.14, s * 0.8); ctx.lineTo(s * 0.92, s * 0.76);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(40,32,20,0.7)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.strokeStyle = '#5a513f'; ctx.lineWidth = 1.6;
+      for (const px of [s * 1.14, s * 0.94]) {
+        ctx.beginPath(); ctx.moveTo(px, s * 0.44); ctx.lineTo(px, s * 0.98); ctx.stroke();
+      }
+      // lashed-on tarp awning and a stack of tyres — nothing here was issued
+      ctx.fillStyle = 'rgba(150,120,70,0.85)';
+      ctx.beginPath();
+      ctx.moveTo(s * 0.05, s * 0.3); ctx.lineTo(s * 0.3, s * 0.24);
+      ctx.lineTo(s * 0.32, s * 0.42); ctx.lineTo(s * 0.06, s * 0.46);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(60,48,28,0.8)'; ctx.lineWidth = 1; ctx.stroke();
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = i % 2 ? '#241f1a' : '#2e2823';
+        ctx.beginPath(); ctx.ellipse(s * 0.88, s * 0.86 - i * 3.2, 6.5, 3, 0, 0, 7); ctx.fill();
+      }
+      // a rag of a flag on a bent pole
+      ctx.strokeStyle = '#5a513f'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(s * 0.72, s * 0.12); ctx.lineTo(s * 0.75, s * 0.12 - s * 0.22); ctx.stroke();
+      ctx.fillStyle = c1;
+      const fl = Math.sin(game.renderT * 3 + b.id) * 2;
+      ctx.beginPath();
+      ctx.moveTo(s * 0.75, s * 0.12 - s * 0.22);
+      ctx.lineTo(s * 0.75 + 11, s * 0.12 - s * 0.20 + fl);
+      ctx.lineTo(s * 0.75, s * 0.12 - s * 0.14); ctx.closePath(); ctx.fill();
+    }
+  }
+
   function drawBuildingSprite(b, ghost) {
     const p = game.players[b.owner];
     const fac = p ? p.faction : 'coalition';
+    curFac = fac;
     const [c1r, c2r] = teamColors(b);
     const c1 = ghost ? '#777777' : c1r, c2 = ghost ? '#444444' : c2r;
     const s = b.size * TILE;
@@ -6244,17 +6843,8 @@ const RENDER = (() => {
       ctx.fillStyle = ao;
       ctx.beginPath(); ctx.ellipse(s / 2, s * 0.55, s * 0.8, s * 0.62, 0, 0, 7); ctx.fill();
     }
-    // foundation pad with worn concrete edges
-    ctx.fillStyle = ghost ? '#3a3a34' : '#7d7660';
-    ctx.fillRect(0, 0, s - 2, s - 2);
-    if (!ghost) {
-      ctx.fillStyle = 'rgba(255,245,220,0.14)';
-      ctx.fillRect(0, 0, s - 2, 2.5);
-      ctx.fillRect(0, 0, 2.5, s - 2);
-      ctx.fillStyle = 'rgba(0,0,0,0.22)';
-      ctx.fillRect(0, s - 4.5, s - 2, 2.5);
-      ctx.fillRect(s - 4.5, 0, 2.5, s - 2);
-    }
+    // foundation, in whatever this army builds on
+    facPad(fac, s, ghost);
     ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1.5;
     ctx.strokeRect(0.5, 0.5, s - 3, s - 3);
 
@@ -6273,6 +6863,7 @@ const RENDER = (() => {
       case 'market': drawMarket(b, s, c1, c2); break;
       case 'superweapon': drawSuper(b, s, c1, c2, fac); break;
     }
+    if (!ghost) facSignature(fac, b, s, c1, c2);
     if (!ghost) {
       // north-west light sheen unifies every structure under one sun
       const sheen = ctx.createLinearGradient(0, 0, s * 0.9, s * 0.9);
@@ -6286,8 +6877,37 @@ const RENDER = (() => {
   }
 
   /* extruded volume: roof lifted `ht` px, visible south wall + skewed east face.
-     This is what makes structures read as 3D instead of painted-on. */
+     This is what makes structures read as 3D instead of painted-on.
+
+     The ROOF OUTLINE is the faction's, not the building's. Every structure on the map
+     runs through here, so giving each army its own way of cutting a roof is what makes
+     a Coalition base recognisable from a Dynasty one at a glance, without writing
+     thirteen buildings three times over:
+
+       Coalition  chamfered corners — machined composite panels, precise and cut back
+       Dynasty    square, with buttress ribs down the wall — poured and riveted
+       Cartel     leaning and out of true — scavenged sheet bolted onto a frame  */
+  function roofPath(fac, x, y, w, h, sk) {
+    const c = ctx;
+    c.beginPath();
+    if (fac === 'coalition') {
+      const k = Math.min(w, h) * 0.24;
+      c.moveTo(x + k, y); c.lineTo(x + w - k, y); c.lineTo(x + w, y + k);
+      c.lineTo(x + w, y + h - k); c.lineTo(x + w - k, y + h);
+      c.lineTo(x + k, y + h); c.lineTo(x, y + h - k); c.lineTo(x, y + k);
+    } else if (fac === 'cartel') {
+      // out of true on purpose: seeded per volume so it does not shimmer between frames
+      const j = (sk || 0.6) * Math.min(w, h) * 0.12;
+      c.moveTo(x - j * 0.4, y + j); c.lineTo(x + w + j * 0.3, y - j * 0.6);
+      c.lineTo(x + w + j * 0.1, y + h + j * 0.5); c.lineTo(x + j * 0.5, y + h - j * 0.2);
+    } else {
+      c.rect(x, y, w, h);
+    }
+    c.closePath();
+  }
+
   function prism(x, y, w, h, ht, topCol, wallCol) {
+    const fac = curFac;
     wallCol = wallCol || U.shade(topCol, 0.55);
     const skx = ht * 0.32;
     // east face (parallelogram catching side light)
@@ -6304,17 +6924,64 @@ const RENDER = (() => {
     wg.addColorStop(1, U.shade(wallCol, 0.72));
     ctx.fillStyle = wg;
     ctx.fillRect(x, y + h - ht, w, ht);
-    // roof lit from the north-west
+    // the wall treatment is the faction's too
+    if (fac === 'dynasty') {
+      // buttress ribs: heavy poured concrete braced against the wall
+      ctx.fillStyle = 'rgba(0,0,0,0.28)';
+      const ribs = Math.max(2, Math.round(w / 14));
+      for (let i = 0; i < ribs; i++) {
+        const rx = x + (i + 0.5) * (w / ribs) - 1.6;
+        ctx.fillRect(rx, y + h - ht, 3.2, ht);
+      }
+      ctx.fillStyle = 'rgba(255,240,210,0.13)';
+      for (let i = 0; i < ribs; i++) ctx.fillRect(x + (i + 0.5) * (w / ribs) - 2.6, y + h - ht, 1, ht);
+    } else if (fac === 'cartel') {
+      // corrugated sheeting, and it does not reach the ground everywhere
+      ctx.strokeStyle = 'rgba(0,0,0,0.22)'; ctx.lineWidth = 1;
+      for (let sx = x + 2; sx < x + w; sx += 3.5) {
+        ctx.beginPath(); ctx.moveTo(sx, y + h - ht); ctx.lineTo(sx, y + h - (sx % 7 < 3.5 ? 1 : 0)); ctx.stroke();
+      }
+    } else {
+      // a lit seam where the panel meets the roof line
+      ctx.fillStyle = 'rgba(190,225,255,0.20)';
+      ctx.fillRect(x, y + h - ht, w, 1.4);
+    }
+    // roof lit from the north-west, cut to the faction's outline
     const rg = ctx.createLinearGradient(x, y - ht, x + w * 0.8, y + h - ht);
     rg.addColorStop(0, U.shade(topCol, 1.18));
     rg.addColorStop(1, U.shade(topCol, 0.94));
     ctx.fillStyle = rg;
-    ctx.fillRect(x, y - ht, w, h);
+    roofPath(fac, x, y - ht, w, h, ((x * 7 + y * 13) % 11) / 11 + 0.3);
+    ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1;
-    ctx.strokeRect(x + 0.5, y - ht + 0.5, w - 1, h - 1);
+    ctx.stroke();
+    if (fac === 'coalition') {
+      // bright trim following the chamfer — the Coalition's signature edge
+      ctx.strokeStyle = 'rgba(150,215,255,0.5)'; ctx.lineWidth = 1.2;
+      roofPath(fac, x + 2, y - ht + 2, w - 4, h - 4, 0);
+      ctx.stroke();
+    } else if (fac === 'dynasty') {
+      // rivet rows around the roof edge
+      ctx.fillStyle = 'rgba(20,14,10,0.45)';
+      for (let rx = x + 3; rx < x + w - 2; rx += 6) {
+        ctx.fillRect(rx, y - ht + 2, 1.6, 1.6);
+        ctx.fillRect(rx, y - ht + h - 3.6, 1.6, 1.6);
+      }
+    } else {
+      // corrugation running across the roof, plus one mismatched patch panel
+      ctx.strokeStyle = 'rgba(0,0,0,0.16)'; ctx.lineWidth = 1;
+      for (let ry = y - ht + 3; ry < y - ht + h - 2; ry += 4) {
+        ctx.beginPath(); ctx.moveTo(x + 2, ry); ctx.lineTo(x + w - 2, ry); ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(120,104,78,0.55)';
+      ctx.fillRect(x + w * 0.52, y - ht + h * 0.18, w * 0.3, h * 0.34);
+      ctx.strokeStyle = 'rgba(30,24,16,0.5)';
+      ctx.strokeRect(x + w * 0.52, y - ht + h * 0.18, w * 0.3, h * 0.34);
+    }
     // roof lip highlight
     ctx.fillStyle = 'rgba(255,246,220,0.20)';
-    ctx.fillRect(x, y - ht, w, 1.6);
+    ctx.fillRect(x + (fac === 'coalition' ? Math.min(w, h) * 0.24 : 0), y - ht,
+      w - (fac === 'coalition' ? Math.min(w, h) * 0.48 : 0), 1.6);
   }
 
   /* vertical cylinder (stacks, silos, tanks) */
@@ -7067,9 +7734,19 @@ const RENDER = (() => {
     mmBase = document.createElement('canvas');
     mmBase.width = world.w; mmBase.height = world.h;
     const c = mmBase.getContext('2d');
+    const B = world.biome || BIOMES.desert;
+    const mix = (a, b, k) => `rgb(${Math.round(U.lerp(a[0], b[0], k))},${Math.round(U.lerp(a[1], b[1], k))},${Math.round(U.lerp(a[2], b[2], k))})`;
     for (let y = 0; y < world.h; y++) for (let x = 0; x < world.w; x++) {
-      const t = world.terrain[world.idx(x, y)];
-      c.fillStyle = t === 2 ? '#57503f' : t === 1 ? '#a8895a' : '#c2a26a';
+      const i = world.idx(x, y);
+      const t = world.terrain[i];
+      if (t === 2) {
+        // high ground reads paler on the minimap, and takes the snowline where there is one
+        const h = world.height[i];
+        c.fillStyle = (B.cap && h >= (B.capFrom || 3)) ? mix(B.rockLit, B.cap, 0.7)
+          : mix(B.rock, B.rockLit, Math.min(1, h / 4) * 0.65);
+      } else {
+        c.fillStyle = t === 1 ? mix(B.sand, B.rough, 0.55) : mix(B.sand, B.sandHi, 0.15);
+      }
       c.fillRect(x, y, 1, 1);
     }
   }
@@ -7155,6 +7832,16 @@ const RENDER = (() => {
     init, buildTerrain, frame, refreshFogCanvas, addDecal, addRubble, addWreck, addTrack, drawMinimap, cleanGhost,
     toScreenX, toScreenY, toWorldX, toWorldY,
     get W() { return W; }, get H() { return H; },
+    /* Test surface. A silhouette can only really be checked by drawing it and reading
+       the pixels back, which needs somewhere to draw and a way to say whose design
+       language to draw it in. Nothing in the game calls these. */
+    _ctx: () => ctx,
+    _setCtx: c => { ctx = c; },
+    _setFac: f => { curFac = f; },
+    _drawBuilding: (b, ghost) => drawBuildingSprite(b, ghost),
+    _drawDock: d => drawDock(d),
+    _hullPlate: (w, h, c1, c2, r) => hullPlate(w, h, c1, c2, r),
+    _prism: (x, y, w, h, ht, a, b) => prism(x, y, w, h, ht, a, b),
   };
 
   function roundRect(x, y, w, h, r) {
@@ -10054,6 +10741,7 @@ let game = {
   zones: [],              // control points {kind:'dom'|'econ', x, y, r, owner(team|-1), capT, capTeam, contested, present}
   domScore: { 0: 0, 1: 0 },
   econTeam: -1,
+  weather: null,          // {key, next, hold, from, blend} — see startWeather/updateWeather
 };
 let world = null;
 
@@ -10166,6 +10854,7 @@ function startGame(cfg) {
     }
   }
 
+  startWeather();
   AI.initGame(cfg.diff);
   RENDER.buildTerrain();
   world.recomputeFog();
@@ -10263,9 +10952,40 @@ function checkVictory() {
 }
 
 /* ---------------- fixed-step simulation ---------------- */
+/* ---------------- weather ----------------
+   A front holds for a few minutes, then the sky crosses to another one from the
+   biome's list over WEATHER_BLEND seconds. `blend` is how far through that crossing
+   we are, so the renderer can mix the two states rather than cutting between them.
+   Deliberately inert: nothing here reads sight, speed or damage. */
+function startWeather() {
+  const list = (world && world.biome ? world.biome.weather : null) || ['clear'];
+  game.weather = {
+    key: list[0], from: list[0], blend: 1,
+    hold: U.rand(WEATHER_MIN, WEATHER_MAX),
+  };
+}
+function updateWeather(dt) {
+  const wx = game.weather;
+  if (!wx) return;
+  if (wx.blend < 1) {
+    wx.blend = Math.min(1, wx.blend + dt / WEATHER_BLEND);
+    return;
+  }
+  wx.hold -= dt;
+  if (wx.hold > 0) return;
+  const list = (world && world.biome ? world.biome.weather : null) || ['clear'];
+  // never roll the same front twice in a row — a "change" that changes nothing reads as a bug
+  let next = wx.key;
+  for (let i = 0; i < 8 && next === wx.key; i++) next = U.pick(list);
+  wx.from = wx.key; wx.key = next; wx.blend = 0;
+  wx.hold = U.rand(WEATHER_MIN, WEATHER_MAX);
+  if (next !== wx.from) UI.feed('☁ ' + WEATHER[next].label);
+}
+
 function simStep(dt) {
   game.t += dt;
   game.frame++;
+  updateWeather(dt);
 
   for (const e of game.ents) {
     if (!e.dead) e.update(dt);

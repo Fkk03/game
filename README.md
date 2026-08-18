@@ -95,9 +95,43 @@ python3 -m http.server 8080
   - 🦅 **Meridian Coalition** — expensive high-tech elite units, strike jets, precision firepower
   - 🐲 **Crimson Dynasty** — cheap infantry hordes (Horde bonus!), heavy Warlord tanks, flame weapons, nukes
   - 🦂 **Scorpion Cartel** — dirt-cheap fast guerrillas, **needs no power grid**, salvages wrecks to upgrade vehicles
+- **…and each one builds in its own shapes.** Player colour tells you *who*; the silhouette
+  now tells you *what army*, on shared hulls and shared structures alike:
+
+  | | 🦅 Coalition | 🐲 Dynasty | 🦂 Cartel |
+  |---|---|---|---|
+  | **buildings** | chamfered octagonal roofs and aprons, bright trim following every cut edge, sensor masts with blinking beacons | square riveted slabs, poured **buttress skirts stepping out past the footprint**, working chimney stacks, banner chevrons | roofs out of true, corrugated sheeting, mismatched patch panels, **lean-tos on scaffold poles sprawling off the pad**, tarps, tyre stacks, a rag of a flag |
+  | **vehicles** | faceted wedge hulls cut to a point at the nose, panel seams, a lit chine down the spine | **the widest hull on the field** — a slab overhanging its own tracks, stepped at the engine deck, rivet rows down both flanks and a sloped glacis | welded from whatever was to hand: no two corners agree, bolted-on scrap plate, an exposed frame rail, a scrap ram nobody took off |
+  | **infantry** | composite helmet, visor, stub antenna | broad steel pot helmet | wrapped headscarf with a trailing tail |
+  | **aircraft** | canted twin fins, chevron flash | one tall slab fin, heavy spine bar | bent fin, riveted scrap patch, hand-painted stripe |
+
+  A Goliath is a Goliath in all three armies — same stats, same role — but a Coalition one
+  is a machined wedge, a Dynasty one a riveted slab, and a Cartel one a box under bolted-on
+  scrap. It is one shared hull outline and one shared roof outline underneath, so every one
+  of the thirteen structures and every vehicle picks it up at once
 - **Dozer-based construction** — select your Dozer/Worker, pick a structure, place it anywhere you've scouted
-- **Supply economy** — rich supply piles scattered all across the map; Supply Trucks haul them
-  to your Supply Center, Markets pay a fat $32/s trickle
+- **Oil economy** — the map's wealth is crude. **Oil fields** scattered across the desert
+  run a derrick over the wellhead, storage tanks on the pad and a ring of nodding
+  pumpjacks working the ground; how many are still nodding *is* the meter, so a rich
+  field and a nearly dry one read differently from across the map, and a spent one leaves
+  a capped wellhead and a stain. **Tankers** haul the crude to your Supply Center, Markets
+  pay a fat $32/s trickle
+- **Four climates, rolled from the map seed** — **Deep Desert**, **Dry Steppe**,
+  **Frozen Waste** and **Broken Highlands**. The climate repaints the whole map — ground,
+  scrub, rock faces — and decides what grows on it and what the sky is allowed to do. The
+  same seed always gives the same world
+- **Mountains, not grey patches** — every rock tile carries a height taken from how deep
+  inside its massif it sits, so a rock mass rises from a knee-high outcrop at the rim to a
+  peak in the middle, drawn as stacked benches with lit north faces and shadowed south
+  ones. The cold climates put **snow caps** on anything high enough, and the map border is
+  a mountain wall rather than a kerb. It all bakes into the terrain cache at map build, so
+  it costs nothing per frame
+- **Weather that moves** — the sky opens on whatever its climate rolls and drifts to a new
+  front every few minutes, **blending across the change rather than cutting**: clear, heat
+  haze, overcast, sandstorm, rain, snowfall, blizzard. A blizzard drives snow across the
+  screen at an angle; a sandstorm turns the whole battlefield the colour of dust. It is a
+  mood and nothing more — **weather touches no damage, range, reload, speed or sight**, so
+  a storm never decides a battle
 - **Repair Center** — automatically fixes your tanks and aircraft in a radius around it
   (a compact 2-tile pad), at **4× whatever that crew manages on its own in the field**.
   A green crew has no field repair to quadruple, so it gets the pad's rated 16 hp/s;
@@ -152,7 +186,7 @@ python3 -m http.server 8080
 - **Queued construction** — hold Shift while placing buildings to chain up build sites;
   your dozer works through the whole list on its own
 - **Hardened bases** — every structure has 3× health; razing a base is a siege, not a drive-by
-- **Regenerating supplies** — exhausted supply piles refill after 20 minutes to
+- **Regenerating oil fields** — pumped-dry fields strike again after 20 minutes at
   75%, then 50%, then 25% (repeating at 25%); an on-map ⏳ timer shows the countdown
 - **Public superweapons** — the moment ANY general breaks ground on a superweapon,
   every player gets a warning and a blinking marker on the minimap until it dies
@@ -371,7 +405,7 @@ style.css       UI styling
 js/util.js      math, RNG, noise
 js/data.js      all unit/building/faction/power definitions
 js/sfx.js       WebAudio synthesized sound + voice
-js/world.js     map generation, fog of war, supplies, salvage
+js/world.js     map generation, biomes, mountains, fog of war, oil fields, salvage
 js/path.js      A* pathfinding
 js/fx.js        particles, decals, floating text
 js/ent.js       units, buildings, projectiles, combat

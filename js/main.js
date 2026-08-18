@@ -14,6 +14,7 @@ let game = {
   zones: [],              // control points {kind:'dom'|'econ', x, y, r, owner(team|-1), capT, capTeam, contested, present}
   domScore: { 0: 0, 1: 0 },
   econTeam: -1,
+  weather: null,          // {key, next, hold, from, blend} — see startWeather/updateWeather
 };
 let world = null;
 
@@ -126,6 +127,7 @@ function startGame(cfg) {
     }
   }
 
+  startWeather();
   AI.initGame(cfg.diff);
   RENDER.buildTerrain();
   world.recomputeFog();
@@ -223,9 +225,40 @@ function checkVictory() {
 }
 
 /* ---------------- fixed-step simulation ---------------- */
+/* ---------------- weather ----------------
+   A front holds for a few minutes, then the sky crosses to another one from the
+   biome's list over WEATHER_BLEND seconds. `blend` is how far through that crossing
+   we are, so the renderer can mix the two states rather than cutting between them.
+   Deliberately inert: nothing here reads sight, speed or damage. */
+function startWeather() {
+  const list = (world && world.biome ? world.biome.weather : null) || ['clear'];
+  game.weather = {
+    key: list[0], from: list[0], blend: 1,
+    hold: U.rand(WEATHER_MIN, WEATHER_MAX),
+  };
+}
+function updateWeather(dt) {
+  const wx = game.weather;
+  if (!wx) return;
+  if (wx.blend < 1) {
+    wx.blend = Math.min(1, wx.blend + dt / WEATHER_BLEND);
+    return;
+  }
+  wx.hold -= dt;
+  if (wx.hold > 0) return;
+  const list = (world && world.biome ? world.biome.weather : null) || ['clear'];
+  // never roll the same front twice in a row — a "change" that changes nothing reads as a bug
+  let next = wx.key;
+  for (let i = 0; i < 8 && next === wx.key; i++) next = U.pick(list);
+  wx.from = wx.key; wx.key = next; wx.blend = 0;
+  wx.hold = U.rand(WEATHER_MIN, WEATHER_MAX);
+  if (next !== wx.from) UI.feed('☁ ' + WEATHER[next].label);
+}
+
 function simStep(dt) {
   game.t += dt;
   game.frame++;
+  updateWeather(dt);
 
   for (const e of game.ents) {
     if (!e.dead) e.update(dt);

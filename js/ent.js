@@ -686,7 +686,7 @@ class Unit {
         const take = Math.min(this.def.capacity - this.carrying, dock.amount);
         world.depleteDock(dock, take);
         this.carrying += take;
-        if (dock.amount <= 0 && this.owner === 0) UI.feed('Supply pile exhausted', 'bad');
+        if (dock.amount <= 0 && this.owner === 0) UI.feed('Oil field pumped dry', 'bad');
       }
     } else {
       if (!this.path) this.setPathTo(dock.x + U.rand(-20, 20), dock.y + U.rand(-20, 20));

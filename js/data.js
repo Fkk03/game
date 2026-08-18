@@ -58,6 +58,78 @@ const AI_MAX_SUPPLY = 14;
 const AI_UNIT_COST_MUL = 0.5;
 const AI_BUILDTIME_MUL = 0.5;
 
+/* =====================================================================
+   BIOMES — the map's climate. Chosen from the world seed, it sets the whole
+   palette (ground, rough scrub, rock faces, mountain caps), what grows on it,
+   and which weather the sky is allowed to produce. Every biome is still a
+   playable desert-war map: the terrain shapes are identical, only the world
+   they sit in changes.
+===================================================================== */
+const BIOMES = {
+  desert: {
+    label: 'Deep Desert',
+    sand: [194, 162, 106], sandLo: [122, 96, 58], sandHi: [236, 214, 158],
+    rough: [134, 108, 66], rock: [126, 112, 90], rockLit: [186, 168, 132],
+    cap: null,                       // no snowline
+    scrub: '#6d7a3f', stone: '#8d8271', stoneLit: '#a99d89',
+    props: { scrub: 0.55, rock: 0.45 },
+    weather: ['clear', 'clear', 'haze', 'sandstorm', 'overcast'],
+    sky: null,
+  },
+  steppe: {
+    label: 'Dry Steppe',
+    sand: [172, 168, 108], sandLo: [104, 104, 58], sandHi: [214, 214, 156],
+    rough: [108, 116, 60], rock: [116, 116, 96], rockLit: [172, 172, 146],
+    cap: null,
+    scrub: '#7c8f42', stone: '#85857a', stoneLit: '#a4a496',
+    props: { scrub: 0.75, rock: 0.25 },
+    weather: ['clear', 'overcast', 'haze', 'rain', 'clear'],
+    sky: 'rgba(120,140,90,0.05)',
+  },
+  tundra: {
+    label: 'Frozen Waste',
+    sand: [206, 212, 220], sandLo: [140, 152, 170], sandHi: [242, 246, 252],
+    rough: [150, 164, 178], rock: [104, 116, 132], rockLit: [166, 180, 198],
+    cap: [246, 250, 255],            // permanent snowline on the high ground
+    capFrom: 1,                      // ...from the lowest rock upward
+    scrub: '#5f7060', stone: '#7d8792', stoneLit: '#aab4c0',
+    props: { scrub: 0.3, rock: 0.7 },
+    weather: ['snow', 'overcast', 'snow', 'blizzard', 'clear'],
+    sky: 'rgba(150,180,220,0.10)',
+  },
+  highland: {
+    label: 'Broken Highlands',
+    sand: [166, 134, 104], sandLo: [96, 74, 54], sandHi: [214, 186, 152],
+    rough: [122, 92, 66], rock: [98, 88, 82], rockLit: [158, 146, 138],
+    cap: [238, 242, 248],            // snow on the peaks only
+    capFrom: 3,
+    scrub: '#63713c', stone: '#7a706a', stoneLit: '#9c918a',
+    props: { scrub: 0.4, rock: 0.6 },
+    weather: ['clear', 'overcast', 'rain', 'snow', 'haze'],
+    sky: 'rgba(90,100,120,0.06)',
+  },
+};
+const BIOME_KEYS = Object.keys(BIOMES);
+
+/* =====================================================================
+   WEATHER — the sky, and it moves. A match opens on whatever its biome
+   rolls and drifts to a new state every few minutes, blending across the
+   change rather than cutting. It is a mood, not a mechanic: nothing here
+   touches sight, speed or damage, so a storm never decides a battle.
+===================================================================== */
+const WEATHER = {
+  clear:     { label: 'Clear',      tint: null,                       parts: null,  density: 0, wind: 0.2, dark: 0 },
+  haze:      { label: 'Heat Haze',  tint: 'rgba(228,196,138,0.16)',   parts: 'dust',  density: 0.25, wind: 0.5, dark: 0.02 },
+  overcast:  { label: 'Overcast',   tint: 'rgba(70,74,86,0.20)',      parts: null,  density: 0, wind: 0.4, dark: 0.10 },
+  sandstorm: { label: 'Sandstorm',  tint: 'rgba(206,158,86,0.34)',    parts: 'dust',  density: 1, wind: 2.4, dark: 0.16 },
+  rain:      { label: 'Rain',       tint: 'rgba(58,72,96,0.26)',      parts: 'rain',  density: 0.8, wind: 0.9, dark: 0.20 },
+  snow:      { label: 'Snowfall',   tint: 'rgba(196,212,236,0.16)',   parts: 'snow',  density: 0.6, wind: 0.5, dark: 0.06 },
+  blizzard:  { label: 'Blizzard',   tint: 'rgba(212,226,244,0.34)',   parts: 'snow',  density: 1.5, wind: 2.0, dark: 0.14 },
+};
+const WEATHER_MIN = 100;                // shortest a front holds, seconds
+const WEATHER_MAX = 220;                // ...and the longest
+const WEATHER_BLEND = 18;               // seconds to cross from one to the next
+
 const MAPSIZES = {
   small:  { label: 'Small',  w: 72,  h: 72 },
   medium: { label: 'Medium', w: 96,  h: 96 },
@@ -140,7 +212,7 @@ const BUILDINGS = {
   supply: {
     name: { coalition: 'Supply Center', dynasty: 'Supply Depot', cartel: 'Supply Stash' },
     icon: '📦', cost: 1200, hp: 4800, size: 3, buildTime: 18, power: 2, armor: 'building',
-    sight: 7, desc: 'Drop-off point for supplies. Builds Supply Trucks.',
+    sight: 7, desc: 'Refinery and depot for crude hauled in from the oil fields. Builds Tankers.',
     trains: ['truck'],
   },
   barracks: {
@@ -237,9 +309,9 @@ const UNITS = {
     builder: true, noAutoAttack: true,
   },
   truck: {
-    name: { coalition: 'Supply Truck', dynasty: 'Supply Truck', cartel: 'Scrap Hauler' },
+    name: { coalition: 'Tanker', dynasty: 'Tanker', cartel: 'Scrap Hauler' },
     icon: '🚚', cost: 600, hp: 380, speed: 92, sight: 5, radius: 15, armor: 'light',
-    buildTime: 7, chassis: 'truck', desc: 'Hauls supplies from piles to your Supply Center. $300 per load.',
+    buildTime: 7, chassis: 'truck', desc: 'Hauls crude from an oil field to your Supply Center. $300 per load.',
     harvester: true, capacity: 300, noAutoAttack: true,
   },
 
