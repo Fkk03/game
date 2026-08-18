@@ -796,16 +796,26 @@ const AI = (() => {
          reserve got this wrong in both directions — too low and the AI refitted its
          way out of a base (nine supply centers instead of eighteen), too high and it
          never refitted at all. */
+      /* The floor has to clear the most expensive hull the general buys, not just the
+         next structure. Dropped to $25,000 it refitted so hungrily that it could never
+         again afford an Annihilator — measured over five minutes it stopped fielding
+         Goliaths entirely, which is a worse army however good its gun sights are. */
       const wantB = wantedStructure();
-      const reserve = 70000 + (wantB ? BUILDINGS[wantB].cost : 0);
+      const heaviest = Math.max(...['annihilator', 'leviathan', 'citadel', 'siege', 'goliath']
+        .map(k => uCost(k, pl.faction, pi)));
+      const reserve = heaviest + 12000 + (wantB ? BUILDINGS[wantB].cost : 0);
       if (pl.money <= reserve) return;
-      let budget = (pl.money - reserve) * 0.4;
+      /* Three quarters of the idle money, not two fifths. A general sitting on a
+         treasury with a fully built base and a capped army has nothing better to buy
+         than levels, and levels compound — money left in the bank does not. */
+      let budget = (pl.money - reserve) * 0.75;
       const fac = pl.faction;
       const army = combatUnits();
       if (!army.length) return;
-      /* One level per hull per pass, least-upgraded first. Buying every track on one
-         unit before moving on maxed a handful of veterans and left the rest of the
-         army — and every aircraft — completely stock. */
+      /* Least-upgraded first, veterans breaking ties. Buying every track on one unit
+         before moving on maxed a handful and left the rest of the army — and every
+         aircraft — completely stock, so a pass still spreads across hulls; it just
+         fits several levels onto each one now instead of exactly one. */
       const order = army.slice().sort((a, b) => {
         const la = (a.gunLvl || 0) + (a.armorLvl || 0) + (a.specialLvl || 0);
         const lb = (b.gunLvl || 0) + (b.armorLvl || 0) + (b.specialLvl || 0);
@@ -813,17 +823,21 @@ const AI = (() => {
       });
       let bought = 0;
       for (const u of order) {
-        if (bought >= 25 || budget <= 0) break;
-        for (const kind of ['special', 'gun', 'armor']) {
-          if (fieldUpLevel(u, kind) >= AI_UPGRADE_MAX) continue;
-          if (!canFieldUpgrade(u, kind)) continue;
-          const cost = fieldUpCost(u, fac, kind);
-          if (cost > budget || cost > pl.money) continue;
-          pl.spend(cost);
-          budget -= cost;
-          applyFieldUpgrade(u, kind);
-          bought++;
-          break;                                  // next hull: spread, don't max one
+        if (bought >= 160 || budget <= 0) break;
+        for (let n = 0; n < 4; n++) {             // up to four levels per hull per pass
+          let got = false;
+          for (const kind of ['special', 'gun', 'armor']) {
+            if (fieldUpLevel(u, kind) >= AI_UPGRADE_MAX) continue;
+            if (!canFieldUpgrade(u, kind)) continue;
+            const cost = fieldUpCost(u, fac, kind);
+            if (cost > budget || cost > pl.money) continue;
+            pl.spend(cost);
+            budget -= cost;
+            applyFieldUpgrade(u, kind);
+            bought++; got = true;
+            break;
+          }
+          if (!got) break;
         }
       }
       if (bought) S.upgradesBought = (S.upgradesBought || 0) + bought;
@@ -1211,7 +1225,7 @@ const AI = (() => {
       manageEconomy();
       manageArmy();
       S.upgradeT -= dt2;
-      if (S.upgradeT <= 0) { S.upgradeT = 6; manageUpgrades(); }
+      if (S.upgradeT <= 0) { S.upgradeT = 3; manageUpgrades(); }
       manageAttack(dt2);
       useUltimates();
       S.powerUseT -= dt2;

@@ -45,15 +45,24 @@ const DIFFICULTY = {
 };
 
 /* AI war chest: every AI general is resupplied this much every 10 minutes */
-const AI_CASH_DROP = 30000;
-/* How many levels of one track the AI will sink into a single hull. Levels compound
-   now, so a general that stopped at four was leaving most of the curve unclaimed —
-   but it still refits the whole army to a standard rather than min-maxing one tank
-   into a monument, and the rising price per level is what stops it going further. */
-const AI_UPGRADE_MAX = 16;
+const AI_CASH_DROP = 60000;
+/* ...and every dollar it earns from oil and markets is doubled on top of the
+   difficulty's own income rate. Between the two, an AI general runs on twice the
+   resources it used to. */
+const AI_INCOME_MUL = 2;
+/* How many levels of one track the AI will sink into a single hull. Levels compound,
+   so a general that stopped early left most of the curve unclaimed. It refits hard
+   now — thirty levels is 7.6x the stat — and the rising price per level is the only
+   thing that stops it, which is exactly the brake that should be doing the work. */
+const AI_UPGRADE_MAX = 30;
 /* Ceiling on the mined-out "expand the economy" reflex. Without one, an exhausted
    map makes the AI request supply centers forever and nothing else ever gets built. */
 const AI_MAX_SUPPLY = 14;
+/* How much ground a guard order actually covers. "Guard here" is a circle, not a
+   suggestion: a posted unit engages anything it can reach from inside this radius and
+   never steps outside it. */
+const GUARD_HOLD_R = 220;
+
 /* AI production handicap: units cost and take half as long to build */
 const AI_UNIT_COST_MUL = 0.5;
 const AI_BUILDTIME_MUL = 0.5;
@@ -94,7 +103,7 @@ const BIOMES = {
     capFrom: 1,                      // ...from the lowest rock upward
     scrub: '#5f7060', stone: '#7d8792', stoneLit: '#aab4c0',
     props: { scrub: 0.3, rock: 0.7 },
-    weather: ['snow', 'overcast', 'snow', 'blizzard', 'clear'],
+    weather: ['overcast', 'haze', 'clear', 'overcast', 'clear'],
     sky: 'rgba(150,180,220,0.10)',
   },
   highland: {
@@ -105,7 +114,7 @@ const BIOMES = {
     capFrom: 3,
     scrub: '#63713c', stone: '#7a706a', stoneLit: '#9c918a',
     props: { scrub: 0.4, rock: 0.6 },
-    weather: ['clear', 'overcast', 'rain', 'snow', 'haze'],
+    weather: ['clear', 'overcast', 'rain', 'haze', 'clear'],
     sky: 'rgba(90,100,120,0.06)',
   },
 };
@@ -123,8 +132,6 @@ const WEATHER = {
   overcast:  { label: 'Overcast',   tint: 'rgba(70,74,86,0.20)',      parts: null,  density: 0, wind: 0.4, dark: 0.10 },
   sandstorm: { label: 'Sandstorm',  tint: 'rgba(206,158,86,0.34)',    parts: 'dust',  density: 1, wind: 2.4, dark: 0.16 },
   rain:      { label: 'Rain',       tint: 'rgba(58,72,96,0.26)',      parts: 'rain',  density: 0.8, wind: 0.9, dark: 0.20 },
-  snow:      { label: 'Snowfall',   tint: 'rgba(196,212,236,0.16)',   parts: 'snow',  density: 0.6, wind: 0.5, dark: 0.06 },
-  blizzard:  { label: 'Blizzard',   tint: 'rgba(212,226,244,0.34)',   parts: 'snow',  density: 1.5, wind: 2.0, dark: 0.14 },
 };
 const WEATHER_MIN = 100;                // shortest a front holds, seconds
 const WEATHER_MAX = 220;                // ...and the longest

@@ -83,7 +83,7 @@ function startGame(cfg) {
   }
   for (const p of game.players) {
     p.money = cfg.money + (p.isAI ? diff.startBonus : 0);
-    if (p.isAI) p.incomeMult = diff.income;
+    if (p.isAI) p.incomeMult = diff.income * AI_INCOME_MUL;
   }
 
   // map auto-grows with player count so everyone fits

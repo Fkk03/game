@@ -580,15 +580,24 @@ const DIFFICULTY = {
 };
 
 /* AI war chest: every AI general is resupplied this much every 10 minutes */
-const AI_CASH_DROP = 30000;
-/* How many levels of one track the AI will sink into a single hull. Levels compound
-   now, so a general that stopped at four was leaving most of the curve unclaimed —
-   but it still refits the whole army to a standard rather than min-maxing one tank
-   into a monument, and the rising price per level is what stops it going further. */
-const AI_UPGRADE_MAX = 16;
+const AI_CASH_DROP = 60000;
+/* ...and every dollar it earns from oil and markets is doubled on top of the
+   difficulty's own income rate. Between the two, an AI general runs on twice the
+   resources it used to. */
+const AI_INCOME_MUL = 2;
+/* How many levels of one track the AI will sink into a single hull. Levels compound,
+   so a general that stopped early left most of the curve unclaimed. It refits hard
+   now — thirty levels is 7.6x the stat — and the rising price per level is the only
+   thing that stops it, which is exactly the brake that should be doing the work. */
+const AI_UPGRADE_MAX = 30;
 /* Ceiling on the mined-out "expand the economy" reflex. Without one, an exhausted
    map makes the AI request supply centers forever and nothing else ever gets built. */
 const AI_MAX_SUPPLY = 14;
+/* How much ground a guard order actually covers. "Guard here" is a circle, not a
+   suggestion: a posted unit engages anything it can reach from inside this radius and
+   never steps outside it. */
+const GUARD_HOLD_R = 220;
+
 /* AI production handicap: units cost and take half as long to build */
 const AI_UNIT_COST_MUL = 0.5;
 const AI_BUILDTIME_MUL = 0.5;
@@ -629,7 +638,7 @@ const BIOMES = {
     capFrom: 1,                      // ...from the lowest rock upward
     scrub: '#5f7060', stone: '#7d8792', stoneLit: '#aab4c0',
     props: { scrub: 0.3, rock: 0.7 },
-    weather: ['snow', 'overcast', 'snow', 'blizzard', 'clear'],
+    weather: ['overcast', 'haze', 'clear', 'overcast', 'clear'],
     sky: 'rgba(150,180,220,0.10)',
   },
   highland: {
@@ -640,7 +649,7 @@ const BIOMES = {
     capFrom: 3,
     scrub: '#63713c', stone: '#7a706a', stoneLit: '#9c918a',
     props: { scrub: 0.4, rock: 0.6 },
-    weather: ['clear', 'overcast', 'rain', 'snow', 'haze'],
+    weather: ['clear', 'overcast', 'rain', 'haze', 'clear'],
     sky: 'rgba(90,100,120,0.06)',
   },
 };
@@ -658,8 +667,6 @@ const WEATHER = {
   overcast:  { label: 'Overcast',   tint: 'rgba(70,74,86,0.20)',      parts: null,  density: 0, wind: 0.4, dark: 0.10 },
   sandstorm: { label: 'Sandstorm',  tint: 'rgba(206,158,86,0.34)',    parts: 'dust',  density: 1, wind: 2.4, dark: 0.16 },
   rain:      { label: 'Rain',       tint: 'rgba(58,72,96,0.26)',      parts: 'rain',  density: 0.8, wind: 0.9, dark: 0.20 },
-  snow:      { label: 'Snowfall',   tint: 'rgba(196,212,236,0.16)',   parts: 'snow',  density: 0.6, wind: 0.5, dark: 0.06 },
-  blizzard:  { label: 'Blizzard',   tint: 'rgba(212,226,244,0.34)',   parts: 'snow',  density: 1.5, wind: 2.0, dark: 0.14 },
 };
 const WEATHER_MIN = 100;                // shortest a front holds, seconds
 const WEATHER_MAX = 220;                // ...and the longest
@@ -2984,6 +2991,21 @@ class Unit {
     this.path = null;
   }
 
+  /* the ground this unit was told to hold, and how much of it */
+  guardAnchor() { return { x: this.guardX, y: this.guardY, r: GUARD_HOLD_R }; }
+
+  /* Break off and go back to the post.
+     This exists because nextOrder() re-anchors a unit wherever it happens to be
+     standing, which is right for a finished move order and catastrophic for a guard:
+     every enemy that wandered past dragged the post one leash-length further, so a
+     tank told to hold a crossroads walked off across the map a chase at a time. The
+     anchor a player set is not the unit's to move. */
+  returnToPost() {
+    this.order = { type: 'guard' };
+    this.path = null;
+    if (U.dist(this.x, this.y, this.guardX, this.guardY) > 40) this.setPathTo(this.guardX, this.guardY);
+  }
+
   /* --------- pathing --------- */
   setPathTo(x, y) {
     this.path = PATH.find(world, this.x, this.y, x, y);
@@ -3040,9 +3062,12 @@ class Unit {
   }
 
   /* --------- combat --------- */
-  findTarget(range) {
+  /* `anchor` — {x, y, r} — restricts a posted unit to targets it can engage without
+     leaving its ground. Without it a guard picked whatever was nearest and walked to it. */
+  findTarget(range, anchor) {
     const w = this.def.weapon;
     if (!w && !this.def.suicide) return null;
+    const reach = anchor ? anchor.r + (w ? effRange(w, this) : range) : 0;
     /* A gun that outranges its own eyes cannot pick targets by itself: past the
        unit's sight radius the team needs a real spotter. This is what keeps
        extreme-range artillery honest instead of auto-sniping through the fog.
@@ -3059,6 +3084,7 @@ class Unit {
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.03) continue;
       const d = U.dist(this.x, this.y, e.x, e.y);
       if (d > range) continue;
+      if (anchor && U.dist(anchor.x, anchor.y, e.x, e.y) > reach) continue;
       if (spotted && d > eyes) {
         const tx = Math.floor(e.x / TILE), ty = Math.floor(e.y / TILE);
         if (!world.inb(tx, ty) || !world.visible[world.idx(tx, ty)]) continue;
@@ -3195,7 +3221,7 @@ class Unit {
     this.scanT -= dt;
     if (this.scanT <= 0) {
       this.scanT = 0.4;
-      const t = this.findTarget(effRange(this.def.weapon, this) + 60);
+      const t = this.findTarget(effRange(this.def.weapon, this) + 60, this.guardAnchor());
       if (t) { this.order = { type: 'attack', targetId: t.id, fromGuard: true }; return; }
       // drift back to guard anchor
       if (U.dist(this.x, this.y, this.guardX, this.guardY) > 60 && !this.path) {
@@ -3227,7 +3253,8 @@ class Unit {
     this.scanT -= dt;
     if (this.scanT <= 0 && this.def.weapon && !this.def.noAutoAttack) {
       this.scanT = 0.35;
-      const t = this.findTarget(Math.max(effRange(this.def.weapon, this) + 80, this.def.sight * TILE));
+      const t = this.findTarget(Math.max(effRange(this.def.weapon, this) + 80, this.def.sight * TILE),
+        { x: o.x, y: o.y, r: GUARD_HOLD_R });
       if (t) {
         this.orderQueue.unshift({ type: 'guardarea', x: o.x, y: o.y });
         this.order = { type: 'attack', targetId: t.id, fromGuard: true };
@@ -3243,16 +3270,29 @@ class Unit {
     }
   }
 
+  /* How a fight ends. Every exit from an attack has to go through here, because
+     nextOrder() re-anchors a unit where it stands and a guard's post is not its own
+     to move: the killing blow landing 200px downrange used to shift the post 200px
+     downrange with it, one dead attacker at a time. */
+  endFight(o) {
+    if (o && o.fromGuard && !this.orderQueue.length) { this.returnToPost(); return; }
+    this.nextOrder();
+  }
+
   doAttack(dt, o) {
     const target = game.byId.get(o.targetId);
-    if (!target || target.dead) { this.nextOrder(); return; }
+    if (!target || target.dead) { this.endFight(o); return; }
     if (this.def.suicide) { this.doSuicide(dt, target); return; }
-    if (!this.def.weapon || !weaponCanHit(this.def.weapon, target)) { this.nextOrder(); return; }
+    if (!this.def.weapon || !weaponCanHit(this.def.weapon, target)) { this.endFight(o); return; }
 
     const res = this.tryFire(target, dt);
     if (res === 'far') {
-      // leash for guard-retaliation
-      if (o.fromGuard && U.dist(this.x, this.y, this.guardX, this.guardY) > 340) { this.nextOrder(); return; }
+      /* Leash. A guard chases only as far as the ground it was given; at the edge it
+         turns round and goes back rather than stopping where it stands, which is what
+         used to let the post creep across the map. */
+      if (o.fromGuard && U.dist(this.x, this.y, this.guardX, this.guardY) > GUARD_HOLD_R) {
+        this.returnToPost(); return;
+      }
       if (!this.path || this.repathT === undefined || (this.repathT -= dt) <= 0) {
         this.repathT = 0.7;
         this.setPathTo(target.x, target.y);
@@ -5157,7 +5197,7 @@ const RENDER = (() => {
   const WX_SEED = 1337;
   function wxParticles(kind, amount, wind, tSec) {
     if (!kind || amount <= 0.01) return;
-    const n = Math.round(amount * (kind === 'rain' ? 260 : kind === 'snow' ? 220 : 190));
+    const n = Math.round(amount * (kind === 'rain' ? 260 : 190));
     const rng = U.seededRng(WX_SEED);
     const drift = tSec * 60;
     ctx.save();
@@ -5172,15 +5212,6 @@ const RENDER = (() => {
         ctx.moveTo(x, y); ctx.lineTo(x - wind * 6, y + len);
       }
       ctx.stroke();
-    } else if (kind === 'snow') {
-      for (let i = 0; i < n; i++) {
-        const sp = 34 + rng() * 60, r = 1 + rng() * 2.2;
-        const sway = Math.sin(tSec * (0.8 + rng()) + i) * (7 + wind * 9);
-        const x = ((rng() * (W + 300) + drift * wind * 0.5 + sway) % (W + 300)) - 150;
-        const y = (rng() * H + tSec * sp) % (H + 40) - 20;
-        ctx.fillStyle = `rgba(250,253,255,${(0.35 + rng() * 0.45) * Math.min(1, amount)})`;
-        ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
-      }
     } else {                                   // blown dust: long, flat, fast streaks
       ctx.lineWidth = 1.6;
       for (let i = 0; i < n; i++) {
@@ -7508,6 +7539,20 @@ const RENDER = (() => {
         ctx.beginPath(); ctx.arc(e.x, e.y, e.def.detect, 0, 7); ctx.stroke();
         ctx.setLineDash([]);
       }
+      /* The ground a posted unit was actually given. "Guard here" now means a circle
+         it holds and does not leave, so the circle is worth drawing — otherwise the
+         player has no way to know how far the order reaches. */
+      if (e.kind === 'unit' && !e.def.air && e.def.weapon &&
+          (e.order.type === 'guard' || e.order.type === 'guardarea' || e.order.fromGuard)) {
+        const gx = e.order.type === 'guardarea' ? e.order.x : e.guardX;
+        const gy = e.order.type === 'guardarea' ? e.order.y : e.guardY;
+        ctx.strokeStyle = 'rgba(159,220,124,0.30)'; ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 8]);
+        ctx.beginPath(); ctx.arc(gx, gy, GUARD_HOLD_R, 0, 7); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(159,220,124,0.5)';
+        ctx.beginPath(); ctx.arc(gx, gy, 3, 0, 7); ctx.fill();
+      }
       // repair bay range ring
       if (e.kind === 'building' && e.key === 'repairbay' && e.constructed) {
         ctx.strokeStyle = 'rgba(127,212,255,0.35)'; ctx.lineWidth = 1.5;
@@ -8655,16 +8700,26 @@ const AI = (() => {
          reserve got this wrong in both directions — too low and the AI refitted its
          way out of a base (nine supply centers instead of eighteen), too high and it
          never refitted at all. */
+      /* The floor has to clear the most expensive hull the general buys, not just the
+         next structure. Dropped to $25,000 it refitted so hungrily that it could never
+         again afford an Annihilator — measured over five minutes it stopped fielding
+         Goliaths entirely, which is a worse army however good its gun sights are. */
       const wantB = wantedStructure();
-      const reserve = 70000 + (wantB ? BUILDINGS[wantB].cost : 0);
+      const heaviest = Math.max(...['annihilator', 'leviathan', 'citadel', 'siege', 'goliath']
+        .map(k => uCost(k, pl.faction, pi)));
+      const reserve = heaviest + 12000 + (wantB ? BUILDINGS[wantB].cost : 0);
       if (pl.money <= reserve) return;
-      let budget = (pl.money - reserve) * 0.4;
+      /* Three quarters of the idle money, not two fifths. A general sitting on a
+         treasury with a fully built base and a capped army has nothing better to buy
+         than levels, and levels compound — money left in the bank does not. */
+      let budget = (pl.money - reserve) * 0.75;
       const fac = pl.faction;
       const army = combatUnits();
       if (!army.length) return;
-      /* One level per hull per pass, least-upgraded first. Buying every track on one
-         unit before moving on maxed a handful of veterans and left the rest of the
-         army — and every aircraft — completely stock. */
+      /* Least-upgraded first, veterans breaking ties. Buying every track on one unit
+         before moving on maxed a handful and left the rest of the army — and every
+         aircraft — completely stock, so a pass still spreads across hulls; it just
+         fits several levels onto each one now instead of exactly one. */
       const order = army.slice().sort((a, b) => {
         const la = (a.gunLvl || 0) + (a.armorLvl || 0) + (a.specialLvl || 0);
         const lb = (b.gunLvl || 0) + (b.armorLvl || 0) + (b.specialLvl || 0);
@@ -8672,17 +8727,21 @@ const AI = (() => {
       });
       let bought = 0;
       for (const u of order) {
-        if (bought >= 25 || budget <= 0) break;
-        for (const kind of ['special', 'gun', 'armor']) {
-          if (fieldUpLevel(u, kind) >= AI_UPGRADE_MAX) continue;
-          if (!canFieldUpgrade(u, kind)) continue;
-          const cost = fieldUpCost(u, fac, kind);
-          if (cost > budget || cost > pl.money) continue;
-          pl.spend(cost);
-          budget -= cost;
-          applyFieldUpgrade(u, kind);
-          bought++;
-          break;                                  // next hull: spread, don't max one
+        if (bought >= 160 || budget <= 0) break;
+        for (let n = 0; n < 4; n++) {             // up to four levels per hull per pass
+          let got = false;
+          for (const kind of ['special', 'gun', 'armor']) {
+            if (fieldUpLevel(u, kind) >= AI_UPGRADE_MAX) continue;
+            if (!canFieldUpgrade(u, kind)) continue;
+            const cost = fieldUpCost(u, fac, kind);
+            if (cost > budget || cost > pl.money) continue;
+            pl.spend(cost);
+            budget -= cost;
+            applyFieldUpgrade(u, kind);
+            bought++; got = true;
+            break;
+          }
+          if (!got) break;
         }
       }
       if (bought) S.upgradesBought = (S.upgradesBought || 0) + bought;
@@ -9070,7 +9129,7 @@ const AI = (() => {
       manageEconomy();
       manageArmy();
       S.upgradeT -= dt2;
-      if (S.upgradeT <= 0) { S.upgradeT = 6; manageUpgrades(); }
+      if (S.upgradeT <= 0) { S.upgradeT = 3; manageUpgrades(); }
       manageAttack(dt2);
       useUltimates();
       S.powerUseT -= dt2;
@@ -10810,7 +10869,7 @@ function startGame(cfg) {
   }
   for (const p of game.players) {
     p.money = cfg.money + (p.isAI ? diff.startBonus : 0);
-    if (p.isAI) p.incomeMult = diff.income;
+    if (p.isAI) p.incomeMult = diff.income * AI_INCOME_MUL;
   }
 
   // map auto-grows with player count so everyone fits

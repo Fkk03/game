@@ -343,6 +343,21 @@ class Unit {
     this.path = null;
   }
 
+  /* the ground this unit was told to hold, and how much of it */
+  guardAnchor() { return { x: this.guardX, y: this.guardY, r: GUARD_HOLD_R }; }
+
+  /* Break off and go back to the post.
+     This exists because nextOrder() re-anchors a unit wherever it happens to be
+     standing, which is right for a finished move order and catastrophic for a guard:
+     every enemy that wandered past dragged the post one leash-length further, so a
+     tank told to hold a crossroads walked off across the map a chase at a time. The
+     anchor a player set is not the unit's to move. */
+  returnToPost() {
+    this.order = { type: 'guard' };
+    this.path = null;
+    if (U.dist(this.x, this.y, this.guardX, this.guardY) > 40) this.setPathTo(this.guardX, this.guardY);
+  }
+
   /* --------- pathing --------- */
   setPathTo(x, y) {
     this.path = PATH.find(world, this.x, this.y, x, y);
@@ -399,9 +414,12 @@ class Unit {
   }
 
   /* --------- combat --------- */
-  findTarget(range) {
+  /* `anchor` — {x, y, r} — restricts a posted unit to targets it can engage without
+     leaving its ground. Without it a guard picked whatever was nearest and walked to it. */
+  findTarget(range, anchor) {
     const w = this.def.weapon;
     if (!w && !this.def.suicide) return null;
+    const reach = anchor ? anchor.r + (w ? effRange(w, this) : range) : 0;
     /* A gun that outranges its own eyes cannot pick targets by itself: past the
        unit's sight radius the team needs a real spotter. This is what keeps
        extreme-range artillery honest instead of auto-sniping through the fog.
@@ -418,6 +436,7 @@ class Unit {
       if (e.kind === 'building' && !e.constructed && e.buildProgress < 0.03) continue;
       const d = U.dist(this.x, this.y, e.x, e.y);
       if (d > range) continue;
+      if (anchor && U.dist(anchor.x, anchor.y, e.x, e.y) > reach) continue;
       if (spotted && d > eyes) {
         const tx = Math.floor(e.x / TILE), ty = Math.floor(e.y / TILE);
         if (!world.inb(tx, ty) || !world.visible[world.idx(tx, ty)]) continue;
@@ -554,7 +573,7 @@ class Unit {
     this.scanT -= dt;
     if (this.scanT <= 0) {
       this.scanT = 0.4;
-      const t = this.findTarget(effRange(this.def.weapon, this) + 60);
+      const t = this.findTarget(effRange(this.def.weapon, this) + 60, this.guardAnchor());
       if (t) { this.order = { type: 'attack', targetId: t.id, fromGuard: true }; return; }
       // drift back to guard anchor
       if (U.dist(this.x, this.y, this.guardX, this.guardY) > 60 && !this.path) {
@@ -586,7 +605,8 @@ class Unit {
     this.scanT -= dt;
     if (this.scanT <= 0 && this.def.weapon && !this.def.noAutoAttack) {
       this.scanT = 0.35;
-      const t = this.findTarget(Math.max(effRange(this.def.weapon, this) + 80, this.def.sight * TILE));
+      const t = this.findTarget(Math.max(effRange(this.def.weapon, this) + 80, this.def.sight * TILE),
+        { x: o.x, y: o.y, r: GUARD_HOLD_R });
       if (t) {
         this.orderQueue.unshift({ type: 'guardarea', x: o.x, y: o.y });
         this.order = { type: 'attack', targetId: t.id, fromGuard: true };
@@ -602,16 +622,29 @@ class Unit {
     }
   }
 
+  /* How a fight ends. Every exit from an attack has to go through here, because
+     nextOrder() re-anchors a unit where it stands and a guard's post is not its own
+     to move: the killing blow landing 200px downrange used to shift the post 200px
+     downrange with it, one dead attacker at a time. */
+  endFight(o) {
+    if (o && o.fromGuard && !this.orderQueue.length) { this.returnToPost(); return; }
+    this.nextOrder();
+  }
+
   doAttack(dt, o) {
     const target = game.byId.get(o.targetId);
-    if (!target || target.dead) { this.nextOrder(); return; }
+    if (!target || target.dead) { this.endFight(o); return; }
     if (this.def.suicide) { this.doSuicide(dt, target); return; }
-    if (!this.def.weapon || !weaponCanHit(this.def.weapon, target)) { this.nextOrder(); return; }
+    if (!this.def.weapon || !weaponCanHit(this.def.weapon, target)) { this.endFight(o); return; }
 
     const res = this.tryFire(target, dt);
     if (res === 'far') {
-      // leash for guard-retaliation
-      if (o.fromGuard && U.dist(this.x, this.y, this.guardX, this.guardY) > 340) { this.nextOrder(); return; }
+      /* Leash. A guard chases only as far as the ground it was given; at the edge it
+         turns round and goes back rather than stopping where it stands, which is what
+         used to let the post creep across the map. */
+      if (o.fromGuard && U.dist(this.x, this.y, this.guardX, this.guardY) > GUARD_HOLD_R) {
+        this.returnToPost(); return;
+      }
       if (!this.path || this.repathT === undefined || (this.repathT -= dt) <= 0) {
         this.repathT = 0.7;
         this.setPathTo(target.x, target.y);

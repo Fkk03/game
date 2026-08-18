@@ -59,17 +59,21 @@ python3 -m http.server 8080
   - **Switches doctrine** — massed push, artillery siege, air strike or economy raid,
     chosen from what it has and what you've fortified. Dense anti-air makes it buy
     artillery instead of jets; an AA-blind gun line makes it press the air advantage
-- **AI war chest** — every AI general is resupplied with **$30,000 every 10 minutes**,
-  and their units cost half price and roll off the line in half the time, so the
-  pressure never lets up in a long game
+- **AI war chest** — every AI general is resupplied with **$60,000 every 10 minutes**
+  and **earns double** on every barrel of oil and every market trickle, on top of the
+  difficulty's own income rate. Their units cost half price and roll off the line in
+  half the time, so the pressure never lets up in a long game
 - **Generals who refit** — an AI does not just build units, it upgrades them. Surplus
   cash goes into ⚔ Gun, 🛡 Armor and ⚙ Special levels on the army it already has,
   spread a level at a time across the whole force so tanks *and* aircraft improve
   rather than one pet veteran becoming a monument. It rides the compounding curve
-  **sixteen levels deep** — stopping at four left most of the curve unclaimed — and the
-  rising price per level is what stops it going further. Construction outranks it: if
-  there is a structure the general wants, its price is reserved first. Expect a mature AI
-  column to be running a quarter to a half of its hulls at multiple upgrade levels
+  **thirty levels deep**, fitting up to four levels per hull on every pass and spending
+  three quarters of its idle cash doing it — a hard general's tanks average **thirty-plus
+  levels between them** after twenty minutes, and the deepest run near the ceiling.
+  Heavy hulls are reserved for first: the refit budget always leaves an Annihilator's
+  price on the table, because a general with gold-plated gun sights and no Annihilator
+  is a worse general. Construction outranks it too — if there is a structure it wants,
+  that price is reserved as well
 - **Generals who bring bodies** — infantry ratios are half again what they were and a
   general builds **five or six barracks instead of three**, so the line has cheap hulls
   in it to screen the armour, hold ground already taken and soak an emplacement.
@@ -128,10 +132,12 @@ python3 -m http.server 8080
   it costs nothing per frame
 - **Weather that moves** — the sky opens on whatever its climate rolls and drifts to a new
   front every few minutes, **blending across the change rather than cutting**: clear, heat
-  haze, overcast, sandstorm, rain, snowfall, blizzard. A blizzard drives snow across the
-  screen at an angle; a sandstorm turns the whole battlefield the colour of dust. It is a
-  mood and nothing more — **weather touches no damage, range, reload, speed or sight**, so
-  a storm never decides a battle
+  haze, overcast, sandstorm, rain. A sandstorm turns the whole battlefield the colour of
+  dust. It is a mood and nothing more — **weather touches no damage, range, reload, speed
+  or sight**, so a storm never decides a battle. (Falling snow was cut: it was the one
+  effect that had to place hundreds of individual discs every frame and it cost real frame
+  rate on the big maps. The permanent snowline on the peaks stays — that is baked into the
+  terrain once and is free.)
 - **Repair Center** — automatically fixes your tanks and aircraft in a radius around it
   (a compact 2-tile pad), at **4× whatever that crew manages on its own in the field**.
   A green crew has no field repair to quadruple, so it gets the pad's rated 16 hp/s;
@@ -363,6 +369,14 @@ python3 -m http.server 8080
   stars is the single biggest survivability jump in the game, but below that a tank still
   has to be pulled back and repaired like anything else. Artillery carriages regenerate on
   the same curve; infantry and aircraft keep the base rate
+- **Guard means guard** — ⛨ Guard Area (**D**) posts a unit on a **220px circle it holds
+  and does not leave**. It engages anything it can reach from inside that ground, ignores
+  what it cannot, and walks back the moment the shooting stops. The circle is drawn while
+  the unit is selected so you can see the order you gave. Previously a guard re-anchored
+  wherever it happened to stop after each retaliation, so every enemy that wandered past
+  dragged the post one leash-length further and a tank told to hold a crossroads crossed
+  the map a chase at a time. Attack-move (**A**) is the order that hunts — it is unleashed
+  and unchanged
 - **Fog of war**, **minimap**, control groups, attack-move,
   waypoint queues, rally points, a skirmish AI with 3 difficulties, procedural desert maps
 - **Win** by destroying every enemy structure

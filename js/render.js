@@ -489,7 +489,7 @@ const RENDER = (() => {
   const WX_SEED = 1337;
   function wxParticles(kind, amount, wind, tSec) {
     if (!kind || amount <= 0.01) return;
-    const n = Math.round(amount * (kind === 'rain' ? 260 : kind === 'snow' ? 220 : 190));
+    const n = Math.round(amount * (kind === 'rain' ? 260 : 190));
     const rng = U.seededRng(WX_SEED);
     const drift = tSec * 60;
     ctx.save();
@@ -504,15 +504,6 @@ const RENDER = (() => {
         ctx.moveTo(x, y); ctx.lineTo(x - wind * 6, y + len);
       }
       ctx.stroke();
-    } else if (kind === 'snow') {
-      for (let i = 0; i < n; i++) {
-        const sp = 34 + rng() * 60, r = 1 + rng() * 2.2;
-        const sway = Math.sin(tSec * (0.8 + rng()) + i) * (7 + wind * 9);
-        const x = ((rng() * (W + 300) + drift * wind * 0.5 + sway) % (W + 300)) - 150;
-        const y = (rng() * H + tSec * sp) % (H + 40) - 20;
-        ctx.fillStyle = `rgba(250,253,255,${(0.35 + rng() * 0.45) * Math.min(1, amount)})`;
-        ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
-      }
     } else {                                   // blown dust: long, flat, fast streaks
       ctx.lineWidth = 1.6;
       for (let i = 0; i < n; i++) {
@@ -2839,6 +2830,20 @@ const RENDER = (() => {
         ctx.setLineDash([5, 7]);
         ctx.beginPath(); ctx.arc(e.x, e.y, e.def.detect, 0, 7); ctx.stroke();
         ctx.setLineDash([]);
+      }
+      /* The ground a posted unit was actually given. "Guard here" now means a circle
+         it holds and does not leave, so the circle is worth drawing — otherwise the
+         player has no way to know how far the order reaches. */
+      if (e.kind === 'unit' && !e.def.air && e.def.weapon &&
+          (e.order.type === 'guard' || e.order.type === 'guardarea' || e.order.fromGuard)) {
+        const gx = e.order.type === 'guardarea' ? e.order.x : e.guardX;
+        const gy = e.order.type === 'guardarea' ? e.order.y : e.guardY;
+        ctx.strokeStyle = 'rgba(159,220,124,0.30)'; ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 8]);
+        ctx.beginPath(); ctx.arc(gx, gy, GUARD_HOLD_R, 0, 7); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(159,220,124,0.5)';
+        ctx.beginPath(); ctx.arc(gx, gy, 3, 0, 7); ctx.fill();
       }
       // repair bay range ring
       if (e.kind === 'building' && e.key === 'repairbay' && e.constructed) {
