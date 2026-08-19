@@ -107,13 +107,27 @@ html,body { width:100%; height:100%; overflow:hidden; background:#0a0a08;
 /* ---------------- Feed / announce / tooltip ---------------- */
 /* idle-worker button + global production tabs */
 #idleworker {
-  left:10px; bottom:246px; padding:5px 10px; font-size:17px; cursor:pointer; user-select:none;
+  left:10px; bottom:246px; padding:4px 8px; font-size:17px; cursor:pointer; user-select:none;
+  display:flex; align-items:center; gap:5px;
   background:linear-gradient(#34321f, #232214); border:1px solid #6a6642; border-radius:6px;
   color:#ffe9a0; box-shadow:0 2px 6px #000a;
 }
 #idleworker:hover { filter:brightness(1.25); }
 #idleworker.dim { opacity:0.45; }
-#idleworker #iw-count { font-size:13px; font-weight:bold; margin-left:5px; vertical-align:2px; }
+/* Idle workers are money standing still, so the button asks to be noticed rather
+   than merely being un-dimmed. It only pulses while there is something to click. */
+#idleworker.alert {
+  border-color:#ffd76a; color:#fff3c4;
+  background:linear-gradient(#5a4f22, #3a3216);
+  animation:iwpulse 1.15s ease-in-out infinite;
+}
+@keyframes iwpulse {
+  0%, 100% { box-shadow:0 2px 6px #000a, 0 0 0 0 rgba(255,215,106,0.55); }
+  50%      { box-shadow:0 2px 6px #000a, 0 0 0 6px rgba(255,215,106,0); }
+}
+#idleworker #iw-count { font-size:13px; font-weight:bold; }
+#idleworker .iw-hk { font-size:10px; color:#8f8a70; border:1px solid #55523c; border-radius:3px; padding:0 3px; }
+#idleworker.alert .iw-hk { color:#ffe9a0; border-color:#8a7c46; }
 #prodtabs { right:10px; bottom:246px; display:flex; gap:6px; }
 .prodtab {
   display:flex; align-items:center; gap:4px; padding:4px 8px; cursor:pointer; user-select:none;
@@ -301,7 +315,7 @@ ul.howto b { color:#ffe9a0; }
     </div>
   </div>
 
-  <div id="idleworker" class="hud hidden dim" title="Cycle idle workers (I)">🚜<span id="iw-count">0</span></div>
+  <div id="idleworker" class="hud hidden dim" title="Jump to the next idle worker (I)"><span class="iw-icon">🚜</span><span id="iw-count">0</span><span class="iw-hk">I</span></div>
   <div id="prodtabs" class="hud hidden">
     <div class="prodtab" data-kind="barracks" title="Train infantry at ALL barracks — orders auto-split (B)"><span class="pt-icon">🎖️</span><span class="pt-count">0</span><span class="pt-hk">B</span></div>
     <div class="prodtab" data-kind="factory" title="Build vehicles at ALL war factories — orders auto-split (T)"><span class="pt-icon">🏭</span><span class="pt-count">0</span><span class="pt-hk">T</span></div>
@@ -5143,6 +5157,9 @@ const RENDER = (() => {
     // selection + orders UI (world space)
     drawSelectionOverlays();
 
+    // idle builders, flagged where they stand
+    drawIdleMarkers();
+
     // floating texts
     FX.drawTexts(ctx);
 
@@ -7670,6 +7687,43 @@ const RENDER = (() => {
     ctx.restore();
   }
 
+  /* An idle builder is money not being spent, and a counter on the HUD only tells you
+     HOW MANY there are. Flag each one where it stands — a pulsing amber ring and a
+     tag over its head — so "which one" is answered by looking at the map instead of
+     hunting for a dozer parked behind a supply centre. The one the I key would jump
+     to next is marked brighter, so cycling is predictable. */
+  function drawIdleMarkers() {
+    const list = INPUT.idleWorkers();
+    if (!list.length) return;
+    const next = INPUT.nextIdleWorker();
+    const pulse = 0.5 + 0.5 * Math.sin(game.renderT * 3.4);
+    for (const w of list) {
+      if (!onScreen(w.x, w.y, 60)) continue;
+      const up = next && w.id === next.id;
+      const r = w.radius + 11 + pulse * 3;
+      ctx.strokeStyle = up ? `rgba(255,225,140,${0.55 + pulse * 0.4})`
+        : `rgba(255,205,110,${0.22 + pulse * 0.22})`;
+      ctx.lineWidth = up ? 2.4 : 1.6;
+      ctx.setLineDash([4, 5]);
+      ctx.beginPath(); ctx.arc(w.x, w.y, r, 0, 7); ctx.stroke();
+      ctx.setLineDash([]);
+      // tag above the hull, offset clear of the health bar
+      const ty = w.y - w.radius - 22;
+      ctx.font = 'bold 11px system-ui';
+      ctx.textAlign = 'center';
+      const label = 'IDLE';
+      const tw = ctx.measureText(label).width + 10;
+      ctx.fillStyle = up ? 'rgba(60,48,16,0.92)' : 'rgba(40,34,16,0.72)';
+      roundRect(w.x - tw / 2, ty - 10, tw, 14, 3); ctx.fill();
+      ctx.strokeStyle = up ? 'rgba(255,225,140,0.9)' : 'rgba(255,205,110,0.45)';
+      ctx.lineWidth = 1;
+      roundRect(w.x - tw / 2, ty - 10, tw, 14, 3); ctx.stroke();
+      ctx.fillStyle = up ? '#ffe9a0' : 'rgba(255,233,160,0.75)';
+      ctx.fillText(label, w.x, ty + 1);
+      ctx.textAlign = 'left';
+    }
+  }
+
   function drawBrackets(x, y, r, color) {
     ctx.strokeStyle = color; ctx.lineWidth = 2;
     const l = Math.max(5, r * 0.4);
@@ -7841,6 +7895,18 @@ const RENDER = (() => {
     // fog overlay
     c.globalAlpha = 1;
     c.drawImage(fogCv, 0, 0, fogCv.width, fogCv.height, 0, 0, w, h);
+
+    /* Idle builders, above the fog — they are yours, so there is nothing to hide, and
+       the whole point is being able to spot one parked off-screen without hunting. */
+    if (Math.floor(game.renderT * 2.6) % 2 === 0) {
+      for (const iw of INPUT.idleWorkers()) {
+        const px = iw.x / TILE * sx, py = iw.y / TILE * sy;
+        c.strokeStyle = '#ffd76a'; c.lineWidth = 1.4;
+        c.beginPath(); c.arc(px, py, 4, 0, 7); c.stroke();
+        c.fillStyle = '#ffe9a0';
+        c.fillRect(px - 1, py - 1, 2, 2);
+      }
+    }
 
     // control point markers
     const humanTeam2 = game.players[0].team;
@@ -9701,16 +9767,32 @@ const INPUT = (() => {
     return game.ents.filter(e => !e.dead && e.kind === 'unit' && e.owner === 0 && e.def.builder &&
       (e.order.type === 'idle' || e.order.type === 'guard') && !e.orderQueue.length);
   }
-  let idleCursor = 0;
+  let idleCursor = -1;
+  let lastIdleId = 0;
+  /* Where the I key would go next. Exported so the world marker can highlight that
+     exact worker — a cycle you cannot predict is barely better than no cycle. */
+  function idleIndex(list) {
+    if (!list.length) return -1;
+    let i = list.findIndex(w => w.id === lastIdleId);
+    i = (i < 0 ? idleCursor : i) + 1;
+    return ((i % list.length) + list.length) % list.length;
+  }
+  function nextIdleWorker() {
+    const list = idleWorkers();
+    const i = idleIndex(list);
+    return i < 0 ? null : list[i];
+  }
   function cycleIdleWorker() {
     const list = idleWorkers();
-    if (!list.length) { UI.feed('No idle workers'); return; }
-    idleCursor = (idleCursor + 1) % list.length;
+    if (!list.length) { UI.feed('No idle workers'); SFX.error(); return; }
+    idleCursor = idleIndex(list);
     const w = list[idleCursor];
+    lastIdleId = w.id;
     selection = [w];
     UI.refreshSel(); UI.refreshCmd();
     centerOn(w);
     SFX.click();
+    UI.feed(`Idle ${uName(w.key, game.players[0].faction)} — ${idleCursor + 1} of ${list.length}`);
   }
 
   function cursorMode() {
@@ -9738,7 +9820,7 @@ const INPUT = (() => {
   return {
     init, updateCamera, prune, centerOn, centerOnBase, resetMatch,
     beginPlace, tryPlace, beginTargeting, stopSelected, issueAttackMove, issueSmartOrder,
-    idleWorkers, cycleIdleWorker,
+    idleWorkers, cycleIdleWorker, nextIdleWorker,
     get keys() { return keys; },
     get mouse() { return mouse; },
     get selection() { return selection; },
@@ -9970,10 +10052,15 @@ const UI = (() => {
     const rates = moneyRates(p);
 
     // idle workers + production tab counts
-    const iw = INPUT.idleWorkers().length;
+    const idle = INPUT.idleWorkers();
+    const iw = idle.length;
     const iwEl = $('idleworker');
     $('iw-count').textContent = iw;
     iwEl.classList.toggle('dim', iw === 0);
+    iwEl.classList.toggle('alert', iw > 0);
+    iwEl.title = iw
+      ? `${iw} idle ${FACTIONS[p.faction].dozerName}${iw > 1 ? 's' : ''} — click or press I to jump to the next one. Each is ringed and tagged on the map.`
+      : 'No idle workers — every builder has a job';
     updateProdTabs();
     $('money').innerHTML = `${U.fmtMoney(p.money)} <span id="moneyrates"><span id="rate-in">▲ $${rates.inc.toLocaleString('en-US')}/min</span><span id="rate-out">▼ $${rates.out.toLocaleString('en-US')}/min</span></span>`;
     $('clock').textContent = U.fmtTime(game.t);

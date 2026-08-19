@@ -369,6 +369,13 @@ python3 -m http.server 8080
   stars is the single biggest survivability jump in the game, but below that a tank still
   has to be pulled back and repaired like anything else. Artillery carriages regenerate on
   the same curve; infantry and aircraft keep the base rate
+- **Find your idle builders** — the 🚜 button (bottom-left) counts every builder standing
+  around with nothing to do and **pulses while any are**; clicking it or pressing **I**
+  jumps the camera to the next one and selects it, cycling through the whole crew before
+  repeating. Knowing *how many* was never the hard part, so each idle builder is also
+  **ringed and tagged IDLE where it stands**, with the one the key will jump to next
+  marked brighter, and each shows as a blinking amber marker **on the minimap** so a dozer
+  parked off-screen behind a supply centre is still findable at a glance
 - **Guard means guard** — ⛨ Guard Area (**D**) posts a unit on a **220px circle it holds
   and does not leave**. It engages anything it can reach from inside that ground, ignores
   what it cannot, and walks back the moment the shooting stops. The circle is drawn while
@@ -392,7 +399,7 @@ python3 -m http.server 8080
 | Shift + click (while placing) | Queue multiple construction sites |
 | Q W E R / A S D F / Z X C V / G H K L / Y U N O | Command-grid hotkeys, 20 slots (shown on buttons) |
 | A / S / D | Attack-move · Stop · Guard area (with units selected) |
-| I | Cycle idle workers |
+| I | Jump to the next idle worker (each is ringed and tagged on the map) |
 | B / T / J | Global production panel: all barracks / factories / airfields (Shift-click = ×5) |
 | Ctrl + 1–9 → 1–9 | Control groups (tap twice to center) |
 | Mouse wheel | Zoom · Middle-drag / arrows / screen edge — pan |

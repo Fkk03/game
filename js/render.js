@@ -435,6 +435,9 @@ const RENDER = (() => {
     // selection + orders UI (world space)
     drawSelectionOverlays();
 
+    // idle builders, flagged where they stand
+    drawIdleMarkers();
+
     // floating texts
     FX.drawTexts(ctx);
 
@@ -2962,6 +2965,43 @@ const RENDER = (() => {
     ctx.restore();
   }
 
+  /* An idle builder is money not being spent, and a counter on the HUD only tells you
+     HOW MANY there are. Flag each one where it stands — a pulsing amber ring and a
+     tag over its head — so "which one" is answered by looking at the map instead of
+     hunting for a dozer parked behind a supply centre. The one the I key would jump
+     to next is marked brighter, so cycling is predictable. */
+  function drawIdleMarkers() {
+    const list = INPUT.idleWorkers();
+    if (!list.length) return;
+    const next = INPUT.nextIdleWorker();
+    const pulse = 0.5 + 0.5 * Math.sin(game.renderT * 3.4);
+    for (const w of list) {
+      if (!onScreen(w.x, w.y, 60)) continue;
+      const up = next && w.id === next.id;
+      const r = w.radius + 11 + pulse * 3;
+      ctx.strokeStyle = up ? `rgba(255,225,140,${0.55 + pulse * 0.4})`
+        : `rgba(255,205,110,${0.22 + pulse * 0.22})`;
+      ctx.lineWidth = up ? 2.4 : 1.6;
+      ctx.setLineDash([4, 5]);
+      ctx.beginPath(); ctx.arc(w.x, w.y, r, 0, 7); ctx.stroke();
+      ctx.setLineDash([]);
+      // tag above the hull, offset clear of the health bar
+      const ty = w.y - w.radius - 22;
+      ctx.font = 'bold 11px system-ui';
+      ctx.textAlign = 'center';
+      const label = 'IDLE';
+      const tw = ctx.measureText(label).width + 10;
+      ctx.fillStyle = up ? 'rgba(60,48,16,0.92)' : 'rgba(40,34,16,0.72)';
+      roundRect(w.x - tw / 2, ty - 10, tw, 14, 3); ctx.fill();
+      ctx.strokeStyle = up ? 'rgba(255,225,140,0.9)' : 'rgba(255,205,110,0.45)';
+      ctx.lineWidth = 1;
+      roundRect(w.x - tw / 2, ty - 10, tw, 14, 3); ctx.stroke();
+      ctx.fillStyle = up ? '#ffe9a0' : 'rgba(255,233,160,0.75)';
+      ctx.fillText(label, w.x, ty + 1);
+      ctx.textAlign = 'left';
+    }
+  }
+
   function drawBrackets(x, y, r, color) {
     ctx.strokeStyle = color; ctx.lineWidth = 2;
     const l = Math.max(5, r * 0.4);
@@ -3133,6 +3173,18 @@ const RENDER = (() => {
     // fog overlay
     c.globalAlpha = 1;
     c.drawImage(fogCv, 0, 0, fogCv.width, fogCv.height, 0, 0, w, h);
+
+    /* Idle builders, above the fog — they are yours, so there is nothing to hide, and
+       the whole point is being able to spot one parked off-screen without hunting. */
+    if (Math.floor(game.renderT * 2.6) % 2 === 0) {
+      for (const iw of INPUT.idleWorkers()) {
+        const px = iw.x / TILE * sx, py = iw.y / TILE * sy;
+        c.strokeStyle = '#ffd76a'; c.lineWidth = 1.4;
+        c.beginPath(); c.arc(px, py, 4, 0, 7); c.stroke();
+        c.fillStyle = '#ffe9a0';
+        c.fillRect(px - 1, py - 1, 2, 2);
+      }
+    }
 
     // control point markers
     const humanTeam2 = game.players[0].team;

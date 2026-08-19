@@ -478,16 +478,32 @@ const INPUT = (() => {
     return game.ents.filter(e => !e.dead && e.kind === 'unit' && e.owner === 0 && e.def.builder &&
       (e.order.type === 'idle' || e.order.type === 'guard') && !e.orderQueue.length);
   }
-  let idleCursor = 0;
+  let idleCursor = -1;
+  let lastIdleId = 0;
+  /* Where the I key would go next. Exported so the world marker can highlight that
+     exact worker — a cycle you cannot predict is barely better than no cycle. */
+  function idleIndex(list) {
+    if (!list.length) return -1;
+    let i = list.findIndex(w => w.id === lastIdleId);
+    i = (i < 0 ? idleCursor : i) + 1;
+    return ((i % list.length) + list.length) % list.length;
+  }
+  function nextIdleWorker() {
+    const list = idleWorkers();
+    const i = idleIndex(list);
+    return i < 0 ? null : list[i];
+  }
   function cycleIdleWorker() {
     const list = idleWorkers();
-    if (!list.length) { UI.feed('No idle workers'); return; }
-    idleCursor = (idleCursor + 1) % list.length;
+    if (!list.length) { UI.feed('No idle workers'); SFX.error(); return; }
+    idleCursor = idleIndex(list);
     const w = list[idleCursor];
+    lastIdleId = w.id;
     selection = [w];
     UI.refreshSel(); UI.refreshCmd();
     centerOn(w);
     SFX.click();
+    UI.feed(`Idle ${uName(w.key, game.players[0].faction)} — ${idleCursor + 1} of ${list.length}`);
   }
 
   function cursorMode() {
@@ -515,7 +531,7 @@ const INPUT = (() => {
   return {
     init, updateCamera, prune, centerOn, centerOnBase, resetMatch,
     beginPlace, tryPlace, beginTargeting, stopSelected, issueAttackMove, issueSmartOrder,
-    idleWorkers, cycleIdleWorker,
+    idleWorkers, cycleIdleWorker, nextIdleWorker,
     get keys() { return keys; },
     get mouse() { return mouse; },
     get selection() { return selection; },

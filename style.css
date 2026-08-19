@@ -100,13 +100,27 @@ html,body { width:100%; height:100%; overflow:hidden; background:#0a0a08;
 /* ---------------- Feed / announce / tooltip ---------------- */
 /* idle-worker button + global production tabs */
 #idleworker {
-  left:10px; bottom:246px; padding:5px 10px; font-size:17px; cursor:pointer; user-select:none;
+  left:10px; bottom:246px; padding:4px 8px; font-size:17px; cursor:pointer; user-select:none;
+  display:flex; align-items:center; gap:5px;
   background:linear-gradient(#34321f, #232214); border:1px solid #6a6642; border-radius:6px;
   color:#ffe9a0; box-shadow:0 2px 6px #000a;
 }
 #idleworker:hover { filter:brightness(1.25); }
 #idleworker.dim { opacity:0.45; }
-#idleworker #iw-count { font-size:13px; font-weight:bold; margin-left:5px; vertical-align:2px; }
+/* Idle workers are money standing still, so the button asks to be noticed rather
+   than merely being un-dimmed. It only pulses while there is something to click. */
+#idleworker.alert {
+  border-color:#ffd76a; color:#fff3c4;
+  background:linear-gradient(#5a4f22, #3a3216);
+  animation:iwpulse 1.15s ease-in-out infinite;
+}
+@keyframes iwpulse {
+  0%, 100% { box-shadow:0 2px 6px #000a, 0 0 0 0 rgba(255,215,106,0.55); }
+  50%      { box-shadow:0 2px 6px #000a, 0 0 0 6px rgba(255,215,106,0); }
+}
+#idleworker #iw-count { font-size:13px; font-weight:bold; }
+#idleworker .iw-hk { font-size:10px; color:#8f8a70; border:1px solid #55523c; border-radius:3px; padding:0 3px; }
+#idleworker.alert .iw-hk { color:#ffe9a0; border-color:#8a7c46; }
 #prodtabs { right:10px; bottom:246px; display:flex; gap:6px; }
 .prodtab {
   display:flex; align-items:center; gap:4px; padding:4px 8px; cursor:pointer; user-select:none;

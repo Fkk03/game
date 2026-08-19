@@ -209,10 +209,15 @@ const UI = (() => {
     const rates = moneyRates(p);
 
     // idle workers + production tab counts
-    const iw = INPUT.idleWorkers().length;
+    const idle = INPUT.idleWorkers();
+    const iw = idle.length;
     const iwEl = $('idleworker');
     $('iw-count').textContent = iw;
     iwEl.classList.toggle('dim', iw === 0);
+    iwEl.classList.toggle('alert', iw > 0);
+    iwEl.title = iw
+      ? `${iw} idle ${FACTIONS[p.faction].dozerName}${iw > 1 ? 's' : ''} — click or press I to jump to the next one. Each is ringed and tagged on the map.`
+      : 'No idle workers — every builder has a job';
     updateProdTabs();
     $('money').innerHTML = `${U.fmtMoney(p.money)} <span id="moneyrates"><span id="rate-in">▲ $${rates.inc.toLocaleString('en-US')}/min</span><span id="rate-out">▼ $${rates.out.toLocaleString('en-US')}/min</span></span>`;
     $('clock').textContent = U.fmtTime(game.t);
