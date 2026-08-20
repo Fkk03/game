@@ -801,8 +801,9 @@ const AI = (() => {
          again afford an Annihilator — measured over five minutes it stopped fielding
          Goliaths entirely, which is a worse army however good its gun sights are. */
       const wantB = wantedStructure();
-      const heaviest = Math.max(...['annihilator', 'leviathan', 'citadel', 'siege', 'goliath']
-        .map(k => uCost(k, pl.faction, pi)));
+      const heaviest = Math.min(AI_REFIT_RESERVE_CAP,
+        Math.max(...['annihilator', 'leviathan', 'citadel', 'siege', 'goliath']
+          .map(k => uCost(k, pl.faction, pi))));
       const reserve = heaviest + 12000 + (wantB ? BUILDINGS[wantB].cost : 0);
       if (pl.money <= reserve) return;
       /* Three quarters of the idle money, not two fifths. A general sitting on a

@@ -61,6 +61,13 @@ const AI_INCOME_MUL = 2;
    now — thirty levels is 7.6x the stat — and the rising price per level is the only
    thing that stops it, which is exactly the brake that should be doing the work. */
 const AI_UPGRADE_MAX = 30;
+/* Ceiling on what a general holds back for its next heavy hull before spending the rest
+   on refits. It reserves the priciest hull it fields so it can always actually buy one —
+   but the Annihilator is deliberately extreme at $280,000 list, and reserving half a
+   treasury for one permanently starves the refit budget: measured over twenty minutes it
+   dropped from thirty-plus levels a tank to half a level, and poured the difference into
+   939 unupgraded units. One outlier price does not get to swallow the whole budget. */
+const AI_REFIT_RESERVE_CAP = 70000;
 /* Ceiling on the mined-out "expand the economy" reflex. Without one, an exhausted
    map makes the AI request supply centers forever and nothing else ever gets built. */
 const AI_MAX_SUPPLY = 14;
@@ -639,7 +646,7 @@ const UPGRADES = {
     { key: 'reinforce', name: 'Reinforced', icon: '🧱', costMul: 1.0, hpMul: 1.5,
       desc: 'Maximum health +50%.' },
     { key: 'vehiclerepair', name: 'Field Service', icon: '🔧', costMul: 0.75,
-      desc: 'Factory mechanics repair nearby friendly vehicles and aircraft at 4x their own field rate, from a 14 hp/s floor — a small Repair Center.' },
+      desc: 'Factory mechanics repair nearby friendly vehicles, helicopters and aircraft at 8x their own field rate, from a 28 hp/s floor — a small Repair Center.' },
     { key: 'plating', name: 'Armor Plating', icon: '🛡️', costMul: 1.0,
       desc: 'Hardened walls — all damage taken by this factory is reduced by 25%.' },
   ],
