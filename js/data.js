@@ -22,14 +22,20 @@ const VET_DMG = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_HP  = [1, 1.1, 1.2, 1.35, 1.55, 1.8];
 const VET_REGEN = [0, 0, 2.25, 4.5, 7.875, 37.5];   // hp/s self-repair, from 2 stars up
 /* the factory's Field Service upgrade — a smaller Service Depot bolted to the plant */
-const FIELD_SERVICE_RATE = 14;              // hp/s floor for a crew that cannot self-repair
+const FIELD_SERVICE_RATE = 28;              // hp/s floor for a crew that cannot self-repair
 const FIELD_SERVICE_RADIUS = 200;
 
 /* A servicing bay works at this multiple of whatever the crew could manage on its own
    in the field, so the depot is always the decisively faster place to be hurt. Below
    two stars a crew has no field repair at all, so the building's own rated output is
-   the floor — otherwise four times nothing would leave green units unserviceable. */
-const DEPOT_REGEN_MUL = 4;
+   the floor — otherwise eight times nothing would leave green units unserviceable.
+   Both the multiple and the floors were doubled: pulling armour back should be worth
+   the trip across the map, and at the old rate it often was not. */
+const DEPOT_REGEN_MUL = 8;
+/* Below this share of its health an idle or posted helicopter takes itself in for
+   service. A jet flies home to its pad to rearm; a helicopter has no pad, so without
+   this it hovers where it was last told and never enters a depot's circle at all. */
+const HELI_SERVICE_HP = 0.6;
 function servicingRate(building, unit) {
   const floor = building.key === 'factory' ? FIELD_SERVICE_RATE : building.def.healRate;
   return Math.max(floor, DEPOT_REGEN_MUL * vetRegenRate(unit));
@@ -92,7 +98,7 @@ const BIOMES = {
     cap: null,
     scrub: '#7c8f42', stone: '#85857a', stoneLit: '#a4a496',
     props: { scrub: 0.75, rock: 0.25 },
-    weather: ['clear', 'overcast', 'haze', 'rain', 'clear'],
+    weather: ['clear', 'overcast', 'haze', 'clear', 'overcast'],
     sky: 'rgba(120,140,90,0.05)',
   },
   tundra: {
@@ -114,7 +120,7 @@ const BIOMES = {
     capFrom: 3,
     scrub: '#63713c', stone: '#7a706a', stoneLit: '#9c918a',
     props: { scrub: 0.4, rock: 0.6 },
-    weather: ['clear', 'overcast', 'rain', 'haze', 'clear'],
+    weather: ['clear', 'overcast', 'haze', 'clear', 'overcast'],
     sky: 'rgba(90,100,120,0.06)',
   },
 };
@@ -131,7 +137,6 @@ const WEATHER = {
   haze:      { label: 'Heat Haze',  tint: 'rgba(228,196,138,0.16)',   parts: 'dust',  density: 0.25, wind: 0.5, dark: 0.02 },
   overcast:  { label: 'Overcast',   tint: 'rgba(70,74,86,0.20)',      parts: null,  density: 0, wind: 0.4, dark: 0.10 },
   sandstorm: { label: 'Sandstorm',  tint: 'rgba(206,158,86,0.34)',    parts: 'dust',  density: 1, wind: 2.4, dark: 0.16 },
-  rain:      { label: 'Rain',       tint: 'rgba(58,72,96,0.26)',      parts: 'rain',  density: 0.8, wind: 0.9, dark: 0.20 },
 };
 const WEATHER_MIN = 100;                // shortest a front holds, seconds
 const WEATHER_MAX = 220;                // ...and the longest
@@ -282,8 +287,8 @@ const BUILDINGS = {
   repairbay: {
     name: { coalition: 'Service Depot', dynasty: 'Repair Yard', cartel: 'Scrap Garage' },
     icon: '🔧', cost: 1200, hp: 4500, size: 2, buildTime: 16, power: 2, armor: 'building',
-    sight: 6, desc: 'Automatically repairs nearby friendly vehicles and aircraft at 4x the rate their own crew manages in the field — 16 hp/s for a green crew that cannot self-repair at all, far more for veterans.',
-    healRadius: 200, healRate: 16,
+    sight: 6, desc: 'Automatically repairs nearby friendly vehicles, helicopters and aircraft at 8x the rate their own crew manages in the field — 32 hp/s for a green crew that cannot self-repair at all, far more for veterans. Damaged helicopters fly here on their own and return to their post once patched up.',
+    healRadius: 200, healRate: 32,
   },
   market: {
     name: { coalition: 'Trade Uplink', dynasty: 'Trade Port', cartel: 'Black Market' },
@@ -349,7 +354,7 @@ const UNITS = {
   },
   annihilator: {
     name: { coalition: 'Longbow Annihilator', dynasty: 'Great Wall Sovereign', cartel: 'Doomsday Colossus' },
-    icon: '🌠', cost: 140000, hp: 9000, speed: 30, sight: 8, radius: 30,
+    icon: '🌠', cost: 280000, hp: 9000, speed: 30, sight: 8, radius: 30,
     armor: 'heavy', buildTime: 100, chassis: 'mlrs',
     desc: 'End-game siege artillery. Outranges every gun in the game at 3,200 — including fortress emplacements — and drops a 6,000-damage shell with a 260 blast. Blind past its own sight, helpless inside 500, and it crawls: escort it and spot for it.',
     weapon: { dmg: 6000, dtype: 'explosive', range: 3200, minRange: 500, cd: 9, projectile: 'arty', splash: 260, aa: false, ga: true },

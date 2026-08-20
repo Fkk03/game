@@ -132,24 +132,31 @@ python3 -m http.server 8080
   it costs nothing per frame
 - **Weather that moves** — the sky opens on whatever its climate rolls and drifts to a new
   front every few minutes, **blending across the change rather than cutting**: clear, heat
-  haze, overcast, sandstorm, rain. A sandstorm turns the whole battlefield the colour of
-  dust. It is a mood and nothing more — **weather touches no damage, range, reload, speed
-  or sight**, so a storm never decides a battle. (Falling snow was cut: it was the one
-  effect that had to place hundreds of individual discs every frame and it cost real frame
-  rate on the big maps. The permanent snowline on the peaks stays — that is baked into the
-  terrain once and is free.)
-- **Repair Center** — automatically fixes your tanks and aircraft in a radius around it
-  (a compact 2-tile pad), at **4× whatever that crew manages on its own in the field**.
-  A green crew has no field repair to quadruple, so it gets the pad's rated 16 hp/s;
-  a four-star tank is serviced at 47.25 and a five-star at 562.5, and since the crew
-  keeps working underneath, parking a veteran in the bay is five times its field rate.
-  Pulling armour back is always decisively faster than sitting where it was hit. An
-  unpowered depot limps along at half rate
+  haze, overcast, sandstorm. A sandstorm turns the whole battlefield the colour of dust.
+  It is a mood and nothing more — **weather touches no damage, range, reload, speed or
+  sight**, so a storm never decides a battle. (Every kind of precipitation was cut — rain,
+  snowfall and blizzard alike. They were the effects that had to place hundreds of
+  individually positioned marks every frame, and they cost real frame rate on the big maps.
+  What is left is a full-screen tint and a few flat dust streaks, which cost nothing. The
+  permanent snowline on the peaks also stays — baked into the terrain once, and free.)
+- **Repair Center** — automatically fixes your tanks, **helicopters** and aircraft in a
+  radius around it (a compact 2-tile pad), at **8× whatever that crew manages on its own
+  in the field** — twice the old rate. A green crew has no field repair to multiply, so it
+  gets the pad's rated **32 hp/s**; a four-star tank is serviced at 94.5 and a five-star at
+  1,125, and since the crew keeps working underneath, parking a veteran in the bay is nine
+  times its field rate. Pulling armour back should be worth the trip across the map, and at
+  the old rate it often was not. An unpowered depot limps along at half rate
+- **Wounded helicopters take themselves in** — a jet flies home to its pad to rearm and
+  repair; a helicopter has no pad, so it used to hover wherever it was last told and never
+  entered a depot's circle at all. It was repairable in principle and never repaired in
+  practice. Below 60% health an idle or posted gunship now flies to the nearest Service
+  Depot on its own, holds there until it is patched up, and **returns to the exact ground
+  it left**. A direct order cancels the trip — the player outranks the mechanic
 - **Building upgrades** — select a Barracks, War Factory or Airfield and buy one-time
   upgrades: Rapid Assembly (−30% production time), Auto-Repair (3%/3 s after 10 s of
   peace), Reinforced Structure (+50–100% health); Airfields add Fast Rearm (−30%
   turnaround) and Full Restoration (landing aircraft repaired to ≥50%); War Factories
-  add Field Service (a small Repair Center: the same 4× rule off a 14 hp/s floor) and
+  add Field Service (a small Repair Center: the same 8× rule off a 28 hp/s floor) and
   Armor Plating (−25% damage taken)
 - **Praetorian Commando** (Coalition, no build limit) — cloaked special forces: +50% damage
   striking from stealth, reveals nearby stealth units, resists blasts and flame,
@@ -220,10 +227,11 @@ python3 -m http.server 8080
   60,000 health, a 9,000-damage shell, a 220 blast and **2,600 range** — twice the
   reach of any other emplacement. It can't touch aircraft, is blind inside 400, and
   eats 12 power. Takes its own firepower / range / armour upgrades
-- **Longbow Annihilator / Great Wall Sovereign / Doomsday Colossus** (**$140,000**,
-  50× a siege platform) — end-game mobile artillery with **3,200 range**, the longest
-  in the game: it out-ranges even the fortress gun and can dismantle one without
-  taking a shot back. 9,000 health, a 6,000-damage shell with a 260 blast, helpless
+- **Longbow Annihilator / Great Wall Sovereign / Doomsday Colossus** (**$280,000**,
+  100× a siege platform, and the priciest thing any general can field) — end-game mobile
+  artillery with **3,200 range**, the longest in the game: it out-ranges even the fortress
+  gun and can dismantle one without taking a shot back. The price doubled because
+  out-ranging everything with impunity should cost more than a superweapon silo does. 9,000 health, a 6,000-damage shell with a 260 blast, helpless
   inside 500, blind past its own sight, and it crawls at speed 30
 - **Super-heavy endgame armour** — two machines beyond the superheavies:
   the **Citadel Landship / Iron Sovereign / Warlord Rig** ($25,000 — 24,000 hp, a

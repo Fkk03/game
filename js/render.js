@@ -490,24 +490,16 @@ const RENDER = (() => {
      Two fronts are mixed while the sky is crossing between them, so the change is a
      drift rather than a cut. */
   const WX_SEED = 1337;
+  /* Only one kind of particle survives: blown dust, drawn as flat streaks. Rain, snow
+     and blizzard each had to place hundreds of individually positioned marks a frame
+     and it showed on the big maps. */
   function wxParticles(kind, amount, wind, tSec) {
     if (!kind || amount <= 0.01) return;
-    const n = Math.round(amount * (kind === 'rain' ? 260 : 190));
+    const n = Math.round(amount * 190);
     const rng = U.seededRng(WX_SEED);
     const drift = tSec * 60;
     ctx.save();
-    if (kind === 'rain') {
-      ctx.strokeStyle = `rgba(196,214,240,${0.30 * Math.min(1, amount)})`;
-      ctx.lineWidth = 1.1;
-      ctx.beginPath();
-      for (let i = 0; i < n; i++) {
-        const sp = 620 + rng() * 520, len = 12 + rng() * 12;
-        const x = (rng() * (W + 400) + drift * wind * 0.7) % (W + 400) - 200;
-        const y = (rng() * H + tSec * sp) % (H + 60) - 30;
-        ctx.moveTo(x, y); ctx.lineTo(x - wind * 6, y + len);
-      }
-      ctx.stroke();
-    } else {                                   // blown dust: long, flat, fast streaks
+    {                                   // blown dust: long, flat, fast streaks
       ctx.lineWidth = 1.6;
       for (let i = 0; i < n; i++) {
         const sp = 240 + rng() * 460, len = 26 + rng() * 60;

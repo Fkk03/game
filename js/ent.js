@@ -305,6 +305,7 @@ class Unit {
       this.rearmT = 0; this.persistTargetId = 0; this.circleA = U.rand(0, 6);
       this.vx = 0; this.vy = 0;
       this.guardPost = null;      // air patrol anchor {x,y}
+      this.serviceRun = null;     // {bayId, post} while flying in for repair
     }
     this.buildT = 0;
     this.repairT = 0;
@@ -315,6 +316,7 @@ class Unit {
   applyOrder(o) {
     this.order = o;
     this.path = null;
+    this.serviceRun = null;        // any fresh order outranks a trip to the depot
     if (o.type === 'move' || o.type === 'attackmove' || o.type === 'guardarea') { this.guardX = o.x; this.guardY = o.y; }
     if (this.def.air) {
       if (o.type === 'attack') { this.jetState = 'attack'; this.persistTargetId = o.targetId; this.guardPost = null; }
@@ -882,6 +884,36 @@ class Unit {
           fireWeapon(g, gw, c.e);
           break;
         }
+      }
+    }
+
+    /* Wounded helicopters take themselves in for service.
+       A Service Depot has always repaired them — it skips infantry and nothing else —
+       but a helicopter has no pad to go home to the way a jet does, so it hovers
+       wherever it was last told and never ends up inside the depot's circle. Repaired
+       in principle, never repaired in practice. Below HELI_SERVICE_HP an idle or
+       posted airframe flies to the nearest bay, holds there until it is patched up,
+       and then returns to the ground it left. A direct order cancels the trip. */
+    if (this.serviceRun) {
+      const bay = game.byId.get(this.serviceRun.bayId);
+      if (!bay || bay.dead || this.hp >= this.maxHp * 0.98) {
+        const post = this.serviceRun.post;
+        this.serviceRun = null;
+        this.heliTargetId = 0;
+        this.applyOrder({ type: 'guardarea', x: post.x, y: post.y });
+      } else {
+        // in for repair: it does not go hunting on the way
+        this.heliTargetId = 0;
+        this.moving = fly(bay.x, bay.y, spd) > 8;
+        return;
+      }
+    } else if (this.hp < this.maxHp * HELI_SERVICE_HP &&
+        (o.type === 'idle' || o.type === 'guard' || o.type === 'guardarea')) {
+      const bay = nearestOwnBuilding(this.owner, 'repairbay', this.x, this.y);
+      if (bay) {
+        this.serviceRun = { bayId: bay.id,
+          post: o.type === 'guardarea' ? { x: o.x, y: o.y } : { x: this.x, y: this.y } };
+        if (this.owner === 0) FX.text(this.x, this.y - 26, '🔧 TO SERVICE', '#8fd4e8');
       }
     }
 
