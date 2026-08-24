@@ -347,7 +347,10 @@ def build_readme(wb):
         ("• Terminal value: Gordon growth on a NORMALIZED terminal uFCF margin × year-5 revenue. For the cyclical "
          "memory names (SK hynix, Samsung, Sandisk, Kioxia) the terminal margin is set near MID-CYCLE, not the "
          "current super-cycle peak, so the perpetuity does not capitalize peak earnings. For the software names it "
-         "is set at estimated steady-state economics rather than the year-5 point on the transition path.", LBL),
+         "is set at estimated steady-state economics rather than the year-5 point on the transition path. Each margin "
+         "reconciles as: steady-state economic EBIT × (1−tax) + D&A − capex − growth×NWC (the derivation is on each "
+         "tab). Discounting is mid-year-consistent: PV(TV) = [TFCF/(WACC−g)] × DF(4.5) is the exact value of a "
+         "perpetuity whose payments land at mid-year, matching the explicit period.", LBL),
         ("• Net cash = latest-quarter cash + investments − total debt (incl. converts). Diluted shares = latest "
          "reported diluted count; future buybacks and dilution are not separately modeled.", LBL),
         ("• Guidance anchors used: AMD FAD Nov-2025 (>35% rev CAGR, >60% DC CAGR, >$20 EPS in 3–5 yrs); NVIDIA "

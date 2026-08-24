@@ -23,14 +23,15 @@ COMPANIES = [
         growth=[0.115, 0.13, 0.15, 0.16, 0.15],
         ebit_margin=[0.10, 0.12, 0.14, 0.16, 0.18],
         da_pct=[0.02] * 5, capex_pct=[0.015] * 5, nwc_pct=-0.20,
-        term_margin=0.17, term_margin_note="steady state: ~28% non-GAAP OM − ~10% SBC, taxed, + deferred-rev inflow",
+        term_margin=0.16, term_margin_note="derived: 18% steady-state econ EBIT (28% NG OM − 10% SBC) × 0.8 tax = 14.4% + ~1.2pt deferred-rev inflow & D&A>capex",
         notes=[
             "Growth: FY26 guide $2.82–2.84B (+11.5%) accelerating toward management's 'mid-to-high-teens by FY2029' framework "
             "(Q3 FY26 call, May 27, 2026) on VMware/Broadcom displacement; ARR $2.43B +15%. Sept-2023 investor-day $3B-ARR-by-FY27 "
             "target looks late by ~a year on the new ARR methodology.",
             "Margins: FY26 non-GAAP op margin ~22.5% guided, but SBC is ~13% of revenue — economic EBIT starts ~10% and scales to 18% "
             "as SBC leverage improves. FCF guide $760–780mm (~27%) is before SBC; to replicate a street-style model set margins to "
-            "22.5%→28%. ΔNWC −20% of Δrev captures the deferred-revenue cash inflow of the subscription model.",
+            "22.5%→28% (lifts the DCF to ≈$60, near today's price). ΔNWC −20% of Δrev captures the deferred-revenue cash inflow of "
+            "the subscription model.",
             "Net cash treats both converts as debt while using the diluted share count (conservative double-count on the ITM 2027 notes). "
             "$750mm buyback authorization added May 2026 not modeled.",
         ],
@@ -77,7 +78,7 @@ COMPANIES = [
         growth=[0.30, 0.28, 0.26, 0.22, 0.18],
         ebit_margin=[-0.14, -0.06, 0.00, 0.06, 0.11],
         da_pct=[0.03] * 5, capex_pct=[0.035] * 5, nwc_pct=-0.15,
-        term_margin=0.18, term_margin_note="steady state: ~30% non-GAAP OM − ~15% SBC, taxed, + deferred-rev inflow",
+        term_margin=0.15, term_margin_note="band 12–18%: Investor-Day glidepath (30% NG OM − 15% SBC, taxed, + inflows) derives ~12%; 18% needs ~35% NG OM at scale. Base = midpoint 15%",
         notes=[
             "Growth: FY27 product guide $5.84B +31% (raised May 27, 2026; Q1 product +34%, NRR 126%, RPO $9.2B +38%). Path hits "
             "~$10B product revenue in FY2030 — one year later than the FY29 target reaffirmed at the Jun 2, 2026 Investor Day "
@@ -85,7 +86,8 @@ COMPANIES = [
             "Margins: the SBC problem dominates — SBC still ~29% of revenue (down from 41% FY25; Investor Day glidepath to 27%, "
             "assumed to keep falling). Economic EBIT is negative until ~FY2029, consistent with the Investor Day commitment of GAAP "
             "profitability by Q4 FY28. Non-GAAP op margin 13.5% and adj FCF margin ~23–25% guided for FY27 — a street-style model "
-            "(margins 13.5%→28%) roughly triples the DCF value; that is the entire bull/bear debate on SNOW.",
+            "(explicit margins 13.5%→28%, terminal 25%) roughly doubles the DCF value to ~$115, still ~65% below the price; that is "
+            "the entire bull/bear debate on SNOW.",
             "ΔNWC −15% of Δrev captures the strong deferred-revenue/prepaid-consumption cash cycle.",
         ],
         sources=["Q1 FY27 press release (May 27, 2026)", "Q4/FY26 press release (Feb 25, 2026)",
