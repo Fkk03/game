@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melqart · Earnings Call Tracker</title>
+<style>
+  :root{
+    --bg:#f2f0e9; --surface:#fcfcfb; --panel:#fdfaf1;
+    --ink:#14304f; --ink2:#4a617d; --muted:#8a97a8;
+    --line:#e2e0d6; --line2:#d0cec2;
+    --brand:#0e352f; --gold:#e8b84b; --goldink:#3a2a05;
+    /* diverging sentiment scale: red = negative, blue = positive, gray = neutral.
+       Each arm is monotone light→dark with |score|; deep/mid steps carry white text (>=4.5:1),
+       light steps carry ink text. */
+    --neg3:#a92c2c; --neg2:#cf3d3c; --neg1:#f3b9b4;
+    --neut:#eceae2;
+    --pos1:#b7d3f6; --pos2:#2e6fc0; --pos3:#1c5cab;
+    --good:#0ca30c; --bad:#d03b3b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;display:flex;flex-direction:column}
+  button{font:inherit;cursor:pointer}
+  input,select,textarea{font:inherit;color:var(--ink)}
+  h1,h2,h3{margin:0}
+  .tabular{font-variant-numeric:tabular-nums}
+
+  /* ===== header ===== */
+  header{background:var(--brand);color:#e9f3ef;padding:10px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header .logo{letter-spacing:.14em;font-weight:800;font-size:15px;color:#fff}
+  header .logo small{display:block;letter-spacing:.06em;font-weight:600;font-size:10px;color:var(--gold);margin-top:2px}
+  header .qrange{font-size:11.5px;color:#a9c7bd}
+  header .spacer{flex:1}
+  .tabs{display:flex;gap:6px}
+  .tabs button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#d7e7e0;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:600}
+  .tabs button.on{background:var(--gold);border-color:var(--gold);color:var(--goldink)}
+  .btn{border:1px solid var(--line2);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:600}
+  .btn:hover{border-color:var(--ink2)}
+  .btn.primary{background:var(--gold);border-color:var(--gold);color:var(--goldink)}
+  .btn.danger{color:#a92c2c}
+  .btn.small{padding:3px 8px;font-size:11.5px}
+  #uploadBtn{background:var(--gold);border:none;color:var(--goldink);font-weight:800;border-radius:8px;padding:7px 14px;font-size:12.5px}
+  #statusDot{width:9px;height:9px;border-radius:50%;background:var(--muted);display:inline-block}
+  #statusDot.ok{background:var(--good)} #statusDot.err{background:var(--bad)} #statusDot.busy{background:var(--gold)}
+  #statusText{font-size:11.5px;color:#a9c7bd;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #gearBtn{background:transparent;border:1px solid rgba(255,255,255,.25);color:#d7e7e0;border-radius:8px;padding:6px 10px}
+
+  /* ===== toolbar ===== */
+  #toolbar{display:flex;align-items:center;gap:10px;padding:10px 18px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+  .chip{border:1px solid var(--line2);background:var(--surface);border-radius:999px;padding:5px 13px;font-size:12.5px;font-weight:600;color:var(--ink2)}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  #searchBox{border:1px solid var(--line2);border-radius:8px;padding:6px 10px;width:220px;background:var(--surface)}
+  #toolbar label{font-size:12.5px;color:var(--ink2);display:flex;align-items:center;gap:5px}
+  #countLine{font-size:12px;color:var(--muted);margin-left:auto}
+
+  /* ===== views ===== */
+  main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+  .view{flex:1;overflow:auto;display:none}
+  .view.on{display:block}
+  #view-grid.on{display:flex;flex-direction:column}
+
+  /* ===== grid ===== */
+  #gridWrap{flex:1;overflow:auto;position:relative}
+  table.grid{border-collapse:separate;border-spacing:0;font-size:12px;min-width:100%}
+  table.grid th,table.grid td{border-bottom:1px solid var(--line);padding:0;background:var(--bg)}
+  table.grid thead th{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:2px solid var(--line2);font-size:11px;color:var(--ink2);padding:7px 6px;text-align:center;white-space:nowrap}
+  table.grid thead th.namecol{left:0;z-index:4;text-align:left;padding-left:14px}
+  table.grid td.namecol{position:sticky;left:0;z-index:2;background:var(--bg);padding:4px 10px 4px 14px;min-width:210px;max-width:240px;cursor:pointer;border-right:1px solid var(--line2)}
+  table.grid td.namecol:hover{background:#eae7dd}
+  .tk{font-weight:800;font-size:12px}
+  .tk small{font-weight:400;color:var(--ink2);display:block;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  tr.secrow td{background:var(--brand)!important;color:var(--gold);font-weight:800;letter-spacing:.09em;font-size:10.5px;padding:5px 14px;position:sticky;left:0;z-index:2}
+  table.grid td.q{min-width:64px;text-align:center;vertical-align:middle;padding:3px 3px}
+  th.cur{color:var(--ink)} th.cur .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);margin-left:4px;vertical-align:1px}
+  .cellchip{display:inline-block;min-width:44px;border-radius:6px;padding:3px 6px;font-weight:700;font-size:11px;cursor:pointer;border:1px solid rgba(20,48,79,.14)}
+  .cellchip .n{font-weight:400;font-size:9.5px;opacity:.85}
+  .mentiondot{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--ink2);background:transparent;cursor:pointer;vertical-align:middle}
+  .mentiondot.pos{border-color:var(--pos2)} .mentiondot.neg{border-color:var(--neg2)}
+  #emptyBanner{margin:14px 18px;padding:12px 16px;border:1px dashed var(--line2);border-radius:10px;color:var(--ink2);font-size:13px;background:var(--panel)}
+
+  /* ===== score chips ===== */
+  .sc{display:inline-block;border-radius:6px;padding:2px 8px;font-weight:800;font-size:12px;border:1px solid rgba(20,48,79,.14)}
+
+  /* ===== drawer ===== */
+  #drawer{position:fixed;top:0;right:-620px;width:min(600px,96vw);height:100%;background:var(--surface);box-shadow:-12px 0 40px rgba(20,48,79,.18);transition:right .18s;z-index:50;display:flex;flex-direction:column}
+  #drawer.open{right:0}
+  #drawerHead{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:12px;background:var(--panel)}
+  #drawerHead h2{font-size:19px}
+  #drawerHead .code{font-size:12px;color:var(--ink2);margin-top:2px}
+  #drawerBody{flex:1;overflow:auto;padding:16px 20px}
+  .sect{margin:0 0 10px;font-size:11px;letter-spacing:.09em;font-weight:800;color:var(--ink2)}
+  .callcard{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-bottom:14px;overflow:hidden}
+  .callhead{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel);cursor:pointer;flex-wrap:wrap}
+  .callhead .fl{font-weight:800}
+  .callhead .dt{font-size:11.5px;color:var(--ink2)}
+  .callbody{padding:12px 16px;border-top:1px solid var(--line);display:none}
+  .callcard.open .callbody{display:block}
+  .callbody h4{margin:12px 0 6px;font-size:11px;letter-spacing:.08em;color:var(--ink2)}
+  .callbody ol{margin:4px 0;padding-left:20px}
+  .callbody ol li{margin:4px 0;line-height:1.45}
+  .callbody p{line-height:1.55;margin:6px 0}
+  .headline{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+  .headline div{border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;background:var(--panel)}
+  .headline b{display:block;font-size:9.5px;letter-spacing:.06em;color:var(--muted);font-weight:800}
+  details.det{margin:8px 0}
+  details.det summary{cursor:pointer;font-size:12.5px;color:var(--ink2);font-weight:600}
+  .cotable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+  .cotable td{border-top:1px solid var(--line);padding:6px 6px;vertical-align:top}
+  .cotable td:first-child{font-weight:700;white-space:nowrap}
+  blockquote{margin:6px 0 6px 8px;padding:4px 10px;border-left:3px solid var(--line2);color:var(--ink2);font-size:12.5px;font-style:italic;line-height:1.45}
+  .mentionitem{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:10px;background:var(--surface)}
+  .legend{display:flex;gap:16px;align-items:center;font-size:11.5px;color:var(--ink2);margin:6px 0 2px}
+  .legend .sw{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--pos2);vertical-align:-2px;margin-right:5px}
+  .legend .ring{display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid var(--ink2);vertical-align:-1px;margin-right:5px}
+
+  /* ===== recent table ===== */
+  #view-recent{padding:18px}
+  table.list{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px}
+  table.list th{background:var(--panel);text-align:left;padding:9px 12px;font-size:11px;letter-spacing:.07em;color:var(--ink2)}
+  table.list td{padding:8px 12px;border-top:1px solid var(--line);vertical-align:middle}
+  table.list tr:hover td{background:#faf8f0}
+
+  /* ===== ask claude ===== */
+  #view-ask{display:none;flex-direction:column}
+  #view-ask.on{display:flex}
+  #chatLog{flex:1;overflow:auto;padding:20px 18px;max-width:900px;margin:0 auto;width:100%}
+  .msg{margin-bottom:14px;line-height:1.55;white-space:pre-wrap}
+  .msg.user{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+  .msg.ai{padding:2px 4px}
+  .msg .who{font-size:10.5px;letter-spacing:.08em;font-weight:800;color:var(--muted);display:block;margin-bottom:4px}
+  #chatBar{display:flex;gap:10px;padding:14px 18px;border-top:1px solid var(--line);background:var(--surface)}
+  #chatInput{flex:1;border:1px solid var(--line2);border-radius:10px;padding:10px 12px;resize:none;height:64px;background:#fff}
+
+  /* ===== modals ===== */
+  .overlay{position:fixed;inset:0;background:rgba(20,48,79,.45);display:none;align-items:flex-start;justify-content:center;z-index:100;overflow:auto;padding:40px 16px}
+  .overlay.open{display:flex}
+  .modal{background:var(--surface);border-radius:16px;max-width:760px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+  .modal .mhead{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center}
+  .modal .mhead h2{font-size:16px;flex:1}
+  .modal .mbody{padding:18px 22px}
+  .frow{margin-bottom:12px}
+  .frow label{display:block;font-size:11px;letter-spacing:.06em;font-weight:800;color:var(--ink2);margin-bottom:4px}
+  .frow input[type=text],.frow input[type=password],.frow input[type=date],.frow select,.frow textarea{width:100%;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;background:#fff}
+  .frow .hint{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  #dropZone{border:2px dashed var(--line2);border-radius:12px;padding:26px;text-align:center;color:var(--ink2);cursor:pointer;background:var(--panel)}
+  #dropZone.hot{border-color:var(--gold);background:#fbf4df}
+  #upStatus{font-size:12.5px;color:var(--ink2);margin-top:10px;min-height:18px}
+  #previewBox{border-top:1px solid var(--line);margin-top:16px;padding-top:14px;display:none}
+  .x{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media(max-width:700px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">MELQART<small>EARNINGS CALL TRACKER</small></div>
+  <div class="qrange" id="qRange"></div>
+  <div class="spacer"></div>
+  <span id="statusDot"></span><span id="statusText">not connected</span>
+  <nav class="tabs">
+    <button data-view="grid" class="on">Grid</button>
+    <button data-view="recent">All calls</button>
+    <button data-view="ask">Ask Claude</button>
+  </nav>
+  <button id="uploadBtn">+ Upload call</button>
+  <button id="gearBtn" title="Settings">⚙</button>
+</header>
+
+<main>
+  <div id="view-grid" class="view on">
+    <div id="toolbar">
+      <button class="chip on" data-sector="All">All</button>
+      <button class="chip" data-sector="Software">Software</button>
+      <button class="chip" data-sector="Semiconductors">Semiconductors</button>
+      <input id="searchBox" type="text" placeholder="Search ticker / company…">
+      <label><input type="checkbox" id="onlyData"> with calls only</label>
+      <button class="btn small" id="olderBtn">+4 older quarters</button>
+      <span id="countLine"></span>
+    </div>
+    <div id="emptyBanner" style="display:none"></div>
+    <div id="gridWrap"><table class="grid" id="gridTable"></table></div>
+  </div>
+
+  <div id="view-recent" class="view"></div>
+
+  <div id="view-ask" class="view">
+    <div id="chatLog"><div class="msg ai"><span class="who">CLAUDE</span>Ask me anything about the calls stored in the team database — e.g. “Who sounded most positive on AI capex this quarter?”, “Summarize NVDA read-throughs across the supply chain”, “Which software names cut guidance in the last two quarters?”.</div></div>
+    <div id="chatBar">
+      <textarea id="chatInput" placeholder="Ask about the stored earnings calls…"></textarea>
+      <button class="btn primary" id="chatSend">Send</button>
+    </div>
+  </div>
+</main>
+
+<!-- company drawer -->
+<div id="drawer">
+  <div id="drawerHead">
+    <div style="flex:1">
+      <h2 id="dName"></h2>
+      <div class="code" id="dCode"></div>
+    </div>
+    <button class="x" id="dClose">✕</button>
+  </div>
+  <div id="drawerBody"></div>
+</div>
+
+<!-- upload modal -->
+<div class="overlay" id="uploadOverlay">
+  <div class="modal">
+    <div class="mhead"><h2>Upload earnings call</h2><button class="x" data-close="uploadOverlay">✕</button></div>
+    <div class="mbody">
+      <div id="dropZone">Drop the transcript here (PDF / TXT / MD) or click to choose a file<br><span style="font-size:11.5px">…or paste text below</span></div>
+      <input type="file" id="fileInput" accept=".pdf,.txt,.md,.text" style="display:none">
+      <div class="frow" style="margin-top:12px">
+        <textarea id="pasteBox" rows="4" placeholder="…or paste the transcript text here"></textarea>
+      </div>
+      <div class="grid2">
+        <div class="frow">
+          <label>Reporting company</label>
+          <select id="upTicker"></select>
+        </div>
+        <div class="frow">
+          <label>Call date</label>
+          <input type="date" id="upDate">
+        </div>
+        <div class="frow">
+          <label>Title (optional)</label>
+          <input type="text" id="upTitle" placeholder="e.g. Q2 FY27 earnings call">
+        </div>
+        <div class="frow">
+          <label>Uploaded by</label>
+          <input type="text" id="upBy">
+        </div>
+      </div>
+      <button class="btn primary" id="analyzeBtn">Analyze with Claude</button>
+      <span id="upStatus"></span>
+      <div id="previewBox">
+        <div class="grid2">
+          <div class="frow">
+            <label>Save under company</label>
+            <select id="saveTicker"></select>
+          </div>
+          <div class="frow">
+            <label>Quarter (fiscal period end)</label>
+            <select id="saveQuarter"></select>
+          </div>
+        </div>
+        <div id="previewCard"></div>
+        <button class="btn primary" id="saveBtn">Save to team DB</button>
+        <span id="saveStatus" style="font-size:12.5px;color:var(--ink2)"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- settings modal -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal" style="max-width:620px">
+    <div class="mhead"><h2>Settings · Team cloud</h2><button class="x" data-close="settingsOverlay">✕</button></div>
+    <div class="mbody">
+      <div class="frow">
+        <label>Supabase project URL</label>
+        <input type="text" id="setSbUrl" placeholder="https://xxxx.supabase.co">
+      </div>
+      <div class="frow">
+        <label>Supabase anon key</label>
+        <input type="password" id="setSbKey" placeholder="eyJ…">
+        <div class="hint">Same project as the other Melqart tools. Run <b>db-setup.sql</b> once in the Supabase SQL editor — it creates the <b>earnings_docs</b> table this app uses (idempotent, safe to re-run).</div>
+      </div>
+      <div class="frow">
+        <label>Anthropic API key (for analysis &amp; Ask Claude)</label>
+        <input type="password" id="setClaudeKey" placeholder="sk-ant-…">
+      </div>
+      <div class="frow">
+        <label>Model</label>
+        <select id="setModel">
+          <option value="claude-opus-5">claude-opus-5 (recommended)</option>
+          <option value="claude-sonnet-5">claude-sonnet-5 (faster / cheaper)</option>
+          <option value="claude-haiku-4-5">claude-haiku-4-5 (cheapest)</option>
+        </select>
+      </div>
+      <div class="frow">
+        <label>Your name (shown as “uploaded by”)</label>
+        <input type="text" id="setName">
+      </div>
+      <button class="btn primary" id="saveSettings">Save</button>
+      <button class="btn" id="testConn">Test connection</button>
+      <span id="setStatus" style="font-size:12.5px;color:var(--ink2)"></span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+'use strict';
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ================= universe ================= */
+const SOFTWARE = ['GOOG US','MSFT US','ORCL US','AMD US','SAP GY','ARM US','CRM US','SHOP US','PANW US','CRWD US','INTU US','NOW US','ADBE US','CDNS US','SNPS US','NET US','FTNT US','CSU CN','ADSK US','SNOW US','RBLX US','DDOG US','WDAY US','AXON US','ZM US','VEEV US','DSY FP','P US','ZS US','TWLO US','NTAP US','MDB US','PTC US','SSNC US','AKAM US','TEAM US','IOT US','TRMB US','CHKP US','TYL US','OKTA US','BSY US','HUBS US','GDDY US','GWRE US','DT US','FIG US','NTNX US','TTD US','U US','DOCN US','DOCU US','PCOR US','PEGA US','APPF US','PAYC US','FROG US','PATH US','PCTY US','FSLY US','S US','DUOL US','KXS CN','BILL US','CVLT US','GTLB US','MNDY US','WK US','BOX US','RNG US','TDC US','BRZE US','NCNO US','SPSC US','BL US','TENB US','VERX US','BLKB US','APPN US','PLTR US','RBRK US','KVYO US','AI US','QLYS US','VRNS US','RDWR US','ESTC US','NICE US','WIX US','FRSH US','AMPL US','ASAN US','CXM US','RPD US','PD US','FIVN US','EGHT US','DOMO US','SPT US'];
+const SEMIS = ['STM US','ARM US','1347 HK','981 HK','TSM US','UMC US','000660 KS','SIMO US','005930 KS','285A JP','PSTG US','005935 KS','1415 HK','2382 HK','ASX US','042700 KS','522 HK','ASML NA','BESI NA','1478 HK','1810 HK','20 HK','2018 HK','2241 CH','2371 CH','2475 CH','2533 HK','2676 HK','285 HK','6613 HK','9660 HK','992 HK','GDS US','HIMX US','SMHN GY','SWKS US','4919 TT','SMCI US','6789 TT','5269 TT','3035 TT','NTAP US','6770 TT','2449 TT','ACLS US','3413 TT','6533 TT','4968 TT','ALGM US','WDC US','3034 TT','GFS US','2379 TT','OLED US','ENTG US','ON US','DELL US','QRVO US','3592 TT','4961 TT','2344 TT','RMBS US','MCHP US','ACMR US','2303 TT','AMKR US','QCOM US','2382 TT','2458 TT','2351 TT','6239 TT','COHR US','5222 TT','STX US','8081 TT','MPWR US','3231 TT','TER US','3661 TT','INTC US','MU US','6719 TT','MRVL US','2408 TT','6415 TT','6271 TT','NXPI US','6285 TT','8150 TT','SNPS US','KLIC US','KLAC US','3006 TT','CDNS US','LRCX US','6531 TT','ADI US','AMD US','2313 TT','3189 TT','AMAT US','3711 TT','TXN US','6799 TT','NVDA US','1560 TT','AVGO US','MSFT US','AMZN US','3443 TT','6515 TT','2360 TT','GOOG US','2317 TT','3105 TT','6147 TT','2454 TT','3491 TT','8086 TT','6488 TT','8299 TT','688052 CH','300394 CH','601138 CH','300433 CH','2330 TT','688256 CH','002371 CH','688012 CH','300782 CH','300308 CH','300661 CH','688041 CH','688981 CH','603501 CH','5347 TT','688072 CH','688347 CH','3680 TT'];
+
+/* Company names per Bloomberg code (non-US listings verified by web lookup). */
+const NAMES = {
+/* software */
+'GOOG US':'Alphabet','MSFT US':'Microsoft','ORCL US':'Oracle','AMD US':'AMD','SAP GY':'SAP','ARM US':'Arm Holdings','CRM US':'Salesforce','SHOP US':'Shopify','PANW US':'Palo Alto Networks','CRWD US':'CrowdStrike','INTU US':'Intuit','NOW US':'ServiceNow','ADBE US':'Adobe','CDNS US':'Cadence Design','SNPS US':'Synopsys','NET US':'Cloudflare','FTNT US':'Fortinet','CSU CN':'Constellation Software','ADSK US':'Autodesk','SNOW US':'Snowflake','RBLX US':'Roblox','DDOG US':'Datadog','WDAY US':'Workday','AXON US':'Axon Enterprise','ZM US':'Zoom','VEEV US':'Veeva Systems','DSY FP':'Dassault Systèmes','P US':'Everpure (fka Pure Storage)','ZS US':'Zscaler','TWLO US':'Twilio','NTAP US':'NetApp','MDB US':'MongoDB','PTC US':'PTC','SSNC US':'SS&C Technologies','AKAM US':'Akamai','TEAM US':'Atlassian','IOT US':'Samsara','TRMB US':'Trimble','CHKP US':'Check Point','TYL US':'Tyler Technologies','OKTA US':'Okta','BSY US':'Bentley Systems','HUBS US':'HubSpot','GDDY US':'GoDaddy','GWRE US':'Guidewire','DT US':'Dynatrace','FIG US':'Figma','NTNX US':'Nutanix','TTD US':'The Trade Desk','U US':'Unity','DOCN US':'DigitalOcean','DOCU US':'DocuSign','PCOR US':'Procore','PEGA US':'Pegasystems','APPF US':'AppFolio','PAYC US':'Paycom','FROG US':'JFrog','PATH US':'UiPath','PCTY US':'Paylocity','FSLY US':'Fastly','S US':'SentinelOne','DUOL US':'Duolingo','KXS CN':'Kinaxis','BILL US':'BILL Holdings','CVLT US':'Commvault','GTLB US':'GitLab','MNDY US':'monday.com','WK US':'Workiva','BOX US':'Box','RNG US':'RingCentral','TDC US':'Teradata','BRZE US':'Braze','NCNO US':'nCino','SPSC US':'SPS Commerce','BL US':'BlackLine','TENB US':'Tenable','VERX US':'Vertex','BLKB US':'Blackbaud','APPN US':'Appian','PLTR US':'Palantir','RBRK US':'Rubrik','KVYO US':'Klaviyo','AI US':'C3.ai','QLYS US':'Qualys','VRNS US':'Varonis','RDWR US':'Radware','ESTC US':'Elastic','NICE US':'NICE','WIX US':'Wix.com','FRSH US':'Freshworks','AMPL US':'Amplitude','ASAN US':'Asana','CXM US':'Sprinklr','RPD US':'Rapid7','PD US':'PagerDuty','FIVN US':'Five9','EGHT US':'8x8','DOMO US':'Domo','SPT US':'Sprout Social',
+/* semis — US / EU */
+'STM US':'STMicroelectronics','TSM US':'TSMC (ADR)','UMC US':'UMC (ADR)','SIMO US':'Silicon Motion','PSTG US':'Pure Storage (now Everpure, P US)','ASX US':'ASE Technology (ADR)','ASML NA':'ASML','BESI NA':'BE Semiconductor','GDS US':'GDS Holdings','HIMX US':'Himax','SMHN GY':'SUSS MicroTec','SWKS US':'Skyworks','SMCI US':'Super Micro Computer','ACLS US':'Axcelis','ALGM US':'Allegro MicroSystems','WDC US':'Western Digital','GFS US':'GlobalFoundries','OLED US':'Universal Display','ENTG US':'Entegris','ON US':'onsemi','DELL US':'Dell Technologies','QRVO US':'Qorvo','RMBS US':'Rambus','MCHP US':'Microchip','ACMR US':'ACM Research','AMKR US':'Amkor','QCOM US':'Qualcomm','COHR US':'Coherent','STX US':'Seagate','MPWR US':'Monolithic Power','TER US':'Teradyne','INTC US':'Intel','MU US':'Micron','MRVL US':'Marvell','NXPI US':'NXP Semiconductors','KLIC US':'Kulicke & Soffa','KLAC US':'KLA','LRCX US':'Lam Research','ADI US':'Analog Devices','AMAT US':'Applied Materials','TXN US':'Texas Instruments','NVDA US':'NVIDIA','AVGO US':'Broadcom','AMZN US':'Amazon',
+/* semis — Korea / Japan */
+'000660 KS':'SK hynix','005930 KS':'Samsung Electronics','005935 KS':'Samsung Electronics (Pref)','042700 KS':'Hanmi Semiconductor','285A JP':'Kioxia',
+/* semis — Hong Kong */
+'1347 HK':'Hua Hong Semiconductor','981 HK':'SMIC','1415 HK':'Cowell e Holdings','2382 HK':'Sunny Optical','522 HK':'ASMPT','1478 HK':'Q Technology','1810 HK':'Xiaomi','20 HK':'SenseTime','2018 HK':'AAC Technologies','2533 HK':'Black Sesame Technologies','2676 HK':'Novosense (H)','285 HK':'BYD Electronic','6613 HK':'Lens Technology (H)','9660 HK':'Horizon Robotics','992 HK':'Lenovo',
+/* semis — China A */
+'2241 CH':'GoerTek','2371 CH':'NAURA Technology','2475 CH':'Luxshare Precision','688052 CH':'Novosense Micro','300394 CH':'TFC Optical','601138 CH':'Foxconn Industrial Internet','300433 CH':'Lens Technology','688256 CH':'Cambricon','002371 CH':'NAURA Technology','688012 CH':'AMEC','300782 CH':'Maxscend Micro','300308 CH':'Zhongji Innolight','300661 CH':'SG Micro','688041 CH':'Hygon','688981 CH':'SMIC (A)','603501 CH':'OmniVision Group (Will Semi)','688072 CH':'Piotech','688347 CH':'Hua Hong (A)',
+/* semis — Taiwan */
+'4919 TT':'Nuvoton','6789 TT':'VisEra','5269 TT':'ASMedia','3035 TT':'Faraday Technology','6770 TT':'PSMC','2449 TT':'King Yuan Electronics','3413 TT':'Foxsemicon','6533 TT':'Andes Technology','4968 TT':'RichWave','3034 TT':'Novatek','2379 TT':'Realtek','3592 TT':'Raydium','4961 TT':'Fitipower','2344 TT':'Winbond','2303 TT':'UMC','2382 TT':'Quanta Computer','2458 TT':'ELAN Micro','2351 TT':'SDI Corp','6239 TT':'Powertech','5222 TT':'Transcom','8081 TT':'Global Mixed-mode (GMT)','3231 TT':'Wistron','3661 TT':'Alchip','6719 TT':'uPI Semiconductor','2408 TT':'Nanya Technology','6415 TT':'Silergy','6271 TT':'Tong Hsing','6285 TT':'WNC (Wistron NeWeb)','8150 TT':'ChipMOS','3006 TT':'Elite Semiconductor (ESMT)','6531 TT':'AP Memory','2313 TT':'Compeq','3189 TT':'Kinsus','3711 TT':'ASE Technology','6799 TT':'M3 Technology','1560 TT':'Kinik','3443 TT':'Global Unichip','6515 TT':'WinWay','2360 TT':'Chroma ATE','2317 TT':'Hon Hai (Foxconn)','3105 TT':'WIN Semiconductors','6147 TT':'Chipbond','2454 TT':'MediaTek','3491 TT':'Universal Microwave','8086 TT':'AWSC','6488 TT':'GlobalWafers','8299 TT':'Phison','2330 TT':'TSMC','5347 TT':'Vanguard (VIS)','3680 TT':'Gudeng Precision'
+};
+
+const SECTORS = [
+  {name:'Software', codes: dedupe(SOFTWARE)},
+  {name:'Semiconductors', codes: dedupe(SEMIS)},
+];
+function dedupe(a){ const seen=new Set(); return a.filter(c=>{ if(seen.has(c)) return false; seen.add(c); return true; }); }
+const ALL_CODES = dedupe(SOFTWARE.concat(SEMIS));
+const SECTOR_OF = {};
+SECTORS.forEach(s=>s.codes.forEach(c=>{ if(!SECTOR_OF[c]) SECTOR_OF[c]=s.name; }));
+function nameOf(code){ return NAMES[code] || ''; }
+
+/* ================= quarters ================= */
+function quarterOfDate(ds){ // 'YYYY-MM-DD' -> '2026Q2' (null-safe)
+  if(!ds) return null;
+  const m = String(ds).match(/^(\d{4})-(\d{2})/);
+  if(!m) return null;
+  return m[1] + 'Q' + (Math.floor((parseInt(m[2],10)-1)/3)+1);
+}
+function currentYQ(){ const n=new Date(); return {y:n.getFullYear(), q:Math.floor(n.getMonth()/3)+1}; }
+function quarterList(n){ // n most recent calendar quarters, oldest→newest, ending at the current one
+  let {y,q}=currentYQ(); const out=[];
+  for(let i=0;i<n;i++){ out.unshift(y+'Q'+q); q--; if(q===0){q=4;y--;} }
+  return out;
+}
+function qLabel(k){ return 'Q'+k.slice(5)+' '+k.slice(2,4); } // '2026Q2' -> 'Q2 26'
+function docQuarter(d){ // stored column first, then period_end, then call date shifted back ~40d
+  if(d.quarter) return d.quarter;
+  const pe = d.data && d.data.period_end;
+  if(pe){ const q=quarterOfDate(pe); if(q) return q; }
+  if(d.doc_date){ const t=new Date(d.doc_date+'T00:00:00'); if(!isNaN(t)){ t.setDate(t.getDate()-40); return t.getFullYear()+'Q'+(Math.floor(t.getMonth()/3)+1); } }
+  return null;
+}
+
+/* ================= config / state ================= */
+const CFG_KEY='melqart_earnings_cfg';
+let cfg = {};
+try { cfg = JSON.parse(localStorage.getItem(CFG_KEY)||'{}') || {}; } catch(e){ cfg = {}; }
+function saveCfg(){ try{ localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }catch(e){} }
+
+let docs = [];            // rows from earnings_docs
+let byTicker = {};        // code -> [doc]
+let byCell = {};          // code|qk -> {own:[doc], mentions:[m]}
+let mentionsFor = {};     // code -> [m]  (m = {src, quarter, score, quotes, rationale})
+let visibleQuarters = 10; // "last 10 quarters" default window
+let sectorFilter = 'All';
+let searchTerm = '';
+let openCode = null;
+let chatHistory = [];
+
+/* ================= tiny utils ================= */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtScore(s){ if(s==null||isNaN(s)) return '·'; const v=Math.round(s*100)/100; return (v>0?'+':'')+v.toFixed(2).replace(/0$/,''); }
+function scoreStyle(s){
+  if(s==null||isNaN(s)) return 'background:var(--neut);color:var(--ink)';
+  const a=Math.abs(s);
+  if(a<0.05) return 'background:var(--neut);color:var(--ink)';
+  const arm = s>0 ? ['--pos1','--pos2','--pos3'] : ['--neg1','--neg2','--neg3'];
+  const step = a<0.3?0 : a<0.6?1 : 2;
+  const fg = step===0 ? 'var(--ink)' : '#fff';
+  return 'background:var('+arm[step]+');color:'+fg;
+}
+function scChip(s){ return '<span class="sc tabular" style="'+scoreStyle(s)+'">'+esc(fmtScore(s))+'</span>'; }
+function setStatus(kind,msg){ $('statusDot').className=kind; $('statusText').textContent=msg||''; $('statusText').title=msg||''; }
+function today(){ return new Date().toISOString().slice(0,10); }
+function uuid(){ return (crypto.randomUUID ? crypto.randomUUID() : 'id'+Date.now()+Math.random().toString(36).slice(2)); }
+
+/* ================= supabase (REST) ================= */
+function sbReady(){ return !!(cfg.sbUrl && cfg.sbKey); }
+function sbBase(){ return cfg.sbUrl.replace(/\/+$/,''); }
+function sbHeaders(extra){
+  const h={apikey:cfg.sbKey, Authorization:'Bearer '+cfg.sbKey, 'Content-Type':'application/json'};
+  return Object.assign(h, extra||{});
+}
+async function sbLoadAll(){
+  const out=[]; const page=1000; let offset=0;
+  while(true){
+    const r=await fetch(sbBase()+'/rest/v1/earnings_docs?select=*&order=created_at.desc&limit='+page+'&offset='+offset,{headers:sbHeaders()});
+    if(!r.ok) throw new Error('Supabase '+r.status+': '+(await r.text()).slice(0,300));
+    const rows=await r.json(); out.push.apply(out,rows);
+    if(rows.length<page) break; offset+=page;
+  }
+  return out;
+}
+async function sbUpsert(row){
+  const r=await fetch(sbBase()+'/rest/v1/earnings_docs',{method:'POST',headers:sbHeaders({Prefer:'resolution=merge-duplicates,return=representation'}),body:JSON.stringify(row)});
+  if(!r.ok) throw new Error('Supabase save '+r.status+': '+(await r.text()).slice(0,300));
+  return (await r.json())[0];
+}
+async function sbDelete(id){
+  const r=await fetch(sbBase()+'/rest/v1/earnings_docs?id=eq.'+encodeURIComponent(id),{method:'DELETE',headers:sbHeaders()});
+  if(!r.ok) throw new Error('Supabase delete '+r.status+': '+(await r.text()).slice(0,300));
+}
+async function storageUpload(path, file){
+  const r=await fetch(sbBase()+'/storage/v1/object/calls/'+path,{method:'POST',headers:{apikey:cfg.sbKey,Authorization:'Bearer '+cfg.sbKey,'x-upsert':'true','Content-Type':file.type||'application/octet-stream'},body:file});
+  if(!r.ok) throw new Error('Storage upload '+r.status+': '+(await r.text()).slice(0,300));
+}
+async function storageOpen(path){
+  // open the tab synchronously (inside the click gesture) so popup blockers allow it
+  const w=window.open('about:blank','_blank');
+  try{
+    const r=await fetch(sbBase()+'/storage/v1/object/calls/'+path,{headers:{apikey:cfg.sbKey,Authorization:'Bearer '+cfg.sbKey}});
+    if(!r.ok) throw new Error('Storage '+r.status);
+    const url=URL.createObjectURL(await r.blob());
+    if(w) w.location=url; else window.open(url,'_blank');
+  }catch(e){ if(w) w.close(); throw e; }
+}
+async function storageDelete(path){
+  try{ await fetch(sbBase()+'/storage/v1/object/calls/'+path,{method:'DELETE',headers:{apikey:cfg.sbKey,Authorization:'Bearer '+cfg.sbKey}}); }catch(e){}
+}
+
+/* ================= claude (Anthropic API, direct from browser) ================= */
+async function claude(opts){ // {system, messages, schema, maxTokens}
+  if(!cfg.claudeKey) throw new Error('Add your Anthropic API key in Settings first.');
+  const body={ model: cfg.model||'claude-opus-5', max_tokens: opts.maxTokens||16000, messages: opts.messages };
+  if(opts.system) body.system=opts.system;
+  if(opts.schema) body.output_config={format:{type:'json_schema', schema:opts.schema}};
+  const mkHeaders=(withFb)=>{
+    const h={'Content-Type':'application/json','x-api-key':cfg.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'};
+    if(withFb) h['anthropic-beta']='server-side-fallback-2026-07-01';
+    return h;
+  };
+  // server-side refusal fallbacks on by default; retried without on 400 for setups that reject the param
+  body.fallbacks='default';
+  let r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:mkHeaders(true),body:JSON.stringify(body)});
+  if(r.status===400){
+    delete body.fallbacks;
+    r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:mkHeaders(false),body:JSON.stringify(body)});
+  }
+  if(!r.ok){
+    let detail=''; try{ const j=await r.json(); detail=(j.error&&j.error.message)||JSON.stringify(j); }catch(e){ detail=await r.text(); }
+    throw new Error('Claude API '+r.status+': '+String(detail).slice(0,400));
+  }
+  const msg=await r.json();
+  if(msg.stop_reason==='refusal'){
+    const why = msg.stop_details && msg.stop_details.explanation ? ' — '+msg.stop_details.explanation : '';
+    throw new Error('Claude declined this request'+why);
+  }
+  const text=(msg.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+  if(msg.stop_reason==='max_tokens') console.warn('Claude response hit max_tokens; output may be truncated');
+  if(opts.schema){
+    try{ return JSON.parse(text); }
+    catch(e){ throw new Error('Could not parse the analysis JSON — try again. ('+e.message+')'); }
+  }
+  return text;
+}
+
+const ANALYSIS_SCHEMA = {
+  type:'object', additionalProperties:false,
+  required:['company','bbg','fiscal_label','period_end','call_date','headline','bullets','takeaway','detailed','overall_score','companies','ranking'],
+  properties:{
+    company:{type:'string', description:'reporting company short name'},
+    bbg:{type:['string','null'], description:'Bloomberg code from the universe list (e.g. "NVDA US", "2330 TT"), null if not in it'},
+    fiscal_label:{type:['string','null'], description:'e.g. "Q2 FY2026"'},
+    period_end:{type:['string','null'], description:'date the fiscal quarter ended, YYYY-MM-DD'},
+    call_date:{type:['string','null'], description:'date of the call, YYYY-MM-DD'},
+    headline:{type:'object', additionalProperties:false,
+      required:['revenue','growth','eps','margin','guidance'],
+      properties:{revenue:{type:['string','null']},growth:{type:['string','null']},eps:{type:['string','null']},margin:{type:['string','null']},guidance:{type:['string','null']}}},
+    bullets:{type:'array', items:{type:'string'}},
+    takeaway:{type:'string'},
+    detailed:{type:'string'},
+    overall_score:{type:'number'},
+    companies:{type:'array', items:{type:'object', additionalProperties:false,
+      required:['name','bbg','score','quotes','rationale'],
+      properties:{name:{type:'string'},bbg:{type:['string','null']},score:{type:'number'},quotes:{type:'array',items:{type:'string'}},rationale:{type:'string'}}}},
+    ranking:{type:'string'}
+  }
+};
+
+function universeText(){
+  return SECTORS.map(s=>s.name+':\n'+s.codes.map(c=>c+(NAMES[c]?' — '+NAMES[c]:'')).join('\n')).join('\n\n');
+}
+function analysisSystem(){
+  const t =
+'You are an equity research analyst at Melqart Asset Management, analyzing an EARNINGS CALL transcript (or related earnings document) for the team’s internal earnings tracker. Read the whole document, then fill the JSON analysis:\n\n'+
+'1) "bullets" — exactly 10 bullet points explaining what management is trying to convey. Keep them short, simple and easy to understand — assume the reader’s brain is drained, tired and overwhelmed. The FIRST bullet states the company, the fiscal quarter and the headline numbers (revenue, growth, EPS, guidance).\n\n'+
+'2) "takeaway" — one short paragraph in simple, easy-to-read language that a tired, overwhelmed reader with a lot on their plate can actually retain. Focus ONLY on the main takeaway, and explain why management is most positive or most negative on the companies/topics that were most mentioned.\n\n'+
+'3) "detailed" — start by stating the company, the fiscal period, the call date and the headline results (revenue, growth, EPS/margins, guidance — the earnings-call equivalent of stating the expert’s role and price). Then a very detailed summary in ONE paragraph.\n\n'+
+'4) "companies" — the scoring section:\n'+
+'   A. Analyze the sentiment expressed toward EVERY company mentioned on the call — the reporting company itself first, then customers, suppliers, competitors and partners mentioned by management or by analysts on the Q&A.\n'+
+'   B. Score each company: positive sentiment 0.1 to 1.0; mixed/neutral 0; negative sentiment -0.1 to -1.0.\n'+
+'   C. For each company give: the numerical score; verbatim quotes from the document that justify the score (as many as feasible — aim for 5 quotes per ranked company, fewer only when a company is barely mentioned); and a detailed rationale explaining why you assigned that particular score.\n'+
+'   D. "ranking" — conclude with a ranking from most positive to most negative with a qualitative comment.\n\n'+
+'5) "overall_score" — the reporting company’s own score on the same scale (results + guidance + management tone), matching its entry in "companies".\n\n'+
+'Metadata: extract "fiscal_label" (e.g. "Q2 FY2026"); "period_end" — the date the fiscal quarter ENDED (YYYY-MM-DD; this buckets the call into a calendar quarter, so extract it carefully — e.g. a January-fiscal-year software company’s quarter ending 31 July 2026 → "2026-07-31"); "call_date" (YYYY-MM-DD); and short "headline" strings (revenue, growth, eps, margin, guidance; null when not stated).\n\n'+
+'For every "bbg" field, use the exact Bloomberg code from the universe below when the company is in it; otherwise null (still include and score the company). Quote strictly verbatim; never invent numbers or quotes. If the document is not an earnings call, analyze it in the same format and say so in the takeaway.\n\n'+
+'UNIVERSE (Bloomberg code — company):\n'+universeText();
+  return [{type:'text', text:t, cache_control:{type:'ephemeral'}}];
+}
+
+function chatDigest(){
+  const sorted = docs.slice().sort((a,b)=> (docQuarter(b)||'').localeCompare(docQuarter(a)||''));
+  let out=[]; let size=0;
+  for(const d of sorted){
+    const a=d.data||{};
+    let line = '### '+(d.ticker||a.company||'?')+' '+(NAMES[d.ticker]?'('+NAMES[d.ticker]+') ':'')+'· '+(a.fiscal_label||'')+' · quarter '+(docQuarter(d)||'?')+' · call '+(d.doc_date||'?')+' · score '+fmtScore(a.overall_score)+'\n'
+      + 'Takeaway: '+(a.takeaway||'')+'\n'
+      + (a.companies&&a.companies.length ? 'Company scores: '+a.companies.map(c=>(c.bbg||c.name)+' '+fmtScore(c.score)).join(', ')+'\n' : '')
+      + (a.headline&&a.headline.guidance ? 'Guide: '+a.headline.guidance+'\n' : '');
+    if(size+line.length>350000){ out.push('\n[… older calls omitted for length …]'); break; }
+    out.push(line); size+=line.length;
+  }
+  return out.join('\n');
+}
+function chatSystem(){
+  return [{type:'text', text:
+'You are the earnings-desk assistant for Melqart Asset Management’s internal Earnings Call Tracker. Answer using the team’s stored earnings-call analyses below. Cite the company and quarter when you reference a call. Be concise, concrete and price-relevant; use simple language. If the stored data does not contain the answer, say so plainly rather than guessing.\n\nSTORED CALLS:\n'+chatDigest(),
+    cache_control:{type:'ephemeral'}}];
+}
+
+/* ================= indexes ================= */
+function buildIndexes(){
+  byTicker={}; byCell={}; mentionsFor={};
+  for(const d of docs){
+    const code=d.ticker||''; const qk=docQuarter(d);
+    if(!byTicker[code]) byTicker[code]=[];
+    byTicker[code].push(d);
+    if(code&&qk){ const k=code+'|'+qk; if(!byCell[k]) byCell[k]={own:[],mentions:[]}; byCell[k].own.push(d); }
+    const comps=(d.data&&d.data.companies)||[];
+    for(const c of comps){
+      let target=c.bbg;
+      if(!target||!SECTOR_OF[target]){ // fallback name match
+        const nm=(c.name||'').toLowerCase();
+        target = ALL_CODES.find(x=>NAMES[x]&&NAMES[x].toLowerCase()===nm) || (SECTOR_OF[c.bbg]?c.bbg:null);
+      }
+      if(!target||target===code) continue;
+      const m={src:d, quarter:qk, score:c.score, quotes:c.quotes||[], rationale:c.rationale||'', name:c.name};
+      if(!mentionsFor[target]) mentionsFor[target]=[];
+      mentionsFor[target].push(m);
+      if(qk){ const k=target+'|'+qk; if(!byCell[k]) byCell[k]={own:[],mentions:[]}; byCell[k].mentions.push(m); }
+    }
+  }
+  for(const k in byTicker) byTicker[k].sort((a,b)=>(docQuarter(b)||'').localeCompare(docQuarter(a)||'') || String(b.doc_date||'').localeCompare(String(a.doc_date||'')));
+}
+function avg(arr){ const v=arr.filter(x=>typeof x==='number'&&!isNaN(x)); return v.length? v.reduce((a,b)=>a+b,0)/v.length : null; }
+function cellOwnScore(code,qk){ const c=byCell[code+'|'+qk]; if(!c||!c.own.length) return null; return avg(c.own.map(d=>d.data&&d.data.overall_score)); }
+function cellMentionScore(code,qk){ const c=byCell[code+'|'+qk]; if(!c||!c.mentions.length) return null; return avg(c.mentions.map(m=>m.score)); }
+
+/* ================= grid ================= */
+function visibleSectors(){
+  return SECTORS.filter(s=>sectorFilter==='All'||s.name===sectorFilter).map(s=>{
+    const codes=s.codes.filter(c=>{
+      if(searchTerm){ const t=searchTerm.toLowerCase(); if(!(c.toLowerCase().includes(t)||nameOf(c).toLowerCase().includes(t))) return false; }
+      if($('onlyData').checked && !(byTicker[c]&&byTicker[c].length) && !(mentionsFor[c]&&mentionsFor[c].length)) return false;
+      return true;
+    });
+    return {name:s.name, codes};
+  });
+}
+function renderGrid(){
+  const quarters=quarterList(visibleQuarters);
+  const cur=quarters[quarters.length-1];
+  $('qRange').textContent = qLabel(quarters[0])+' → '+qLabel(cur)+' · last '+quarters.length+' quarters';
+  let h='<thead><tr><th class="namecol">Company</th>';
+  for(const qk of quarters){ const isCur=qk===cur; h+='<th class="'+(isCur?'cur':'')+'">'+qLabel(qk)+(isCur?'<span class="dot" title="current quarter"></span>':'')+'</th>'; }
+  h+='</tr></thead><tbody>';
+  const secs=visibleSectors();
+  let shown=0;
+  for(const s of secs){
+    if(!s.codes.length) continue;
+    h+='<tr class="secrow"><td colspan="'+(quarters.length+1)+'">'+esc(s.name.toUpperCase())+' · '+s.codes.length+'</td></tr>';
+    for(const code of s.codes){
+      shown++;
+      h+='<tr><td class="namecol" data-open="'+esc(code)+'"><div class="tk">'+esc(code)+'<small>'+esc(nameOf(code)||' ')+'</small></div></td>';
+      for(const qk of quarters){
+        const cell=byCell[code+'|'+qk];
+        let inner='';
+        if(cell&&cell.own.length){
+          const sc=cellOwnScore(code,qk);
+          inner='<span class="cellchip tabular" data-open="'+esc(code)+'" data-q="'+qk+'" style="'+scoreStyle(sc)+'" title="'+esc(code+' '+qLabel(qk)+' · '+cell.own.length+' call'+(cell.own.length>1?'s':'')+' · score '+fmtScore(sc))+'">'+fmtScore(sc)+(cell.own.length>1?' <span class="n">×'+cell.own.length+'</span>':'')+'</span>';
+        } else if(cell&&cell.mentions.length){
+          const ms=cellMentionScore(code,qk);
+          inner='<span class="mentiondot '+(ms>0.05?'pos':ms<-0.05?'neg':'')+'" data-open="'+esc(code)+'" data-q="'+qk+'" title="'+esc('mentioned on '+cell.mentions.length+' other call'+(cell.mentions.length>1?'s':'')+' · avg '+fmtScore(ms))+'"></span>';
+        }
+        h+='<td class="q">'+inner+'</td>';
+      }
+      h+='</tr>';
+    }
+  }
+  h+='</tbody>';
+  $('gridTable').innerHTML=h;
+  $('countLine').textContent = shown+' names · '+docs.length+' calls';
+  const eb=$('emptyBanner');
+  if(!docs.length){
+    eb.style.display='block';
+    eb.innerHTML='The grid is pre-populated with the team universe and the last '+quarters.length+' quarters ('+qLabel(quarters[0])+' → '+qLabel(cur)+'). '+(sbReady()?'No calls uploaded yet — hit <b>+ Upload call</b> to analyze your first transcript; each call fills its company’s cell in the quarter its fiscal period ended.':'Open <b>⚙ Settings</b> to connect the team database first.');
+  } else eb.style.display='none';
+}
+
+/* ================= drawer ================= */
+function openDrawer(code, focusQ){
+  openCode=code;
+  $('dName').textContent=nameOf(code)||code;
+  $('dCode').textContent=code+' · '+(SECTOR_OF[code]||'')+(nameOf(code)?'':'');
+  renderDrawer(focusQ);
+  $('drawer').classList.add('open');
+}
+function trendSVG(code){
+  const quarters=quarterList(visibleQuarters);
+  const W=Math.max(320, quarters.length*46), H=120, mid=62, amp=44, bw=16;
+  let s='<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="max-width:100%">';
+  s+='<line x1="0" y1="'+mid+'" x2="'+W+'" y2="'+mid+'" stroke="#c3c2b7" stroke-width="1"/>';
+  quarters.forEach((qk,i)=>{
+    const x=i*46+23;
+    const own=cellOwnScore(code,qk), men=cellMentionScore(code,qk);
+    if(own!=null){
+      const hgt=Math.max(3,Math.abs(own)*amp), y=own>=0? mid-hgt: mid;
+      const col=own>=0.05? (Math.abs(own)<0.3?'var(--pos1)':Math.abs(own)<0.6?'var(--pos2)':'var(--pos3)') : own<=-0.05? (Math.abs(own)<0.3?'var(--neg1)':Math.abs(own)<0.6?'var(--neg2)':'var(--neg3)') : 'var(--neut)';
+      s+='<rect x="'+(x-bw/2)+'" y="'+y+'" width="'+bw+'" height="'+hgt+'" rx="3" fill="'+col+'" stroke="rgba(20,48,79,.18)"><title>'+esc(qLabel(qk)+' own call '+fmtScore(own))+'</title></rect>';
+      s+='<text x="'+x+'" y="'+(own>=0? y-4 : y+hgt+11)+'" text-anchor="middle" font-size="9" fill="#4a617d">'+fmtScore(own)+'</text>';
+    }
+    if(men!=null){
+      const y=mid-men*amp;
+      s+='<circle cx="'+x+'" cy="'+y+'" r="4" fill="var(--surface)" stroke="'+(men>0.05?'var(--pos2)':men<-0.05?'var(--neg2)':'#8a97a8')+'" stroke-width="2"><title>'+esc(qLabel(qk)+' read-through avg '+fmtScore(men))+'</title></circle>';
+    }
+    s+='<text x="'+x+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" fill="#8a97a8">'+qLabel(qk)+'</text>';
+  });
+  s+='</svg>';
+  return s;
+}
+function callCard(d, open){
+  const a=d.data||{}, hl=a.headline||{};
+  let h='<div class="callcard'+(open?' open':'')+'" data-card="'+esc(d.id)+'">';
+  h+='<div class="callhead" data-toggle="'+esc(d.id)+'">'
+    +'<span class="fl">'+esc(a.fiscal_label||qLabel(docQuarter(d)||'')||'call')+'</span>'
+    +scChip(a.overall_score)
+    +'<span class="dt">'+esc(docQuarter(d)||'')+' · call '+esc(d.doc_date||'?')+(d.uploaded_by?' · '+esc(d.uploaded_by):'')+'</span>'
+    +'<span style="flex:1"></span>'
+    +(d.pdf_path?'<button class="btn small" data-orig="'+esc(d.pdf_path)+'">Original</button>':'')
+    +'<button class="btn small danger" data-del="'+esc(d.id)+'">Delete</button>'
+    +'</div>';
+  h+='<div class="callbody">';
+  if(d.title) h+='<p style="color:var(--ink2);font-size:12.5px;margin-top:0">'+esc(d.title)+'</p>';
+  h+='<h4>10-SECOND READ</h4><ol>'+ (a.bullets||[]).map(b=>'<li>'+esc(b)+'</li>').join('') +'</ol>';
+  h+='<h4>TAKEAWAY</h4><p>'+esc(a.takeaway||'')+'</p>';
+  const hlKeys=[['revenue','REVENUE'],['growth','GROWTH'],['eps','EPS'],['margin','MARGIN'],['guidance','GUIDANCE']].filter(k=>hl[k[0]]);
+  if(hlKeys.length){ h+='<div class="headline">'+hlKeys.map(k=>'<div><b>'+k[1]+'</b>'+esc(hl[k[0]])+'</div>').join('')+'</div>'; }
+  if(a.detailed) h+='<details class="det"><summary>Full detailed analysis</summary><p>'+esc(a.detailed)+'</p></details>';
+  const comps=(a.companies||[]);
+  if(comps.length){
+    h+='<h4>COMPANY SCORES</h4><table class="cotable">';
+    for(const c of comps.slice().sort((x,y)=>(y.score||0)-(x.score||0))){
+      h+='<tr><td>'+esc(c.name)+(c.bbg?'<br><span style="font-weight:400;color:var(--muted);font-size:10.5px">'+esc(c.bbg)+'</span>':'')+'</td>'
+        +'<td>'+scChip(c.score)+'</td>'
+        +'<td>'+esc(c.rationale||'')
+        +((c.quotes&&c.quotes.length)?'<details class="det"><summary>'+c.quotes.length+' quote'+(c.quotes.length>1?'s':'')+'</summary>'+c.quotes.map(q=>'<blockquote>“'+esc(q)+'”</blockquote>').join('')+'</details>':'')
+        +'</td></tr>';
+    }
+    h+='</table>';
+  }
+  if(a.ranking) h+='<h4>RANKING</h4><p>'+esc(a.ranking)+'</p>';
+  h+='</div></div>';
+  return h;
+}
+function renderDrawer(focusQ){
+  const code=openCode; if(!code) return;
+  const own=(byTicker[code]||[]);
+  const ment=(mentionsFor[code]||[]).slice().sort((a,b)=>(b.quarter||'').localeCompare(a.quarter||''));
+  let h='';
+  h+='<div class="sect">SENTIMENT · LAST '+visibleQuarters+' QUARTERS</div>';
+  h+='<div class="legend"><span><span class="sw"></span>own earnings call</span><span><span class="ring"></span>read-through from other calls</span></div>';
+  h+=trendSVG(code);
+  h+='<div class="sect" style="margin-top:16px">EARNINGS CALLS ('+own.length+')</div>';
+  if(!own.length) h+='<p style="color:var(--muted)">No calls uploaded for this name yet.</p>';
+  for(const d of own) h+=callCard(d, focusQ && docQuarter(d)===focusQ);
+  h+='<div class="sect" style="margin-top:16px">READ-THROUGHS · MENTIONED ON OTHER CALLS ('+ment.length+')</div>';
+  if(!ment.length) h+='<p style="color:var(--muted)">Not mentioned on any stored call.</p>';
+  for(const m of ment.slice(0,40)){
+    h+='<div class="mentionitem"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
+      +'<b>'+esc(m.src.ticker||(m.src.data&&m.src.data.company)||'?')+'</b>'
+      +scChip(m.score)
+      +'<span style="font-size:11.5px;color:var(--ink2)">'+esc((m.quarter||'')+' · '+((m.src.data&&m.src.data.fiscal_label)||'')+' call')+'</span></div>'
+      +(m.rationale?'<p style="font-size:12.5px;margin:6px 0 0">'+esc(m.rationale)+'</p>':'')
+      +((m.quotes&&m.quotes.length)?'<details class="det"><summary>'+m.quotes.length+' quote'+(m.quotes.length>1?'s':'')+'</summary>'+m.quotes.map(q=>'<blockquote>“'+esc(q)+'”</blockquote>').join('')+'</details>':'')
+      +'</div>';
+  }
+  $('drawerBody').innerHTML=h;
+  if(focusQ){ const first=$('drawerBody').querySelector('.callcard.open'); if(first) first.scrollIntoView({block:'start'}); }
+}
+
+/* ================= recent ================= */
+function renderRecent(){
+  const rows=docs.slice().sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
+  let h='<table class="list"><tr><th>Uploaded</th><th>Company</th><th>Fiscal</th><th>Quarter</th><th>Score</th><th>Title</th><th>By</th><th></th></tr>';
+  for(const d of rows){
+    const a=d.data||{};
+    h+='<tr><td class="tabular">'+esc(String(d.created_at||'').slice(0,10))+'</td>'
+      +'<td><a href="#" data-open="'+esc(d.ticker||'')+'" style="color:var(--ink);font-weight:700;text-decoration:none">'+esc(d.ticker||a.company||'?')+'</a> <span style="color:var(--muted);font-size:11.5px">'+esc(nameOf(d.ticker)||'')+'</span></td>'
+      +'<td>'+esc(a.fiscal_label||'')+'</td><td class="tabular">'+esc(docQuarter(d)||'')+'</td>'
+      +'<td>'+scChip(a.overall_score)+'</td>'
+      +'<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(d.title||d.filename||'')+'</td>'
+      +'<td>'+esc(d.uploaded_by||'')+'</td>'
+      +'<td>'+(d.pdf_path?'<button class="btn small" data-orig="'+esc(d.pdf_path)+'">Original</button> ':'')+'<button class="btn small danger" data-del="'+esc(d.id)+'">Delete</button></td></tr>';
+  }
+  if(!rows.length) h+='<tr><td colspan="8" style="color:var(--muted)">Nothing uploaded yet.</td></tr>';
+  h+='</table>';
+  $('view-recent').innerHTML=h;
+}
+
+/* ================= refresh ================= */
+async function refresh(){
+  if(!sbReady()){ setStatus('err','not connected — open Settings'); renderGrid(); renderRecent(); return; }
+  try{
+    setStatus('busy','syncing…');
+    docs=await sbLoadAll();
+    buildIndexes();
+    renderGrid(); renderRecent();
+    if(openCode && $('drawer').classList.contains('open')) renderDrawer();
+    setStatus('ok', docs.length+' calls · team db');
+  }catch(e){ console.error(e); setStatus('err', e.message); }
+}
+
+/* ================= upload flow ================= */
+const up={ text:'', file:null, filename:'', analysis:null };
+function fillTickerSelect(sel, withAuto){
+  let h= withAuto? '<option value="">Auto-detect from transcript</option>' : '';
+  for(const s of SECTORS){
+    h+='<optgroup label="'+esc(s.name)+'">'+s.codes.map(c=>'<option value="'+esc(c)+'">'+esc(c)+(NAMES[c]?' — '+NAMES[c]:'')+'</option>').join('')+'</optgroup>';
+  }
+  h+='<optgroup label="Other"><option value="__other__">Not in universe…</option></optgroup>';
+  sel.innerHTML=h;
+}
+async function extractPDF(file){
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let out=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const tc=await page.getTextContent();
+    out.push(tc.items.map(i=>i.str).join(' '));
+  }
+  return out.join('\n\n');
+}
+async function handleFile(file){
+  up.file=file; up.filename=file.name;
+  $('upStatus').innerHTML='<span class="spin"></span>reading '+esc(file.name)+'…';
+  try{
+    if(/\.pdf$/i.test(file.name)){
+      if(!window.pdfjsLib) throw new Error('PDF library failed to load — paste the text instead.');
+      up.text=await extractPDF(file);
+    } else {
+      up.text=await file.text();
+    }
+    $('upStatus').textContent=file.name+' · '+Math.round(up.text.length/1000)+'k chars extracted';
+    $('dropZone').textContent=file.name;
+  }catch(e){ $('upStatus').textContent='⚠ '+e.message; up.text=''; }
+}
+async function analyze(){
+  const text=(up.text||$('pasteBox').value||'').trim();
+  if(!text){ $('upStatus').textContent='⚠ Add a file or paste the transcript text first.'; return; }
+  if(!cfg.claudeKey){ $('upStatus').textContent='⚠ Add your Anthropic API key in Settings first.'; return; }
+  const chosen=$('upTicker').value;
+  let userMsg='';
+  if(chosen && chosen!=='__other__') userMsg+='The reporting company is '+chosen+(NAMES[chosen]?' ('+NAMES[chosen]+')':'')+'.\n';
+  if($('upDate').value) userMsg+='The call took place on '+$('upDate').value+'.\n';
+  const MAX=900000;
+  userMsg+='\nDOCUMENT:\n'+(text.length>MAX? text.slice(0,MAX)+'\n[document truncated at '+MAX+' characters]' : text);
+  $('analyzeBtn').disabled=true;
+  $('upStatus').innerHTML='<span class="spin"></span>analyzing with Claude ('+esc(cfg.model||'claude-opus-5')+') — this can take a couple of minutes on a long call…';
+  try{
+    const a=await claude({system:analysisSystem(), messages:[{role:'user',content:userMsg}], schema:ANALYSIS_SCHEMA, maxTokens:32000});
+    up.analysis=a;
+    // resolve ticker: user choice wins; else Claude's match; else null
+    let code = (chosen && chosen!=='__other__') ? chosen : (a.bbg && SECTOR_OF[a.bbg] ? a.bbg : null);
+    fillTickerSelect($('saveTicker'), false);
+    if(code) $('saveTicker').value=code;
+    // quarter options
+    const qs=quarterList(16); const dq= quarterOfDate(a.period_end) || quarterOfDate($('upDate').value) || qs[qs.length-1];
+    $('saveQuarter').innerHTML=qs.slice().reverse().map(q=>'<option value="'+q+'"'+(q===dq?' selected':'')+'>'+q+' ('+qLabel(q)+')</option>').join('');
+    if(!qs.includes(dq)) $('saveQuarter').innerHTML='<option value="'+dq+'" selected>'+dq+'</option>'+$('saveQuarter').innerHTML;
+    $('previewCard').innerHTML=callCard({id:'preview', data:a, doc_date:a.call_date||$('upDate').value||today(), title:$('upTitle').value, uploaded_by:$('upBy').value, quarter:dq}, true);
+    $('previewBox').style.display='block';
+    $('upStatus').textContent='Analysis ready — review below, adjust company/quarter if needed, then save.';
+    if(!code) $('upStatus').textContent+=' ⚠ Could not match "'+(a.company||'?')+'" to the universe — pick the company manually.';
+  }catch(e){ console.error(e); $('upStatus').textContent='⚠ '+e.message; }
+  $('analyzeBtn').disabled=false;
+}
+async function saveDoc(){
+  if(!up.analysis){ return; }
+  if(!sbReady()){ $('saveStatus').textContent='⚠ Connect the team database in Settings first.'; return; }
+  const a=up.analysis;
+  const code=$('saveTicker').value==='__other__'? (a.bbg||a.company||'OTHER') : $('saveTicker').value;
+  const qk=$('saveQuarter').value;
+  const id=uuid();
+  $('saveBtn').disabled=true; $('saveStatus').textContent='saving…';
+  try{
+    let pdfPath=null;
+    if(up.file){
+      const safe=up.filename.replace(/[^\w.\-]+/g,'_').slice(0,80);
+      pdfPath='earnings/'+id+'_'+safe;
+      await storageUpload(pdfPath, up.file);
+    }
+    await sbUpsert({
+      id, uploaded_by: $('upBy').value||cfg.name||null,
+      doc_date: a.call_date||$('upDate').value||today(),
+      doc_type:'earnings_call',
+      filename: up.filename||null,
+      title: $('upTitle').value|| (a.company? a.company+' '+(a.fiscal_label||'earnings call') : null),
+      pdf_path: pdfPath, ticker: code, quarter: qk, data: a
+    });
+    $('saveStatus').textContent='saved ✓';
+    cfg.name=$('upBy').value||cfg.name; saveCfg();
+    closeOverlay('uploadOverlay'); resetUpload();
+    await refresh();
+    openDrawer(code, qk);
+  }catch(e){ console.error(e); $('saveStatus').textContent='⚠ '+e.message; }
+  $('saveBtn').disabled=false;
+}
+function resetUpload(){
+  up.text=''; up.file=null; up.filename=''; up.analysis=null;
+  $('pasteBox').value=''; $('upTitle').value=''; $('upStatus').textContent='';
+  $('previewBox').style.display='none'; $('previewCard').innerHTML='';
+  $('dropZone').innerHTML='Drop the transcript here (PDF / TXT / MD) or click to choose a file<br><span style="font-size:11.5px">…or paste text below</span>';
+  $('fileInput').value='';
+}
+
+/* ================= ask claude ================= */
+async function sendChat(){
+  const q=$('chatInput').value.trim(); if(!q) return;
+  if(!cfg.claudeKey){ addMsg('ai','Add your Anthropic API key in Settings first.'); return; }
+  $('chatInput').value='';
+  addMsg('user', q);
+  chatHistory.push({role:'user',content:q});
+  const hold=addMsg('ai','…thinking');
+  try{
+    const answer=await claude({system:chatSystem(), messages:chatHistory.slice(-12), maxTokens:8000});
+    hold.textContent=''; hold.insertAdjacentHTML('beforeend','<span class="who">CLAUDE</span>'+esc(answer));
+    chatHistory.push({role:'assistant',content:answer});
+  }catch(e){ hold.textContent=''; hold.insertAdjacentHTML('beforeend','<span class="who">CLAUDE</span>⚠ '+esc(e.message)); chatHistory.pop(); }
+  $('chatLog').scrollTop=$('chatLog').scrollHeight;
+}
+function addMsg(kind, text){
+  const div=document.createElement('div');
+  div.className='msg '+kind;
+  div.innerHTML='<span class="who">'+(kind==='user'?'YOU':'CLAUDE')+'</span>'+esc(text);
+  $('chatLog').appendChild(div);
+  $('chatLog').scrollTop=$('chatLog').scrollHeight;
+  return div;
+}
+
+/* ================= settings ================= */
+function openSettings(){
+  $('setSbUrl').value=cfg.sbUrl||''; $('setSbKey').value=cfg.sbKey||'';
+  $('setClaudeKey').value=cfg.claudeKey||''; $('setModel').value=cfg.model||'claude-opus-5';
+  $('setName').value=cfg.name||'';
+  $('settingsOverlay').classList.add('open');
+}
+async function testConn(){
+  const url=$('setSbUrl').value.trim().replace(/\/+$/,''), key=$('setSbKey').value.trim();
+  if(!url||!key){ $('setStatus').textContent='⚠ enter URL + anon key first'; return; }
+  $('setStatus').textContent='testing…';
+  try{
+    const r=await fetch(url+'/rest/v1/earnings_docs?select=id&limit=1',{headers:{apikey:key,Authorization:'Bearer '+key}});
+    if(r.ok) $('setStatus').textContent='✓ connected — earnings_docs table found';
+    else if(r.status===404||r.status===406) $('setStatus').textContent='⚠ reached Supabase, but earnings_docs is missing — run db-setup.sql in the SQL editor';
+    else $('setStatus').textContent='⚠ '+r.status+' '+(await r.text()).slice(0,140);
+  }catch(e){ $('setStatus').textContent='⚠ '+e.message; }
+}
+
+/* ================= events ================= */
+function closeOverlay(id){ $(id).classList.remove('open'); }
+function switchView(v){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  $('view-'+v).classList.add('on');
+}
+document.addEventListener('click', async (ev)=>{
+  const t=ev.target.closest('[data-view],[data-sector],[data-open],[data-toggle],[data-orig],[data-del],[data-close]');
+  if(!t) return;
+  if(t.dataset.view){ switchView(t.dataset.view); return; }
+  if(t.dataset.sector){ sectorFilter=t.dataset.sector; document.querySelectorAll('[data-sector]').forEach(b=>b.classList.toggle('on',b.dataset.sector===sectorFilter)); renderGrid(); return; }
+  if(t.dataset.close){ closeOverlay(t.dataset.close); return; }
+  if(t.dataset.toggle){ const card=t.closest('.callcard'); if(card) card.classList.toggle('open'); return; }
+  if(t.dataset.orig){ ev.stopPropagation(); try{ await storageOpen(t.dataset.orig); }catch(e){ alert(e.message); } return; }
+  if(t.dataset.del){
+    ev.stopPropagation();
+    const d=docs.find(x=>x.id===t.dataset.del);
+    if(!d) return;
+    if(!confirm('Delete this call ('+(d.ticker||'?')+' '+((d.data&&d.data.fiscal_label)||'')+') for the whole team?')) return;
+    try{ await sbDelete(d.id); if(d.pdf_path) await storageDelete(d.pdf_path); await refresh(); }catch(e){ alert(e.message); }
+    return;
+  }
+  if(t.dataset.open!==undefined){ ev.preventDefault(); if(t.dataset.open) openDrawer(t.dataset.open, t.dataset.q||null); return; }
+});
+$('searchBox').addEventListener('input', e=>{ searchTerm=e.target.value.trim(); renderGrid(); });
+$('onlyData').addEventListener('change', renderGrid);
+$('olderBtn').addEventListener('click', ()=>{ visibleQuarters+=4; renderGrid(); if(openCode&&$('drawer').classList.contains('open')) renderDrawer(); });
+$('dClose').addEventListener('click', ()=>$('drawer').classList.remove('open'));
+$('gearBtn').addEventListener('click', openSettings);
+$('uploadBtn').addEventListener('click', ()=>{ resetUpload(); fillTickerSelect($('upTicker'), true); $('upDate').value=today(); $('upBy').value=cfg.name||''; $('uploadOverlay').classList.add('open'); });
+$('saveSettings').addEventListener('click', ()=>{
+  cfg.sbUrl=$('setSbUrl').value.trim().replace(/\/+$/,'');
+  cfg.sbKey=$('setSbKey').value.trim();
+  cfg.claudeKey=$('setClaudeKey').value.trim();
+  cfg.model=$('setModel').value;
+  cfg.name=$('setName').value.trim();
+  saveCfg(); closeOverlay('settingsOverlay'); refresh();
+});
+$('testConn').addEventListener('click', testConn);
+$('analyzeBtn').addEventListener('click', analyze);
+$('saveBtn').addEventListener('click', saveDoc);
+$('chatSend').addEventListener('click', sendChat);
+$('chatInput').addEventListener('keydown', e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendChat(); } });
+const dz=$('dropZone');
+dz.addEventListener('click', ()=>$('fileInput').click());
+dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('hot'); });
+dz.addEventListener('dragleave', ()=>dz.classList.remove('hot'));
+dz.addEventListener('drop', e=>{ e.preventDefault(); dz.classList.remove('hot'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+$('fileInput').addEventListener('change', e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('mousedown', e=>{ if(e.target===o) o.classList.remove('open'); }));
+
+/* ================= boot ================= */
+renderGrid(); renderRecent();
+if(!sbReady()) openSettings(); else refresh();
+</script>
+</body>
+</html>
