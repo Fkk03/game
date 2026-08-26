@@ -330,11 +330,13 @@ SECTORS.forEach(s=>s.codes.forEach(c=>{ if(!SECTOR_OF[c]) SECTOR_OF[c]=s.name; }
 function nameOf(code){ return NAMES[code] || ''; }
 
 /* ================= quarters ================= */
-function quarterOfDate(ds){ // 'YYYY-MM-DD' -> '2026Q2' (null-safe)
+function quarterOfDate(ds){ // 'YYYY-MM-DD' -> '2026Q2' (null-safe, rejects impossible months)
   if(!ds) return null;
   const m = String(ds).match(/^(\d{4})-(\d{2})/);
   if(!m) return null;
-  return m[1] + 'Q' + (Math.floor((parseInt(m[2],10)-1)/3)+1);
+  const mo = parseInt(m[2],10);
+  if(mo<1||mo>12) return null;
+  return m[1] + 'Q' + (Math.floor((mo-1)/3)+1);
 }
 function currentYQ(){ const n=new Date(); return {y:n.getFullYear(), q:Math.floor(n.getMonth()/3)+1}; }
 function quarterList(n){ // n most recent calendar quarters, oldest→newest, ending at the current one
@@ -393,14 +395,18 @@ function sbHeaders(extra){
   return Object.assign(h, extra||{});
 }
 async function sbLoadAll(){
+  // id.desc tiebreaker gives a total order (created_at ties are common when two
+  // people save in the same second); the id-dedupe guards the concurrent-insert
+  // page-shift case.
   const out=[]; const page=1000; let offset=0;
   while(true){
-    const r=await fetch(sbBase()+'/rest/v1/earnings_docs?select=*&order=created_at.desc&limit='+page+'&offset='+offset,{headers:sbHeaders()});
+    const r=await fetch(sbBase()+'/rest/v1/earnings_docs?select=*&order=created_at.desc,id.desc&limit='+page+'&offset='+offset,{headers:sbHeaders()});
     if(!r.ok) throw new Error('Supabase '+r.status+': '+(await r.text()).slice(0,300));
     const rows=await r.json(); out.push.apply(out,rows);
     if(rows.length<page) break; offset+=page;
   }
-  return out;
+  const seen=new Set();
+  return out.filter(r=>{ if(seen.has(r.id)) return false; seen.add(r.id); return true; });
 }
 async function sbUpsert(row){
   const r=await fetch(sbBase()+'/rest/v1/earnings_docs',{method:'POST',headers:sbHeaders({Prefer:'resolution=merge-duplicates,return=representation'}),body:JSON.stringify(row)});
@@ -423,6 +429,7 @@ async function storageOpen(path){
     if(!r.ok) throw new Error('Storage '+r.status);
     const url=URL.createObjectURL(await r.blob());
     if(w) w.location=url; else window.open(url,'_blank');
+    setTimeout(()=>URL.revokeObjectURL(url), 120000);
   }catch(e){ if(w) w.close(); throw e; }
 }
 async function storageDelete(path){
@@ -430,9 +437,34 @@ async function storageDelete(path){
 }
 
 /* ================= claude (Anthropic API, direct from browser) ================= */
-async function claude(opts){ // {system, messages, schema, maxTokens}
+/* Streaming (SSE) is required here: a multi-minute non-streaming generation gets
+   killed by browser network timeouts (Safari ~60s, Chromium ~300s) before any
+   byte arrives. */
+async function readSSE(r, onProgress){
+  const reader=r.body.getReader(), dec=new TextDecoder();
+  let buf='', text='', stopReason=null, stopDetails=null;
+  const handle=(payload)=>{
+    if(!payload) return;
+    let ev; try{ ev=JSON.parse(payload); }catch(e){ return; }
+    if(ev.type==='content_block_delta'&&ev.delta&&ev.delta.type==='text_delta'){ text+=ev.delta.text; if(onProgress) onProgress(text); }
+    else if(ev.type==='message_delta'&&ev.delta){ if(ev.delta.stop_reason) stopReason=ev.delta.stop_reason; if(ev.delta.stop_details) stopDetails=ev.delta.stop_details; }
+    else if(ev.type==='error') throw new Error('Claude stream error: '+((ev.error&&ev.error.message)||'unknown'));
+  };
+  while(true){
+    const {done,value}=await reader.read(); if(done) break;
+    buf+=dec.decode(value,{stream:true});
+    let i;
+    while((i=buf.indexOf('\n\n'))>=0){
+      const chunk=buf.slice(0,i); buf=buf.slice(i+2);
+      for(const line of chunk.split('\n')) if(line.startsWith('data:')) handle(line.slice(5).trim());
+    }
+  }
+  for(const line of buf.split('\n')) if(line.startsWith('data:')) handle(line.slice(5).trim());
+  return {stop_reason:stopReason, stop_details:stopDetails, text};
+}
+async function claude(opts){ // {system, messages, schema, maxTokens, onProgress}
   if(!cfg.claudeKey) throw new Error('Add your Anthropic API key in Settings first.');
-  const body={ model: cfg.model||'claude-opus-5', max_tokens: opts.maxTokens||16000, messages: opts.messages };
+  const body={ model: cfg.model||'claude-opus-5', max_tokens: opts.maxTokens||16000, stream:true, messages: opts.messages };
   if(opts.system) body.system=opts.system;
   if(opts.schema) body.output_config={format:{type:'json_schema', schema:opts.schema}};
   const mkHeaders=(withFb)=>{
@@ -448,21 +480,20 @@ async function claude(opts){ // {system, messages, schema, maxTokens}
     r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:mkHeaders(false),body:JSON.stringify(body)});
   }
   if(!r.ok){
-    let detail=''; try{ const j=await r.json(); detail=(j.error&&j.error.message)||JSON.stringify(j); }catch(e){ detail=await r.text(); }
+    let detail=''; try{ const j=await r.json(); detail=(j.error&&j.error.message)||JSON.stringify(j); }catch(e){ try{ detail=await r.text(); }catch(e2){ detail=''; } }
     throw new Error('Claude API '+r.status+': '+String(detail).slice(0,400));
   }
-  const msg=await r.json();
+  const msg=await readSSE(r, opts.onProgress);
   if(msg.stop_reason==='refusal'){
     const why = msg.stop_details && msg.stop_details.explanation ? ' — '+msg.stop_details.explanation : '';
     throw new Error('Claude declined this request'+why);
   }
-  const text=(msg.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
   if(msg.stop_reason==='max_tokens') console.warn('Claude response hit max_tokens; output may be truncated');
   if(opts.schema){
-    try{ return JSON.parse(text); }
+    try{ return JSON.parse(msg.text); }
     catch(e){ throw new Error('Could not parse the analysis JSON — try again. ('+e.message+')'); }
   }
-  return text;
+  return msg.text;
 }
 
 const ANALYSIS_SCHEMA = {
@@ -732,9 +763,12 @@ async function refresh(){
 }
 
 /* ================= upload flow ================= */
-const up={ text:'', file:null, filename:'', analysis:null };
-function fillTickerSelect(sel, withAuto){
-  let h= withAuto? '<option value="">Auto-detect from transcript</option>' : '';
+const up={ text:'', file:null, filename:'', analysis:null, gen:0 };
+function fillTickerSelect(sel, first){
+  // 'auto' -> auto-detect default; 'pick' -> disabled placeholder so a failed
+  // auto-detect can never silently save under the first universe name
+  let h= first==='auto' ? '<option value="">Auto-detect from transcript</option>'
+       : '<option value="" disabled selected>— pick company —</option>';
   for(const s of SECTORS){
     h+='<optgroup label="'+esc(s.name)+'">'+s.codes.map(c=>'<option value="'+esc(c)+'">'+esc(c)+(NAMES[c]?' — '+NAMES[c]:'')+'</option>').join('')+'</optgroup>';
   }
@@ -753,18 +787,21 @@ async function extractPDF(file){
   return out.join('\n\n');
 }
 async function handleFile(file){
-  up.file=file; up.filename=file.name;
+  const gen=++up.gen; // a newer drop or a modal reset supersedes this read
   $('upStatus').innerHTML='<span class="spin"></span>reading '+esc(file.name)+'…';
   try{
+    let text;
     if(/\.pdf$/i.test(file.name)){
       if(!window.pdfjsLib) throw new Error('PDF library failed to load — paste the text instead.');
-      up.text=await extractPDF(file);
+      text=await extractPDF(file);
     } else {
-      up.text=await file.text();
+      text=await file.text();
     }
+    if(gen!==up.gen) return; // superseded while extracting
+    up.text=text; up.file=file; up.filename=file.name;
     $('upStatus').textContent=file.name+' · '+Math.round(up.text.length/1000)+'k chars extracted';
     $('dropZone').textContent=file.name;
-  }catch(e){ $('upStatus').textContent='⚠ '+e.message; up.text=''; }
+  }catch(e){ if(gen===up.gen){ $('upStatus').textContent='⚠ '+e.message; up.text=''; up.file=null; up.filename=''; } }
 }
 async function analyze(){
   const text=(up.text||$('pasteBox').value||'').trim();
@@ -776,14 +813,17 @@ async function analyze(){
   if($('upDate').value) userMsg+='The call took place on '+$('upDate').value+'.\n';
   const MAX=900000;
   userMsg+='\nDOCUMENT:\n'+(text.length>MAX? text.slice(0,MAX)+'\n[document truncated at '+MAX+' characters]' : text);
+  const gen=up.gen; // invalidated if the modal is reset or a new file lands mid-analysis
   $('analyzeBtn').disabled=true;
   $('upStatus').innerHTML='<span class="spin"></span>analyzing with Claude ('+esc(cfg.model||'claude-opus-5')+') — this can take a couple of minutes on a long call…';
   try{
-    const a=await claude({system:analysisSystem(), messages:[{role:'user',content:userMsg}], schema:ANALYSIS_SCHEMA, maxTokens:32000});
+    const a=await claude({system:analysisSystem(), messages:[{role:'user',content:userMsg}], schema:ANALYSIS_SCHEMA, maxTokens:32000,
+      onProgress:(t)=>{ if(gen===up.gen) $('upStatus').innerHTML='<span class="spin"></span>analyzing with Claude — '+Math.round(t.length/1000)+'k chars written…'; }});
+    if(gen!==up.gen){ $('analyzeBtn').disabled=false; return; } // stale result from an abandoned upload
     up.analysis=a;
-    // resolve ticker: user choice wins; else Claude's match; else null
+    // resolve ticker: user choice wins; else Claude's match; else the placeholder
     let code = (chosen && chosen!=='__other__') ? chosen : (a.bbg && SECTOR_OF[a.bbg] ? a.bbg : null);
-    fillTickerSelect($('saveTicker'), false);
+    fillTickerSelect($('saveTicker'), 'pick');
     if(code) $('saveTicker').value=code;
     // quarter options
     const qs=quarterList(16); const dq= quarterOfDate(a.period_end) || quarterOfDate($('upDate').value) || qs[qs.length-1];
@@ -793,14 +833,16 @@ async function analyze(){
     $('previewBox').style.display='block';
     $('upStatus').textContent='Analysis ready — review below, adjust company/quarter if needed, then save.';
     if(!code) $('upStatus').textContent+=' ⚠ Could not match "'+(a.company||'?')+'" to the universe — pick the company manually.';
-  }catch(e){ console.error(e); $('upStatus').textContent='⚠ '+e.message; }
+  }catch(e){ console.error(e); if(gen===up.gen) $('upStatus').textContent='⚠ '+e.message; }
   $('analyzeBtn').disabled=false;
 }
 async function saveDoc(){
   if(!up.analysis){ return; }
   if(!sbReady()){ $('saveStatus').textContent='⚠ Connect the team database in Settings first.'; return; }
   const a=up.analysis;
-  const code=$('saveTicker').value==='__other__'? (a.bbg||a.company||'OTHER') : $('saveTicker').value;
+  const sel=$('saveTicker').value;
+  if(!sel){ $('saveStatus').textContent='⚠ Pick the company to save under first.'; return; }
+  const code= sel==='__other__'? (a.bbg||a.company||'OTHER') : sel;
   const qk=$('saveQuarter').value;
   const id=uuid();
   $('saveBtn').disabled=true; $('saveStatus').textContent='saving…';
@@ -828,6 +870,7 @@ async function saveDoc(){
   $('saveBtn').disabled=false;
 }
 function resetUpload(){
+  up.gen++; // invalidate any in-flight extraction or analysis
   up.text=''; up.file=null; up.filename=''; up.analysis=null;
   $('pasteBox').value=''; $('upTitle').value=''; $('upStatus').textContent='';
   $('previewBox').style.display='none'; $('previewCard').innerHTML='';
@@ -836,18 +879,30 @@ function resetUpload(){
 }
 
 /* ================= ask claude ================= */
+let chatBusy=false;
 async function sendChat(){
+  if(chatBusy) return; // one request at a time keeps the history alternating
   const q=$('chatInput').value.trim(); if(!q) return;
   if(!cfg.claudeKey){ addMsg('ai','Add your Anthropic API key in Settings first.'); return; }
+  chatBusy=true; $('chatSend').disabled=true;
   $('chatInput').value='';
   addMsg('user', q);
-  chatHistory.push({role:'user',content:q});
+  const mine={role:'user',content:q};
+  chatHistory.push(mine);
   const hold=addMsg('ai','…thinking');
   try{
-    const answer=await claude({system:chatSystem(), messages:chatHistory.slice(-12), maxTokens:8000});
-    hold.textContent=''; hold.insertAdjacentHTML('beforeend','<span class="who">CLAUDE</span>'+esc(answer));
+    // odd-length window so messages[0] is always a user turn
+    let h=chatHistory.slice(-13);
+    while(h.length && h[0].role!=='user') h.shift();
+    const answer=await claude({system:chatSystem(), messages:h, maxTokens:8000,
+      onProgress:(t)=>{ hold.innerHTML='<span class="who">CLAUDE</span>'+esc(t); $('chatLog').scrollTop=$('chatLog').scrollHeight; }});
+    hold.innerHTML='<span class="who">CLAUDE</span>'+esc(answer);
     chatHistory.push({role:'assistant',content:answer});
-  }catch(e){ hold.textContent=''; hold.insertAdjacentHTML('beforeend','<span class="who">CLAUDE</span>⚠ '+esc(e.message)); chatHistory.pop(); }
+  }catch(e){
+    hold.innerHTML='<span class="who">CLAUDE</span>⚠ '+esc(e.message);
+    const i=chatHistory.indexOf(mine); if(i>=0) chatHistory.splice(i,1);
+  }
+  chatBusy=false; $('chatSend').disabled=false;
   $('chatLog').scrollTop=$('chatLog').scrollHeight;
 }
 function addMsg(kind, text){
@@ -908,7 +963,7 @@ $('onlyData').addEventListener('change', renderGrid);
 $('olderBtn').addEventListener('click', ()=>{ visibleQuarters+=4; renderGrid(); if(openCode&&$('drawer').classList.contains('open')) renderDrawer(); });
 $('dClose').addEventListener('click', ()=>$('drawer').classList.remove('open'));
 $('gearBtn').addEventListener('click', openSettings);
-$('uploadBtn').addEventListener('click', ()=>{ resetUpload(); fillTickerSelect($('upTicker'), true); $('upDate').value=today(); $('upBy').value=cfg.name||''; $('uploadOverlay').classList.add('open'); });
+$('uploadBtn').addEventListener('click', ()=>{ resetUpload(); fillTickerSelect($('upTicker'), 'auto'); $('upDate').value=today(); $('upBy').value=cfg.name||''; $('uploadOverlay').classList.add('open'); });
 $('saveSettings').addEventListener('click', ()=>{
   cfg.sbUrl=$('setSbUrl').value.trim().replace(/\/+$/,'');
   cfg.sbKey=$('setSbKey').value.trim();

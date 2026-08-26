@@ -21,7 +21,7 @@ Supabase project via **⚙ Settings**.
 
 ## Earnings Call Tracker
 
-- **Universe** is embedded in the file: 98 Software + 138 Semiconductor Bloomberg
+- **Universe** is embedded in the file: 99 Software + 139 Semiconductor Bloomberg
   codes (the team lists), with verified company names. To add a name, edit the
   `SOFTWARE` / `SEMIS` arrays and the `NAMES` map near the top of the script.
 - **Grid** is pre-populated with the last **10 calendar quarters** (rolling —
