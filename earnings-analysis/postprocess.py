@@ -30,7 +30,7 @@ out = {}
 touched = 0
 
 cell_re = re.compile(
-    r'<c r="([A-Z]+\d+)"([^>]*)><f t="array" ref="([A-Z0-9:]+)">([^<]*_xll\.BQL[^<]*)</f>(<v ?/>)?</c>')
+    r'<c r="([A-Z]+\d+)"([^>]*)><f t="array" ref="([A-Z0-9:]+)">([^<]*_xll\.BQL[^<]*)</f>(<v ?/>|<v></v>)?</c>')
 
 def fix_cell(m):
     global touched

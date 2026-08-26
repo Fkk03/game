@@ -64,12 +64,19 @@ def hdr(ws, coord, text, comment=None, fill=HDR_FILL, color=WHITE, wrap=True):
         c.comment = cm
     return c
 
-def title(ws, text, sub=None):
+REFRESH_NOTE = ("⚠ Cells blank? This is a LIVE Bloomberg workbook — it has no saved data until its first refresh. "
+                "Open it in desktop Excel on your Bloomberg terminal PC (add-in logged in), then Bloomberg ribbon ▸ "
+                "Refresh All (or Ctrl+Alt+F9), wait a few minutes, and save. See README.")
+
+def title(ws, text, sub=None, refresh_note=True):
     ws["A1"] = text
     ws["A1"].font = font(bold=True, size=13)
     if sub:
         ws["A2"] = sub
         ws["A2"].font = font(color=NOTE_GREY, size=9, italic=True)
+    if refresh_note:
+        ws["H1"] = REFRESH_NOTE
+        ws["H1"].font = Font(name=F, bold=True, size=9, color="C00000")
 
 def q(sheet):
     return f"'{sheet}'" if " " in sheet else sheet
