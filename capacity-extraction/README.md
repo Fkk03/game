@@ -65,6 +65,10 @@
 | **xAI** (in SpaceX) | 250,000 (Feb-26 mark) | ~2.5 (Colossus ~2GW + Saudi 0.5GW) | n.d. | ~2,000 tgt | Acquired by SpaceX 2/2/26 |
 | **SpaceX** (SPCX) | 1,844,000 (public mkt cap) | = xAI + orbital | 0 orbital | n.d. | **IPO'd 6/12/26** ($135, raised ~$75B); FCC filing: up to 1M compute satellites |
 
+## 5-year GW additions (added Sept 11, 2026 — see workbook sheet "5-Yr Additions")
+
+Announced capacity additions, mid-2026 base → ~2030/31. **lo** = contracted deliveries / company-guided floors; **hi** = incl. pipelines, plans, options. Supply-side total across the tracked universe: **~84 GW (lo) to ~130 GW (hi)** — excluding Google (no disclosure), China hyperscalers (no disclosure), and the AI labs (demand side, already inside supplier rows). Key anchors: AWS "double again by end-2027" ($200B); Microsoft ~12 GW → >38 GW by 2032 plan (Bloomberg 9/10/26); Meta memo ~7 GW deployed 2026 → ~14 GW 2027; Oracle >1.2 GW delivered FY26 with ~1 GW in Q1 FY27 alone; CoreWeave ≥8 GW active by 2030; OpenAI ~30 GW committed / Broadcom 10 GW through 2029; Anthropic ~9–13 GW landing 2027–28; IREN 0.8 GW IT by 2027 guided (FY26 results 8/27/26).
+
 ## Process
 
 1. **Round 1 — 15 parallel research agents** (one per company/group + market data), filings-first sourcing rules, verbatim-quote-or-null discipline.
