@@ -69,6 +69,10 @@
 
 Announced capacity additions, mid-2026 base → ~2030/31. **lo** = contracted deliveries / company-guided floors; **hi** = incl. pipelines, plans, options. Supply-side total across the tracked universe: **~84 GW (lo) to ~130 GW (hi)** — excluding Google (no disclosure), China hyperscalers (no disclosure), and the AI labs (demand side, already inside supplier rows). Key anchors: AWS "double again by end-2027" ($200B); Microsoft ~12 GW → >38 GW by 2032 plan (Bloomberg 9/10/26); Meta memo ~7 GW deployed 2026 → ~14 GW 2027; Oracle >1.2 GW delivered FY26 with ~1 GW in Q1 FY27 alone; CoreWeave ≥8 GW active by 2030; OpenAI ~30 GW committed / Broadcom 10 GW through 2029; Anthropic ~9–13 GW landing 2027–28; IREN 0.8 GW IT by 2027 guided (FY26 results 8/27/26).
 
+## Rate per GW (added Sept 24, 2026 — see workbook sheet "Rate per GW")
+
+Per-deal pricing math (TCV ÷ term ÷ MW, or disclosed annual ÷ MW) across 14 landlord leases and 8 full-stack deals. **Powered-shell landlords: avg $1.77M/MW/yr (median $1.77M, ≈$147/kW/mo; range $1.2–2.4, newest 20-yr AI-lab leases at top). Full-stack GPU cloud: avg ~$13.5M/MW/yr (Oracle–OpenAI $13.3M, Nebius-disclosed $20–25M for latest-gen IT). Ratio ≈7.6x, reconciled by ~$11M/MW/yr of implied chip depreciation ($55B/GW system cost over 5 yrs).**
+
 ## Process
 
 1. **Round 1 — 15 parallel research agents** (one per company/group + market data), filings-first sourcing rules, verbatim-quote-or-null discipline.
