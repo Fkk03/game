@@ -1,0 +1,621 @@
+{
+ "companies": [
+  {
+   "ticker": "AMZN",
+   "name": "Amazon.com, Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q / Q2 2026 earnings release (Jul 30, 2026)",
+   "currency_note": "USD; debt includes EUR, CHF, CAD notes translated at 6/30/26 rates as reported in 10-Q",
+   "gross_debt_usd_m": 132995,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": null,
+    "unsecured_notes": 132140,
+    "convertible": 0,
+    "bank_loans_revolver_cp": null,
+    "non_recourse_portion": 0
+   },
+   "instruments": [
+    {
+     "name": "Legacy USD senior notes (pre-2025 issues, incl. 2021 series now $12.25B)",
+     "principal_usd_m": null,
+     "coupon_pct": null,
+     "maturity": "2026-2061",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Face value of all LTD was $68,836M at 12/31/25 (includes Nov-2025 $15B deal). 2021 series fell from $15.0B to $12.25B in H1'26 (a tranche matured)."
+    },
+    {
+     "name": "Nov-2025 USD senior notes",
+     "principal_usd_m": 15000,
+     "coupon_pct": null,
+     "maturity": "multiple",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "First USD deal in ~3 years; size per prior reporting (Nov 2025), not re-fetched this session."
+    },
+    {
+     "name": "Mar-2026 USD senior notes (multi-tranche, 2-50yr)",
+     "principal_usd_m": 37000,
+     "coupon_pct": null,
+     "maturity": "2028-2076 (approx.)",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "$37.0B per 10-Q Note 5 (search rendering); Bloomberg: targeted $37-42B in up to 11 tranches."
+    },
+    {
+     "name": "Mar-2026 EUR senior notes (debut euro)",
+     "principal_usd_m": null,
+     "coupon_pct": null,
+     "maturity": "multiple",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "EUR 14.5B; largest-ever euro corporate deal per Bloomberg. USD equivalent not retrieved (~$16-17B)."
+    },
+    {
+     "name": "May-2026 CHF senior notes (6 tranches, 3-25yr)",
+     "principal_usd_m": 3600,
+     "coupon_pct": null,
+     "maturity": "2029-2051",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "CHF 2.82B (~$3.6B), record six-part Swiss franc deal."
+    },
+    {
+     "name": "Jun-2026 CAD senior notes (5 tranches, 3-30yr)",
+     "principal_usd_m": null,
+     "coupon_pct": null,
+     "maturity": "2029-2056",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "C$14.0B (Jun 8, 2026) - largest CAD corporate deal on record; ~US$10B equivalent (not reported)."
+    },
+    {
+     "name": "Other long-term debt",
+     "principal_usd_m": 855,
+     "coupon_pct": null,
+     "maturity": "various",
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "Per 10-Q debt table."
+    }
+   ],
+   "cash_and_st_investments_usd_m": null,
+   "restricted_cash_usd_m": null,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": 96320,
+   "finance_lease_liab_usd_m": 13451,
+   "leases_not_yet_commenced_usd_m": 106300,
+   "other_off_bs_commitments": "Leases not yet commenced: $106.3B at 3/31/26 (latest retrieved; 6/30/26 figure not obtained), of which ~$69.8B falls after 2030; trend $67.2B (3/31/25) -> $68.9B (6/30/25) -> $75.0B (9/30/25) -> $106.3B (3/31/26). Gross undiscounted recorded lease payments at 6/30/26: operating $116.35B, finance $16.66B. Unconditional purchase obligations, SPV/JV data-center structures and any guarantees: not retrieved (no Amazon SPV analogous to Meta Hyperion identified in sources reviewed).",
+   "ltm_revenue_usd_m": 775700,
+   "ltm_ebitda_usd_m": 143100,
+   "ltm_ebitda_basis": "PARTLY ESTIMATED. Operating income + D&A (computed), Q3'25-Q2'26. Operating income: Q3'25 $17.4B (prior knowledge of Q3'25 release; incl. $2.5B FTC + $1.8B severance) + Q4'25 $25.0B + Q1'26 $23.9B + Q2'26 $27.5B = $93.8B (sourced). D&A (segment D&A on P&E): FY25 $41,860M + H1'26 $26,703M (sourced) - H1'25 ~$19.3B (ESTIMATED, not sourced) = ~$49.3B. EBITDA ~$143.1B (+/- ~$1.5B). Excludes $53.4B Q2'26 and $16.8B Q1'26 non-operating Anthropic gains.",
+   "ltm_interest_expense_usd_m": 3331,
+   "interest_note": "Derived: FY25 $2,274M - H1'25 $1,057M + H1'26 $2,114M = $3,331M (GAAP interest expense). Q2'26 $1,314M vs $516M Q2'25 - run-rate now >$5B/yr after $64B H1'26 issuance plus $31B post-quarter. Capitalized interest not retrieved.",
+   "ltm_cfo_usd_m": 161400,
+   "ltm_capex_usd_m": 169000,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "Not computed (no EBITDA guidance; consensus not retrieved). 2026 cash capex guidance ~$220B (raised Jul 30, 2026 from ~$200B).",
+   "book_equity_usd_m": 551620,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": null,
+    "2027": null,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "AA / Stable (prior knowledge; NOT re-verified for 2026)",
+    "moodys": "A1 / Stable (prior knowledge; NOT re-verified for 2026)",
+    "fitch": "AA- (prior knowledge; NOT re-verified)"
+   },
+   "subsequent_events": "Jul 2026 (Fortune 2026-07-08): ~$25B USD senior notes in 8 tranches (FRN 2029 $0.75B; 2029 $3.5B; 2031 $4.25B; 2033 $3.0B; 2036 $4.5B; 2046 $2.75B; 2056 $4.0B; longest $2.25B), spreads T+65-145bp, peak book $62B; Amazon said it would not issue further [USD] debt in 2026. Sep 9, 2026: debut sterling deal GBP 4.25B (~$5.76B), 4 tranches 3-19yr. Post-quarter issuance ~$30.8B -> pro forma face debt ~$163.7B (derived). 2026 YTD issuance >$72B per one tally (USD+EUR+CHF+CAD+USD Jul), more incl. GBP. No 2026 rating actions found (not searched - budget exhausted).",
+   "covenants_and_key_terms": "Senior unsecured notes, pari passu, no financial maintenance covenants (standard IG terms - not re-verified). CP programs (USD + EUR) up to $30.0B; no CP outstanding at 12/31/25 or 3/31/26 (6/30/26 not confirmed). Revolving credit facilities exist (historically $15B multi-year + $5B 364-day) - amounts not re-verified this session. CAPEX BASIS: ltm_capex $169.0B is DERIVED (TTM CFO $161.4B + TTM FCF outflow $7.6B) = purchases of P&E net of proceeds and incentives; EXCLUDES finance-lease principal (~$1.56B TTM) - matches Amazon's 'cash capex' guidance basis.",
+   "credit_view": "Amazon has swung from large net cash to a net-debt issuer in 12 months: face debt rose from $68.8B (YE25) to $133.0B (6/30/26) and ~$164B pro forma for July/September deals, while TTM FCF turned negative (-$7.6B) as net capex reached ~$169B and the 2026 guide was raised to ~$220B, so incremental AI capex is now explicitly debt-funded. Leverage is still low for an AA/A1 credit (gross debt/EBITDA ~0.9x; ~1.7x including ~$110B of lease liabilities, ~2.4x adding the $106B of signed-not-commenced leases), and EBITDA is growing fast (Q2 operating income +43% y/y, AWS +37%), but the trajectory is clearly negative and 2027 capex is guided up again. Headline earnings are flattered by ~$70B of non-cash Anthropic mark-ups in H1'26 that do not service debt. Prior 'net debt $50.7B' = non-current LTD $128.9B minus cash & equivalents $78.2B only (excludes marketable securities and $3.3B current portion) - not a like-for-like basis.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000101872426000026/amzn-20260630.htm",
+     "title": "Amazon Form 10-Q Q2 2026 - Note 5 Debt",
+     "type": "10-Q",
+     "date": "2026-07-31",
+     "quote": "As of June 30, 2026, we had $ 132.1billion of unsecured senior notes outstanding (the \"Notes\"), including foreign currency-denominated Notes ... Total face value of long-term debt | 68,836 | 132,995 [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000101872426000026/amzn-20260630.htm",
+     "title": "Amazon Form 10-Q Q2 2026 - Leases note",
+     "type": "10-Q",
+     "date": "2026-07-31",
+     "quote": "Gross lease liabilities 116,350 / 16,660 / 133,010; Less: imputed interest (20,030) / (3,209); Present value 96,320 / 13,451 / 109,771; Current portion (13,745) / (1,688); Long-term lease liabilities 82,575 / 11,763 / 94,338 [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000014/amzn-20260331.htm",
+     "title": "Amazon Form 10-Q Q1 2026 - leases not yet commenced / debt",
+     "type": "10-Q",
+     "date": "2026-04-30",
+     "quote": "leases not yet commenced ... about $106.3 billion ... Roughly $69.8 billion of that falls beyond 2030; current portion of long-term debt of $2,832 million and long-term debt of $119,074 million; There were no borrowings outstanding under the Commercial Paper Programs as of December 31, 2025 and March 31, 2026. [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://ir.aboutamazon.com/files/doc_earnings/2026/q2/earnings-result/AMZN-Q2-2026-Earnings-Release.pdf",
+     "title": "Amazon.com Announces Second Quarter Results",
+     "type": "earnings-release",
+     "date": "2026-07-30",
+     "quote": "Operating income increased to $27.5 billion in the second quarter, compared with $19.2 billion in second quarter 2025 ... Operating cash flow increased 33% to $161.4 billion for the trailing twelve months ... Free cash flow decreased to an outflow of $7.6 billion for the trailing twelve months, driven primarily by a year-over-year increase of $66.1 billion in purchases of property and equipment, net of proceeds from sales and incentives ... Second quarter 2026 net income includes non-operating pre-tax other income of $53.4 billion, primarily from our investments in Anthropic. Principal repayments of finance leases ... (1,556) (1,599) [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.cnbc.com/2026/07/30/amazon-amzn-q2-earnings-report-2026.html",
+     "title": "Amazon hikes 2026 capex to $220 billion due to higher memory costs",
+     "type": "news",
+     "date": "2026-07-30",
+     "quote": "Amazon now expects roughly $220 billion in cash capital expenditures for 2026 ... up from the $200 billion plan announced in February; Quarterly capital expenditures totaled $54.2 billion [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://aboutamazon.com/news/company-news/amazon-earnings-q1-2026-report",
+     "title": "Amazon Q1 2026 results",
+     "type": "earnings-release",
+     "date": "2026-04-29",
+     "quote": "Net sales increased 17% to $181.5 billion in the first quarter ... Operating income ... $23.9 billion ... First quarter 2026 net income includes pre-tax gains of $16.8 billion included in non-operating income from our investments in Anthropic. [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://aboutamazon.com/news/company-news/amazon-earnings-q4-2025-report",
+     "title": "Amazon Q4 2025 results",
+     "type": "earnings-release",
+     "date": "2026-02-05",
+     "quote": "Operating income ... $25.0 billion ... Net sales ... $213.4 billion in the fourth quarter [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000004/amzn-20251231.htm",
+     "title": "Amazon Form 10-K FY2025",
+     "type": "10-K",
+     "date": "2026-02-06",
+     "quote": "Total depreciation and amortization expense ... 2025: North America 15,503; International 4,907; AWS 21,450 [total 41,860]; Interest expense (2,274) 2025 [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://fortune.com/2026/07/08/amazons-25-billion-surprise-bond-sale-dangled-extra-yield-to-lure-in-buyers/",
+     "title": "Amazon's $25 billion 'surprise' bond sale dangled extra yield",
+     "type": "news",
+     "date": "2026-07-08",
+     "quote": "$750m of floating-rate notes due 2029, $3.5bn of fixed-rate notes due 2029, $4.25bn due 2031, $3bn due 2033, $4.5bn due 2036, $2.75bn due 2046, $4bn due 2056 ... initial demand reached $62 billion; Amazon said it would stop issuing debt for the rest of 2026 [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.thestar.com.my/tech/tech-news/2026/09/09/amazon-set-to-raise-over-5-billion-in-first-sterling-bond-sale-lead-managers-say",
+     "title": "Amazon will raise $5.8 billion in first sterling bond sale (Reuters)",
+     "type": "news",
+     "date": "2026-09-09",
+     "quote": "Amazon raised £4.25 billion ($5.76 billion) in its first-ever sterling bond sale across four parts [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.ttnews.com/articles/amazon-sells-bonds-14b-canada",
+     "title": "Amazon Sells C$14 Billion in Bonds, Sets Canadian Record (Bloomberg)",
+     "type": "news",
+     "date": "2026-06-08",
+     "quote": "C$14 billion in high-grade bonds, the largest corporate debt offering on record in the currency ... five parts, with maturities ranging from three to 30 years [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.swissinfo.ch/eng/amazon-sells-swiss-franc-bond-offering-in-record-six-parts/91400508",
+     "title": "Amazon Sells Swiss Franc Bond Offering in Record Six Parts",
+     "type": "news",
+     "date": "2026-05",
+     "quote": "raising 2.82 billion Swiss francs ($3.6 billion) across maturities of three, six, nine, 12, 18 and 25-years [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.marketbeat.com/stocks/NASDAQ/AMZN/financials/",
+     "title": "MarketBeat AMZN quarterly balance sheet",
+     "type": "market-data",
+     "date": "2026-08",
+     "quote": "Cash and cash equivalents ~78.2B; total liabilities and shareholders' equity 1,095,689; total liabilities 544,069 (equity derived 551,620) [via search rendering; sec.gov/IR fetch blocked]"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "(1) Marketable securities / total cash+MS at 6/30/26 NOT retrieved: 10-Q market-risk sentence rendered as '$123.0 billion as of December 31, 2025 and June 30, 2026' (likely the YE25 value; June value truncated). Cash & equivalents ~$78.2B (aggregator). Net debt therefore indeterminate: <= $54.8B on face-value basis (132,995 - 78,200) and likely far lower once marketable securities are included. (2) Leases not yet commenced at 6/30/26 (used 3/31/26 $106.3B). (3) H1'25 D&A estimated for LTM EBITDA. (4) Ratings, market cap, maturity ladder, revolver size, purchase obligations, CP at 6/30 not verified - search budget exhausted and sec.gov/IR/news fetches blocked. (5) USD equivalents of EUR 14.5B and C$14B tranches not reported."
+  },
+  {
+   "ticker": "MSFT",
+   "name": "Microsoft Corporation",
+   "bs_date": "2026-06-30",
+   "source_period": "FY2026 10-K (fiscal year ended Jun 30, 2026) / Q4 FY26 earnings release (Jul 29, 2026)",
+   "currency_note": "USD; LTM = fiscal year Jul 1, 2025 - Jun 30, 2026",
+   "gross_debt_usd_m": 46136,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 0,
+    "unsecured_notes": 46136,
+    "convertible": 0,
+    "bank_loans_revolver_cp": null,
+    "non_recourse_portion": 0
+   },
+   "instruments": [
+    {
+     "name": "Senior unsecured notes (legacy 2009-2017 issues incl. notes assumed/exchanged from Activision)",
+     "principal_usd_m": 46136,
+     "coupon_pct": null,
+     "maturity": "2026-2062",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Principal per FY26 contractual-obligations table ($46,136M, via secondary rendering). Balance-sheet carrying value $40,294M = current $9,227M + long-term $31,067M (primary, Q4 release). Gap is mainly the unamortized premium-on-debt-exchange/discount (derived). Fair value ~$36.5B. No new bond issuance since 2017; repaid $3,000M in FY26."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 76843,
+   "restricted_cash_usd_m": null,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": 21925,
+   "finance_lease_liab_usd_m": 66594,
+   "leases_not_yet_commenced_usd_m": 329100,
+   "other_off_bs_commitments": "Leases signed not yet commenced: ~$329.1B 'primarily for datacenters' commencing FY2027-FY2033, terms 1-20 years, some subject to contractual conditions (10-K). Contractual-obligations table: operating + finance leases incl. imputed interest $443,506M (appears to include not-commenced leases). Mgmt is shifting future datacenter leases from finance to operating classification (finance leases count in capex, operating do not) - lowers reported capex/finance-lease debt but not the obligation. Equity & other investments $36.3B (OpenAI/Anthropic stakes). Third-party GPU-capacity contracts with neoclouds (e.g., Nebius, IREN, Nscale, Lambda; reported Nov 2025, tens of $B) are off-BS service commitments - amounts not verified this session. No SPV/residual-value-guarantee structure identified in sources reviewed.",
+   "ltm_revenue_usd_m": 331839,
+   "ltm_ebitda_usd_m": 193771,
+   "ltm_ebitda_basis": "Operating income FY26 $155,237M + 'Depreciation, amortization, and other' (cash-flow line) $38,534M = $193,771M (computed, fiscal year Jul-25 to Jun-26). Depreciation alone was ~$34.3B (10-K PP&E note).",
+   "ltm_interest_expense_usd_m": 3051,
+   "interest_note": "FY26 GAAP interest expense $3,051M per stock-analysis-on.net rendering of 10-K (not verified against filing); includes interest on datacenter finance leases per mgmt. FY27 OI&E guide ~-$100M ex-OpenAI as interest expense more than offsets interest income.",
+   "ltm_cfo_usd_m": 182935,
+   "ltm_capex_usd_m": 115948,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "Not computed. Guidance: FY27 capex to grow y/y; Q1 FY27 capex >$50B incl. lease reclassification impact; calendar-2026 capex ~ $175B after finance->operating lease shift; FY27 FCF expected to remain positive.",
+   "book_equity_usd_m": 442387,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": null,
+    "2027": null,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "AAA / Stable (prior knowledge; NOT re-verified for 2026)",
+    "moodys": "Aaa / Stable (prior knowledge; NOT re-verified for 2026)",
+    "fitch": "not verified"
+   },
+   "subsequent_events": "No Jul 1-Oct 9, 2026 bond issuance or rating action identified (searches limited; an 8-K with Ex.99.1, accession 0001193125-26-380280, post-dates the 10-K - content not retrieved). Effective FY27, useful lives of datacenters/office buildings extended from 15 to 25 years (minimal FY27 operating-income benefit per mgmt).",
+   "covenants_and_key_terms": "Senior unsecured notes; no financial maintenance covenants (standard IG - not re-verified). FY26 capex 'including finance leases' is Microsoft's reported capex metric (Q4 FY26 $41B incl. $5.6B finance leases; cash PP&E $35.8B); ltm_capex here is cash additions to P&E ($115,948M) and EXCLUDES finance leases.",
+   "credit_view": "Microsoft remains the strongest credit in the group: bond principal of ~$46.1B ($40.3B carrying) against $76.8B cash and short-term investments gives net cash of ~$31B on a principal basis (~$36.5B on carrying basis - this is the prior 'net debt -36.5B'), FY26 EBITDA ~$194B and FY26 FCF of ~$67B despite $116B cash capex, so it is not FCF-negative and guides positive FCF for FY27. The real leverage is in leases, not bonds: ~$88.5B of recorded lease liabilities ($66.6B finance) plus ~$329.1B of signed-not-commenced datacenter leases means lease-type obligations of ~$418B are ~9x bond debt; lease-adjusted gross obligations/EBITDA would be ~2.4x if all commenced. The pivot from finance to operating lease classification and the 15->25-year useful-life extension flatter reported capex and depreciation without reducing commitments - analysts should adjust. AAA/Aaa is secure given the cash generation, but the pace of lease commitments is the variable to watch.",
+   "sources": [
+    {
+     "url": "https://www.microsoft.com/en-us/investor/earnings/fy-2026-q4/press-release-webcast",
+     "title": "Microsoft FY26 Q4 press release (fetched directly)",
+     "type": "earnings-release",
+     "date": "2026-07-29",
+     "quote": "Revenue FY2026 $331,839; Operating income $155,237; Cash and cash equivalents $20,935; Short-term investments 55,908; Current portion of long-term debt 9,227; Long-term debt 31,067; Operating lease liabilities 16,532; Total stockholders' equity 442,387; Net cash from operations $182,935; Depreciation, amortization, and other 38,534; Additions to property and equipment (115,948); Repayments of debt (3,000)"
+    },
+    {
+     "url": "https://www.microsoft.com/en-us/investor/events/fy-2026/earnings-fy-2026-q4",
+     "title": "Microsoft FY26 Q4 earnings call (fetched directly)",
+     "type": "call-transcript",
+     "date": "2026-07-29",
+     "quote": "Capital expenditures were $41 billion including the impact from higher component pricing ... total finance leases were $5.6 billion and were primarily for large datacenter sites ... cash paid for P, P, and E was $35.8 billion ... free cash flow was $19.6 billion ... more of our future datacenter leases will shift from finance leases to operating leases ... Finance leases are included in capital expenditures while operating leases are not ... the shift from finance to operating leases adjusts our expectation to approximately $175 billion ... we expect to remain free cash flow positive in FY27 ... We expect CapEx spend will be over $50 billion including the lease reclassification impact"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000119312526323660/msft-20260630.htm",
+     "title": "Microsoft Form 10-K FY2026",
+     "type": "10-K",
+     "date": "2026-07-30",
+     "quote": "additional leases, mostly for datacenters, that had not started by June 30, 2026 [~$329.1 billion] ... These leases will commence between fiscal year 2027 and fiscal year 2033 with lease terms of 1 year to 20 years; total operating lease liabilities $21,925 (2026) vs $22,861 (2025); Cash, cash equivalents, and short-term investments totaled $76.8 billion and $94.6 billion as of June 30, 2026 and 2025; depreciation expense ... $34.3 billion [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://btw.media/en/microsoft-329-1bn-uncommenced-datacentre-leases",
+     "title": "Microsoft's $329.1bn lease stack is capacity that has not started",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "$329.1bn uncommenced datacentre leases [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.stock-analysis-on.net/NASDAQ/Company/Microsoft-Corp/Analysis/Debt",
+     "title": "Microsoft debt analysis (10-K derived)",
+     "type": "market-data",
+     "date": "2026-08",
+     "quote": "current finance lease liabilities of $4,290 million plus long-term finance lease liabilities of $62,304 million; Total debt and finance lease liabilities (carrying amount) $106,888 million; Principal on long-term debt $46,136 million; operating and finance leases including imputed interest total $443,506 million; Interest expense 3,051 (FY2026) [via search rendering; sec.gov/IR fetch blocked]"
+    }
+   ],
+   "confidence": "high",
+   "gaps": "Finance lease liability split, debt principal ($46,136M) and interest expense come from secondary renderings of the 10-K (sec.gov blocked) - medium confidence on those three; carrying debt, cash, equity, CFO, capex are primary (microsoft.com fetched). Maturity ladder, credit facilities, purchase commitments, neocloud contract totals, ratings/outlooks, market cap and the post-10-K 8-K content not verified."
+  },
+  {
+   "ticker": "GOOGL",
+   "name": "Alphabet Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q / Q2 2026 earnings release (Jul 2026)",
+   "currency_note": "USD; debt includes EUR, GBP, CHF, JPY notes at reported carrying value",
+   "gross_debt_usd_m": 98165,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 0,
+    "unsecured_notes": 98165,
+    "convertible": 0,
+    "bank_loans_revolver_cp": 0,
+    "non_recourse_portion": 0
+   },
+   "instruments": [
+    {
+     "name": "Legacy USD notes + 2025 USD/EUR issues (incl. Nov-2025 ~$17.5B USD + EUR 6.5B)",
+     "principal_usd_m": null,
+     "coupon_pct": null,
+     "maturity": "2026-2065",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Nov-2025 sizes from prior reporting, not re-verified this session."
+    },
+    {
+     "name": "Feb-2026 USD senior notes",
+     "principal_usd_m": 20000,
+     "coupon_pct": null,
+     "maturity": "multiple",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "10-Q: $20.0B USD fixed-rate senior unsecured notes issued in H1'26."
+    },
+    {
+     "name": "Feb-2026 GBP notes (5 tranches incl. 100-year)",
+     "principal_usd_m": null,
+     "coupon_pct": null,
+     "maturity": "2029-2126",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "GBP 5.5B: 4.125% 2029 GBP0.75B; 4.625% 2032 GBP1.25B; 5.5% 2041 GBP1.25B; 5.875% 2058 GBP1.25B; 6.125% 2126 GBP1.0B (century bond, ~10x covered). Plus CHF tranche(s) same window (size not retrieved). Feb package ~ $32B total incl. USD."
+    },
+    {
+     "name": "May-2026 EUR notes (6 tranches)",
+     "principal_usd_m": 10500,
+     "coupon_pct": null,
+     "maturity": "multiple",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": ">= EUR 9B (~$10.5B), Alphabet's largest euro deal."
+    },
+    {
+     "name": "May-2026 JPY notes (8 tranches, 3-40yr)",
+     "principal_usd_m": 3600,
+     "coupon_pct": null,
+     "maturity": "2029-2066",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "JPY 576.9B (~$3.6B) per closing 8-K; coupons 1.965%-4.599%; largest yen bond by a foreign corporate."
+    },
+    {
+     "name": "Total H1'26 FX notes",
+     "principal_usd_m": 31800,
+     "coupon_pct": null,
+     "maturity": "various",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "10-Q: $31.8B of foreign-currency notes issued in H1'26 (GBP, CHF, EUR, JPY) - aggregate of the FX rows above."
+    },
+    {
+     "name": "Credit facilities (drawn)",
+     "principal_usd_m": 1300,
+     "coupon_pct": null,
+     "maturity": "through 2030-04",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "$11.7B facilities, $1.3B outstanding at 6/30/26; unclear whether included in the $98.2B LTD carrying value - not added to gross debt."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 242500,
+   "restricted_cash_usd_m": null,
+   "undrawn_committed_facilities_usd_m": 10400,
+   "operating_lease_liab_usd_m": 18037,
+   "finance_lease_liab_usd_m": 2590,
+   "leases_not_yet_commenced_usd_m": 85200,
+   "other_off_bs_commitments": "Leases not yet commenced $85.2B at 6/30/26 (up from $75.6B at 3/31/26), almost all data centers, commencing 2026-2031, terms 1-26 years; plus a separate lease signed June 2026 with ~$5.8B non-cancelable commitment commencing Q3'26; $835M prepaid in H1'26 for not-yet-commenced leases expected to be finance leases. A secondary source cites ~$707B of long-term purchase commitments in the Q2 10-Q (NOT verified). Prior knowledge (2025, not re-verified): Google provides backstops of neocloud data-center lease obligations (Fluidstack leases at TeraWulf and Cipher Mining, ~$3B+ combined) in exchange for equity warrants - contingent, off-BS.",
+   "ltm_revenue_usd_m": 445800,
+   "ltm_ebitda_usd_m": 172850,
+   "ltm_ebitda_basis": "Operating income + depreciation of P&E (computed), Q3'25-Q2'26. Op income: Q3'25 $31,228M (incl. $3.5B EC fine) + Q4'25 $35,934M (derived: FY25 $129,039M less Q1-Q3; incl. $2.1B Waymo charge) + Q1'26 $39,696M + Q2'26 ~$40,770M (rounded, news) = $147,628M. Depreciation: Q3'25 ~$5,596M (derived: FY25 $21,136M - Q4'25 $6,040M - H1'25 ~$9.5B) + Q4'25 $6,040M + H1'26 $13,586M = ~$25,222M. Intangible amortization excluded (small).",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "Not retrieved; debt more than doubled in 2026 so run-rate interest is rising sharply (est. not provided).",
+   "ltm_cfo_usd_m": 185700,
+   "ltm_capex_usd_m": 132400,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "Not computed. 2026 capex guidance raised to $195-205B (from $180-190B) on Q2 call; capex to 'increase significantly' in 2027.",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": null,
+    "2027": null,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "AA+ / Stable (prior knowledge; NOT re-verified for 2026)",
+    "moodys": "Aa2 / Stable (prior knowledge; NOT re-verified for 2026)",
+    "fitch": "not verified"
+   },
+   "subsequent_events": "Aug 2026: $25B USD senior notes, 10-part deal, ~$115B order book (Bloomberg 2026-08-06), closed Aug 10, 2026 (8-K) -> pro forma debt ~$123B. Aug 17, 2026: mandated banks for debut AUD bond (~A$5B / ~$3.6B) - pricing not confirmed. Equity: June-2026 raise priced at $84.75B total incl. $40B ATM program (unused at 6/30) and $10B private placement with a Berkshire Hathaway affiliate; ATM usage after 6/30 not confirmed. No rating actions found (not searched - budget exhausted).",
+   "covenants_and_key_terms": "Senior unsecured notes; no maintenance covenants (standard IG - not re-verified). CP program up to $25.0B, none outstanding at 6/30/26. $11.7B credit facilities expiring through Apr-2030 ($1.3B drawn). June-2026 equity: Class A/C common + mandatory convertible preferred, net proceeds $49.6B, for general corporate purposes incl. AI infrastructure. CAPEX BASIS: ltm_capex $132.4B is DERIVED (TTM CFO $185.7B - TTM FCF $53.3B) = purchases of P&E; excludes finance-lease repayments (small).",
+   "credit_view": "Alphabet is levering up quickly in absolute terms - carrying debt reached $98.2B at 6/30/26 after ~$51.8B of H1'26 issuance across USD/GBP (incl. a 100-year bond)/CHF/EUR/JPY, and ~$123B pro forma for August's $25B deal - but it is the only hyperscaler funding the AI build with large amounts of new equity ($49.6B net in June; $84.75B program incl. ATM and Berkshire placement), which is strongly credit-protective. Headline net cash of ~$144.3B (= $242.5B cash & marketable securities less $98.2B debt) includes $87.1B of marketable equity securities; on a cash-and-debt-securities basis net cash is ~$57B. TTM FCF remains positive at $53.3B but Q2'26 FCF was -$5.9B and 2026 capex is guided to $195-205B with a further 'significant' 2027 increase, so FCF is likely to go negative on an annual basis. Off-BS lease commitments ($85.2B + $5.8B, plus any purchase commitments) are smaller relative to EBITDA (~$173B) than at MSFT or META; AA+/Aa2 looks well supported.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204426000071/goog-20260630.htm",
+     "title": "Alphabet Form 10-Q Q2 2026",
+     "type": "10-Q",
+     "date": "2026-07-23",
+     "quote": "As of June 30, 2026, we had long-term debt outstanding with a total carrying value of $98.2 billion ... issued $20.0 billion of U.S. dollar-denominated fixed-rate senior unsecured notes and $31.8 billion of foreign currency-denominated notes ... no commercial paper outstanding ... $11.7 billion of credit facilities ... of which $1.3 billion was outstanding ... leases that have not yet commenced ... $85.2 billion ... commence between 2026 and 2031 with non-cancelable terms of one to 26 years ... approximately $5.8 billion, which will commence in the third quarter of 2026; operating lease liabilities 18,037; finance lease liabilities 2,590; depreciation ... $9.5 billion and $13.6 billion for the six months ended June 30, 2025 and 2026 [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://s206.q4cdn.com/479360582/files/doc_financials/2026/q2/2026q2-alphabet-earnings-release.pdf",
+     "title": "Alphabet Announces Second Quarter 2026 Results",
+     "type": "earnings-release",
+     "date": "2026-07-22",
+     "quote": "cash, cash equivalents, and marketable securities of $242.5 billion ... Operating cash flow was $39.1 billion in the second quarter and $185.7 billion for the trailing 12 months ... free cash flow was $53.3 billion for the trailing 12 months ... Other income reflected a net gain of $98.0 billion ... in June 2026 ... issued Class A and Class C stock and mandatory convertible preferred stock for aggregate net proceeds of $49.6 billion; Long-term debt 98,165 [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://finance.yahoo.com/quote/GOOG/earnings/GOOG-Q2-2026-earnings_call-657320.html",
+     "title": "Alphabet Q2 2026 earnings call transcript",
+     "type": "call-transcript",
+     "date": "2026-07-22",
+     "quote": "CapEx ... $44.9 billion in the second quarter ... full year 2026 CapEx guidance range to $195-205 billion, up from its previous estimate of $180-190 billion ... expect CapEx to increase significantly in 2027; marketable equity securities $87.1 billion [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204426000043/googexhibit991q12026.htm",
+     "title": "Alphabet Q1 2026 earnings release",
+     "type": "earnings-release",
+     "date": "2026-04-29",
+     "quote": "Operating income $39,696 (Q1 2026) vs $30,606 (Q1 2025) [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://s206.q4cdn.com/479360582/files/doc_financials/2025/q4/2025q4-alphabet-earnings-release.pdf",
+     "title": "Alphabet Q4 and FY2025 results / 10-K",
+     "type": "earnings-release",
+     "date": "2026-02-04",
+     "quote": "depreciation ... $21,136 million for full-year 2025 ... Q4 2025 depreciation of $6,040 million; total income from operations of $129,039 million for 2025; Q4 operating income ... $35.9 billion ... negatively impacted by the $2.1 billion Waymo charge [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.bloomberg.com/news/articles/2026-02-10/alphabet-s-100-year-bond-gets-highest-demand-in-sterling-sale",
+     "title": "Alphabet Draws Record Demand for 100-Year Sterling Bond Sale",
+     "type": "news",
+     "date": "2026-02-10",
+     "quote": "£1,000,000,000 aggregate principal amount of 6.125% notes due 2126; £9.5 billion in bids for the century bond [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.japantimes.co.jp/business/2026/05/15/companies/alphabet-biggest-yen-bond/",
+     "title": "Alphabet sells biggest yen bond on record by foreign issuer",
+     "type": "news",
+     "date": "2026-05-15",
+     "quote": "576.5 billion yen ($3.6 billion) multi-tranche yen bond ... maturities from 3 to 40 years with coupons ranging between 1.965% and 4.599% ... six-tranche euro bond deal worth at least €9 billion [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312526342390/d171253d8k.htm",
+     "title": "Alphabet 8-K - closing of $25B notes",
+     "type": "8-K",
+     "date": "2026-08-10",
+     "quote": "On August 10, 2026, Alphabet Inc. closed its underwritten public offering of $25 billion aggregate principal amount of U.S. dollar-denominated senior notes. [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.bloomberg.com/news/articles/2026-08-06/alphabet-s-jumbo-bond-sale-draws-115-billion-of-investor-demand",
+     "title": "Alphabet Draws $115 Billion Demand for Jumbo Bond Sale",
+     "type": "news",
+     "date": "2026-08-06",
+     "quote": "Alphabet Inc. sold $25 billion of investment-grade bonds ... Orders reached about $115 billion [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.bloomberg.com/news/articles/2026-08-17/alphabet-hires-banks-for-inaugural-aussie-dollar-bond-sale",
+     "title": "Alphabet Hires Banks for Inaugural Aussie Dollar Bond Sale",
+     "type": "news",
+     "date": "2026-08-17",
+     "quote": "looking to raise about A$5 billion ($3.6 billion) in what would be its debut bond offering in Australia [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.fool.com/investing/2026/08/27/alphabet-is-paying-a-dividend-while-selling-usd85-billion-of-new-stock/",
+     "title": "Alphabet Is Paying a Dividend While Selling $85 Billion of New Stock",
+     "type": "news",
+     "date": "2026-08-27",
+     "quote": "priced at $84.75 billion, including the at-the-market program and a private placement ... $10.0 billion private placement to a Berkshire Hathaway affiliate [via search rendering; sec.gov/IR fetch blocked]"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Interest expense, book equity, maturity ladder, principal (vs carrying) value, CHF size, Q2'26 exact operating income (used ~$40.77B), purchase commitments ($707B unverified), AUD deal pricing, post-6/30 ATM usage, ratings/outlooks and market cap not verified (search budget exhausted; sec.gov/abc.xyz fetch blocked)."
+  },
+  {
+   "ticker": "META",
+   "name": "Meta Platforms, Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q / Q2 2026 earnings release (Jul 29, 2026)",
+   "currency_note": "USD",
+   "gross_debt_usd_m": 83664,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 0,
+    "unsecured_notes": 83664,
+    "convertible": 0,
+    "bank_loans_revolver_cp": null,
+    "non_recourse_portion": 0
+   },
+   "instruments": [
+    {
+     "name": "Legacy senior notes (2022-2025 issues pre-Oct 2025)",
+     "principal_usd_m": null,
+     "coupon_pct": null,
+     "maturity": "2027-2065",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "~$28.8B before Oct-2025 deal (prior knowledge, not re-verified)."
+    },
+    {
+     "name": "Oct-2025 senior notes (6 tranches)",
+     "principal_usd_m": 30000,
+     "coupon_pct": null,
+     "maturity": "2030-2065 (approx.)",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "$30B priced Oct 30, 2025 with record ~$125B order book (prior knowledge of Bloomberg/Reuters reporting; not re-fetched)."
+    },
+    {
+     "name": "May-2026 fixed-rate senior unsecured notes",
+     "principal_usd_m": 25000,
+     "coupon_pct": null,
+     "maturity": "multiple",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "$25.00B issued May 2026 per Q2 10-Q; brought LTD to $83,664M (reconciles: ~$58.7B + $25B)."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 90260,
+   "restricted_cash_usd_m": 10800,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": 278990,
+   "other_off_bs_commitments": "(1) Leases not yet commenced (operating + finance) $278.99B at 6/30/26 (vs $182.88B at 3/31/26), data centers/colocation/network, commencing 2026-2036, terms >1 to 30 years; PLUS ~$68B of additional data-center leases signed July 2026 (commence 2027-28, 18-20yr terms) -> ~$347B signed-not-commenced pro forma. (2) Total non-cancelable contractual commitments $349.31B at 6/30/26. (3) $10.80B of money-market funds restricted under infrastructure purchase agreements, release expected 2028-2030. (4) HYPERION JV (Richland Parish, LA) - prior knowledge of Oct-2025 reporting, NOT re-verified this session: Blue Owl-managed funds ~80% / Meta ~20%; SPV Beignet Investor LLC issued ~$27.3B of 144A senior secured bonds due 2049 (~6.58%, rated A+ by S&P) plus ~$2.5B equity; Meta leases the campus with a short (~4-year) initial term plus renewal options and provides a residual value guarantee covering roughly the first 16 years of operations if it does not renew; not consolidated by Meta (VIE, Meta not primary beneficiary). Effective look-through debt ~$27B not on Meta's balance sheet. (5) El Paso data-center financing with BlackRock-affiliated capital: NOT found/verified this session - terms and amounts unknown.",
+   "ltm_revenue_usd_m": null,
+   "ltm_ebitda_usd_m": null,
+   "ltm_ebitda_basis": "Not computed - quarterly operating income and D&A for Q3'25-Q2'26 could not be retrieved (search budget exhausted; sec.gov / investor.atmeta.com fetch blocked). Q2'26 revenue $60.8B (+28% y/y).",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "Not retrieved.",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "Not computed. 2026 guidance: capex incl. principal payments on finance leases $130-145B (narrowed from $125-145B); total expenses $165-169B.",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": null,
+    "2027": null,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "AA- / Stable (prior knowledge; NOT re-verified for 2026)",
+    "moodys": "Aa3 / Stable (prior knowledge; NOT re-verified for 2026)",
+    "fitch": "not verified"
+   },
+   "subsequent_events": "July 2026: Meta entered additional data-center leases with obligations of ~$68B, commencing 2027-2028 with 18-20 year terms (Q2 10-Q subsequent-event disclosure). No Jul 1-Oct 9, 2026 bond issuance or rating action verified (search budget exhausted).",
+   "covenants_and_key_terms": "Senior unsecured notes, no maintenance covenants (standard IG - not re-verified). Meta reports capex INCLUDING principal payments on finance leases. Hyperion RVG is a contingent obligation triggered on non-renewal (see other_off_bs_commitments).",
+   "credit_view": "Meta is the most stretched of the four relative to its cash flow: long-term debt of $83.7B (after $30B in Oct-2025 and $25B in May-2026) is now roughly equal to $90.3B of cash and marketable securities (net cash only ~$6.6B, ~$17B counting $10.8B restricted funds), and Q2'26 FCF fell to $0.8B as capex incl. finance-lease principal hit $31.1B against $31.9B CFO - with 2026 capex guided to $130-145B, annual FCF is near zero and could turn negative. Off-balance-sheet obligations dwarf on-balance-sheet debt: ~$279B of signed-not-commenced leases at 6/30 plus ~$68B signed in July (~$347B), $349B of non-cancelable commitments, and ~$27B of Hyperion SPV bonds backed by Meta's lease and residual value guarantee - i.e., lease-like obligations of ~4-5x reported debt. Rating agencies have so far treated these as operating commitments; any agency move to capitalise leases/RVGs or a slowdown in ad revenue growth (+28% in Q2) is the key downside risk for AA-/Aa3.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001326801/000162828026050705/meta-20260630.htm",
+     "title": "Meta Platforms Form 10-Q Q2 2026",
+     "type": "10-Q",
+     "date": "2026-07-30",
+     "quote": "not-yet-commenced operating and finance leases total about $278.99 billion ... commencement dates from the rest of 2026 through 2036 and lease terms of more than one year up to 30 years [vs ~$182.88 billion as of March 31, 2026] ... in July 2026 ... entered additional data center leases with obligations of about $68 billion, expected to commence in 2027 and 2028, with 18- to 20-year terms ... $25.00 billion of fixed-rate senior unsecured notes issued in May ... long-term debt to $83,664 million ... $10.80 billion of money-market funds was restricted under infrastructure purchase agreements ... released between 2028 and 2030 ... Total non-cancelable commitments were $349.31 billion [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.stocktitan.net/news/META/meta-reports-second-quarter-2026-hkjfhayj8l0v.html",
+     "title": "Meta Reports Second Quarter 2026 Results",
+     "type": "earnings-release",
+     "date": "2026-07-29",
+     "quote": "cash, cash equivalents, and marketable securities of $90.26 billion as of June 30, 2026. Long-term debt ... $83.66 billion ... capital expenditures, including principal payments on finance leases, were $31.08 billion ... Free cash flow was $784 million ... expects capital expenditures, including principal payments on finance leases, to be in the range of $130-145 billion [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://www.cnbc.com/2026/07/29/meta-q2-earnings-report-2026.html",
+     "title": "Meta's stock drops on disappointing guidance, dwindling free cash flow",
+     "type": "news",
+     "date": "2026-07-29",
+     "quote": "free cash flow dwindled to $784 million in the quarter from $8.55 billion a year earlier; operating cash flow $31.86 billion; full year 2026 total expenses ... $165-169 billion [via search rendering; sec.gov/IR fetch blocked]"
+    },
+    {
+     "url": "https://filinginsights.substack.com/p/debt-in-disguise-metas-hyperion-lease",
+     "title": "Debt in Disguise: Meta's Hyperion Lease (context only)",
+     "type": "news",
+     "date": "2026",
+     "quote": "Hyperion lease structure (title only surfaced; terms in other_off_bs_commitments are from prior knowledge of Oct-2025 Bloomberg/Reuters reporting and were not re-verified) [via search rendering; sec.gov/IR fetch blocked]"
+    }
+   ],
+   "confidence": "low",
+   "gaps": "LTM revenue/operating income/D&A/EBITDA/CFO/capex/interest, operating and finance lease liability balances (a non-current operating lease figure of $26,229M surfaced with unclear period header - not used), book equity, maturity ladder, ratings/outlooks, market cap, Hyperion terms (prior knowledge only) and the El Paso/BlackRock structure could not be verified: search budget exhausted and sec.gov/investor.atmeta.com/q4cdn/cnbc fetches blocked."
+  }
+ ]
+}

@@ -1,0 +1,655 @@
+{
+ "companies": [
+  {
+   "ticker": "APLD",
+   "name": "Applied Digital Corporation",
+   "bs_date": "2026-08-31",
+   "source_period": "FQ1 FY27 (quarter ended Aug 31, 2026) earnings release + call (Oct 7, 2026); FY26 10-K (May 31, 2026) for interest/cash-flow detail. FQ1 FY27 10-Q not retrieved.",
+   "currency_note": "USD",
+   "gross_debt_usd_m": 6400,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 6090,
+    "unsecured_notes": 0,
+    "convertible": 450,
+    "bank_loans_revolver_cp": null,
+    "non_recourse_portion": 6090
+   },
+   "instruments": [
+    {
+     "name": "9.250% Senior Secured Notes due 2030 (APLD ComputeCo LLC)",
+     "principal_usd_m": 2350,
+     "coupon_pct": 9.25,
+     "maturity": "2030-12-15",
+     "secured": true,
+     "recourse": "non-recourse/project",
+     "notes": "Closed Nov 20, 2025 at 97% of par. First-priority liens on substantially all assets of APLD Compute and guarantors. Parent provides only a customary completion guarantee. Proceeds: Polaris Forge 1 construction, repay SMBC loan, DSRA. PF1 is leased to CoreWeave (prior extraction, not re-verified this session). No public rating found."
+    },
+    {
+     "name": "6.750% Senior Secured Notes due 2031 (APLD ComputeCo 2 LLC)",
+     "principal_usd_m": 2150,
+     "coupon_pct": 6.75,
+     "maturity": "2031",
+     "secured": true,
+     "recourse": "non-recourse/project",
+     "notes": "Issued at 98% of par; indenture dated Mar 10, 2026. Funds 200 MW critical IT at Polaris Forge 2 (Harwood, ND), which is leased to a US investment-grade hyperscaler. Exact maturity month not retrieved. No public rating found."
+    },
+    {
+     "name": "7.000% Senior Secured Notes due 2031 (APLD ComputeCo 3 LLC)",
+     "principal_usd_m": 1590,
+     "coupon_pct": 7.0,
+     "maturity": "2031",
+     "secured": true,
+     "recourse": "non-recourse/project",
+     "notes": "Priced at par, closed ~June 16, 2026 (inside FQ1 FY27). Funds a 150 MW building at Polaris Forge 1; the press release says the fourth building, the CFO said the third. Repaid the $300M Goldman Sachs 364-day bridge (SOFR+275). No public rating found."
+    },
+    {
+     "name": "2.75% Convertible Senior Notes due 2030 (parent)",
+     "principal_usd_m": 450,
+     "coupon_pct": 2.75,
+     "maturity": "2030-06-01",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Issued Nov 2024, $450M. Initial conversion price ~$9.75 with capped call at $14.72. Principal was still $450M at Aug 31, 2025 (net carrying $274.0M). Not verified whether any conversion or exchange happened after that; the stock is ~$24, well above the conversion price."
+    },
+    {
+     "name": "Senior secured revolving credit facility (parent)",
+     "principal_usd_m": null,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": true,
+     "recourse": "corporate",
+     "notes": "Upsized in June 2026 to $430M of commitments plus a $120M accordion. Drawn balance at Aug 31, 2026 not found."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 2900,
+   "restricted_cash_usd_m": 700,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "Macquarie Asset Management preferred equity facility of up to $5.0B at the HPC business. Draws of $562.5M and $337.5M were reported earlier; it sits in mezzanine/NCI, not debt, and the Aug 31, 2026 balance was not retrieved. Parent completion guarantees on the ComputeCo notes. Large remaining build capex for PF3 (300 MW), Delta Forge 1 and Delta Forge 2 (210 MW) is not yet financed. The CFO cites 'multiple financing options beyond the high-yield bond market'. Up to 1 GW of power secured in Finland for a 2028 campus.",
+   "ltm_revenue_usd_m": 872.2,
+   "ltm_ebitda_usd_m": 171.1,
+   "ltm_ebitda_basis": "DERIVED: FY26 adjusted EBITDA $107.2M, minus FQ1 FY26 $0.5M, plus FQ1 FY27 $64.4M (company adjusted EBITDA, Sep-25 to Aug-26). LTM revenue is also DERIVED: FY26 $611.3M + FQ1 FY27 $341.9M - FQ1 FY26 ~$81.0M. The FQ1 FY26 figure is backed out from the reported +322% growth; one outlet says +432%, which would imply $64.2M and LTM ~$889M. Revenue includes large tenant fit-out services revenue ($262.8M of 'services' in FQ1 FY27).",
+   "ltm_interest_expense_usd_m": 85.3,
+   "interest_note": "FY26 (Jun-25 to May-26), not LTM to Aug-26. Per the FY26 10-K table (via search rendering): gross interest expense $85.3M, interest income $55.7M, interest expense net of capitalized $29.5M, interest capitalized $39.6M. Column labels are ambiguous in the rendering. Cash cost of debt is far higher: the DERIVED annual coupon run-rate on current principal is ~$486M (2,350x9.25% + 2,150x6.75% + 1,590x7.0% + 450x2.75%). FQ1 FY27 interest/capitalized interest not retrieved.",
+   "ltm_cfo_usd_m": 89.7,
+   "ltm_capex_usd_m": 2865.8,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "not found; FQ1 FY27 x4 run-rate = ~$258M (derived, illustrative only)",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": 6880,
+   "market_cap_date": "2026-10-07",
+   "maturities_usd_m": {
+    "2026": null,
+    "2027": null,
+    "2028": null,
+    "2029": null,
+    "2030": 2800,
+    "2031+": 3740
+   },
+   "ratings": {
+    "sp": "none found (issuer and notes)",
+    "moodys": "none found",
+    "fitch": "none found"
+   },
+   "subsequent_events": "No new debt raise found for Sep 1 to Oct 9, 2026 (search coverage limited). Earlier events after the May 31 FY-end, inside FQ1 FY27: $1.59B 7.000% ComputeCo 3 notes due 2031 closed in June 2026; $300M Goldman bridge repaid; revolver upsized to $430M (+$120M accordion). Oct 7, 2026: FQ1 FY27 results (revenue $341.9M, adjusted EBITDA $64.4M, capex ~$2.07B in the quarter, 250 MW live at PF1). Up to 1 GW of power secured in Finland. The stock closed at $23.81 on Oct 7 (-6%).",
+   "covenants_and_key_terms": "Campus-level SPV high-yield notes (ComputeCo, ComputeCo 2, ComputeCo 3), each secured by first-priority liens on substantially all SPV and guarantor assets. Parent credit support is limited to customary completion guarantees. The 9.25% notes were issued at 97 and the 6.75% at 98, so OID adds to cost. Parent converts are unsecured with conversion permitted from Mar 1, 2030. The CFO says more than 80% of principal matures in fiscal 2031 or later. Indenture covenants (DSCR, distributions) not retrieved.",
+   "credit_view": "APLD has 1.41 GW of executed 15-year leases (~$36B base-term contracted revenue, ~$86B with renewals) with CoreWeave and a high-IG hyperscaler, but only 250 MW is live. Gross debt is ~$6.4B against DERIVED LTM adjusted EBITDA of ~$171M, inflated by fit-out pass-through revenue, for gross leverage of ~37x. Coupon run-rate (~$486M/yr) is ~3x LTM EBITDA. Credit quality therefore rests on construction delivery and on the ring-fenced SPV structures rather than parent cash flow. The CoreWeave-backed PF1 9.25% paper is the weakest tenant credit; PF2 notes (IG tenant) priced 250bp tighter. The key risk is funding PF3 and Delta Forge 1-2 (~810 MW) while parent liquidity ($2.9B unrestricted) is consumed by equity contributions and capex of ~$2B/quarter.",
+   "sources": [
+    {
+     "url": "https://www.fool.com/earnings/call-transcripts/2026/10/08/applied-digital-apld-q1-2027-earnings-call-transcript/",
+     "title": "Applied Digital (APLD) Q1 2027 Earnings Call Transcript",
+     "type": "call-transcript",
+     "date": "2026-10-07",
+     "quote": "ended the quarter with about $2.9 billion in cash and cash equivalents plus $0.7 billion of restricted cash, against about $6.4 billion of debt ... more than 80% of that principal does not come due until fiscal 2031 or later (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.benzinga.com/markets/earnings/26/10/62234055/applied-digital-delivers-q1-double-beat-shares-rise",
+     "title": "Applied Digital Delivers Q1 Double Beat",
+     "type": "news",
+     "date": "2026-10-07",
+     "quote": "approximately $3.7 billion in cash, cash equivalents and restricted cash, and $6.4 billion of total debt (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001144879/000114487926000057/apldq127earningsrelease.htm",
+     "title": "Applied Digital Reports Fiscal First Quarter 2027 Results (8-K Ex.99.1)",
+     "type": "earnings-release",
+     "date": "2026-10-07",
+     "quote": "Revenues: $341.9 million, up 322% ... Adjusted EBITDA ... $64.4 million ... compared to ... $0.5 million (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://ir.applieddigital.com/news-events/press-releases/detail/159/applied-digital-reports-fiscal-fourth-quarter-and-full-year",
+     "title": "Applied Digital Reports Fiscal Fourth Quarter and Full Year 2026 Results",
+     "type": "earnings-release",
+     "date": "2026-07-27",
+     "quote": "Adjusted EBITDA ... was $107.2 million for the fiscal year ended May 31, 2026 ... Revenues: $611.3 million, up 167% ... CASH FLOW PROVIDED BY (USED IN) OPERATING ACTIVITIES 89,685 ... Purchases of property and equipment and other assets (2,865,765) (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001144879/000114487926000048/apld-20260531.htm",
+     "title": "Applied Digital FY2026 Form 10-K",
+     "type": "10-K",
+     "date": "2026-07",
+     "quote": "Interest and related amortization of debt issuance costs and discounts recognized during construction projects are capitalized ... Interest capitalized $39,574 ... Interest expense, net of amounts capitalized $29,516 (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.barchart.com/story/news/2388252/applied-digital-announces-pricing-of-1-59-billion-of-senior-secured-notes-to-fund-the-fourth-building-at-polaris-forge-1",
+     "title": "Applied Digital Announces Pricing of $1.59 Billion of Senior Secured Notes to Fund the Fourth Building at Polaris Forge 1",
+     "type": "news",
+     "date": "2026-06",
+     "quote": "APLD ComputeCo 3 LLC ... $1.59 billion ... 7.000% senior secured notes due 2031 ... construction of 150 megawatts of critical IT load ... repaying a bridge loan from Goldman Sachs (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://seekingalpha.com/news/4522072-applied-digital-prices-235-billion-senior-notes",
+     "title": "Applied Digital prices $2.35 billion senior notes",
+     "type": "news",
+     "date": "2025-11",
+     "quote": "9.250% Senior Secured Notes due 2030 ... at a price equal to 97% ... mature on December 15, 2030 ... not providing credit support ... beyond a customary completion guarantee (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001144879/000114487926000044/apldq426earningsreleaseasf.htm",
+     "title": "APLD 8-K FQ4 FY26 release",
+     "type": "8-K",
+     "date": "2026-07-27",
+     "quote": "$2.15 billion private offering of 6.750% Senior Secured Notes due 2031 ... issued at 98% of par ... APLD ComputeCo 2 LLC ... 200 MW of critical IT load at Polaris Forge 2 (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.globenewswire.com/news-release/2024/11/04/2974480/0/en/applied-digital-corporation-announces-closing-of-450-million-of-convertible-notes-offering.html",
+     "title": "Applied Digital Announces Closing of $450 Million of Convertible Notes Offering",
+     "type": "8-K",
+     "date": "2024-11-04",
+     "quote": "2.75% ... mature on June 1, 2030 ... initial conversion price of approximately $9.75 per share (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.globenewswire.com/news-release/2026/05/20/3298880/0/en/applied-digital-reaches-significant-milestone-surpassing-1-gw-of-contracted-capacity-with-u-s-based-high-investment-grade-hyperscaler-lease-at-fourth-campus-polaris-forge-3.html",
+     "title": "Applied Digital surpasses 1 GW with PF3 lease",
+     "type": "news",
+     "date": "2026-05-20",
+     "quote": "15-year lease ... Polaris Forge 3 ... 300 MW of critical IT load ... approximately $7.5 billion in base-term contracted revenue (via search rendering; sec.gov/IR direct fetch blocked)"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "FQ1 FY27 10-Q not retrieved, so the debt table, the post-Aug-2025 status of the converts, revolver draw, Macquarie preferred balance, lease liabilities and book equity are all missing. Gross debt uses the CFO's ~$6.4B; known instruments sum to $6,540M if the converts are fully outstanding. LTM revenue, EBITDA, CFO and capex are FY26 or derived as labeled. No rating-agency releases found. Market cap is DERIVED from the Oct 7 close of $23.81 x ~289M weighted shares (implied from $237.1M net loss / $0.82 per share). Contracted MW: 1,410 MW (prior extraction, consistent with the call). Debt per contracted MW = $6,400M / 1,410 MW = ~$4.5M/MW (derived)."
+  },
+  {
+   "ticker": "CIFR",
+   "name": "Cipher Digital Inc. (formerly Cipher Mining)",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q (filed Aug 4, 2026) + Q2 2026 business update 8-K slides",
+   "currency_note": "USD",
+   "gross_debt_usd_m": 6016,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 4543,
+    "unsecured_notes": 0,
+    "convertible": 1473,
+    "bank_loans_revolver_cp": 0,
+    "non_recourse_portion": 4543
+   },
+   "instruments": [
+    {
+     "name": "7.125% Senior Secured Notes due 2030 (Cipher Compute LLC, Barber Lake)",
+     "principal_usd_m": 1733,
+     "coupon_pct": 7.125,
+     "maturity": "2030-11-15",
+     "secured": true,
+     "recourse": "non-recourse/project",
+     "notes": "Original ~$1.4B plus a $333M add-on. Guaranteed by Cipher Barber Lake LLC; first-priority liens on issuer and guarantor assets. Backed by the Fluidstack lease at Barber Lake (~168 MW, Google backstop ~$1.4B per prior extraction); rent expected to start Oct 2026. 8-K debt table shows Ba3 / BB-; column order (Moody's/S&P) inferred."
+    },
+    {
+     "name": "6.125% Senior Secured Notes due 2031 (Black Pearl Compute LLC)",
+     "principal_usd_m": 2000,
+     "coupon_pct": 6.125,
+     "maturity": "2031",
+     "secured": true,
+     "recourse": "non-recourse/project",
+     "notes": "Announced Jan/Feb 2026. Guaranteed by Cipher Black Pearl LLC and 11786 Wink LLC. Backed by a 15-year AWS lease for 300 MW at Black Pearl (Wink, TX); delivery began early Aug 2026. Reimbursed ~$232.5M of equity. 8-K table shows Ba2 / BB-."
+    },
+    {
+     "name": "6.000% Senior Secured Notes due 2031 (Stingray Compute LLC)",
+     "principal_usd_m": 810,
+     "coupon_pct": 6.0,
+     "maturity": "2031-06-15",
+     "secured": true,
+     "recourse": "non-recourse/project",
+     "notes": "Priced Jun 8, 2026 at 99.75; closed Jun 15, 2026. First-priority liens plus an equity pledge; Cipher completion guarantee. Backed by an AWS lease of 70 MW critical IT / 100 MW gross at Andrews, TX, rent commencement targeted Apr 1, 2027. Rating not found."
+    },
+    {
+     "name": "1.75% Convertible Senior Notes due 2030 (parent)",
+     "principal_usd_m": 173,
+     "coupon_pct": 1.75,
+     "maturity": "2030",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Per Q2 2026 business update slide."
+    },
+    {
+     "name": "0.00% Convertible Senior Notes due 2031 (parent)",
+     "principal_usd_m": 1300,
+     "coupon_pct": 0.0,
+     "maturity": "2031",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Per Q2 2026 business update slide."
+    },
+    {
+     "name": "$200M revolving credit facility",
+     "principal_usd_m": 0,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "No cash borrowings outstanding at Jun 30, 2026."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 832,
+   "restricted_cash_usd_m": 3728,
+   "undrawn_committed_facilities_usd_m": 200,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "Parent completion guarantees for the Barber Lake, Black Pearl and Stingray SPVs. Remaining construction commitments not retrieved; project costs are largely pre-funded in $3,728M of restricted project cash. Warrant liability (remeasured; $150.5M non-cash loss in Q2) is not debt. Unleased pipeline: 200 MW Stingray expansion in ERCOT Batch Zero and a ~900 MW Texas site option.",
+   "ltm_revenue_usd_m": 191.0,
+   "ltm_ebitda_usd_m": -76.3,
+   "ltm_ebitda_basis": "Sum of company adjusted EBITDA: Q3'25 $40.8M + Q4'25 -$38.9M + Q1'26 -$48.2M + Q2'26 -$30.0M (DERIVED sum). Definition changed in 2026 (interest excluded), so quarters may not be fully comparable. LTM revenue DERIVED: $71.7M + $59.7M + $34.8M + $24.8M (bitcoin mining; HPC rent has not yet started).",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "GAAP interest expense Q1'26 $59.2M and Q2'26 $66.7M (H1'26 $125.9M, derived sum); Q3/Q4'25 not retrieved. Q2 interest income was $35.9M. Capitalized interest not found. DERIVED annual coupon run-rate ~$298M (1,733x7.125% + 2,000x6.125% + 810x6.0% + 173x1.75%).",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "not found. Company guides ~$793M average annualized NOI from Oct 2026 to Sep 2036 across the three executed leases (steady-state, not NTM).",
+   "book_equity_usd_m": 562.1,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": 0,
+    "2027": 0,
+    "2028": 0,
+    "2029": 0,
+    "2030": 1906,
+    "2031+": 4110
+   },
+   "ratings": {
+    "sp": "Issuer NR found; Cipher Compute 7.125% notes BB-; Black Pearl 6.125% notes BB- (per 8-K debt table; column inferred)",
+    "moodys": "Issuer NR found; Cipher Compute notes Ba3; Black Pearl notes Ba2 (per 8-K debt table; column inferred); Stingray not found",
+    "fitch": "none found"
+   },
+   "subsequent_events": "No new debt issuance found for Jul 1 to Oct 9, 2026 (search coverage limited). Early Aug 2026: Black Pearl began delivering capacity two months ahead of schedule. Barber Lake rent expected to start Oct 2026. Q2 business update and 10-Q released Aug 4, 2026. Stock fell ~10% on Oct 8, 2026 (sector selloff).",
+   "covenants_and_key_terms": "Three ring-fenced, single-asset project SPVs. Each issuer's notes are secured by first-priority liens on substantially all SPV and guarantor assets plus a pledge of issuer equity, with a customary parent completion guarantee. Parent debt is $1,473M of low or zero coupon converts. Maturities shown are final; any amortization or cash-sweep schedules were not retrieved.",
+   "credit_view": "CIFR's secured debt is backed by 538 MW of long-term leases: AWS at Black Pearl (300 MW) and Stingray (70 MW), and Fluidstack with a Google backstop at Barber Lake (168 MW). Project debt is ~$8.4M per contracted MW, and the projects are fully funded through restricted cash. Net debt is a modest $1,456M against ~$793M of expected run-rate NOI. Ratings (Ba2-Ba3 / BB-) reflect tenant quality capped by construction and single-asset risk. The parent is weak today: LTM adjusted EBITDA is about -$76M, interest expense runs ~$67M a quarter, and the $1.3B 0% 2031 converts plus 2030 converts depend on HPC rent ramping on schedule. Delivery on Black Pearl's schedule and Barber Lake rent commencement (Oct 2026) are the near-term credit drivers.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001819989/000181998926000038/cipherdigital_businessup.htm",
+     "title": "Cipher Digital Q2 2026 Business Update (8-K)",
+     "type": "8-K",
+     "date": "2026-08-04",
+     "quote": "total debt was $6,016 million and net debt was $1,456 million. Memo: CDI Cash Balance $832 Memo: Restricted Project-Level Cash $3,728 (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001819989/000181998926000025/exh992cipherdigital_busi.htm",
+     "title": "Cipher Digital business update (8-K Ex.99.2) debt table",
+     "type": "8-K",
+     "date": "2026",
+     "quote": "7.125% Senior Secured Notes issued by Cipher Compute LLC ... $1,733 ... Ba3 / BB- ... 6.125% notes issued by Black Pearl Compute LLC ... $2,000 ... Ba2 / BB- (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001819989/000181998926000038/q226_earningsxprxdraftxvf.htm",
+     "title": "Cipher Digital Q2 2026 earnings release",
+     "type": "earnings-release",
+     "date": "2026-08-04",
+     "quote": "Adjusted EBITDA $ (29,986) $ (48,222) ... interest expense $66.7 million in Q2 versus $59.2 million in Q1 (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.globenewswire.com/news-release/2026/06/09/3308506/0/en/Cipher-Digital-Inc-Announces-Pricing-of-810-0-Million-of-Senior-Secured-Notes.html",
+     "title": "Cipher Digital Inc. Announces Pricing of $810.0 Million of Senior Secured Notes",
+     "type": "news",
+     "date": "2026-06-09",
+     "quote": "Stingray Compute LLC ... $810.0 million ... 6.000% senior secured notes due 2031 ... priced at 99.750% ... reimburse approximately $61.5 million of prior equity contributions (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1819989/000181998926000007/cipherdigital_businessup.htm",
+     "title": "Cipher Digital Q4 2025 business update (8-K)",
+     "type": "8-K",
+     "date": "2026-02-24",
+     "quote": "Adjusted EBITDA $(38,913) $40,827 $40,271 $106,258 (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.nasdaq.com/articles/cipher-digital-ifr-q2-earnings-call-highlights-early-hpc-delivery",
+     "title": "Cipher Digital Q2 Earnings Call Highlights Early HPC Delivery",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "100 Gross MW / 70 MW Critical IT load ... initial rent commencement targeted for April 1, 2027 ... approximately $793 million of average annualized net operating income from October 2026 through September 2036 (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001819989/000181998926000041/cifr-20260630.htm",
+     "title": "Cipher Digital Q2 2026 Form 10-Q",
+     "type": "10-Q",
+     "date": "2026-08-04",
+     "quote": "stockholders' equity of $562.1 million at June 30, 2026 (via search rendering; sec.gov/IR direct fetch blocked)"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Capitalized interest, CFO, capex, lease liabilities and Q3/Q4'25 interest expense not retrieved. Stingray notes rating not found. Rating column order (Moody's vs S&P) is inferred from an unlabeled table. Market cap not found. Barber Lake MW may include an expansion tied to the $333M add-on (not verified). Debt per contracted MW = $6,016M / 538 MW = ~$11.2M/MW gross; ~$8.4M/MW project-secured (derived)."
+  },
+  {
+   "ticker": "WULF",
+   "name": "TeraWulf Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q (filed Aug 5, 2026) + Q2 2026 earnings release/investor snapshot",
+   "currency_note": "USD",
+   "gross_debt_usd_m": 5725,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 3200,
+    "unsecured_notes": 0,
+    "convertible": 2525,
+    "bank_loans_revolver_cp": 0,
+    "non_recourse_portion": 3200
+   },
+   "instruments": [
+    {
+     "name": "7.750% Senior Secured Notes due 2030 (WULF Compute LLC, Lake Mariner)",
+     "principal_usd_m": 3200,
+     "coupon_pct": 7.75,
+     "maturity": "2030-10-15",
+     "secured": true,
+     "recourse": "non-recourse/project",
+     "notes": "Closed Oct 2025 at par; Morgan Stanley sole bookrunner. Guaranteed by three Lake Mariner subsidiaries. First-priority liens on WULF Compute and guarantor assets, WULF Compute equity, and a Fluidstack lockbox account; Google pledged TeraWulf warrants before completion. Parent completion guarantee. Semiannual amortization starts once the initial phase is complete, plus an excess-cash-flow repurchase offer. Fair value $3,356.8M at Jun 30, 2026. Backed by Fluidstack leases at Lake Mariner (Google credit support; $600M became effective on CB-3 completion). Rating not found."
+    },
+    {
+     "name": "2.75% Convertible Senior Notes due 2030 (parent)",
+     "principal_usd_m": 500,
+     "coupon_pct": 2.75,
+     "maturity": "2030-02",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Priced Oct 2024 at $425M, upsized to $500M. Classified as current (conversion feature)."
+    },
+    {
+     "name": "1.00% Convertible Senior Notes due 2031 (parent)",
+     "principal_usd_m": 1000,
+     "coupon_pct": 1.0,
+     "maturity": "2031",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Aug 2025, $850M plus greenshoe. Unamortized discount ~$402.8M at Mar 31, 2026. The current convertible notes of $1.10B at Jun 30, 2026 appear to include this tranche."
+    },
+    {
+     "name": "0.00% Convertible Senior Notes due 2032 (parent)",
+     "principal_usd_m": 1025,
+     "coupon_pct": 0.0,
+     "maturity": "2032",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Oct 2025, $900M upsized plus greenshoe = $1.025B. Proceeds went to the Abernathy JV."
+    },
+    {
+     "name": "Flash Compute LLC 7.250% Senior Secured Notes due 2030 (Abernathy JV) - NOT CONSOLIDATED",
+     "principal_usd_m": 1300,
+     "coupon_pct": 7.25,
+     "maturity": "2030",
+     "secured": true,
+     "recourse": "non-recourse/project",
+     "notes": "Issued Dec 2025 by Flash Compute LLC, a sub of FS CS I LLC (50.1% WULF / 49.9% Fluidstack). The JV is equity-accounted, so this is excluded from gross debt. WULF agreed in Jul 2026 to sell its 50.1% to a Fluidstack-led group. The completion guarantee is 'not a guarantee of the notes'."
+    },
+    {
+     "name": "$250M revolving credit facility",
+     "principal_usd_m": null,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "Referenced by the CFO (Bloomberg, Jul 2026) as an existing $250M revolver. Drawn status not retrieved."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 2619.2,
+   "restricted_cash_usd_m": 409.4,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "Abernathy JV (equity method): $1.3B Flash Compute 7.25% notes are off balance sheet, plus WULF completion-support obligations. Sale of the 50.1% stake for ~$530M is receivable in three parts: $250M within 14 days of signing, $150M by Dec 31, 2026, and ~$130M by Apr 30, 2027. WULF will contribute ~$150M toward Lake Mariner tenant fit-out costs incurred through Jun 30, 2026 (lease amendment). Justified Data (Hawesville, KY, 401 MW) build has ~$3.5B of planned debt financing that has not yet priced. Google warrant liability (a $755.7M non-cash loss in Q2) is not debt.",
+   "ltm_revenue_usd_m": null,
+   "ltm_ebitda_usd_m": null,
+   "ltm_ebitda_basis": "Not computable: Q3'25 adjusted EBITDA not retrieved. Company adjusted EBITDA for known quarters: Q4'25 -$50.9M, Q1'26 -$4.1M, Q2'26 -$18.3M (three-quarter sum -$73.3M, derived). FY2025 was -$23.1M. Revenue: Q4'25 $35.8M, Q1'26 $34.0M, Q2'26 $44.8M (HPC lease $31.9M); FY2025 $168.5M.",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "Q1'26 per 10-Q: stated interest $67.4M, of which $13.5M was capitalized, leaving $53.9M of interest expense. Q2'26 10-Q: capitalized interest $32.7M (3M) and $52.9M (6M); the 6M figure implies a different Q1 split than the Q1 10-Q. Q2 GAAP interest expense not retrieved. DERIVED annual coupon run-rate ~$272M (3,200x7.75% + 500x2.75% + 1,000x1.0%). Converts carry large non-cash discount amortization.",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "not found",
+   "book_equity_usd_m": 147.5,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": 0,
+    "2027": 0,
+    "2028": null,
+    "2029": null,
+    "2030": 3700,
+    "2031+": 2025
+   },
+   "ratings": {
+    "sp": "none found (issuer or WULF Compute notes)",
+    "moodys": "none found",
+    "fitch": "none found"
+   },
+   "subsequent_events": "Jul 6, 2026: subsidiary Raylan Data LLC signed a 20-year lease with Anthropic PBC for ~401 MW at Justified Data Campus, Hawesville, KY (~$19B contracted revenue; first capacity 2H 2027, full 2028). Same day: definitive agreement to sell the 50.1% Abernathy JV stake to a Fluidstack-led group for ~$530M (installments above). Jul 9-10, 2026 (Bloomberg): WULF lining up ~$3.5B of debt for Justified Data, a mix of leveraged loans (its first TLB) and high-yield bonds, Morgan Stanley leading; banks in the existing $250M revolver may join. No pricing or closing found as of Oct 9, 2026. Mid-Jul 2026: second CB-3 data hall ready for service. Oct 8, 2026: stock -8%.",
+   "covenants_and_key_terms": "WULF Compute notes: first-lien project bond with semiannual amortization after initial-phase completion, an excess-cash-flow offer to repurchase, and a parent completion guarantee. Collateral includes the tenant lockbox and Google's warrant pledge. Interest is paid Apr 15 and Oct 15. Parent converts: $1.1B classified current at Jun 30, 2026, likely because conversion triggers were met (equity-settleable). The $100M bridge loan was repaid Apr 16, 2026 after a 54.51M-share equity offering, with a $7.3M extinguishment loss.",
+   "credit_view": "WULF pairs a Google-supported Fluidstack lease base at Lake Mariner (102 MW live, 336 MW under construction) with a new 401 MW Anthropic lease (~$19B). The Lake Mariner project bond (~$7.3M of debt per Lake Mariner MW, derived) is well supported by tenant and Google credit support. The parent is thin: book equity is only $147.5M, adjusted EBITDA is negative (Q2 -$18.3M), and H1'26 operating cash burn was $154M against $1.38B of H1 capex. $2.5B of converts are structurally subordinated to the SPV, and $1.1B are classified current. Net debt is ~$2.7B (gross $5,725M less $3,029M of cash and restricted cash). The Abernathy exit adds ~$530M of liquidity, but the Justified build needs ~$3.5B of new secured debt not yet placed. Execution and the timing of rent commencement drive the credit.",
+   "sources": [
+    {
+     "url": "https://investors.terawulf.com/sec-filings/all-sec-filings/content/0001083301-26-000166/wulf-20260630.htm",
+     "title": "TeraWulf Q2 2026 Form 10-Q",
+     "type": "10-Q",
+     "date": "2026-08-05",
+     "quote": "Capitalized interest costs were $32.7 million and $52.9 million for the three and six months ended June 30, 2026 ... Net cash (used in) provided by operating activities (154,300) ... Purchase of and deposits on plant and equipment (1,378,514) ... Cash and cash equivalents were $2,619.2 million (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001083301/000108330126000166/wulf-20260630.htm",
+     "title": "TeraWulf Q2 2026 Form 10-Q (debt note)",
+     "type": "10-Q",
+     "date": "2026-08-05",
+     "quote": "$3.2 billion of 7.75% notes due 2030 ... mature October 15, 2030 ... first-priority liens ... a Fluidstack lockbox account ... the Company paid $450.0 million in cash for 50.1% of the Abernathy Joint Venture (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://investors.terawulf.com/news-events/press-releases/detail/144/terawulf-reports-second-quarter-2026-results",
+     "title": "TeraWulf Reports Second Quarter 2026 Results",
+     "type": "earnings-release",
+     "date": "2026-08-05",
+     "quote": "approximately $3.0 billion of cash and restricted cash ... second-quarter revenue of $44.8 million, including $31.9 million of HPC lease revenue (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://investors.terawulf.com/sec-filings/all-sec-filings/content/0001083301-26-000162/terawulfq22026investorpr.htm",
+     "title": "TeraWulf Q2 2026 investor snapshot (8-K Ex.99.2)",
+     "type": "8-K",
+     "date": "2026-08-05",
+     "quote": "Adjusted EBITDA ... $(18.3) million (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001083301/000108330126000092/wulf-20260331.htm",
+     "title": "TeraWulf Q1 2026 Form 10-Q",
+     "type": "10-Q",
+     "date": "2026-05-08",
+     "quote": "2030 convertible note $500,000 ... 2031 notes ... $1,000,000 ... 2032 notes ... $1,025,000 ... $67.4 million of stated interest ... $13.5 million was capitalized (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://paulweiss.com/insights/client-news/terawulf-joint-venture-completes-senior-secured-notes-offering",
+     "title": "TeraWulf Joint Venture Completes Senior Secured Notes Offering",
+     "type": "news",
+     "date": "2025-12-29",
+     "quote": "Flash Compute LLC ... 7.250% Senior Secured Notes due 2030 ... $1,300.0 million (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://investors.terawulf.com/news-events/press-releases/detail/142/terawulf-announces-anthropic-lease-at-justified-data-campus-and-sale-of-majority-interest-in-abernathy-joint-venture-to-fluidstack",
+     "title": "TeraWulf Announces Anthropic Lease at Justified Data Campus and Sale of Majority Interest in Abernathy JV",
+     "type": "8-K",
+     "date": "2026-07-06",
+     "quote": "20-year lease agreement with Anthropic PBC ... approximately 401 megawatts of critical IT load ... $250 million within 14 days ... $150 million on or before December 31, 2026 ... approximately $130 million ... on or before April 30, 2027 (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://blockspace.media/insight/terawulf-debt-raise-anthropic-kentucky/",
+     "title": "TeraWulf plans $3.5 billion debt raise for Anthropic-leased Kentucky data center: Bloomberg",
+     "type": "news",
+     "date": "2026-07-09",
+     "quote": "lining up about $3.5 billion in debt for a Kentucky data center campus leased to Anthropic ... mix of leveraged loans and high-yield bonds, with Morgan Stanley expected to lead (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://finance.yahoo.com/markets/stocks/articles/terawulf-q1-earnings-call-highlights-080704337.html",
+     "title": "TeraWulf Q1 Earnings Call Highlights",
+     "type": "news",
+     "date": "2026-05",
+     "quote": "adjusted EBITDA ... loss of $4.1 million ... prior quarter at negative $50.9 million (via search rendering; sec.gov/IR direct fetch blocked)"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Q2 GAAP interest expense, Q3'25 adjusted EBITDA and revenue (so LTM is not computed), lease liabilities, revolver draw and market cap not retrieved. Restricted cash is DERIVED ($3,028.6M total less $2,619.2M unrestricted). Gross debt is the principal sum of the four consolidated instruments; carrying value is lower because of convert discounts. Book equity $147.5M is from a StockTitan summary of the 10-Q. Contracted MW: Lake Mariner 438 MW (102 operating + 336 under construction; leased share assumed) + Justified 401 MW = ~839 MW. Gross debt per MW ~$6.8M (derived; excludes the pending ~$3.5B Justified debt). Lake Mariner secured debt per MW ~$7.3M."
+  },
+  {
+   "ticker": "HUT",
+   "name": "Hut 8 Corp.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q + Q2 2026 earnings release (8-K)",
+   "currency_note": "USD",
+   "gross_debt_usd_m": 7700,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 7500,
+    "unsecured_notes": 0,
+    "convertible": 0,
+    "bank_loans_revolver_cp": 200,
+    "non_recourse_portion": 7500
+   },
+   "instruments": [
+    {
+     "name": "6.192% Senior Secured Notes due 2042 (Hut 8 DC LLC, River Bend, LA)",
+     "principal_usd_m": 3250,
+     "coupon_pct": 6.192,
+     "maturity": "2042-11-15",
+     "secured": true,
+     "recourse": "non-recourse/project",
+     "notes": "Priced Apr 27, 2026. Semiannual interest from Nov 15, 2026; amortization from May 15, 2028, fully amortizing. First liens on the issuer plus an equity pledge. Funds 245 MW and a substation at River Bend. Backed by a 15-year, ~$7B Fluidstack lease with a Google financial backstop. Rated BBB- by S&P and Fitch. Effective rate 6.41% per the 10-Q."
+    },
+    {
+     "name": "6.129% Senior Secured Notes due 2042 (Beacon Point DC LLC, Nueces County, TX)",
+     "principal_usd_m": 4250,
+     "coupon_pct": 6.129,
+     "maturity": "2042-11-30",
+     "secured": true,
+     "recourse": "non-recourse/project",
+     "notes": "Priced Jun 4, 2026 at par (T+165); issued Jun 9, 2026. Amortization from May 30, 2030; make-whole before the May 30, 2042 par call. Funds Phase 1 (352 MW). Backed by a 15-year triple-net $9.8B lease to an unnamed 'high-investment-grade' tenant rated AA- or higher. Rated Baa2 by Moody's."
+    },
+    {
+     "name": "FalconX bitcoin-collateralized term loan",
+     "principal_usd_m": 200,
+     "coupon_pct": 7.0,
+     "maturity": "2027-04",
+     "secured": true,
+     "recourse": "corporate",
+     "notes": "Entered May 2026 to refinance the 9% Coinbase BTC-backed loan, which was terminated; freed ~3,300 BTC from collateral. Assumed outstanding at Jun 30, 2026 (10-Q balance not retrieved)."
+    },
+    {
+     "name": "Two Prime credit agreement",
+     "principal_usd_m": 0,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": true,
+     "recourse": "corporate",
+     "notes": "$200M available and undrawn as of Mar 31, 2026; Jun 30 status not retrieved."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 233.6,
+   "restricted_cash_usd_m": 6787,
+   "undrawn_committed_facilities_usd_m": 200,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "Restricted cash ($6,787M) consists mainly of River Bend and Beacon Point note proceeds held in construction and debt-service reserve accounts, plus an unquantified amount backing commercial letters of credit. Beacon Point Phase 2 (352 MW, signed Jul 2026) has no financing yet; Phases 1+2 are estimated at ~$17B of capital investment. Some American Bitcoin mining assets were pledged as collateral for Hut 8 obligations, although ABTC is not a legal obligor. Bitcoin: company liquidity of ~$8.1B includes BTC ($7.6B attributable to Hut 8, $497.2M to ABTC). Prior extraction's 17,316 BTC (9,314 HUT + 8,002 ABTC) was not re-verified.",
+   "ltm_revenue_usd_m": null,
+   "ltm_ebitda_usd_m": null,
+   "ltm_ebitda_basis": "Not computed. The adjusted EBITDA definition changed in Q2'26 to exclude BTC mark-to-market. On the new basis: Q2'26 $10.4M, H1'26 $7.69M; the H2'25 restated figure is not available. Inclusive of BTC MTM: H1'26 -$345.1M, FY25 -$135.4M; LTM inclusive is ~-$584M (DERIVED, not meaningful for credit). Revenue: Q1'26 $71.0M, Q2'26 $74.9M; FY25 $235.1M.",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "Q2'26 interest expense $50.6M; total interest cost incurred $56.8M, of which $5.7M was capitalized. H1'26: expense $60.2M, incurred $66.1M, capitalized $5.7M. Interest payable $48.6M. DERIVED annual coupon run-rate on current principal ~$476M (3,250x6.192% + 4,250x6.129% + 200x7%), partly offset by interest income on ~$6.8B of escrowed cash.",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "not found",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": 0,
+    "2027": 200,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "Issuer NR found; River Bend 6.192% notes BBB- (Apr 2026)",
+    "moodys": "Issuer NR found; Beacon Point 6.129% notes Baa2 (Jun 2026)",
+    "fitch": "River Bend 6.192% notes BBB- (Apr 2026)"
+   },
+   "subsequent_events": "Jul 2026: second 15-year, $9.8B triple-net lease for another 352 MW at Beacon Point with the same AA-or-better tenant, bringing the campus to 704 MW and $19.6B base-term contract value ($50.2B with renewals). No Phase 2 note financing found as of Oct 9, 2026. Q2 results released Aug 2026 (revenue $74.9M, net loss $177.1M). Oct 8, 2026: stock -10%. A KBW note cutting its target cited a 'Beacon Point audit' (headline only; not investigated).",
+   "covenants_and_key_terms": "Two investment-grade, fully amortizing 16-year project bonds at bankruptcy-remote SPVs, non-recourse to Hut 8 Corp, secured by first liens and equity pledges, with construction and DSRA escrows. Tenor matches the 15-year leases, which avoids refinancing risk. Beacon Point priced 20bp tighter than River Bend. The parent's only recourse debt is BTC-collateralized lending (FalconX $200M at 7%, Apr 2027). Total principal payments in H1'26 were $217.7M.",
+   "credit_view": "HUT has the strongest structure of the four. Its $7.5B of debt sits in two investment-grade (BBB-/Baa2), fully amortizing project bonds matched to 15-year triple-net leases: Fluidstack with a Google backstop at River Bend, and an AA- or better tenant at Beacon Point. Construction is pre-funded with $6.8B of restricted cash. Project debt is ~$12.6M per financed MW (597 MW), the highest of the group, consistent with turnkey IG builds at tight spreads. The parent is light: $234M unrestricted cash, minimal EBITDA ($10.4M Q2 ex-MTM), and liquidity reliant on BTC holdings and the ABTC stake. Phase 2 at Beacon Point needs a further multi-billion financing. Ratings stay project-level; any parent rating would be constrained by negative operating cash flow and BTC volatility.",
+   "sources": [
+    {
+     "url": "https://cryptoslate.com/?p=552415",
+     "title": "Hut 8's $7 billion cash balance shrinks to $233 million outside its AI projects",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "$7.021 billion, with $6.787 billion, or 96.7%, restricted ... only $233.6 million was unrestricted (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001964789/000110465926090025/hut-20260630x10q.htm",
+     "title": "Hut 8 Q2 2026 Form 10-Q",
+     "type": "10-Q",
+     "date": "2026-08",
+     "quote": "interest expense related to the Company's debt was $50.6 million ... Total interest cost incurred was $56.8 million, of which $5.7 million was capitalized ... net cash used in operating activities of $32.8 million for the six months ended June 30, 2026 (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://blockspace.media/insight/hut-8-louisiana-ai-data-center-debt/",
+     "title": "Hut 8 closes $3.25 billion in investment-grade debt for Louisiana AI data center",
+     "type": "news",
+     "date": "2026-04",
+     "quote": "6.192% senior secured notes due 2042 ... rated BBB- by both S&P Global Ratings and Fitch Ratings ... leased to Fluidstack for 15 years ... $7 billion (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001964789/000110465926070744/tm2616926d1_ex99-1.htm",
+     "title": "Hut 8 Announces Pricing of $4.25 Billion of Investment-Grade Senior Secured Notes for Beacon Point (8-K Ex.99.1)",
+     "type": "8-K",
+     "date": "2026-06-04",
+     "quote": "$4.25 billion aggregate principal amount of 6.129% senior secured notes due November 30, 2042 ... The Notes are rated Baa2 by Moody's Ratings ... non-recourse to Hut 8 (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001964789/000110465926090041/tm2621890d1_ex99-1.htm",
+     "title": "Hut 8 Q2 2026 results (8-K Ex.99.1)",
+     "type": "earnings-release",
+     "date": "2026-08",
+     "quote": "Adjusted EBITDA for the three months ended June 30, 2026 was $10.4 million ... Adjusted EBITDA inclusive of digital assets mark-to-market ... $(94.6) million ... approximately $8.1 billion in unrestricted cash, restricted cash and cash equivalents, and Bitcoin holdings (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://www.coindesk.com/markets/2026/04/28/hut-8-swaps-coinbase-credit-line-for-cheaper-falconx-deal-slashing-borrowing-costs-as-it-bets-big-on-ai",
+     "title": "Hut 8 cuts bitcoin credit costs with FalconX refinancing",
+     "type": "news",
+     "date": "2026-04-28",
+     "quote": "$200.0 million Bitcoin-collateralized term loan with FalconX, maturing in April 2027 and bearing a fixed interest rate of 7.00% ... pay off the Coinbase loan, which bore a 9.00% interest rate (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://pulse2.com/hut-8-secures-second-9-8-billion-ai-data-center-lease-bringing-beacon-point-contract-value-to-19-6-billion/",
+     "title": "Hut 8 Secures Second $9.8 Billion AI Data Center Lease",
+     "type": "news",
+     "date": "2026-07",
+     "quote": "has doubled its contracted IT capacity at the campus to 704 MW ... increases its total base-term contract value to $19.6 billion (via search rendering; sec.gov/IR direct fetch blocked)"
+    },
+    {
+     "url": "https://finance.yahoo.com/markets/stocks/articles/hut-8-corp-hut-q2-210219033.html",
+     "title": "Hut 8 Q2 2026 Earnings Call Highlights",
+     "type": "call-transcript",
+     "date": "2026-08",
+     "quote": "the majority of the $7.6 billion consists of the $3.25 billion Riverbend notes and $4.25 billion Beacon Point notes, which sit at bankruptcy-remote project subsidiaries and are non-recourse (via search rendering; sec.gov/IR direct fetch blocked)"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Exact 10-Q debt table not retrieved. Gross debt is the DERIVED principal sum ($3,250M + $4,250M + $200M FalconX); the reported carrying value is ~$7.6B. Any American Bitcoin-level debt, lease liabilities, capex, book equity, market cap and the 2028-2031 amortization schedule were not retrieved. BTC count was not re-verified. Contracted MW: River Bend 245 + Beacon Point 704 = 949 MW (~$26.6B base-term). Gross debt per contracted MW ~$8.1M; project debt per financed MW (597) ~$12.6M (derived)."
+  }
+ ]
+}

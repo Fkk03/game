@@ -1,0 +1,671 @@
+{
+ "companies": [
+  {
+   "ticker": "GLXY",
+   "name": "Galaxy Digital Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q (filed ~Aug 2026) and Q2 2026 earnings release (8-K) - via search rendering",
+   "currency_note": "USD",
+   "gross_debt_usd_m": 3447.5,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 1300.0,
+    "unsecured_notes": 0,
+    "convertible": 2147.5,
+    "bank_loans_revolver_cp": 0,
+    "non_recourse_portion": null
+   },
+   "instruments": [
+    {
+     "name": "3.00% Exchangeable Senior Notes due 2026 (GDH LP)",
+     "principal_usd_m": 445.0,
+     "coupon_pct": 3.0,
+     "maturity": "2026-12",
+     "secured": false,
+     "recourse": "exchangeable",
+     "notes": "Originally $500M (Dec 2021). $445M outstanding at 9/30/2025 (latest principal figure found); 6/30/26 current notes payable carrying $436,985K is consistent. No exchanges in H1 2026 per 10-Q rendering. Repayment at Dec 15, 2026 maturity not yet confirmed."
+    },
+    {
+     "name": "2.50% Exchangeable Senior Notes due 2029 (GDH LP)",
+     "principal_usd_m": 402.5,
+     "coupon_pct": 2.5,
+     "maturity": "2029-12",
+     "secured": false,
+     "recourse": "exchangeable",
+     "notes": "Issued Nov 25, 2024."
+    },
+    {
+     "name": "0.50% Exchangeable Senior Notes due 2031 (GDH LP)",
+     "principal_usd_m": 1300.0,
+     "coupon_pct": 0.5,
+     "maturity": "2031",
+     "secured": false,
+     "recourse": "exchangeable",
+     "notes": "Issued Oct 30, 2025 incl. $150M greenshoe; proceeds may repay 2026 notes."
+    },
+    {
+     "name": "Galaxy Helios I LLC senior secured delayed-draw term loan (Deutsche Bank agent), up to $1.4B",
+     "principal_usd_m": 1300.0,
+     "coupon_pct": null,
+     "maturity": "2028-08",
+     "secured": true,
+     "recourse": "non-recourse/project (subsidiary borrower; parent support not verified)",
+     "notes": "Entered Aug 15, 2025; $1.1B drawn at 3/31/26; ~$1.3B drawn at 6/30/26 per search rendering of Q2 10-Q (LOW confidence: carrying-value math implies ~$1.15-1.2B). Commitments mature Aug 15, 2028. Funds Helios Phase I (Dickens County, TX)."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 896.0,
+   "restricted_cash_usd_m": null,
+   "undrawn_committed_facilities_usd_m": 100.0,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "LESSOR position: Helios campus leases 526 MW critical IT to CoreWeave, ~$10.4B minimum lease payments (prior extraction; 526 MW confirmed by press headline). Phase I 133 MW fully delivered by 6/30/26 (~$80M quarterly lease revenue, >90% project EBITDA margin from Q3'26); Phase II 260 MW under construction, first data halls Q2 2027. LIQUIDITY BEYOND CASH: cash + stablecoins ~$2.5B at 6/30/26 (stablecoins ~$1.6B, derived); gross digital assets $3,517M (prior extraction, includes trading/client-related inventory, not verified); company-reported NET digital assets & investments $1.2B (down 15% q/q). BITCOIN: Galaxy does not report a standalone treasury BTC count in sources found - BTC count NOT FOUND. Value of net digital assets at ~current prices: if mostly BTC, ~+40% from Jun 30 (BTC ~$58.5K at 6/30/26 -> ~$82K on 10/8/26) => indicative ~$1.7B (derived, rough). TRADING-BOOK LIABILITIES (digital-asset loans payable, collateral payable, broker financing) are excluded from gross debt here - amounts not verified. Corporate debt (exchangeables, $2,147.5M) is at GDH LP; Helios debt sits in ring-fenced subsidiaries. BTC PRICE BASIS: 6/30/26 ~$58,524 (MARA Q2 coverage; consistent with Riot 11,380 BTC ~ $666M); 10/8/26 ~$82,000 APPROXIMATE (Robinhood/RTI hourly prediction-market settlement brackets $81.6K-$82.6K on Oct 8; Pluang Oct 4 ~ $84,800) - not a reported close.",
+   "ltm_revenue_usd_m": null,
+   "ltm_ebitda_usd_m": null,
+   "ltm_ebitda_basis": "Company adjusted EBITDA: Q4'25 $(518)M, Q1'26 $(188)M, Q2'26 $(77)M (verified) = $(783)M for 3 quarters; Q3'25 not verified in this pass (net income was ~$505M that quarter) - so LTM left null. Mark-to-market driven; not a cash-flow measure. Helios Phase I run-rate ~$290M/yr project EBITDA (derived: $80M x4 x ~90%).",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "GAAP LTM interest not found. Derived cash-coupon run-rate on 6/30 debt: exchangeables ~$29.9M/yr (445x3% + 402.5x2.5% + 1,300x0.5%) + DB term loan (rate not found). Post-quarter Helios II notes add ~$346M/yr ($3,507M x 9.875%), first coupon Feb 1, 2027; likely largely capitalized during construction.",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "No consolidated guidance found; Helios Phase I ~$80M/quarter lease revenue at >90% margin from Q3 2026 (company guidance).",
+   "book_equity_usd_m": 2720.0,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": 445.0,
+    "2027": 0,
+    "2028": 1300.0,
+    "2029": 402.5,
+    "2030": 0,
+    "2031+": 1300.0
+   },
+   "ratings": {
+    "sp": "not found",
+    "moodys": "not found",
+    "fitch": "not found"
+   },
+   "subsequent_events": "Jul 28, 2026: wholly-owned subsidiary Galaxy Helios Data Centers II LLC closed $3.507B 9.875% Senior Secured Notes due Aug 1, 2031 (priced ~Jul 23-24; ISIN US36322DAA46); interest Feb 1/Aug 1 from Feb 1, 2027; 4%/yr amortization of original principal starting >=10 months after project completion; first-priority liens on substantially all issuer/guarantor assets plus pledge of parent's equity in issuer; proceeds fund two Helios Phase II buildings and debt-service reserves. Reported as project-level, not recourse to Galaxy parent. No agency rating found. Pro forma gross debt ~$6.95B (derived: $3,447.5M + $3,507M), of which ~$4.8B project-level. 3.00% 2026 exchangeables ($445M) mature Dec 15, 2026 - no repayment/exchange disclosure found as of Oct 9.",
+   "covenants_and_key_terms": "Helios II notes: first-lien on project assets and parent equity pledge, debt-service reserve, scheduled 4% annual amortization post-completion, high coupon reflects non-IG tenant (CoreWeave). DB Helios I term loan: senior secured, up to $1.4B, commitments to Aug 15, 2028. Exchangeables: GDH LP senior unsecured, exchangeable into Class A shares.",
+   "credit_view": "Galaxy is two credits: a volatile, mark-to-market trading/treasury business with ~$2.5B cash+stablecoins and ~$1.2B net digital assets funded partly by $2.15B low-coupon exchangeables, and a ring-fenced Helios data-center platform financed with project debt against a 526 MW CoreWeave lease (~$10.4B min payments). Corporate leverage on consolidated EBITDA is meaningless (adj EBITDA negative for three straight quarters on crypto marks), so the corporate credit rests on liquidity and asset coverage, which is ample versus the $445M Dec-2026 maturity. Helios debt (~$1.3B DB loan + $3.5B 9.875% notes) is a single-tenant, construction-stage exposure to a non-IG counterparty; Phase I (~$80M/qtr revenue, >90% margin) is now cash-generating. Key risks: Phase II construction/completion, CoreWeave credit, crypto drawdowns hitting the parent's liquidity cushion.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1859392/000185939226000084/glxy-20260630xpressrelease.htm",
+     "title": "GLXY-2026.06.30 Press Release (8-K Ex.99)",
+     "type": "earnings-release",
+     "date": "2026-08",
+     "quote": "Notes payable - current of 436,985 and Notes payable of 2,825,773 (in thousands) [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001859392/000185939226000091/glxy-20260630.htm",
+     "title": "Galaxy Digital Inc. Form 10-Q Q2 2026",
+     "type": "10-Q",
+     "date": "2026-08",
+     "quote": "On July 28, 2026, Galaxy, through its wholly-owned subsidiary, Galaxy Helios Data Centers II LLC, completed the issuance and sale of $3.507 billion aggregate principal amount of 9.875% Senior Secured Notes due in 2031... The proceeds of the Notes will be used to finance the construction of two data center buildings at the Helios campus. [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.stocktitan.net/sec-filings/GLXY/10-q-galaxy-digital-inc-quarterly-earnings-report-be3331bb64f1.html",
+     "title": "Galaxy Digital posts Q2 2026 loss amid asset impairments (10-Q summary)",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "$2.1 billion of principal outstanding under exchangeable senior notes. No exchangeable notes were exchanged during the three or six months ended June 30, 2026 ... $1.3 billion was drawn [Helios term loan] at quarter-end; total notes payable $3,262,758 (thousands) [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001859392/000185939226000054/glxy-20260331.htm",
+     "title": "Galaxy Digital Inc. Form 10-Q Q1 2026",
+     "type": "10-Q",
+     "date": "2026-05",
+     "quote": "senior secured term loan facility in an aggregate principal amount of up to $1.4 billion... As of March 31, 2026, the outstanding amount drawn on this facility was $1.1 billion, recognized within Notes payable. Commitments under the Credit Agreement will mature on August 15, 2028 [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001859392/000185939226000091/glxy-20260630.htm",
+     "title": "Galaxy 10-Q (2026 exchangeable notes)",
+     "type": "10-Q",
+     "date": "2026-08",
+     "quote": "As of September 30, 2025, there was $445 million in principal outstanding of the 2026 Exchangeable Notes... will mature on December 15, 2026 unless earlier exchanged, redeemed or repurchased [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.davispolk.com/experience/galaxy-1-3-billion-exchangeable-senior-notes-offering",
+     "title": "Galaxy $1.3 billion exchangeable senior notes offering",
+     "type": "news",
+     "date": "2025-10",
+     "quote": "$1.3 billion of 0.50% exchangeable senior notes ... including $150 million aggregate principal amount of notes issued pursuant to the exercise in full of the initial purchasers' option [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.theglobeandmail.com/investing/markets/markets-news/Motley%20Fool/3809183/galaxy-digital-glxy-q2-2026-earnings-call-transcript/",
+     "title": "Galaxy Digital (GLXY) Q2 2026 Earnings Call Transcript",
+     "type": "call-transcript",
+     "date": "2026-08",
+     "quote": "Cash and stablecoins were $2.5 billion, down 6% from Q1... Total assets were $10.8 billion... Total equity was $2.7 billion, essentially flat quarter over quarter [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://blockspace.media/insight/galaxy-digital-q2-loss-helios-financing-2026/",
+     "title": "Galaxy Digital reports narrower loss as Helios Phase I comes online: Q2 Earnings",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "adjusted EBITDA of negative $77 million... net digital assets and investments were $1.2 billion, down 15% from Q1... Phase I should bring in approximately $80 million in quarterly leasing revenue, with project-level adjusted EBITDA margins above 90% starting in Q3 2026 [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://seekingalpha.com/pr/20489801",
+     "title": "Galaxy Announces First Quarter 2026 Financial Results",
+     "type": "earnings-release",
+     "date": "2026-05",
+     "quote": "Adjusted EBITDA $(188) million vs $(518) million in Q4 2025 [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.theenergymag.com/news/2026-07-24/galaxy-ai-bond-price",
+     "title": "Galaxy Locks In 9.875% Rate on $3.5B AI Data Center Bond Sale",
+     "type": "news",
+     "date": "2026-07-24",
+     "quote": "9.875% fixed coupon maturing August 1, 2031 to fund the second phase of its Helios data center in Texas [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://blockspace.media/short/galaxy-digital-prices-3-5b-senior-secured-note-for-helios-phase-2/",
+     "title": "Galaxy Digital prices $3.5B senior secured note for Helios Phase 2",
+     "type": "news",
+     "date": "2026-07",
+     "quote": "the note is project-level financing secured by the data center itself, not recourse to Galaxy's parent capital structure... CoreWeave, the Helios tenant, is not investment grade [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://theenergymag.com/news/market-news/galaxy-digital-reports-85-million-q2-2026-net-loss-and-526-mw-coreweave-lease",
+     "title": "Galaxy Digital Reports $85 Million Q2 2026 Net Loss and 526 MW CoreWeave Lease",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "Galaxy Digital Reports $85 Million Q2 2026 Net Loss and 526 MW CoreWeave Lease (headline) [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Exact 6/30/26 principal of 2026 exchangeables (used $445M from 9/30/25) and Helios DB loan draw ($1.3B per search rendering vs carrying-implied ~$1.15-1.2B); DB loan rate; restricted cash; lease balances; GAAP interest/capitalized interest; CFO/capex; LTM revenue (gross trading revenue not meaningful) and Q3'25 adj EBITDA; BTC count; agency ratings for Galaxy or Helios II notes (none found); market cap at 10/8/26 (search budget exhausted). Note: WebFetch blocked for all domains; figures from WebSearch renderings only."
+  },
+  {
+   "ticker": "CORZ",
+   "name": "Core Scientific, Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q (filed Jul 28, 2026) and Q2 2026 earnings release - via search rendering",
+   "currency_note": "USD",
+   "gross_debt_usd_m": 4385.0,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 3300.0,
+    "unsecured_notes": 0,
+    "convertible": 1085.0,
+    "bank_loans_revolver_cp": 0,
+    "non_recourse_portion": null
+   },
+   "instruments": [
+    {
+     "name": "7.75% Senior Secured Notes due 2031 (Core Scientific Finance I LLC)",
+     "principal_usd_m": 3300.0,
+     "coupon_pct": 7.75,
+     "maturity": "2031",
+     "secured": true,
+     "recourse": "non-recourse/project (ring-fenced subsidiary) + parent uncapped completion guarantee",
+     "notes": "Closed May 6, 2026 at 99.25% of par; interest May 15/Nov 15 from Nov 15, 2026; first-priority liens on issuer/subsidiary-guarantor assets; CoreWeave revenue paid into lockbox; DSRA funded; proceeds repaid Term Loan Facility in full (loss on extinguishment $5.4M)."
+    },
+    {
+     "name": "3.00% Convertible Senior Notes due 2029",
+     "principal_usd_m": 460.0,
+     "coupon_pct": 3.0,
+     "maturity": "2029-09",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Issued Aug 19, 2024; initial conversion price ~$11.00; holder-convertible if stock >130% (~$14.30)."
+    },
+    {
+     "name": "0.00% Convertible Senior Notes due 2031",
+     "principal_usd_m": 625.0,
+     "coupon_pct": 0.0,
+     "maturity": "2031",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Dec 2024 issuance; $625M shown in 10-Q maturity table 'thereafter' for convertibles (series identification inferred; conversion price not verified)."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 1769.7,
+   "restricted_cash_usd_m": 781.7,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": 108.5,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "LESSOR/colocation: ~1.1 GW total leased customer capacity; CoreWeave colocation ~590 MW (prior extraction); billing 395 MW at 6/30 and 437 MW mid-July 2026. AMD partnership (Jul 28, 2026): 15-year agreements for ~530 MW across five sites, >$14B potential base contracted revenue, AMD option on up to 1,925 MW more through Dec 2028, AMD warrant for up to 30M shares at $23.47. Uncapped parent completion guarantee for specified data-center projects benefiting the 2031 secured notes. Pending Polaris DS acquisition (escrow within restricted cash; price not found). Heavy build capex ($797.5M in Q2'26). BITCOIN: digital assets $49.7M at 6/30/26 (prior extraction; consistent with $1,819.4M 'liquidity' = cash + digital assets). Implied ~849 BTC at ~$58,524 (derived); ~$69.6M at ~$82,000 BTC on 10/8/26 (derived). Immaterial vs debt. BTC PRICE BASIS: 6/30/26 ~$58,524 (MARA Q2 coverage; consistent with Riot 11,380 BTC ~ $666M); 10/8/26 ~$82,000 APPROXIMATE (Robinhood/RTI hourly prediction-market settlement brackets $81.6K-$82.6K on Oct 8; Pluang Oct 4 ~ $84,800) - not a reported close.",
+   "ltm_revenue_usd_m": 440.3,
+   "ltm_ebitda_usd_m": 4.9,
+   "ltm_ebitda_basis": "Sum of company adjusted EBITDA Q3'25 $(2.4)M [as originally reported, pre-restatement] + Q4'25 $(42.7)M + Q1'26 $8.9M + Q2'26 $41.1M. Q2'26 annualized ~$164M; colocation ramp means LTM understates run-rate.",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "GAAP interest expense Q2'26 $40.6M (interest incurred $52.4M less capitalized $11.7M); H1'26 $48.8M (incurred $60.8M, capitalized $12.05M). H2'25 not retrieved (2025 quarters ~$5M, e.g. Q2'25 $4.8M) so LTM ~ $59M (rough, derived) left null. Run-rate cash coupons ~$270M/yr (3,300x7.75% + 460x3%).",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "No guidance found; Q2'26 adj EBITDA $41.1M annualizes to ~$164M before further MW ramp (derived).",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": 0,
+    "2027": 0,
+    "2028": 0,
+    "2029": 460.0,
+    "2030": 0,
+    "2031+": 3925.0
+   },
+   "ratings": {
+    "sp": "not found",
+    "moodys": "not found",
+    "fitch": "not found"
+   },
+   "subsequent_events": "No new debt raise, refinancing, conversion or rating action found Jul 1-Oct 9, 2026. Jul 28, 2026: AMD 530 MW / >$14B potential contracted revenue partnership announced (with 30M-share warrant at $23.47). First 7.75% coupon due Nov 15, 2026. Funding for AMD sites not yet disclosed (likely further secured issuance).",
+   "covenants_and_key_terms": "2031 secured notes: first-priority liens on issuer and subsidiary guarantors plus ring-fenced assets; CoreWeave contract revenues paid directly into lockbox; debt service reserve account (major part of $781.7M restricted cash); uncapped parent completion guarantee. Term loan facility terminated May 2026. 2029 converts: holder conversion trigger at 130% of ~$11.00.",
+   "credit_view": "Core Scientific has converted into a contracted colocation landlord: ~$3.3B of 7.75% lockbox-secured notes are serviced by CoreWeave rent, with a funded DSRA and $1.77B unrestricted cash, so near-term liquidity is strong and there are no maturities before Sep 2029. Leverage is very high on trailing numbers (LTM adj EBITDA ~$5M; ~$270M/yr coupon run-rate vs Q2 annualized EBITDA ~$164M), so the credit depends on the 1.1 GW leased capacity ramping to billing on schedule. Concentration on CoreWeave (non-IG) is partially diluted by the new AMD contracts, but those require large new capex and likely more secured debt. The uncapped completion guarantee pulls construction risk back to the parent.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001839341/000183934126000014/core-20260630.htm",
+     "title": "Core Scientific Form 10-Q Q2 2026",
+     "type": "10-Q",
+     "date": "2026-07-28",
+     "quote": "Core Scientific Finance, an indirect wholly-owned subsidiary of the Company, completed a private offering of $3.30 billion aggregate principal amount of 7.75% Senior Secured Notes due 2031 at an issue price of 99.25% of the principal amount... the Company provided an uncapped completion guarantee [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001839341/000183934126000014/core-20260630.htm",
+     "title": "Core Scientific Form 10-Q Q2 2026 (converts, interest, cash)",
+     "type": "10-Q",
+     "date": "2026-07-28",
+     "quote": "On August 19, 2024, the Company issued $460.0 million in aggregate principal amount of 3.00% Convertible Senior Notes due 2029 ... maturity table lists $460 million of convertible notes in 2029 and $625 million thereafter; interest incurred 52,372, less capitalized interest 11,725, interest expense 40,647 (thousands, Q2); cash, cash equivalents and restricted cash at end of period 2,551,391 [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.businesswire.com/news/home/20260727468665/en/core-scientific-announces-second-quarter-2026-results/",
+     "title": "Core Scientific Announces Second Quarter 2026 Results",
+     "type": "earnings-release",
+     "date": "2026-07-28",
+     "quote": "Total revenue was $164.2 million... Adjusted EBITDA $41.1 million, compared with $28.5 million in Q2 2025 and $8.9 million in Q1 2026... Liquidity of $1,819.4 million... comprised of cash and cash equivalents and digital assets [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://seekingalpha.com/pr/20420519",
+     "title": "Core Scientific Announces Fourth Quarter Fiscal Year 2025 Results",
+     "type": "earnings-release",
+     "date": "2026-03-02",
+     "quote": "Total revenue was $79.8 million... Non-GAAP Adjusted EBITDA was $(42.7) million [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.businesswire.com/news/home/20251024934847/en",
+     "title": "Core Scientific Announces Fiscal Third Quarter 2025 Results",
+     "type": "earnings-release",
+     "date": "2025-10-24",
+     "quote": "Total revenue was $81.1 million... Adjusted EBITDA was $(2.4) million [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://quartr.com/events/core-scientific-inc-corz-q2-2026_oqh0bvP3",
+     "title": "Core Scientific Q2 2026 earnings summary",
+     "type": "news",
+     "date": "2026-07-28",
+     "quote": "Capex $797.5 million, compared with $389.2 million in Q1 2026... 395 MW billing at quarter end, and 437 MW as of mid-July... approximately 1.1 GW of total leased customer power capacity [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://theenergymag.com/news/market-news/core-scientific-amd-ai-infrastructure-expansion",
+     "title": "Core Scientific Lands $14 Billion AMD AI Data Center Deal",
+     "type": "news",
+     "date": "2026-07-28",
+     "quote": "15-year agreements for approximately 530 MW across five sites and more than $14 billion of potential base contracted revenue... warrant for up to 30 million Core Scientific shares at $23.47 [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Identity/conversion price of the $625M 2031 convertible confirmed only via maturity table; BTC count; lease split; LTM GAAP interest (H2'25), CFO and capex; book equity (warrant liability distorts); undrawn facilities (none identified); ratings on 2031 secured notes not found; Polaris DS acquisition price; market cap (search budget exhausted). Note: WebFetch blocked for all domains; figures from WebSearch renderings only."
+  },
+  {
+   "ticker": "RIOT",
+   "name": "Riot Platforms, Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q and Q2 2026 results - via search rendering",
+   "currency_note": "USD",
+   "gross_debt_usd_m": 794.4,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 200.0,
+    "unsecured_notes": 0,
+    "convertible": 594.4,
+    "bank_loans_revolver_cp": 0,
+    "non_recourse_portion": 0
+   },
+   "instruments": [
+    {
+     "name": "0.75% Convertible Senior Notes due 2030",
+     "principal_usd_m": 594.4,
+     "coupon_pct": 0.75,
+     "maturity": "2030-01",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Closed Dec 2024 ($525M base + partial greenshoe = $594.4M); matures Jan 15, 2030; initial conversion rate 67.2767 sh/$1,000 (~$14.86); issuer cash-redeemable on/after Jan 20, 2028 if stock >=130% of conversion price. $594.4M outstanding at 3/31/26; no conversion found."
+    },
+    {
+     "name": "Coinbase Credit BTC-backed credit facility",
+     "principal_usd_m": 200.0,
+     "coupon_pct": 6.15,
+     "maturity": "2027-04",
+     "secured": true,
+     "recourse": "corporate (BTC-collateralized)",
+     "notes": "Fully drawn; amended Apr 2026 to fixed 6.15% and maturity Apr 20, 2027; 5,821 BTC pledged at 6/30. REPAID IN FULL Sep 21, 2026 (8-K Sep 25), collateral released."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 471.4,
+   "restricted_cash_usd_m": 77.5,
+   "undrawn_committed_facilities_usd_m": 0,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "LESSOR: 20-year Data Center Lease with a 'leading frontier AI lab' (reported as Anthropic) for 191 MW critical IT at Rockdale, through June 2048, ~$9.1B initial contract revenue; first 96 MW Dec 2027, remaining 95 MW Jun 2028. Project cost $2.1-2.3B; Riot expects $1.7-2.1B debt at 80-90% loan-to-cost. AMD: initial 25 MW delivered in Q2'26. Corsicana: non-binding LOI for whole campus (1 GW approved power, ~756 MW critical IT). BITCOIN: 11,380 BTC at 6/30/26 (5,821 pledged), ~$666M at 6/30 (~$58,524/BTC); ~$933M at ~$82,000 BTC on 10/8/26 (derived; assumes no further sales - Riot sold 4,300 BTC in Q2 so post-Q2 count may be lower). Company cited >$1.2B total liquid assets at 6/30. BTC PRICE BASIS: 6/30/26 ~$58,524 (MARA Q2 coverage; consistent with Riot 11,380 BTC ~ $666M); 10/8/26 ~$82,000 APPROXIMATE (Robinhood/RTI hourly prediction-market settlement brackets $81.6K-$82.6K on Oct 8; Pluang Oct 4 ~ $84,800) - not a reported close.",
+   "ltm_revenue_usd_m": 674.6,
+   "ltm_ebitda_usd_m": -687.0,
+   "ltm_ebitda_basis": "Sum of company adjusted EBITDA Q3'25 $197.2M + Q4'25 $(503.2)M [derived: FY25 $13.0M - Q1'25 $(176.3)M - Q2'25 $495.3M - Q3'25 $197.2M] + Q1'26 ~$(311)M + Q2'26 ~$(70)M [both from call summaries, rounded]. Riot's adj EBITDA INCLUDES bitcoin mark-to-market, so it is not a cash-flow proxy. LTM revenue derived: Q3'25 180.2 + Q4'25 153.0 (derived from FY25 $647.4M) + Q1'26 167.2 + Q2'26 174.2.",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "GAAP LTM interest not found. Derived run-rate at 6/30: ~$16.8M/yr (594.4x0.75% + 200x6.15%). Post-quarter: Coinbase line repaid (-$12.3M); $573M Morgan Stanley DDTL at SOFR+2.75% (~6.4%) adds up to ~$37M/yr if fully drawn, likely capitalized.",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "No guidance found; AI lease rent starts Dec 2027.",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": 0,
+    "2027": 200.0,
+    "2028": 0,
+    "2029": 0,
+    "2030": 594.4,
+    "2031+": 0
+   },
+   "ratings": {
+    "sp": "not found",
+    "moodys": "not found",
+    "fitch": "not found"
+   },
+   "subsequent_events": "Aug 10, 2026: subsidiary Riot DC Logistics entered a senior secured delayed-draw term loan of up to $573.0M (Morgan Stanley Senior Funding, admin agent), SOFR+2.75% / Base+1.75%, matures Dec 31, 2026; secured by designated credit parties' assets; lenders have no recourse to Riot parent except customary carve-outs; interim financing for Rockdale 191 MW long-lead equipment pending an investment-grade backstop (provider/size not disclosed). Drawn amount NOT found. Sep 21, 2026: voluntary prepayment in full of the $200M Coinbase BTC-backed facility (8-K Sep 25, 2026), releasing pledged BTC. Early Oct 2026: shares fell sharply on concern over the Dec 31 bridge maturity. Pro forma gross recourse debt = $594.4M converts; plus non-recourse DDTL draws (unknown, up to $573M).",
+   "covenants_and_key_terms": "Converts: senior unsecured, Jan 2030, provisional redemption from Jan 20, 2028. Coinbase facility (repaid): BTC collateral with margin mechanics. MS DDTL: limited-recourse subsidiary financing, Dec 31, 2026 maturity creates refinancing event before rent commencement (Dec 2027).",
+   "credit_view": "Riot's recourse balance sheet is light: $594.4M of 0.75% 2030 converts against $471M unrestricted cash and ~11,380 BTC (~$0.9B at ~$82K), so it is net cash including BTC, and the Coinbase line has been repaid. The credit story has shifted to the 191 MW frontier-AI-lab lease (~$9.1B over 20 years), a high-quality tenant but with $1.7-2.1B of project debt still to be placed. The near-term risk is the $573M Morgan Stanley bridge maturing Dec 31, 2026, a year before rent begins; failure to land the IG-backed permanent financing would push Riot to fund with BTC sales or equity. Mining EBITDA is negative/volatile and adj EBITDA is distorted by BTC marks.",
+   "sources": [
+    {
+     "url": "https://theenergymag.com/news/market-news/riot-platforms-details-q2-2026-results-providing-updates-on-191-mw-ai-lease-and-amd-deployments",
+     "title": "Riot Platforms Details Q2 2026 Results, 191 MW AI Lease and AMD Deployments",
+     "type": "news",
+     "date": "2026-07/08",
+     "quote": "The company ended the quarter with more than $1.2 billion in total liquid assets, including $548.9 million in cash, of which $77.5 million remains restricted... Total revenue climbed 14% to $174.2 million [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.kucoin.com/news/flash/riot-platforms-sells-4-300-btc-to-fund-operations-in-q2-2026",
+     "title": "Riot Platforms Sells 4,300 BTC to Fund Operations in Q2 2026",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "Riot still holds 11,380 BTC, worth close to $666 million at the June 30 price... Of that total, 5,821 BTC is currently pledged as collateral. [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001167419/000110465926093448/riot-20260630x10q.htm",
+     "title": "Riot Platforms Form 10-Q Q2 2026",
+     "type": "10-Q",
+     "date": "2026-08",
+     "quote": "The Company has fully drawn against the $200 Million Credit Facility... The Second Amended and Restated Credit Agreement extended the maturity of the $200 Million Credit Facility to April 20, 2027, and changed the interest incurred to a fixed annual rate equal to 6.15%. [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.crowdfundinsider.com/?p=313777",
+     "title": "Riot Platforms Repays $200 Million Coinbase Credit Facility and Releases Pledged Collateral",
+     "type": "news",
+     "date": "2026-09",
+     "quote": "The company disclosed the transaction in a Form 8-K dated September 25, 2026, reporting that it completed a full voluntary prepayment of outstanding principal and accrued interest on September 21, 2026. [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.stocktitan.net/sec-filings/RIOT/8-k-riot-platforms-inc-reports-material-event-968e6b1ac11f.html",
+     "title": "Riot Platforms adds $573M secured term loan to fund 191 MW Rockdale data center (8-K)",
+     "type": "8-K",
+     "date": "2026-08",
+     "quote": "delayed-draw term loan of up to $573.0 million dated August 10, 2026... Morgan Stanley Senior Funding, Inc. as administrative agent... Adjusted Term SOFR plus 2.75%... loans mature on December 31, 2026... lenders generally have no recourse to Riot Platforms except under customary carve-outs [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://cryptoslate.com/riot-platforms-locked-in-a-9-1-billion-anthropic-deal-but-its-bridge-loan-expires-before-the-rent-starts/",
+     "title": "Riot locked in a $9.1B Anthropic deal, but its bridge loan expires before the rent starts",
+     "type": "news",
+     "date": "2026-08/09",
+     "quote": "The first 96 MW is scheduled for delivery in December 2027, with the remaining 95 MW expected by June 2028... Riot has not disclosed the investment-grade backstop's provider, size, or terms [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.crowdfundinsider.com/2026/10/316831-riot-platforms-shares-fall-sharply-as-573-million-bridge-loan-nears-december-31-maturity/",
+     "title": "Riot Platforms Shares Fall Sharply As $573 Million Bridge Loan Nears December 31 Maturity",
+     "type": "news",
+     "date": "2026-10",
+     "quote": "the more material overhang is a financing calendar that still requires resolution before year-end [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1167419/000110465924126934/tm2430044d3_8k.htm",
+     "title": "Riot 8-K Dec 2024 (0.75% convertible notes)",
+     "type": "8-K",
+     "date": "2024-12",
+     "quote": "initial conversion rate of 67.2767 shares per $1,000 principal amount of notes (equivalent to an initial conversion price of approximately $14.86 per share of common stock) [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://seekingalpha.com/pr/20287522-riot-platforms-reports-third-quarter-2025-financial-results-and-strategic-highlights",
+     "title": "Riot Platforms Reports Third Quarter 2025 Financial Results",
+     "type": "earnings-release",
+     "date": "2025-10-30",
+     "quote": "Adjusted EBITDA of $197.2 million... record quarterly revenue of $180.2 million [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://seekingalpha.com/pr/20088224-riot-platforms-reports-first-quarter-2025-financial-results-current-operational-and-financial",
+     "title": "Riot Platforms Reports First Quarter 2025 Financial Results",
+     "type": "earnings-release",
+     "date": "2025-04",
+     "quote": "Non-GAAP adjusted EBITDA for the first quarter of 2025 was negative $176.3 million [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://letsdatascience.com/news/riot-platforms-posts-record-2025-revenue-d6b10827",
+     "title": "Riot Platforms posts record 2025 revenue",
+     "type": "news",
+     "date": "2026-02",
+     "quote": "Riot Platforms reported record 2025 revenue of $647.4 million... Adjusted EBITDA fell to $12,956 [thousands] from $463,189 [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.stocktaper.com/earningsCallSummary/RIOT/2026/Q2",
+     "title": "RIOT Q2 2026 Earnings Call Summary",
+     "type": "call-transcript",
+     "date": "2026-08",
+     "quote": "Adjusted EBITDA Loss: $70 million... over $240 million in non-cash items, including a $75 million mark-to-market loss on Bitcoin holdings [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.stocktaper.com/earningsCallSummary/RIOT/2026/Q1",
+     "title": "RIOT Q1 2026 Earnings Call Summary",
+     "type": "call-transcript",
+     "date": "2026-04-30",
+     "quote": "Adjusted EBITDA loss was 311 million dollars... GAAP Net Loss: $500 million [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Converts outstanding at 6/30 confirmed only to 3/31/26 ($594.4M; no conversion found); MS DDTL drawn balance; permanent Rockdale financing; Q1'26/Q2'26 adj EBITDA from call summaries only; GAAP interest, CFO, capex, leases, equity; current BTC count after Q2; ratings (none found); market cap (search budget exhausted). Note: WebFetch blocked for all domains; figures from WebSearch renderings only."
+  },
+  {
+   "ticker": "MARA",
+   "name": "MARA Holdings, Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q (filed ~Aug 6, 2026) and Q2 2026 shareholder letter - via search rendering",
+   "currency_note": "USD",
+   "gross_debt_usd_m": 2447.2,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 150.0,
+    "unsecured_notes": 0,
+    "convertible": 2297.2,
+    "bank_loans_revolver_cp": 0,
+    "non_recourse_portion": 0
+   },
+   "instruments": [
+    {
+     "name": "1.00% Convertible Senior Notes due Dec 2026",
+     "principal_usd_m": 48.1,
+     "coupon_pct": 1.0,
+     "maturity": "2026-12",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Residual of $747.5M issue after exchanges/repurchases; $48.1M due within 12 months per FY2025 10-K."
+    },
+    {
+     "name": "2.125% Convertible Senior Notes due Sep 2031",
+     "principal_usd_m": 300.0,
+     "coupon_pct": 2.125,
+     "maturity": "2031-09",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Issued Aug 2024 (prior extraction; listed in Q1'26 10-Q)."
+    },
+    {
+     "name": "0.00% Convertible Senior Notes due Mar 2030",
+     "principal_usd_m": 632.5,
+     "coupon_pct": 0.0,
+     "maturity": "2030-03",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "$1.0B issue; $367.5M repurchased Mar 30, 2026 for ~$322.9M."
+    },
+    {
+     "name": "0.00% Convertible Senior Notes due Jun 2031",
+     "principal_usd_m": 291.6,
+     "coupon_pct": 0.0,
+     "maturity": "2031-06",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "$925M issue; $633.4M repurchased Mar 31, 2026 for ~$589.9M."
+    },
+    {
+     "name": "0.00% Convertible Senior Notes due Aug 2032",
+     "principal_usd_m": 1025.0,
+     "coupon_pct": 0.0,
+     "maturity": "2032-08",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Issued Jul 2025."
+    },
+    {
+     "name": "BTC-backed credit line (Coinbase)",
+     "principal_usd_m": 150.0,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": true,
+     "recourse": "corporate (BTC-collateralized)",
+     "notes": "Refinanced Aug 4, 2026 into new $450M Coinbase Credit facility (maturity early Aug 2028)."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 421.3,
+   "restricted_cash_usd_m": null,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "PENDING ACQUISITION: Long Ridge Energy & Power (505 MW combined-cycle gas plant, Hannibal OH) from FTAI Infrastructure for $1.512B base price (signed Apr 30, 2026); seller to eliminate $1.16B Long Ridge debt at closing; MARA financing supported by Barclays-arranged bridge of up to $785M to refinance Long Ridge credit facilities and repurchase its secured notes; HSR/FERC/STB approvals; management (FIP) expected close by end of Q3 2026 - closing NOT confirmed in searches as of Oct 9. Starwood JV for AI/HPC; 2 GW Matagorda County TX site purchase agreement (~4.8 GW potential portfolio). BITCOIN: 35,577 BTC at 6/30/26 (4,742 loaned, 4,528 pledged, 26,307 unrestricted) = ~$2,082M at ~$58,524 (derived; company: cash + BTC ~$2.5B); ~$2,917M at ~$82,000 BTC on 10/8/26 (derived, assumes no post-Q2 sales). After Aug 4, 2026, 18,750 BTC (~53%) pledged to new BTC-backed loans; collateral maintenance ratio undisclosed. Treasury policy now permits opportunistic BTC sales (sold 20,880 BTC in Q1, 2,213 in Q2). BTC PRICE BASIS: 6/30/26 ~$58,524 (MARA Q2 coverage; consistent with Riot 11,380 BTC ~ $666M); 10/8/26 ~$82,000 APPROXIMATE (Robinhood/RTI hourly prediction-market settlement brackets $81.6K-$82.6K on Oct 8; Pluang Oct 4 ~ $84,800) - not a reported close.",
+   "ltm_revenue_usd_m": 804.2,
+   "ltm_ebitda_usd_m": -2453.7,
+   "ltm_ebitda_basis": "Sum of company adjusted EBITDA Q3'25 $395.6M + Q4'25 $(1,488.4)M + Q1'26 ~$(1,000)M [reported 'about negative $1.0 billion', rounded] + Q2'26 $(360.9)M. Includes bitcoin mark-to-market (Q2 unrealized BTC loss $343.0M) - not a cash-flow measure. Revenue: 252.4 + 202.3 + 174.6 + 174.9.",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "GAAP LTM interest not found. Derived run-rate cash coupons at 6/30: ~$7M/yr on converts (48.1x1% + 300x2.125%) plus BTC line. Post-Aug 4, 2026: +$600M BTC loans at ~7.56% blended (~$57M/yr; Two Prime 7.65% fixed, Coinbase FF midpoint + 3.875%); Long Ridge bridge (up to $785M) would add more.",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "No guidance found; Long Ridge contributes ~$144M annual EBITDA per deal coverage (unverified).",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": 48.1,
+    "2027": null,
+    "2028": 0,
+    "2029": 0,
+    "2030": 632.5,
+    "2031+": 1616.6
+   },
+   "ratings": {
+    "sp": "not found",
+    "moodys": "not found",
+    "fitch": "not found"
+   },
+   "subsequent_events": "Aug 4, 2026: closed two BTC-backed term loans adding $600M new borrowing: Coinbase Credit $450M facility ($300M new + refinancing the existing $150M line; Fed funds midpoint + 3.875%; early Aug 2028 maturity with one-year auto-extension) and Two Prime $300M fully drawn term loan (7.65% fixed; early Aug 2028); 18,750 BTC (~$1.2B at closing) pledged; proceeds to fund part of Long Ridge. Pro forma gross debt ~$3,047M (derived: 2,297.2 converts + 750 BTC loans). Long Ridge ($1.512B) closing expected by end Q3 2026 with up to $785M Barclays bridge - closing/draw not confirmed by Oct 9, 2026; if closed and fully drawn, gross debt ~$3.8B (derived). Dec 1, 2026 maturity of $48.1M 1.00% converts.",
+   "covenants_and_key_terms": "Converts senior unsecured (mostly 0% coupon, conversion features). BTC-backed loans: margin-call/LTV mechanics on 18,750 pledged BTC, maintenance ratio undisclosed; Coinbase facility auto-extends one year unless either party opts out. Long Ridge bridge terms not disclosed.",
+   "credit_view": "MARA's credit is a bitcoin-collateral story: ~$2.3B of mostly zero-coupon converts (no material maturity until Mar 2030) are covered by ~35.6K BTC (~$2.9B at ~$82K) and $421M cash, so it is roughly net-cash including BTC, but mining EBITDA is negative and adjusted EBITDA swings with BTC marks. Management has shown willingness to sell BTC to buy back converts at a discount (~$1.0B retired in March 2026 at ~91% of par), which supports creditors. The pivot to secured BTC-backed loans ($750M, 18,750 BTC pledged) and a pending $1.5B Long Ridge purchase with an up-to-$785M bridge subordinates converts structurally and raises margin-call risk in a BTC drawdown. Credit hinges on BTC price, execution of the Long Ridge/AI conversion, and term-out of the bridge.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001507605/000150760526000022/mara-20260630.htm",
+     "title": "MARA Holdings Form 10-Q Q2 2026",
+     "type": "10-Q",
+     "date": "2026-08-06",
+     "quote": "As of June 30, 2026, the Company believes it has sufficient liquid resources, including cash and cash equivalents of $421.3 million [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001507605/000150760526000020/q226shareholderletter.htm",
+     "title": "MARA Q2 2026 Shareholder Letter (8-K)",
+     "type": "earnings-release",
+     "date": "2026-08-06",
+     "quote": "Adjusted EBITDA was negative $360.9 million... net loss of ($611.3 million)... ($343.0 million) unrealized bitcoin mark-to-market loss... 35,577 BTC [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://crypto.news/mara-bitcoin-holdings-fall-29-as-q2-loss-hits-611m/",
+     "title": "MARA bitcoin holdings fall 29% as Q2 loss hits $611M",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "4,742 BTC were loaned, 4,528 BTC were pledged as collateral, and 26,307 BTC were unrestricted... spot price of about $58,524 per Bitcoin [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.theblock.co/post/395276/mara-sells-15133-bitcoin-for-1-1-billion-to-fund-convertible-note-repurchase",
+     "title": "MARA sells 15,133 bitcoin for $1.1 billion to fund convertible note repurchase",
+     "type": "news",
+     "date": "2026-03-26",
+     "quote": "After the buybacks, $632.5 million of 2030 Notes and $291.6 million of 2031 Notes remain outstanding... from roughly $3.3 billion to about $2.3 billion [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://ir.mara.com/sec-filings/all-sec-filings/content/0001507605-26-000007/mara-20251231.htm",
+     "title": "MARA FY2025 10-K",
+     "type": "10-K",
+     "date": "2026-03-02",
+     "quote": "$48.1 million of the remaining principal of the December 2026 Notes is due within the next twelve months [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.crowdfundinsider.com/2026/08/295891-mara-holdings-pledges-18750-btc-as-collateral-for-bitcoin-backed-loans-to-advance-ai-and-energy-expansion/",
+     "title": "MARA Holdings Pledges 18,750 BTC As Collateral For Bitcoin Backed Loans",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "On August 4, 2026, the firm finalized two Bitcoin-backed term loan arrangements providing $600 million in additional borrowings... Coinbase Credit ... $450 million lending facility, combining $300 million in fresh capital with the refinancing of MARA's previous $150 million debt facility [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.tftc.io/mara-bitcoin-collateral-600-million-loans-coinbase-two-prime",
+     "title": "MARA Pledges 18,750 BTC for $600M Bitcoin-Backed Loans",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "Two Prime facility carries a fixed rate of 7.65 percent... Coinbase facility uses a floating rate based on the midpoint of the Federal Reserve's target range for federal funds plus 3.875 percent... maturities in early August 2028 [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.stocktitan.net/news/FIP/ftai-infrastructure-inc-announces-agreement-to-sell-long-ridge-qkcj9e60wtih.html",
+     "title": "FTAI targets debt cuts in $1.52B Long Ridge sale to MARA",
+     "type": "news",
+     "date": "2026-04-30",
+     "quote": "base purchase price of $1.512 billion... FIP will immediately eliminate $1.16 billion of Long Ridge debt... Barclays-arranged bridge facility of up to $785 million to refinance Long Ridge's existing credit facilities and repurchase its senior secured notes [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.benzinga.com/news/26/10/62160572/transcript-ftai-infrastructure-q2-2026-earnings-conference-call",
+     "title": "Transcript: FTAI Infrastructure Q2 2026 Earnings Call",
+     "type": "call-transcript",
+     "date": "2026",
+     "quote": "currently expects to be in a position to close the transaction by the end of Q3 [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001507605/000150760526000014/q126shareholderletter.htm",
+     "title": "MARA Q1 2026 Shareholder Letter",
+     "type": "earnings-release",
+     "date": "2026-05",
+     "quote": "Revenues decreased 18% to $174.6 million... Adjusted EBITDA about negative $1.0 billion, compared with negative $483.6 million in Q1 2025 [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1507605/000150760526000004/q425shareholderletter.htm",
+     "title": "MARA Q4 2025 Shareholder Letter",
+     "type": "earnings-release",
+     "date": "2026-02",
+     "quote": "Revenue $202.3 million... Adjusted EBITDA negative $1,488.4 million... Full-year 2025 adjusted EBITDA was negative $330.8 million [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1507605/000150760525000026/q32025earningsannouncement.htm",
+     "title": "MARA Q3 2025 earnings announcement",
+     "type": "earnings-release",
+     "date": "2025-11",
+     "quote": "Revenue $252.4 million... Adjusted EBITDA $395.6 million [via search rendering; sec.gov/most sites blocked for direct fetch]"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Per-series principal at 6/30/26 not directly confirmed for the Dec-2026 ($48.1M) and Sep-2031 ($300M) notes (Q2 10-Q snippet listed only the 0% series); maturity of the $150M line at 6/30; Q1'26 adj EBITDA exact figure; GAAP interest, CFO, capex, leases, equity; Long Ridge closing status and bridge draw; ratings (none found); market cap (search budget exhausted). Note: WebFetch blocked for all domains; figures from WebSearch renderings only."
+  }
+ ]
+}

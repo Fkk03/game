@@ -1,0 +1,667 @@
+{
+ "companies": [
+  {
+   "ticker": "GDS",
+   "name": "GDS Holdings Ltd",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 earnings release (6-K, reported 2026-08-13) + Q2'26 call/slides",
+   "currency_note": "RMB converted at the release's convenience rate, ~RMB6.7851/US$ (implied: RMB14,927.3M = US$2,200.0M; RMB9,209.5M = US$1,357.3M). Exact rate sentence not retrieved; 7.1 not used.",
+   "gross_debt_usd_m": 5769.2,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 4031.2,
+    "unsecured_notes": 0,
+    "convertible": 1738.1,
+    "bank_loans_revolver_cp": null,
+    "non_recourse_portion": null
+   },
+   "instruments": [
+    {
+     "name": "Bank/project borrowings (onshore, incl. current portion)",
+     "principal_usd_m": 4031.2,
+     "coupon_pct": null,
+     "maturity": "various",
+     "secured": true,
+     "recourse": "corporate/project (mix not disclosed in sources retrieved)",
+     "notes": "RMB3,327.3M short-term + current portion; RMB24,024.5M long-term. 'secured' flag assumed typical for GDS onshore project loans - not verified this session."
+    },
+    {
+     "name": "0.25% Convertible Bonds due 2029 (US$620M issued Mar 2022)",
+     "principal_usd_m": 621.8,
+     "coupon_pct": 0.25,
+     "maturity": "2029-03 (holder put 2027-03-08)",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Classified current at 6/30/26 (RMB4,219.0M / US$621.8M carrying) because of the 2027-03-08 investor put. 2032 notes proceeds earmarked for repurchase/redemption of these."
+    },
+    {
+     "name": "4.50% Convertible Bonds due 2030-01-31",
+     "principal_usd_m": null,
+     "coupon_pct": 4.5,
+     "maturity": "2030-01 (holder put 2028-01-31)",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Principal not verified; together with 2032 notes = non-current converts RMB7,573.9M (US$1,116.2M carrying)."
+    },
+    {
+     "name": "2.25% Convertible Senior Notes due 2032",
+     "principal_usd_m": 550.0,
+     "coupon_pct": 2.25,
+     "maturity": "2032 (holder put 2029-06-01)",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "US$550M incl. full greenshoe, closed May 2025."
+    },
+    {
+     "name": "Finance lease and other financing obligations (excluded from gross debt per schema)",
+     "principal_usd_m": 1029.6,
+     "coupon_pct": null,
+     "maturity": "various",
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "RMB1,663.1M current + RMB5,323.1M non-current = RMB6,986.2M; company includes these in its 'total debt'/net debt."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 2200.0,
+   "restricted_cash_usd_m": null,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": 1029.6,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "Not retrieved. Note: DayOne (international) is deconsolidated; GDS sold US$385M of DayOne shares in Jan 2026 (~95% of investment principal recovered). FY26 capex guidance raised to ~RMB10,000M (~US$1,474M) from ~RMB9,000M, mostly H2-weighted; funding mix ~60% debt / 40% equity for new projects.",
+   "ltm_revenue_usd_m": null,
+   "ltm_ebitda_usd_m": 893.5,
+   "ltm_ebitda_basis": "Sum of company adjusted EBITDA Q3'25-Q2'26 = RMB6,062.6M (Q3'25 derived as FY25 5,403.5 less Q1'25 ~1,323.9 [=1,948.7/1.472], Q2'25 1,371.8, Q4'25 1,365.6; Q4'25 1,365.6; Q1'26 1,948.7; Q2'26 1,406.0). Includes ~RMB518.4M Q1'26 one-time items; ex-one-time LTM ~RMB5,544.2M (~US$817.1M).",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "LTM not retrieved. Q2'26 net interest expense RMB366.8M (US$54.1M), -9.4% YoY on lower rates and higher interest income; annualized ~RMB1,467M (~US$216M).",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": 884.3,
+   "ntm_ebitda_basis": "FY26 adj EBITDA guidance midpoint RMB6,000M (raised range RMB5,900-6,100M, incl. Q1 one-time items)",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": null,
+   "maturities_usd_m": {
+    "2026": null,
+    "2027": null,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "NR (no rating found)",
+    "moodys": "NR (no rating found)",
+    "fitch": "NR (no rating found)"
+   },
+   "subsequent_events": "No Jul 1-Oct 9 2026 debt/convertible issuance or rating action found. Pending: first post-IPO asset injection into GDS's C-REIT under regulatory review (Q2 tax expense RMB213.5M tied to intra-group transfer ahead of a possible second C-REIT injection). Q2'26 (pre-period) new debt financing/refinancing RMB4,907.3M (US$723.2M). Raymond James cut PT to $51 (2026-09-01) - not a credit event.",
+   "covenants_and_key_terms": "Company leverage: net debt RMB31,203.7M (incl. finance lease/other financing obligations) = 5.5x last-quarter-annualized adj EBITDA (6.1x a year earlier); pro forma 4.7x (net debt RMB26,530.9M) after adding time deposits and Q1'26 DayOne partial-sale and convertible preferred proceeds; CFO cited cash of 'nearly RMB20 billion' on that basis. Converts carry holder put rights (2029 CBs: 2027-03-08; 2030 CBs: 2028-01-31; 2032 notes: 2029-06-01) and fundamental-change puts. Short-term debt incl. FL RMB9,209.5M vs cash RMB14,927.3M.",
+   "credit_view": "GDS remains a highly levered (5.5x reported net debt/LQA EBITDA, ~5.1x on LTM incl. finance leases; ~4.0x excluding them) but improving China hyperscale operator whose deleveraging has come from asset monetization (C-REIT, DayOne stake sales) rather than organic FCF. The near-term pressure point is the ~US$620M 2029 convertible put in March 2027, now current, against ~US$2.2B cash (more incl. time deposits) and demonstrated onshore bank access (RMB4.9B new/refinanced in Q2). The 2026 capex step-up to RMB10B (2x 2025) with 60/40 debt/equity funding will re-lever unless C-REIT injections recycle capital. Not rated by the big three; credit is driven by onshore bank relationships, recurring C-REIT recycling and convert-market access.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001526125/000110465926095498/tm2621440d1_ex99-1.htm",
+     "title": "GDS Holdings Limited Reports Second Quarter 2026 Results (6-K Ex.99.1) - via search rendering",
+     "type": "6-K",
+     "date": "2026-08-13",
+     "quote": "cash and cash equivalents of RMB14,927.3 million (US$2,200.0 million)... total short-term debt was RMB9,209.5 million (US$1,357.3 million)... total long-term debt was RMB36,921.5 million (US$5,441.6 million). Short-term borrowings and current portion of long-term borrowings 3,327.3; current portion of convertible bonds payable 4,219.0; current portion of finance lease and other financing obligations 1,663.1; long-term borrowings 24,024.5; convertible bonds payable 7,573.9; finance lease and other financing obligations 5,323.1"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001526125/000110465926095498/tm2621440d1_ex99-1.htm",
+     "title": "GDS Q2 2026 release - EBITDA, interest, financing (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-08-13",
+     "quote": "Adjusted EBITDA (non-GAAP) increased by 2.5% Y-o-Y to RMB1,406.0 million (US$207.2 million) in the second quarter of 2026 (2Q2025: RMB1,371.8 million)... Net interest expenses for the second quarter of 2026 were RMB366.8 million (US$54.1 million), a 9.4% decrease... obtained new debt financing and refinancing facilities of RMB4,907.3 million (US$723.2 million)"
+    },
+    {
+     "url": "https://investors.gds-services.com/system/files-encrypted/nasdaq_kms/assets/2026/08/13/9-44-18/GDS%202Q26%20Earnings%20Presentation%200813%20FINAL(4).pdf",
+     "title": "GDS 2Q26 Earnings Presentation / call (via search rendering)",
+     "type": "call-transcript",
+     "date": "2026-08-13",
+     "quote": "net debt of RMB 31,203.7 million... ratio improving to 5.5x from 6.1x; pro forma net debt RMB 26,530.9 million... 4.7x net debt to last quarter annualized adjusted EBITDA"
+    },
+    {
+     "url": "https://www.investing.com/news/company-news/gds-q2-2026-slides-ai-demand-drives-record-bookings-raised-guidance-93CH-4857970",
+     "title": "GDS Q2 2026 slides: raised guidance",
+     "type": "news",
+     "date": "2026-08-13",
+     "quote": "Adjusted EBITDA range moved to RMB5,900-6,100 million from RMB5,750-6,000 million... capex guidance rose from about RMB9,000 million to about RMB10,000 million... Q1 2026 adjusted EBITDA rose 47.2% to RMB1,948.7 million; excluding one-time items RMB1,430.3 million... Q4 2025 RMB1,365.6 million... FY2025 adjusted EBITDA RMB5,403.5 million"
+    },
+    {
+     "url": "https://www.globenewswire.com/news-release/2025/05/30/3091215/0/en/GDS-Announces-Closing-of-Offering-of-US-550-Million-Convertible-Senior-Notes-and-Full-Exercise-of-Option-to-Purchase-Additional-Notes.html",
+     "title": "GDS closes US$550M Convertible Senior Notes (via search rendering)",
+     "type": "news",
+     "date": "2025-05-30",
+     "quote": "US$550 million... 2.25%... due 2032... holders can require repurchase on June 1, 2029; proceeds for potential repurchases or redemption upon exercise of the investor put right of convertible bonds due 2029"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001526125/000110465926051006/gds-20251231x20f.htm",
+     "title": "GDS 20-F FY2025 (via search rendering)",
+     "type": "20-F",
+     "date": "2026-04",
+     "quote": "2029 bonds issued March 2022, aggregate principal US$620 million, 0.25%... holders may require repurchase on March 8, 2027; 2030 bonds 4.50%, mature January 31, 2030, holders may require repurchase on January 31, 2028"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "WebFetch blocked; figures via search snippets. Missing: split of secured project vs. corporate loans, exact convertible principals (2030 CBs), operating leases, restricted cash, LTM CFO/capex/interest, maturity ladder, equity, market cap. Q3'25 adj EBITDA derived, not directly quoted. LTM revenue not computed (Q1'26 revenue only rounded)."
+  },
+  {
+   "ticker": "VNET",
+   "name": "VNET Group, Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 earnings release (6-K, 2026-08-18) + Q2'26 call",
+   "currency_note": "RMB converted at ~RMB6.785/US$, the release's convenience rate (implied: short-term debt RMB4.18B = US$616.1M). Balance-sheet RMB lines are rounded to RMB0.01B in sources.",
+   "gross_debt_usd_m": 3451.7,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": null,
+    "unsecured_notes": 0,
+    "convertible": 713.3,
+    "bank_loans_revolver_cp": 2738.4,
+    "non_recourse_portion": null
+   },
+   "instruments": [
+    {
+     "name": "Short-term bank borrowings",
+     "principal_usd_m": 260.9,
+     "coupon_pct": null,
+     "maturity": "<12m",
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "RMB1.77B"
+    },
+    {
+     "name": "Long-term borrowings (incl. current portion RMB2.41B)",
+     "principal_usd_m": 2477.5,
+     "coupon_pct": null,
+     "maturity": "various",
+     "secured": null,
+     "recourse": "corporate/project (mix not disclosed in sources)",
+     "notes": "RMB14.40B non-current + RMB2.41B current; includes onshore project loans, ABS/sustainability-linked loans"
+    },
+    {
+     "name": "2.50% Convertible Senior Notes due 2030",
+     "principal_usd_m": 430.0,
+     "coupon_pct": 2.5,
+     "maturity": "2030-04-01",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Priced 2025-03-13, closed 2025-03-18; conv. price ~US$13.75/ADS; senior unsecured"
+    },
+    {
+     "name": "2.00% Convertible Notes due 2027 (amended)",
+     "principal_usd_m": null,
+     "coupon_pct": 2.0,
+     "maturity": "2027-10-01",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Feb 2026 amendment extended maturity from 2027-03-04 to 2027-10-01. Principal not verified; implied carrying ~US$283M (total converts US$712.8M less 2030 notes)."
+    }
+   ],
+   "cash_and_st_investments_usd_m": 990.4,
+   "restricted_cash_usd_m": 70.3,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "Not retrieved. Unused credit lines reported at RMB8.50B (~US$1,253M; committed status unknown). FY26 capex guidance RMB10-12B (~US$1.47-1.77B); H1'26 capex RMB3.55B.",
+   "ltm_revenue_usd_m": null,
+   "ltm_ebitda_usd_m": 497.4,
+   "ltm_ebitda_basis": "FY25 adj EBITDA ~RMB2,980M (reported as 'RMB2.98 billion') - Q1'25 682.4 - Q2'25 732.5 + Q1'26 891.5 + Q2'26 918.3 = RMB3,374.9M",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "Not retrieved. Company: adjusted LQA EBITDA / interest coverage 5.6x, implying annualized interest ~RMB656M (~US$97M).",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": 537.9,
+   "ntm_ebitda_basis": "FY26 adj EBITDA guidance midpoint RMB3,650M (RMB3.55-3.75B, reiterated Aug 2026)",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": null,
+   "maturities_usd_m": {
+    "2026": null,
+    "2027": null,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "NR (no current rating found; 2021 notes expected 'B')",
+    "moodys": "NR (no current rating found; 2021 notes expected B2)",
+    "fitch": "NR (none found)"
+   },
+   "subsequent_events": "Aug 2026: CATL-affiliated PJ Millennium entities completed purchase of ~650M Class A shares (~38.1%) from Shandong Hi-Speed for ~US$942M (US$1.4486/sh; 13D event date 2026-08-24) - secondary transfer, no primary proceeds to VNET; check change-of-control provisions on the 2.00% 2027 notes. No Jul 1-Oct 9 2026 bond/convert issuance or rating action found; a Bloomberg-reported (Mar 2026) 3-yr USD bond at ~9% yield has no evidence of pricing. Earlier 2026: two Shanghai REITs listed in March raising RMB6.36B; Apr 2026 RMB860M green ABS + RMB650M 3-yr SLL; Q2 new debt/refinancing RMB3.77B.",
+   "covenants_and_key_terms": "Company metrics at 6/30/26: net debt / adjusted LQA EBITDA 4.6x; total debt / adjusted LQA EBITDA 6.4x; adj LQA EBITDA / interest 5.6x. 40.8% of total debt matures 2026-2028 (~RMB9.6B, ~US$1.41B). Converts are senior unsecured with fundamental-change puts.",
+   "credit_view": "VNET is a B-category-type China data-center credit (no current agency rating found) with total debt ~US$3.45B, 6.4x total debt/LQA EBITDA and 4.6x net, but improving EBITDA (+25% YoY in Q2) and a reiterated FY26 EBITDA guide of RMB3.55-3.75B. Funding needs are heavy: RMB10-12B FY26 capex against ~US$1.0B unrestricted cash, so it relies on onshore loans, REIT/ABS asset recycling and convert markets; ~41% of debt matures through 2028. The CATL-affiliated takeover of Shandong Hi-Speed's 38% stake swaps one strategic state-linked anchor for a deep-pocketed industrial one, which is credit-supportive for funding access, but brought no primary cash. Key watch items: execution of the 2027 convert refinancing and whether the USD high-yield bond (~9%) is revived.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1508475/000110465926098054/tm2623481d1_ex99-1.htm",
+     "title": "VNET Reports Unaudited Second Quarter 2026 Financial Results (6-K Ex.99.1) - via search rendering",
+     "type": "6-K",
+     "date": "2026-08-18",
+     "quote": "Adjusted EBITDA increased by 25.4% year-over-year to RMB918.3 million (US$135.3 million)... cash and cash equivalents, restricted cash and short-term investments RMB7.21 billion (US$1.06 billion)... short-term debt... RMB4.18 billion (US$616.1 million)... long-term debt RMB19.24 billion (US$2.84 billion), comprised of long-term borrowings of RMB14.40 billion (US$2.12 billion) and convertible notes of RMB4.84 billion (US$712.8 million)"
+    },
+    {
+     "url": "https://www.fool.com/earnings/call-transcripts/2026/08/25/vnet-vnet-q2-2026-earnings-call-transcript/",
+     "title": "VNET Q2 2026 earnings call transcript (via search rendering)",
+     "type": "call-transcript",
+     "date": "2026-08-18",
+     "quote": "net debt to adjusted last quarter annualized EBITDA ratio was 4.6 and total debt to adjusted last quarter annualized EBITDA ratio was 6.4... Our adjusted last quarter annualized EBITDA to interest coverage ratio was 5.6x... adjusted EBITDA 3.55 billion yuan to 3.75 billion yuan... capex RMB 10-12 billion"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1508475/000110465925024642/tm259421d1_ex99-1.htm",
+     "title": "VNET closes US$430M 2.50% Convertible Senior Notes due 2030",
+     "type": "6-K",
+     "date": "2025-03-18",
+     "quote": "US$430 million... 2.50% convertible senior notes due 2030... mature April 1, 2030... senior, unsecured obligations"
+    },
+    {
+     "url": "https://ir.vnet.com/static-files/28d53b95-d06a-4579-9564-342acde2a694",
+     "title": "VNET 6-K filed 2026-02-17 (indenture amendment) - via search rendering",
+     "type": "6-K",
+     "date": "2026-02-17",
+     "quote": "2.00% convertible senior notes due 2027... the amendment extends the maturity date of the Amended Notes from March 4, 2027 to October 1, 2027"
+    },
+    {
+     "url": "https://www.panabee.com/news/vnet-solidifies-strategic-partnership-with-catl-affiliated-buyers",
+     "title": "VNET / CATL-affiliated buyers",
+     "type": "news",
+     "date": "2026-08",
+     "quote": "two buyers, including investors linked to CATL, agreed to purchase up to 650.4 million Class A shares at US$1.4486 per share (US$8.6914 per ADS)... buyers now hold approximately 38.1%"
+    },
+    {
+     "url": "https://www.bloomberg.com/news/articles/2026-03-11/china-data-center-firm-vnet-mulls-dollar-bond-to-fund-expansion",
+     "title": "China Data Center Firm Vnet Mulls Dollar Bond to Fund Expansion",
+     "type": "news",
+     "date": "2026-03-11",
+     "quote": "potential three-year US-currency debt offering with a yield of about 9%"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Finance/operating lease liabilities, secured vs unsecured loan split, exact 2027 note principal, maturity ladder by year, LTM interest/CFO/capex, equity and market cap not retrieved. FY25 adj EBITDA only available rounded (RMB2.98B). Current agency ratings: none found (could exist unseen)."
+  },
+  {
+   "ticker": "BABA",
+   "name": "Alibaba Group Holding Ltd",
+   "bs_date": "2026-06-30",
+   "source_period": "June quarter 2026 (FY27 Q1) results, 6-K / HKEX, reported 2026-08-20 (HK)",
+   "currency_note": "RMB converted at release convenience rate RMB6.7851/US$ (implied: RMB474,505M = US$69,933M; RMB142,914M = US$21,063M).",
+   "gross_debt_usd_m": 39281.7,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": null,
+    "unsecured_notes": 17054.4,
+    "convertible": 9460.9,
+    "bank_loans_revolver_cp": 12766.4,
+    "non_recourse_portion": null
+   },
+   "instruments": [
+    {
+     "name": "Bank borrowings (current RMB30,614M + non-current RMB56,007M)",
+     "principal_usd_m": 12766.4,
+     "coupon_pct": null,
+     "maturity": "various",
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "Net proceeds from bank borrowings RMB11,005M (US$1,622M) in June quarter"
+    },
+    {
+     "name": "Unsecured senior notes (USD and offshore RMB, multiple tranches)",
+     "principal_usd_m": 17054.4,
+     "coupon_pct": null,
+     "maturity": "2027-2061",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Carrying RMB115,716M non-current; no current senior-notes line seen in retrieved excerpt; includes Nov 2024 dual-currency USD/RMB deal"
+    },
+    {
+     "name": "Convertible unsecured senior notes (US$5B 2024 deal + ~US$3.2B zero-coupon due 2032-09-15)",
+     "principal_usd_m": 8092.0,
+     "coupon_pct": null,
+     "maturity": "2031/2032",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Carrying RMB54,905M; 2032 notes priced Sep 2025, ~80% of proceeds for cloud/data centres; S&P rated issue A+"
+    },
+    {
+     "name": "Zero-coupon exchangeable bonds due 2032 (into Alibaba Health shares)",
+     "principal_usd_m": 1530.0,
+     "coupon_pct": 0.0,
+     "maturity": "2032",
+     "secured": false,
+     "recourse": "exchangeable",
+     "notes": "HK$12.023B priced Jul 2025; carrying RMB9,288M (US$1,369M) at 6/30/26"
+    }
+   ],
+   "cash_and_st_investments_usd_m": 69933.4,
+   "restricted_cash_usd_m": null,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "Not retrieved. AI/cloud plan: RMB380B (~US$53B) 3-year AI infrastructure commitment; ~RMB190B spent cumulatively through Jun 2026.",
+   "ltm_revenue_usd_m": null,
+   "ltm_ebitda_usd_m": 15753.8,
+   "ltm_ebitda_basis": "Sum of company adjusted EBITDA: Sep-Q'25 RMB17,256M + Dec-Q'25 RMB34,057M + Mar-Q'26 RMB16,435M + Jun-Q'26 RMB39,143M = RMB106,891M",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "Not retrieved.",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "No company EBITDA guidance",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": null,
+   "maturities_usd_m": {
+    "2026": null,
+    "2027": null,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "A+ / Stable (affirmed 2025-11-14)",
+    "moodys": "A1 / Stable (outlook to stable from negative 2026-04-28)",
+    "fitch": "A / Stable (affirmed ~Oct 2025; capped by China sovereign A)"
+   },
+   "subsequent_events": "No Jul 1-Oct 9 2026 bond/convertible/exchangeable issuance or rating action found. Funding in June quarter came via RMB11.0B net bank borrowings. Prior: HK$12.0B (US$1.5B) exchangeable due 2032 (Jul 2025); ~US$3.2B zero-coupon converts due 2032 (Sep 2025).",
+   "covenants_and_key_terms": "Unsecured senior notes / converts at holdco, no financial maintenance covenants found. 'Cash and other liquid investments' (RMB474,505M) includes cash, short-term investments and other treasury investments within equity securities and other investments that are unrestricted. LTM FCF (company definition) = RMB-72,464M (~US$-10,679.9M): Sep-Q'25 -21,840; Dec-Q'25 +11,346; Mar-Q'26 -17,300; Jun-Q'26 -44,670. Jun-Q'26 CFO RMB22,945M (US$3,382M); capex ~RMB67.7B (+75% YoY).",
+   "credit_view": "Alibaba retains a large net cash position (~US$30.7B on company liquidity definition, ~1.9x LTM adj EBITDA) and gross debt/LTM adj EBITDA of ~2.5x, supporting A1/A+/A ratings (Fitch capped by the sovereign). The credit trend is negative on cash flow: LTM adj EBITDA (~US$15.8B) is down sharply on quick-commerce investment, and FCF has turned deeply negative (LTM ~-US$10.7B, Jun-Q -RMB44.7B) as AI capex runs ~RMB68B/quarter, funded increasingly by bank debt and equity-linked paper. Moody's moved the outlook back to stable in Apr 2026, so ratings headroom depends on the quick-commerce losses narrowing and capex staying within the RMB380B plan; continued debt-funded capex with falling EBITDA would erode the net cash cushion.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1577552/000110465926099220/tm2623667d1_ex99-1.htm",
+     "title": "Alibaba Group Announces June Quarter 2026 Results (6-K Ex.99.1) - via search rendering",
+     "type": "6-K",
+     "date": "2026-08-20",
+     "quote": "As of June 30, 2026, our cash and other liquid investments were RMB474,505 million (US$69,933 million)... Cash and cash equivalents 131,530 / 142,914 / 21,063... Free cash flow was an outflow of RMB44,670 million (US$6,584 million)... Adjusted EBITDA RMB39,143 million (US$5,769 million), down 14%... Net cash provided by operating activities RMB22,945 million (US$3,382 million)"
+    },
+    {
+     "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2026/0820/2026082000745.pdf",
+     "title": "Alibaba HKEX announcement - unaudited condensed consolidated balance sheet 6/30/26 (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-08-20",
+     "quote": "Current bank borrowings 28,224 / 30,614; non-current bank borrowings 47,450 / 56,007; unsecured senior notes 117,485 / 115,716; convertible unsecured senior notes 55,861 / 54,905; exchangeable bonds 10,976 / 9,288 (RMB millions, Mar 31 2026 / Jun 30 2026); net proceeds from bank borrowings of RMB11,005 million (US$1,622 million)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1577552/000110465926032060/tm269353d1_ex99-1.htm",
+     "title": "Alibaba December Quarter 2025 Results / Sep & Mar quarter releases (via search rendering)",
+     "type": "6-K",
+     "date": "2026-03-19",
+     "quote": "Adjusted EBITDA decreased 64% year-over-year to RMB17,256 million (Sep Q 2025)... Adjusted EBITDA 62,054 / 34,057 / 4,870 (45)% (Dec Q 2025)... Adjusted EBITDA decreased 61% year-over-year to RMB16,435 million (US$2,383 million) in the quarter ended March 31, 2026"
+    },
+    {
+     "url": "https://technode.com/2026/08/21/alibabas-ai-spending-lifts-capex-75-as-quarterly-profit-falls-76/",
+     "title": "Alibaba's AI spending lifts capex 75%",
+     "type": "news",
+     "date": "2026-08-21",
+     "quote": "Capital expenditure rose 75% to RMB67.68 billion... cumulative spending had reached RMB 190 billion through June 2026 against a three-year RMB 380 billion plan"
+    },
+    {
+     "url": "https://cbonds.com/news/3893779/",
+     "title": "Moody's revised outlook on Alibaba to stable, affirmed A1",
+     "type": "rating-agency",
+     "date": "2026-04-28",
+     "quote": "Moody's Investors Service affirmed the 'A1'... credit rating of Alibaba on April 28, 2026. At the same time the rating agency revised outlook to stable from negative"
+    },
+    {
+     "url": "https://cbonds.com/news/3680821/",
+     "title": "S&P affirms Alibaba at A+; outlook stable",
+     "type": "rating-agency",
+     "date": "2025-11-14",
+     "quote": "S&P Global Ratings affirms the 'A+' Local Currency LT credit rating of Alibaba on November 14, 2025... outlook stable"
+    },
+    {
+     "url": "https://www.investing.com/news/stock-market-news/fitch-affirms-alibaba-at-a-with-stable-outlook-93CH-4295026",
+     "title": "Fitch affirms Alibaba at 'A' with stable outlook",
+     "type": "rating-agency",
+     "date": "2025-10",
+     "quote": "ratings are constrained by the Chinese sovereign rating (A/Stable), despite... standalone credit profile assessed at 'a+'"
+    },
+    {
+     "url": "https://www.investing.com/news/stock-market-news/alibaba-to-raise-32-billion-via-convertible-bond-to-fund-cloud-growth-4234690",
+     "title": "Alibaba to raise $3.2 billion via convertible bond (Reuters)",
+     "type": "news",
+     "date": "2025-09",
+     "quote": "zero-coupon convertible senior notes due 2032... nearly 80% of the proceeds to expand data centres... mature on September 15, 2032"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Prior '$37B net cash / ~$38B debt' replaced: verified gross debt (balance-sheet carrying) RMB266,530M = ~US$39.3B; any current senior-notes line at 6/30/26 not visible in excerpt (likely none). Missing: Dec-Q'25 capex (so LTM capex/CFO left null), interest expense, leases, restricted cash, equity, market cap, maturity ladder, 2024 convert coupon/maturity confirmation."
+  },
+  {
+   "ticker": "BIDU",
+   "name": "Baidu, Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 earnings release (6-K, 2026-08-18)",
+   "currency_note": "RMB converted at release convenience rate ~RMB6.7851/US$ (implied: ST investments RMB141,727M = US$20,888M; total cash & investments RMB283.1B = US$41.72B).",
+   "gross_debt_usd_m": 17307.1,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": null,
+    "unsecured_notes": 7093.0,
+    "convertible": 2975.1,
+    "bank_loans_revolver_cp": 7239.0,
+    "non_recourse_portion": null
+   },
+   "instruments": [
+    {
+     "name": "Short-term loans",
+     "principal_usd_m": 3877.8,
+     "coupon_pct": null,
+     "maturity": "<12m",
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "Up from RMB7,626M at 12/31/25"
+    },
+    {
+     "name": "Long-term loans (current RMB2,027M + non-current RMB20,779M)",
+     "principal_usd_m": 3361.2,
+     "coupon_pct": null,
+     "maturity": "various",
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "Total loans rose ~RMB23.4B in H1'26"
+    },
+    {
+     "name": "Notes payable (USD senior notes + dim sum bonds)",
+     "principal_usd_m": 7093.0,
+     "coupon_pct": null,
+     "maturity": "2026-2035",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Current RMB2,038M + non-current RMB46,089M; incl. RMB10B debut dim sum (Mar 2025: RMB7.5B 5-yr ~2.7%, RMB2.5B 10-yr ~3.0%) and ~RMB4.4B 1.9% due 2029 (Sep 2025)"
+    },
+    {
+     "name": "Convertible senior notes (current RMB1M + non-current RMB6,615M)",
+     "principal_usd_m": 975.1,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": false,
+     "recourse": "corporate (likely iQIYI-level; not verified)",
+     "notes": "Carrying US$975M non-current"
+    },
+    {
+     "name": "Exchangeable bonds due 2032 (Trip.com shares)",
+     "principal_usd_m": 2000.0,
+     "coupon_pct": null,
+     "maturity": "2032",
+     "secured": false,
+     "recourse": "exchangeable",
+     "notes": "US$2B principal; fair-value option; FV RMB14.3B (US$2.0B) at 12/31/25; 6/30/26 carrying not verified; Moody's rated A3"
+    }
+   ],
+   "cash_and_st_investments_usd_m": 24502.4,
+   "restricted_cash_usd_m": 25.1,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "Capital commitments contracted but not provided RMB21.5B (US$3.2B) as of 6/30/26. Broader company 'total cash and investments' RMB283.1B (US$41.72B) incl. long-term time deposits, held-to-maturity and adjusted long-term investments.",
+   "ltm_revenue_usd_m": null,
+   "ltm_ebitda_usd_m": 3139.2,
+   "ltm_ebitda_basis": "Sum of company adjusted EBITDA (rounded to RMB0.1B): Q3'25 4.4 + Q4'25 4.7 + Q1'26 6.0 + Q2'26 6.2 = RMB21.3B",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "Not retrieved.",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": 3345.6,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "No guidance; Moody's expects adj EBITDA margin 26-27% (Moody's basis)",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": null,
+   "maturities_usd_m": {
+    "2026": null,
+    "2027": null,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "Not verified this session",
+    "moodys": "A3 / Negative (outlook revised from stable 2026-09-24)",
+    "fitch": "Not verified this session"
+   },
+   "subsequent_events": "2026-09-24: Moody's affirmed Baidu A3 issuer/senior unsecured, outlook to negative from stable on AI capex (H1'26 capex RMB17B vs RMB7B), negative FCF, Moody's-adjusted debt RMB113B and adjusted debt/EBITDA 3.3x (2.5x at end-2025), expected 3.3-3.5x over 12-18 months. No Jul 1-Oct 9 2026 bond issuance found.",
+   "covenants_and_key_terms": "Moody's earlier downgrade triggers: adjusted debt/EBITDA above 2.5x-3.0x or a net debt position on a sustained basis - already breached on leverage. Exchangeable bonds measured at fair value (ASC 825 FVO).",
+   "credit_view": "Baidu still has a sizeable net cash position (~US$7.2B on balance-sheet cash+ST investments, ~US$24B on the company's broad cash & investments) but it is shrinking as debt rose sharply in H1'26 (bank loans roughly doubled to ~RMB49B) to fund AI infrastructure. LTM adjusted EBITDA of ~RMB21.3B (~US$3.1B) is depressed by a 26% search-ad decline, and LTM capex (~RMB22.7B) now exceeds EBITDA, pushing FCF negative. Moody's A3/Negative (Sep 2026) flags leverage of 3.3x already above its downgrade trigger; the rating is held by liquidity, so further debt-funded capex without ad-revenue stabilisation points to a one-notch downgrade risk in 2027.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001329099/000119312526355431/d112854dex991.htm",
+     "title": "Baidu Announces Second Quarter 2026 Results (6-K Ex.99.1) - via search rendering",
+     "type": "6-K",
+     "date": "2026-08-18",
+     "quote": "Cash and cash equivalents 24,606 / 24,524 / 3,614; Short-term investments, net 90,661 / 141,727 / 20,888; Short-term loans 7,626 / 26,311 / 3,878; Long-term loans 3,369 / 20,779 / 3,062; Notes payable 51,021 / 46,089 / 6,793; Convertible senior notes 6,712 / 6,615 / 975 ... As of June 30, 2026, total cash and investments were RMB283.1 billion ($41.72 billion). Operating cash flow was RMB3.4 billion ($506 million). Adjusted EBITDA was RMB6.2 billion ($906 million)"
+    },
+    {
+     "url": "https://ir.baidu.com/news-releases/news-release-details/baidu-announces-second-quarter-2026-results",
+     "title": "Baidu Q2 2026 results - current liabilities (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-08-18",
+     "quote": "Long-term loans, current portion 14,765 / 2,027; Convertible senior notes, current portion 1,459 / 1; Notes payable, current portion 4,560 / 2,038; restricted cash RMB170 million"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001329099/000119312526394299/d152888dex991.pdf",
+     "title": "Baidu interim report 2026 (via search rendering)",
+     "type": "6-K",
+     "date": "2026-09",
+     "quote": "We made capital expenditures of RMB6.7 billion and RMB17.3 billion (US$2.6 billion) during the six months ended June 30, 2025 and 2026... total capital commitments contracted but not yet reflected... RMB21.5 billion (US$3.2 billion)... fair value of the 2032 Exchangeable Bonds amounted to RMB14.3 billion (US$2.0 billion) [at 12/31/25]"
+    },
+    {
+     "url": "https://baidu.gcs-web.com/node/14441/pdf",
+     "title": "Baidu Q4/FY2025 and Q3'25, Q1'26 results (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-02-26",
+     "quote": "Adjusted EBITDA was RMB4.4 billion ($622 million) [Q3'25]... RMB4.7 billion ($676 million) [Q4'25]... RMB22.9 billion [FY25]... RMB6.0 billion ($863 million) [Q1'26]; capital expenditures of ... RMB12.1 billion (US$1.7 billion) in 2025"
+    },
+    {
+     "url": "https://www.investing.com/news/stock-market-news/moodys-cuts-baidu-outlook-to-negative-as-ai-capital-costs-weigh-on-margins-4915608",
+     "title": "Moody's cuts Baidu outlook to negative as AI capital costs weigh on margins",
+     "type": "rating-agency",
+     "date": "2026-09-24",
+     "quote": "affirmed Baidu's A3 issuer and senior unsecured ratings but revised the outlook to negative from stable... total adjusted debt to RMB113 billion, lifting adjusted debt-to-EBITDA to 3.3x from 2.5x at the end of 2025"
+    },
+    {
+     "url": "https://www.tipranks.com/news/the-fly/baidu-prices-2b-of-bonds-for-sale-of-trip-com-shares",
+     "title": "Baidu prices $2B exchangeable bonds due 2032",
+     "type": "news",
+     "date": "2025",
+     "quote": "$2B in aggregate principal amount of exchangeable bonds due 2032... reference ordinary shares of Trip.com"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "Exchangeable bond 6/30/26 carrying value and balance-sheet line not seen (added at US$2B principal); identity/terms of the RMB6.6B convertible senior notes (likely iQIYI) not verified; S&P/Fitch ratings, interest expense, LTM CFO, leases, equity, market cap, maturity ladder not retrieved. LTM EBITDA built from RMB0.1B-rounded figures."
+  },
+  {
+   "ticker": "0700.HK / TCEHY",
+   "name": "Tencent Holdings Ltd",
+   "bs_date": "2026-06-30",
+   "source_period": "2026 Interim Report / Q2 2026 results (HKEX, 2026-08-12)",
+   "currency_note": "Tencent reports in RMB with no US$ convenience rate; converted at 7.1 RMB/US$ per instruction. NB: peers' June-30-2026 convenience rate was ~6.7851, so at that rate USD values would be ~4.6% higher (gross debt ~US$66.8B, cash ~US$75.3B, net cash ~US$8.6B).",
+   "gross_debt_usd_m": 63797.6,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": null,
+    "unsecured_notes": 21693.1,
+    "convertible": null,
+    "bank_loans_revolver_cp": 42104.5,
+    "non_recourse_portion": null
+   },
+   "instruments": [
+    {
+     "name": "Borrowings (bank loans, current + non-current)",
+     "principal_usd_m": 42104.5,
+     "coupon_pct": null,
+     "maturity": "various",
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "RMB298,942M, up from RMB259.0B at 3/31/26"
+    },
+    {
+     "name": "Notes payable (USD senior notes, dim sum bonds)",
+     "principal_usd_m": 21693.1,
+     "coupon_pct": null,
+     "maturity": "various",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "RMB154,021M, up from RMB127.8B at 3/31/26 (implies ~RMB26B net new notes in Q2'26 - derived, deal not identified)"
+    }
+   ],
+   "cash_and_st_investments_usd_m": 71993.5,
+   "restricted_cash_usd_m": null,
+   "undrawn_committed_facilities_usd_m": null,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "Not retrieved. Q2'26 included large prepayments for compute procurement (FCF ex-prepayments RMB37.6B vs reported -RMB13.8B).",
+   "ltm_revenue_usd_m": null,
+   "ltm_ebitda_usd_m": null,
+   "ltm_ebitda_basis": "Not retrieved (search budget exhausted before quarterly EBITDA could be sourced)",
+   "ltm_interest_expense_usd_m": null,
+   "interest_note": "Not retrieved.",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": null,
+   "ntm_ebitda_basis": "Not retrieved",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": null,
+   "market_cap_date": null,
+   "maturities_usd_m": {
+    "2026": null,
+    "2027": null,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "Not verified this session",
+    "moodys": "Not verified this session",
+    "fitch": "Not verified this session"
+   },
+   "subsequent_events": "No Jul 1-Oct 9 2026 issuance or rating action found (limited search). No interim dividend declared for H1'26.",
+   "covenants_and_key_terms": "Company net cash RMB58.2B at 6/30/26 vs RMB146.9B at 3/31/26 (cash RMB206,930M + term deposits and others RMB304,224M less borrowings RMB298,942M and notes payable RMB154,021M). Q2'26: capex RMB52.8B (+176% YoY), capex payments RMB59.3B, dividends paid RMB41.6B, buybacks ~RMB14.7B; operating cash inflow RMB52.7B; FCF -RMB13.8B. H1'26 capex RMB84.7B vs RMB46.6B H1'25.",
+   "credit_view": "Tencent's balance sheet remains very strong - RMB511B of cash and term deposits against RMB453B of borrowings and notes, i.e. still net cash (RMB58.2B, ~US$8.2B) - but net cash fell by ~RMB89B in a single quarter as AI capex (RMB52.8B in Q2, +176%), compute prepayments, dividends and buybacks outran operating cash flow. Gross debt is now very large in absolute terms (~US$64B at 7.1) and rising (+RMB66B in Q2). The rating story hinges on whether shareholder returns are moderated while capex stays elevated; absent that, Tencent could move to net debt by 2027, though its core cash-generating franchise (operating cash inflow RMB52.7B/quarter) keeps leverage manageable.",
+   "sources": [
+    {
+     "url": "https://www.tencent.com/wp-content/uploads/2026/08/E700_IR.pdf",
+     "title": "Tencent 2026 Interim Report (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-08-12",
+     "quote": "net cash RMB58.2 billion ... Cash and cash equivalents 206,930, term deposits and others 304,224, borrowings 298,942 and notes payable 154,021... mainly due to capex payments of RMB59.3 billion and RMB41.6 billion of 2025 dividend payments"
+    },
+    {
+     "url": "https://www.tencent.com/wp-content/uploads/2026/08/Tencent-Announces-2026-Second-Quarter-Results.pdf",
+     "title": "Tencent Announces 2026 Second Quarter Results (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-08-12",
+     "quote": "Capex RMB52.8 billion, up 176% year on year... Free cash flow negative RMB13.8 billion... operating cash inflow of RMB52.7 billion... Excluding prepayments for compute procurement, free cash flow would have been RMB37.6 billion"
+    },
+    {
+     "url": "https://thenextweb.com/news/tencent-q2-2026-capex-176-percent-free-cash-flow-negative-ai",
+     "title": "Tencent capex jumped 176% and free cash flow went negative",
+     "type": "news",
+     "date": "2026-08-13",
+     "quote": "Total cash was RMB511.2 billion, up 9% YoY... Six-month capex was RMB84.7 billion, against RMB46.6 billion in the first half of 2025"
+    }
+   ],
+   "confidence": "low",
+   "gaps": "Search budget exhausted before Tencent EBITDA, ratings, debt maturity split, current/non-current split, 2026 issuance details, CFO/capex LTM, equity and market cap could be retrieved. Ratings historically Moody's A1 / S&P A+ / Fitch A+ but NOT verified for 2026 - do not rely on them without checking."
+  }
+ ]
+}

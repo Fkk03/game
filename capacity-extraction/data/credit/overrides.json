@@ -1,0 +1,320 @@
+{
+ "CRWV": {
+  "pf_debt": 3700,
+  "_note": "PF +$3.7B 2.875% converts due 2033 (priced 9/18/26); $2.6B DDTL 5.5 (8/10/26) is delayed-draw - liquidity, not debt, until drawn."
+ },
+ "NBIS": {
+  "pf_debt": 4200,
+  "_note": "PF +$5.0B converts (0.50% 2030 / 4.50% 2034, priced 8/19/26) less $0.8B 2029/2031 converts exchanged into shares; ~$775M MUFG secured loan (7/17/26) excluded - drawn status unknown."
+ },
+ "IREN": {
+  "_note": "No PF adjustment: $2.4B 9% GPU financing announced 8/27/26 - closing/draw status not verified."
+ },
+ "GLXY": {
+  "pf_debt": 3507,
+  "stab_noi": 1000,
+  "stab_noi_basis": "Galaxy: expected average annual revenue >$1.0B from CoreWeave Helios Phases I-III (526 MW CIT) once delivered; >90% project-level EBITDA margin guided for Phase I.",
+  "_note": "PF +$3.507B 9.875% Helios II senior secured notes due 2031 (closed 7/28/26, project-level)."
+ },
+ "MARA": {
+  "pf_debt": 600,
+  "_note": "PF +$600M new BTC-backed term loans (Coinbase Credit + Two Prime, closed 8/4/26; 18,750 BTC pledged). Long Ridge $1.5B acquisition / up to $785M Barclays bridge not confirmed closed - excluded."
+ },
+ "RIOT": {
+  "pf_debt": -200,
+  "stab_noi": 439,
+  "stab_noi_basis": "Riot: projected $416-462M average annual NOI across 241 MW of Rockdale contracts (frontier AI lab 191 MW + AMD 50 MW) - midpoint.",
+  "_note": "PF -$200M Coinbase BTC-backed loan repaid 9/21/26. Up to $573M Morgan Stanley DDTL (8/10/26, matures 12/31/26) excluded - draw amount unknown."
+ },
+ "APLD": {
+  "stab_noi": 2413,
+  "stab_noi_basis": "Applied Digital: $36.2B contracted lease revenue over ~15-year initial terms across 1,410 MW = ~$2.41B/yr contracted RENT (TCV / term; NOI not disclosed). Current debt funds only part of the 1,410 MW build - stabilized leverage understates final leverage."
+ },
+ "CIFR": {
+  "stab_noi": 793,
+  "stab_noi_basis": "Cipher: company-guided ~$793M average annualized NOI Oct-2026 to Sep-2036 across executed HPC leases (AWS Black Pearl, Fluidstack/Google Barber Lake, Stingray)."
+ },
+ "WULF": {
+  "stab_noi": 1730,
+  "stab_noi_basis": "TeraWulf: contracted RENT (TCV / initial term): Anthropic ~$19B/20yr = $950M + Fluidstack ~$6.7B/10yr = $670M + Core42 $1.1B/10yr = $110M. Anthropic campus (~$3.5B financing not yet priced) not in current debt - stabilized leverage understates final leverage."
+ },
+ "HUT": {
+  "stab_noi": 1750,
+  "stab_noi_basis": "Hut 8: company-guided >$1.75B expected average annual NOI from signed AI data center leases (949 MW IT) once ramped. Beacon Point Phase 2 not yet financed."
+ },
+ "CORZ": {
+  "stab_noi": 1783,
+  "stab_noi_basis": "Core Scientific: ~$850M average annualized CoreWeave colocation revenue (company) + AMD >$14B / 15yr = ~$933M/yr (RENT basis). AMD build not yet financed - stabilized leverage understates final leverage.",
+  "funding_gap_usd_m": 5300,
+  "funding_gap_basis": "Override: only the ~530 MW AMD build still needs funding (530 MW x $10M/MW = $5.3B); the ~590 MW CoreWeave sites are converted and largely tenant-funded, so applying $10M/MW to all 1,120 MW would overstate the gap."
+ },
+ "EQIX": {
+  "pf_debt": 3000,
+  "_note": "PF +$3.0B senior notes (priced 7/30/26, closed 8/6/26); new $5.5B revolver (7/27/26) replaces $4.0B facility."
+ },
+ "DLR": {
+  "pf_debt": 1800,
+  "_note": "PF +~$1.8B: CHF 510M Swiss bonds (closed 10/6/26) + EUR 1B 5.125% notes (Oct-26), converted ~1.25 USD/CHF and ~1.17 USD/EUR; proceeds partly repay revolver borrowings, so the net increase is smaller."
+ },
+ "AMZN": {
+  "cash_and_st_investments_usd_m": 122988,
+  "pf_debt": 30760,
+  "ratings": {
+   "sp": "AA (Sep-9-2026 note term sheet)",
+   "moodys": "A1 (Sep-9-2026 note term sheet)",
+   "fitch": "AA- (Sep-9-2026 note term sheet)"
+  },
+  "_note": "Cash = $78,213M cash & equivalents + $44,775M marketable securities at 6/30/26 (10-Q via search rendering). PF +$25B USD notes (Jul-26) + GBP 4.25B (~$5.76B, Sep-9-26). 2026 YTD issuance also incl. $37B USD + EUR14.5B (Mar), CHF2.8B (May), C$14B (Jun) - already in 6/30 debt."
+ },
+ "GOOGL": {
+  "pf_debt": 25000,
+  "ratings": {
+   "sp": "AA+ (QZ May-2026 composite; agency split not re-verified)",
+   "moodys": "Aa2 (not re-verified this session)",
+   "fitch": "n.v."
+  },
+  "_note": "PF +$25B 10-part USD notes (closed 8/10/26); debut AUD deal (~A$5B) unconfirmed - excluded. June-2026 equity raise of $84.75B total ($44.75B underwritten common + mandatory convertible preferred, $10B Berkshire private placement, $40B ATM unused at 6/30) - the largest equity raise on record; cash of $242.5B includes ~$87B listed equity holdings."
+ },
+ "MSFT": {
+  "ratings": {
+   "sp": "AAA (QZ May-2026 composite)",
+   "moodys": "Aaa (not re-verified this session)",
+   "fitch": "n.v."
+  }
+ },
+ "META": {
+  "ltm_ebitda_usd_m": 109580,
+  "ltm_ebitda_basis": "DERIVED: LTM operating income $86,926M (FY25 $83,276M - H1'25 $38,000M + H1'26 $41,650M, company releases) + D&A: H1'26 $12,355M (cash-flow statement) + H2'25 ~$10,300M (ESTIMATE, interpolated between H1'25 $8,242M and H1'26)",
+  "ltm_capex_usd_m": 92440,
+  "ltm_cfo_usd_m": 130317,
+  "ratings": {
+   "sp": "AA- (QZ May-2026 composite; agency split not re-verified)",
+   "moodys": "Aa3 (not re-verified this session)",
+   "fitch": "n.v."
+  },
+  "other_off_bs_commitments": "Leases signed not commenced $278.99B at 6/30/26 (10-Q) + ~$68B more data-center leases signed Jul-26 (18-20yr) = ~$347B pro forma. Hyperion (Louisiana) JV with Blue Owl (80%) - ~$27B development financed off Meta's balance sheet with Meta lease/residual-value support (Oct-2025 reporting). El Paso 1 GW venture with BlackRock (80%, Jul-26). Non-cancelable contractual commitments $349.31B.",
+  "_note": "LTM capex incl. finance-lease principal = FY25 $72.22B - H1'25 ~$30.70B (Q1'25 $13.69B + Q2'25 $17.01B) + H1'26 ~$50.92B; LTM FCF = FY25 $43.59B - H1'25 $18.88B + H1'26 $13.17B = $37.88B; CFO derived as FCF + capex. Q2'26 FCF was only $0.78B."
+ },
+ "SPCX": {
+  "market_cap_usd_m": null,
+  "_note": "Market cap falls back to the Aug-17 Comparison figure. FT (Oct-26) reports a ~$40B debt raise ($10B loans + $30B bonds) expected to close 2027 - excluded from PF."
+ },
+ "TCEHY": {
+  "ltm_ebitda_usd_m": 49399,
+  "ltm_ebitda_basis": "Adjusted EBITDA RMB350,735M LTM (Q3'25 86,698 + Q4'25 83,048 + Q1'26 89,617 + Q2'26 91,372; company releases) at 7.1 RMB/USD",
+  "ratings": {
+   "sp": "A+ / Stable (Tencent IR)",
+   "moodys": "A1 / Stable (outlook to stable from negative 2026-04-28)",
+   "fitch": "A / Stable (Tencent IR)"
+  }
+ },
+ "_obligors": [
+  {
+   "name": "OpenAI",
+   "rev": 40000,
+   "raised": 122000,
+   "commit": 856000,
+   "val_cell": "Y30",
+   "basis": "Revenue run-rate >$40B (Bloomberg 8/13/26). Raised $122B at $852B (closed 3/31/26; ~$35B of Amazon's $50B reportedly conditional). Commitments: ~$856B compute & infrastructure through 2030 per a Jul-2026 investor presentation (FT); Altman's late-2025 headline was ~$1.4T over ~8 years. ~$278B projected negative FCF through 2030 (press)."
+  },
+  {
+   "name": "Anthropic",
+   "rev": 47000,
+   "raised": 95000,
+   "commit": 195000,
+   "val_cell": "Z30",
+   "basis": "Run-rate >$47B (May-26 company statement). Raised $30B Series G (Feb) + $65B Series H at $965B (May). Commitments = quantified minimum: AWS >$100B/10yr, Azure $30B, Fluidstack $50B own-build, TeraWulf ~$19B lease etc.; Google/Broadcom 5 GW TPU $ undisclosed; a ~$500B total is reported but unverified. Colossus 1 deal with SpaceX ~$1.25B/month, terminable on 90 days' notice."
+  }
+ ],
+ "_exposures": [
+  {
+   "supplier": "Oracle",
+   "sup_key": "ORCL",
+   "payer": "OpenAI",
+   "value": 300000,
+   "quality": "Private, unrated; commitments ~21x revenue run-rate",
+   "chain": "OpenAI -> Oracle (BBB-) -> Stargate developers' project loans (~$38B Vantage, ~$18B Jupiter)",
+   "basis": "~$300B over ~5 years from FY28 (WSJ; Oracle 8-K: >$30B/yr); S&P says ~half of Oracle's $664B RPO is OpenAI"
+  },
+  {
+   "supplier": "Microsoft",
+   "sup_key": "MSFT",
+   "payer": "OpenAI",
+   "value": 250000,
+   "quality": "Private, unrated",
+   "chain": "Absorbed by a AAA balance sheet; MSFT also owns ~27% of OpenAI",
+   "basis": "Incremental Azure commitment (10/28/25); ~45% of MSFT's $625B commercial RPO at 12/31/25"
+  },
+  {
+   "supplier": "Amazon / AWS",
+   "sup_key": "AMZN",
+   "payer": "Anthropic",
+   "value": 100000,
+   "quality": "Private, unrated; best-funded lab ($95B raised 2026)",
+   "chain": "De minimis vs AWS cash flow",
+   "basis": ">$100B over 10 years for up to 5 GW (4/20/26)"
+  },
+  {
+   "supplier": "Amazon / AWS",
+   "sup_key": "AMZN",
+   "payer": "OpenAI",
+   "value": 38000,
+   "quality": "Private, unrated",
+   "chain": "De minimis vs AWS cash flow",
+   "basis": "$38B over 7 years (Nov-2025)"
+  },
+  {
+   "supplier": "Alphabet / Google Cloud",
+   "sup_key": "GOOGL",
+   "payer": "Meta",
+   "value": 10000,
+   "quality": "AA- (Meta)",
+   "chain": "IG-to-IG",
+   "basis": ">$10B, 6-year cloud deal (Aug-2025)"
+  },
+  {
+   "supplier": "CoreWeave",
+   "sup_key": "CRWV",
+   "payer": "Meta",
+   "value": 35200,
+   "quality": "AA- (Meta)",
+   "chain": "Strongest tenant in CRWV's backlog",
+   "basis": "$14.2B (Sep-25) + ~$21B expansion (Apr-26)"
+  },
+  {
+   "supplier": "CoreWeave",
+   "sup_key": "CRWV",
+   "payer": "OpenAI",
+   "value": 22400,
+   "quality": "Private, unrated",
+   "chain": "OpenAI -> CoreWeave (B+/Ba3) -> CRWV's landlords (APLD, GLXY, CORZ)",
+   "basis": "$11.9B + $4.0B + $6.5B contracts (2025)"
+  },
+  {
+   "supplier": "Nebius",
+   "sup_key": "NBIS",
+   "payer": "Meta",
+   "value": 27000,
+   "quality": "AA- (Meta)",
+   "chain": "IG tenant; $15B of it optional",
+   "basis": "Up to $27B ($12B dedicated + up to $15B optional, Mar-26)"
+  },
+  {
+   "supplier": "Nebius",
+   "sup_key": "NBIS",
+   "payer": "Microsoft",
+   "value": 17400,
+   "quality": "AAA (Microsoft)",
+   "chain": "IG tenant",
+   "basis": "$17.4B over 5 years (up to $19.4B)"
+  },
+  {
+   "supplier": "IREN",
+   "sup_key": "IREN",
+   "payer": "Microsoft",
+   "value": 9700,
+   "quality": "AAA (Microsoft)",
+   "chain": "Match-funded with IG GPU financing + $1.9B prepayment",
+   "basis": "$9.7B over 5 years (Nov-25)"
+  },
+  {
+   "supplier": "TeraWulf",
+   "sup_key": "WULF",
+   "payer": "Anthropic",
+   "value": 19000,
+   "quality": "Private, unrated",
+   "chain": "Anthropic -> WULF Hawesville campus debt (~$3.5B, not yet priced)",
+   "basis": "20-yr lease, 401 MW (7/6/26)"
+  },
+  {
+   "supplier": "TeraWulf",
+   "sup_key": "WULF",
+   "payer": "Fluidstack (Google backstop)",
+   "value": 6700,
+   "quality": "Private neocloud; Google (AA+) backstop ~$3.2B",
+   "chain": "Google backstop covers ~half",
+   "basis": "Lake Mariner leases, 10-yr initial terms"
+  },
+  {
+   "supplier": "Cipher",
+   "sup_key": "CIFR",
+   "payer": "Amazon (AWS)",
+   "value": 7500,
+   "quality": "AA (Amazon parent guarantee)",
+   "chain": "IG-backed project notes (Ba2/BB-)",
+   "basis": "Black Pearl $5.5B/15yr + Stingray ~$2B"
+  },
+  {
+   "supplier": "Cipher",
+   "sup_key": "CIFR",
+   "payer": "Fluidstack (Google backstop)",
+   "value": 3000,
+   "quality": "Private neocloud; Google $1.4B backstop",
+   "chain": "Backstop covers ~half",
+   "basis": "Barber Lake 10-yr ~$3B"
+  },
+  {
+   "supplier": "Applied Digital",
+   "sup_key": "APLD",
+   "payer": "CoreWeave",
+   "value": 11000,
+   "quality": "B+ / Ba3 (high yield)",
+   "chain": "OpenAI/Microsoft/Meta -> CoreWeave (HY) -> APLD 9.25% notes",
+   "basis": "Polaris Forge 1, 400 MW, ~15yr"
+  },
+  {
+   "supplier": "Applied Digital",
+   "sup_key": "APLD",
+   "payer": "IG hyperscalers (unnamed)",
+   "value": 25000,
+   "quality": "Investment grade (per company)",
+   "chain": "IG tenant",
+   "basis": "PF2, PF3, Delta Forge 1-2"
+  },
+  {
+   "supplier": "Galaxy Digital",
+   "sup_key": "GLXY",
+   "payer": "CoreWeave",
+   "value": 10400,
+   "quality": "B+ / Ba3 (high yield)",
+   "chain": "CoreWeave (HY) -> Helios 9.875% project notes",
+   "basis": "Helios I-III min. lease payments, 15yr"
+  },
+  {
+   "supplier": "Core Scientific",
+   "sup_key": "CORZ",
+   "payer": "AMD",
+   "value": 14000,
+   "quality": "Investment grade (AMD)",
+   "chain": "IG tenant (warrant-linked deal)",
+   "basis": "~530 MW, 15-yr agreements (Jul-26)"
+  },
+  {
+   "supplier": "Core Scientific",
+   "sup_key": "CORZ",
+   "payer": "CoreWeave",
+   "value": 10000,
+   "quality": "B+ / Ba3 (high yield)",
+   "chain": "CoreWeave (HY) -> CORZ 7.75% secured notes",
+   "basis": ">$10B, ~590 MW, 12-yr"
+  },
+  {
+   "supplier": "Riot Platforms",
+   "sup_key": "RIOT",
+   "payer": "Frontier AI lab (unnamed)",
+   "value": 9100,
+   "quality": "Unnamed; likely private lab",
+   "chain": "Unknown obligor; first rent Dec-2027",
+   "basis": "191 MW, 20-yr (8/10/26)"
+  },
+  {
+   "supplier": "Hut 8",
+   "sup_key": "HUT",
+   "payer": "AA-or-better tenant (Beacon Point)",
+   "value": 19600,
+   "quality": "AA- or better (per company)",
+   "chain": "Supports BBB-/Baa2-rated project notes",
+   "basis": "Two 352 MW 15-yr leases, $19.6B base term"
+  }
+ ]
+}

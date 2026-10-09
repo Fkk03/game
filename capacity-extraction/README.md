@@ -73,6 +73,20 @@ Announced capacity additions, mid-2026 base → ~2030/31. **lo** = contracted de
 
 Per-deal pricing math (TCV ÷ term ÷ MW, or disclosed annual ÷ MW) across 14 landlord leases and 8 full-stack deals. **Powered-shell landlords: avg $1.77M/MW/yr (median $1.77M, ≈$147/kW/mo; range $1.2–2.4, newest 20-yr AI-lab leases at top). Full-stack GPU cloud: avg ~$13.5M/MW/yr (Oracle–OpenAI $13.3M, Nebius-disclosed $20–25M for latest-gen IT). Ratio ≈7.6x, reconciled by ~$11M/MW/yr of implied chip depreciation ($55B/GW system cost over 5 yrs).**
 
+## Credit analysis (added Oct 9, 2026 — sheets "Credit Metrics", "Debt Maturities", "Debt Instruments", "Counterparty Risk")
+
+Debt profile, net leverage, coverage, liquidity, maturity walls and agency ratings for 24 issuers (balance sheets Jun 30, 2026; Oracle and Applied Digital Aug 31, 2026), plus post-quarter issuance through Oct 9 as a pro forma column. Project-financed landlords are scored on fully-funded net debt ÷ stabilized contracted NOI; others on net debt ÷ NTM (else LTM) EBITDA, mapped to S&P-style financial-risk bands.
+
+| Tier | Names | Net leverage | What drives it |
+|---|---|---|---|
+| Fortress | MSFT, GOOGL, META, AMZN, BABA, Tencent, BIDU, SpaceX | net cash to 0.1x | AA–AAA US (A-range China; SpaceX BBB/Baa1). Risk is FCF turning negative (AMZN LTM −$7.6B, BABA ≈ −$10.7B, META Q2 FCF $0.8B) and **off-balance-sheet leases** (MSFT $329B, META ~$347B, AMZN $106B signed-not-commenced). |
+| Stretched IG | ORCL, EQIX, DLR | 2.6x / 3.4x / 4.4x | Oracle: S&P cut to **BBB-** (Jul 9), Moody's Baa2 negative; LTM FCF −$28.7B; **$288B leases not commenced = 8.5x EBITDA**; ~half of $664B RPO is OpenAI; record CDS ~227bp. REITs: BBB+/Baa1–Baa2, coverage ~8x, manageable walls. |
+| High-yield operating | CRWV, GDS, VNET, IREN, NBIS | 5.0x NTM / 4.0x / 4.6x / 7.4x LTM / 0.4x | CoreWeave B+/Ba3/BB-: $39.3B PF debt, EBITDA/interest 2.35x, $10.6B due by YE2027 vs $15.6B liquidity, ~$19B secured/SPV debt ahead of unsecured, $35.5B leases not commenced. NBIS/IREN: convert-funded, unrated. |
+| Project-finance landlords | WULF 3.3x, RIOT 4.4x, CORZ 4.4x, APLD 4.6x, HUT 5.3x, GLXY 6.1x, CIFR 7.8x | fully-funded net debt ÷ stabilized NOI | Credit = tenant: HUT (AA tenant) notes BBB-/Baa2; CIFR (Amazon-guaranteed) Ba2/BB-; CoreWeave-tenant projects (APLD, GLXY, CORZ) inherit HY tenant risk. Funding gaps: APLD $7.7B, CORZ $5.3B, WULF $2.7B. |
+| BTC-collateral | MARA | n.m. | $3.0B PF debt (mostly converts) vs ~35.6k BTC; no customer contracts. |
+
+Counterparty: OpenAI's ~$856B compute commitments through 2030 are ~21x its ~$40B revenue run-rate (Anthropic ≥$195B ≈ 4x on $47B). Chain risk: OpenAI → CoreWeave (HY) → APLD/GLXY/CORZ project bonds; Galaxy's backlog is 100% CoreWeave, Riot's 93% one unnamed lab, TeraWulf's 70% Anthropic. Research JSON (with sources/quotes) in `data/credit/`; analyst adjustments documented in `data/credit/overrides.json`. Caveat: SEC EDGAR was blocked by the environment's network policy, so filing figures were captured via cross-checked search renderings (flagged per source).
+
 ## Process
 
 1. **Round 1 — 15 parallel research agents** (one per company/group + market data), filings-first sourcing rules, verbatim-quote-or-null discipline.

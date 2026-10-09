@@ -1,0 +1,475 @@
+{
+ "companies": [
+  {
+   "ticker": "EQIX",
+   "name": "Equinix, Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q / earnings release (8-K Ex.99.1, 2026-07-29) / Q2 2026 earnings presentation; all via search rendering (sec.gov 403; investor.equinix.com, newsroom, cloudfront, fool.com, barchart egress-blocked)",
+   "currency_note": "USD. Multi-currency notes (USD, EUR, GBP, CHF, CAD, SGD, JPY) reported in USD at 6/30/26 FX; some non-USD notes swapped. Blended borrowing rate is after-tax and includes hedges.",
+   "gross_debt_usd_m": 19873,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 19,
+    "unsecured_notes": 19853,
+    "convertible": 0,
+    "bank_loans_revolver_cp": 1,
+    "non_recourse_portion": null
+   },
+   "instruments": [
+    {
+     "name": "Senior unsecured notes (multi-currency, aggregated) - maturing rem-2026",
+     "principal_usd_m": 607,
+     "coupon_pct": null,
+     "maturity": "2026-H2",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "10-Q maturity table (gross of issuance costs/discounts) incl. mortgage and loans; 2026 bucket is remainder of year"
+    },
+    {
+     "name": "Senior unsecured notes (aggregated) - 2027",
+     "principal_usd_m": 1076,
+     "coupon_pct": null,
+     "maturity": "2027",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "10-Q maturity table"
+    },
+    {
+     "name": "Senior unsecured notes (aggregated) - 2028",
+     "principal_usd_m": 1426,
+     "coupon_pct": null,
+     "maturity": "2028",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "10-Q maturity table"
+    },
+    {
+     "name": "Senior unsecured notes (aggregated) - 2029",
+     "principal_usd_m": 2185,
+     "coupon_pct": null,
+     "maturity": "2029",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "10-Q maturity table; excludes $850M 5.000% 2029 notes issued Aug 2026"
+    },
+    {
+     "name": "Senior unsecured notes (aggregated) - 2030 (incl. C$650M 3.950% due 2030-05-15 issued 2026)",
+     "principal_usd_m": 3194,
+     "coupon_pct": null,
+     "maturity": "2030",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "10-Q maturity table"
+    },
+    {
+     "name": "Senior unsecured notes (aggregated) - 2031 and thereafter",
+     "principal_usd_m": 11385,
+     "coupon_pct": null,
+     "maturity": "2031+",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "COMPUTED residual: $19,873M gross debt ex-finance leases less 2026-2030 buckets. Includes Feb-2026 Equinix Asia Financing $700M 4.400% due 2031 and Equinix Europe 2 Finco $800M 4.700% due 2033 (guaranteed by EQIX), and a CAD 4.750% 2035 tranche (size not retrieved)"
+    },
+    {
+     "name": "Mortgage payable and other loans payable",
+     "principal_usd_m": 19,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": true,
+     "recourse": "corporate",
+     "notes": "10-Q debt note; down from $703M at 12/31/25 (mostly term loan repayment); NOTE: already included in the 10-Q maturity buckets above (do not add to bucket sum)"
+    },
+    {
+     "name": "Term loans",
+     "principal_usd_m": 1,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "$673M 2022 Term Loan Facility repaid 2026-03-31; NOTE: already included in the 10-Q maturity buckets above (do not add to bucket sum)"
+    },
+    {
+     "name": "2022 Revolving Facility ($4.0B, multicurrency)",
+     "principal_usd_m": 0,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Undrawn at 6/30/26; $18M LCs; ~$4.0B available. Replaced 2026-07-27 by $5.5B senior unsecured multicurrency revolver (margin 77.5bp; facility fee 7-20bp)"
+    }
+   ],
+   "cash_and_st_investments_usd_m": 2224,
+   "restricted_cash_usd_m": null,
+   "undrawn_committed_facilities_usd_m": 4000,
+   "operating_lease_liab_usd_m": 1367,
+   "finance_lease_liab_usd_m": 2280,
+   "leases_not_yet_commenced_usd_m": 708,
+   "other_off_bs_commitments": "xScale JVs unconsolidated; Equinix pro-rata share of xScale JV debt NOT found. EMEA 2 xScale JV has a credit facility of up to ~$1.1B (at 6/30/26 FX) maturing Oct 2026; Equinix guarantees 20% of principal and interest on one EMEA 2 facility, capped at ~$231M (at 3/31/26 FX). US xScale JV with GIC/CPP (>$15B investable capital incl. JV-level debt) will add unconsolidated leverage. Leases signed not yet commenced ~$708M (commence 2026-2029, terms 2-99 yrs). Equinix total indebtedness incl. finance leases ~$22.2B.",
+   "ltm_revenue_usd_m": 9805,
+   "ltm_ebitda_usd_m": 4979,
+   "ltm_ebitda_basis": "Sum of company adjusted EBITDA Q3'25 $1,148M + Q4'25 ~$1,190M (reported 'about $1.19B'; FY25 $4.53B) + Q1'26 $1,245M + Q2'26 $1,396M. Q2'26 includes ~$120M non-recurring xScale leasing fees (Hampton).",
+   "ltm_interest_expense_usd_m": 598,
+   "interest_note": "PROXY, not true LTM: H1'26 GAAP interest expense $299M (Q1 $148M, Q2 $151M) x2. FY25 interest expense not retrieved (search budget exhausted). H1'25 was $257M. Total interest charges incurred H1'26 $369M (i.e., ~$70M capitalized not in GAAP figure); cash interest paid net of capitalized $296M.",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": 5240,
+   "ntm_ebitda_basis": "FY26 adjusted EBITDA guidance midpoint ($5.210-5.270B, raised Jul 29 2026; Q3'26 guide $1.275-1.315B)",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": 99771,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": 607,
+    "2027": 1076,
+    "2028": 1426,
+    "2029": 2185,
+    "2030": 3194,
+    "2031+": 11385
+   },
+   "ratings": {
+    "sp": "BBB+ / Stable (per Feb-19-2026 note term sheet; date of S&P upgrade to BBB+ not found)",
+    "moodys": "Baa1 / Stable (upgraded from Baa2; Equinix release 2026-03-05)",
+    "fitch": "BBB+ / Stable"
+   },
+   "subsequent_events": "2026-07-27: new $5.5B senior unsecured multicurrency revolver replaces $4.0B 2022 facility (liquidity ~$7.7B incl. upsized revolver). 2026-07-30 priced / 2026-08-06 closed $3.0B senior notes: EQIX $850M 5.000% due 2029-08-15 (99.874%, YTM 5.045%), $650M 5.500% due 2033, $650M 5.800% due 2036; Equinix Europe 2 Financing $850M 5.250% due 2031 (EQIX-guaranteed; swapped to EUR, ~3.95% effective). Proceeds: general corporate incl. refinancing upcoming maturities. Pro forma gross debt ex-leases ~ $22.9B (computed). Q3 dividend $5.16/sh paid 2026-09-16. EMEA 2 JV facility (~$1.1B) due Oct 2026. No rating actions or EQIX equity/ATM issuance found Jul 1-Oct 9 2026 (not exhaustively searched).",
+   "covenants_and_key_terms": "All senior notes unsecured; revolver unsecured (new $5.5B facility: applicable margin 77.5bp, facility fee 7.0-20.0bp, ratings-based). Financial covenant levels/headroom not retrieved. Management target: net leverage ~3.6x annualized adj EBITDA today; CFO guided leverage to rise ~1 turn by end of 2029 planning period while 'not going to change' leverage discipline. Blended borrowing rate 3.0% (after-tax, incl. hedges), WAM 6.4 yrs (Q1'26: 2.9%/6.5 yrs). % fixed not disclosed in retrieved material (debt almost entirely fixed-coupon notes; revolver/term loans ~nil).",
+   "credit_view": "Equinix is a high-BBB credit (Baa1/BBB+/BBB+) backed by a diversified interconnection-led retail colocation franchise with ~70% of recurring revenue from owned assets, record 53% adj EBITDA margin and net leverage of 3.6x (company, annualized Q2 incl. finance leases; ~3.9x ex the ~$120M one-off xScale fees, ~3.5x on LTM ex-leases by my computation). Debt is almost all fixed-rate unsecured notes at a 3.0% blended cost with 6.4-yr WAM and a manageable near-term ladder ($0.6B rem-2026, $1.1B 2027), backed by $2.2B cash/ST investments and a new $5.5B revolver. The key risk is the capex step-up ($5-6B in 2026, $5-7B/yr through 2029) against AFFO-after-dividends of only ~$2.5B/yr (dividends ~$2.04B in 2026, ~46% of AFFO), implying ~$3B+/yr of external funding and management's own guide of ~1 turn of leverage creep, plus refinancing at ~5-6% vs a 3.0% book cost. Growing unconsolidated xScale JV leverage and guarantees are an off-balance-sheet watch item. Ratings headroom at Baa1/BBB+ likely narrows through 2028-29 if leverage approaches 4.5x+.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000110123926000147/eqix-20260630.htm",
+     "title": "Equinix Form 10-Q for quarter ended June 30, 2026 (via search rendering)",
+     "type": "10-Q",
+     "date": "2026-07-29",
+     "quote": "Current portion of senior notes 1,170 ... Senior notes, less current portion 18,519 ... Current portion of mortgage and loans payable 9 ... Mortgage and loans payable, less current portion 11 ... Current portion of finance lease liabilities 176 ... Finance lease liabilities, less current portion 2,104"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000110123926000147/eqix-20260630.htm",
+     "title": "Equinix 10-Q Q2 2026 - balance sheet cash/ST investments and leases (via search rendering)",
+     "type": "10-Q",
+     "date": "2026-07-29",
+     "quote": "Cash and cash equivalents | $ 979 | $ 1,727 | Short-term investments | 1,245 | 1,500 ... Total | $1,367 | $2,280 | $3,647 ... total lease commitments of approximately $708 million"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000110123926000147/eqix-20260630.htm",
+     "title": "Equinix 10-Q Q2 2026 - debt maturities (via search rendering)",
+     "type": "10-Q",
+     "date": "2026-07-29",
+     "quote": "The following table sets forth maturities of our debt, including mortgage and loans payable and senior notes, gross of debt issuance costs and debt discounts, as of June 30, 2026. [Remainder of 2026 $607; 2027 $1,076; 2028 $1,426; 2029 $2,185; 2030 $3,194]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000110123926000147/eqix-20260630.htm",
+     "title": "Equinix 10-Q Q2 2026 - revolver, term loan, interest (via search rendering)",
+     "type": "10-Q",
+     "date": "2026-07-29",
+     "quote": "As of June 30, 2026, we had 22 irrevocable letters of credit totaling $18 million issued and outstanding, with approximately $4.0 billion remaining available to borrow, under the 2022 Revolving Facility. ... We repaid the total amount outstanding under the 2022 Term Loan Facility on March 31, 2026. ... Interest expense (151) (135) (299) (257)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1101239/000110465926089246/tm2621537-2_424b2.htm",
+     "title": "Equinix 424B2 prospectus supplement, July 2026 (via search rendering)",
+     "type": "8-K",
+     "date": "2026-07-31",
+     "quote": "As of June 30, 2026, our total indebtedness (inclusive of finance lease liabilities and gross of debt issuance costs and debt discounts) was approximately $22.2 billion."
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000110123926000145/a991eqix-q226xpr.htm",
+     "title": "Equinix Reports Second-Quarter Results, Raises 2026 Guidance and Long-Term Outlook (8-K Ex.99.1)",
+     "type": "earnings-release",
+     "date": "2026-07-29",
+     "quote": "Adjusted EBITDA ... $1.396 billion ... 53% margin ... Full-year 2026 adjusted EBITDA is now expected at $5.210 to $5.270 billion ... capital expenditures are expected at $5 billion to $6 billion, excluding real estate acquisitions and xScale; total debt principal outstanding of $22,153 million"
+    },
+    {
+     "url": "https://www.investing.com/news/transcripts/earnings-call-transcript-equinix-tops-q2-2026-estimates-and-lifts-outlook-93CH-4822017",
+     "title": "Equinix Q2 2026 earnings call transcript",
+     "type": "call-transcript",
+     "date": "2026-07-29",
+     "quote": "We have approximately $7.7 billion of available liquidity, including our recently upsized revolving credit facility, and our net leverage was 3.6x annualized adjusted EBITDA. ... we would expect leverage to increase by about a turn between now and the end of the planning period"
+    },
+    {
+     "url": "https://d1io3yog0oux5.cloudfront.net/_28ff1161d13c7903ebb24bea08b833f3/equinix/db/2183/27054/earnings_presentation/Equinix+Q2+26+Earnings+Presentation+Final.pdf",
+     "title": "Equinix Q2 2026 Earnings Presentation (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-07-29",
+     "quote": "3.0% blended borrowing rate with 6.4 year weighted average maturity ... Blended borrowing rates noted are after-tax and include impact of debt hedging derivatives."
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1101239/000110123926000148/eqix-20260727.htm",
+     "title": "Equinix 8-K - new revolving credit facility (via search rendering)",
+     "type": "8-K",
+     "date": "2026-07-27",
+     "quote": "Equinix entered into a $5.5 billion senior unsecured multicurrency revolving credit facility, which replaces its existing revolving credit facility ... Applicable Margin ... 77.5 basis points (0.775%), with a facility fee of 7.0 basis points (0.07%) to 20.0 basis points (0.20%)"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000110465926092009/tm2622384d1_8k.htm",
+     "title": "Equinix 8-K - closing of $3.0B senior notes (via search rendering)",
+     "type": "8-K",
+     "date": "2026-08-06",
+     "quote": "$850,000,000 of 5.000% Senior Notes due 2029, $650,000,000 of 5.500% Senior Notes due 2033 and $650,000,000 of 5.800% Senior Notes due 2036 ... $850,000,000 5.250% Senior Notes due 2031 ... effective interest rate of approximately 3.95% per annum"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000110465926088885/tm2621537d3_fwp.htm",
+     "title": "Equinix FWP term sheet July 30, 2026 (via search rendering)",
+     "type": "8-K",
+     "date": "2026-07-30",
+     "quote": "$850,000,000 ... August 15, 2029 ... 99.874% plus accrued interest, if any, from August 6, 2026 ... Yield to maturity 5.045%"
+    },
+    {
+     "url": "https://investor.equinix.com/sec-filings/all-sec-filings/content/0001104659-26-017687/tm265546d11_fwp.htm",
+     "title": "Equinix Asia Financing $700M 4.400% Senior Notes due 2031 term sheet (via search rendering)",
+     "type": "8-K",
+     "date": "2026-02-19",
+     "quote": "Moody's: Baa1 (stable), S&P: BBB+ (stable), Fitch: BBB+ (stable)"
+    },
+    {
+     "url": "https://www.prnewswire.com/news-releases/moodys-ratings-upgrades-equinixs-senior-unsecured-rating-to-baa1-with-a-stable-outlook-302705809.html",
+     "title": "Moody's Ratings Upgrades Equinix's Senior Unsecured Rating to Baa1 with a Stable Outlook",
+     "type": "rating-agency",
+     "date": "2026-03-05",
+     "quote": "Moody's Ratings Upgrades Equinix's Senior Unsecured Rating to Baa1 with a Stable Outlook"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000110123926000089/eqix-q126xpr.htm",
+     "title": "Equinix Q1 2026 earnings release (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-04-29",
+     "quote": "Revenues $2.444 billion ... Adjusted EBITDA $1.245 billion, a record adjusted EBITDA margin of 51%"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1101239/000110123925000061/october292025pressrelease-.htm",
+     "title": "Equinix Q3 2025 earnings release (via search rendering; EBITDA via secondary summaries)",
+     "type": "earnings-release",
+     "date": "2025-10-29",
+     "quote": "Revenues $2.316 billion ... adjusted EBITDA ... $1.148B (50% margin)"
+    },
+    {
+     "url": "https://commercialobserver.com/2026/02/equinix-earnings-data-centers/",
+     "title": "Equinix Reports 'Best Ever' Quarter to Finish 2025",
+     "type": "news",
+     "date": "2026-02-11",
+     "quote": "Q4 2025 revenue about $2.42 billion ... Adjusted EBITDA was about $1.19 billion at a 49% margin ... Full-year adjusted EBITDA was $4.53 billion"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000110123926000091/eqix-20260331.htm",
+     "title": "Equinix 10-Q Q1 2026 - xScale EMEA 2 guarantee (via search rendering)",
+     "type": "10-Q",
+     "date": "2026-04-29",
+     "quote": "guaranteed 20% of the principal and interest under one of its credit facilities, up to ... $231 million in total at the exchange rate in effect on March 31, 2026; EMEA 2 Joint Venture ... could borrow up to approximately $1.1 billion ... maturing in October 2026"
+    },
+    {
+     "url": "https://finance.yahoo.com/quote/EQIX/",
+     "title": "EQIX quote, Yahoo Finance",
+     "type": "market-data",
+     "date": "2026-10-08",
+     "quote": "1,011.16, down 20.61 (-2.00%) at 4:00 PM EDT [shares outstanding ~98.67M per Google Finance; market cap computed]"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "All primary documents blocked (sec.gov 403; investor/newsroom/cloudfront egress-blocked) - every figure is via search-snippet rendering. Not found: FY25/Q3-Q4'25 interest expense (LTM interest is an annualized H1'26 proxy), LTM CFO and capex, book equity, restricted cash, % fixed-rate, revolver covenant levels/headroom, unencumbered asset %, xScale JV pro-rata debt, size of CAD 2035 tranche, S&P upgrade date to BBB+. 2031+ maturity bucket is a computed residual. Q4'25 adj EBITDA (~$1.19B) and Q4'25 revenue (~$2.42B) are rounded. Market cap computed from close x ~98.67M shares."
+  },
+  {
+   "ticker": "DLR",
+   "name": "Digital Realty Trust, Inc.",
+   "bs_date": "2026-06-30",
+   "source_period": "Q2 2026 10-Q / earnings release and financial supplement (8-K Ex.99.1, 2026-07-23); via search rendering (sec.gov 403; investor.digitalrealty.com, globenewswire egress-blocked)",
+   "currency_note": "USD. Multi-currency unsecured notes (USD, EUR, GBP, CHF, SGD, JPY etc.) reported in USD at 6/30/26 FX.",
+   "gross_debt_usd_m": 18600,
+   "debt_breakdown_usd_m": {
+    "secured_or_project": 1600,
+    "unsecured_notes": 17000,
+    "convertible": null,
+    "bank_loans_revolver_cp": 726,
+    "non_recourse_portion": null
+   },
+   "instruments": [
+    {
+     "name": "Unsecured debt total (senior notes multi-currency, term loans, global revolver; aggregated)",
+     "principal_usd_m": 17000,
+     "coupon_pct": null,
+     "maturity": "2026-2036+",
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Release: '$17.0 billion of unsecured debt'. Includes ~$726M global revolver drawings. Exchangeable notes (if any) not separately retrieved. Instrument rows overlap (revolver within unsecured; unhedged and maturity rows are cross-cuts) - do not sum."
+    },
+    {
+     "name": "Global revolving credit facilities",
+     "principal_usd_m": 726,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": false,
+     "recourse": "corporate",
+     "notes": "Maximum available $4,452M; ~$726M drawn at 6/30/26 (supplemental, via search rendering); revolver shows zero in 2026/2027 maturity buckets"
+    },
+    {
+     "name": "Secured debt and other",
+     "principal_usd_m": 1600,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": true,
+     "recourse": "corporate",
+     "notes": "Release: 'approximately $1.6 billion of secured debt and other debt'"
+    },
+    {
+     "name": "Unhedged variable-rate debt (subset of above)",
+     "principal_usd_m": 1200,
+     "coupon_pct": null,
+     "maturity": null,
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "Supplemental: unhedged variable ~$1.20B vs fixed/hedged ~$17.57B (~94% fixed/hedged, computed)"
+    },
+    {
+     "name": "Debt maturing remainder of 2026 (aggregated)",
+     "principal_usd_m": 825,
+     "coupon_pct": null,
+     "maturity": "2026-H2",
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "10-Q maturity table, via search rendering"
+    },
+    {
+     "name": "Debt maturing 2027 (aggregated)",
+     "principal_usd_m": 2160,
+     "coupon_pct": null,
+     "maturity": "2027",
+     "secured": null,
+     "recourse": "corporate",
+     "notes": "10-Q maturity table, via search rendering"
+    }
+   ],
+   "cash_and_st_investments_usd_m": 1860,
+   "restricted_cash_usd_m": null,
+   "undrawn_committed_facilities_usd_m": 3726,
+   "operating_lease_liab_usd_m": null,
+   "finance_lease_liab_usd_m": null,
+   "leases_not_yet_commenced_usd_m": null,
+   "other_off_bs_commitments": "Development: ~1.4 GW under construction at ~$20B total cost, ~63% pre-leased; FY26 development capex guide $4.25-4.75B net of partner contributions (raised $750M); Q2'26 development capex $1.1B net of partner share. Unconsolidated JV debt (pro-rata share) included in company net debt/EBITDA definition but amount NOT retrieved. Preferred stock $755M liquidation preference (30.2M shares; carrying $731.7M; Q2'26 preferred dividends $10M) - not in gross debt but in 'debt plus preferred to TEV' (22.3%) and fixed charges.",
+   "ltm_revenue_usd_m": null,
+   "ltm_ebitda_usd_m": 3623,
+   "ltm_ebitda_basis": "Sum of company Adjusted EBITDA Q3'25 $868M + Q4'25 $857M + Q1'26 $920M + Q2'26 $978M",
+   "ltm_interest_expense_usd_m": 456,
+   "interest_note": "PROXY, not true LTM: Q2'26 GAAP interest expense $114M x4. Capitalized interest of $37M in Q2'26 (~$148M annualized) NOT included; preferred dividends $10M/qtr. Company fixed charge coverage 5.2x (fixed charges = GAAP interest + capitalized interest + scheduled principal + preferred dividends).",
+   "ltm_cfo_usd_m": null,
+   "ltm_capex_usd_m": null,
+   "ntm_ebitda_usd_m": 3800,
+   "ntm_ebitda_basis": "FY26 adjusted EBITDA guidance midpoint $3.75-3.85B per prior extraction (July 2026 raise) - NOT re-verified this pass; April 2026 guide was $3.650-3.750B (verified). H1'26 actual $1,898M.",
+   "book_equity_usd_m": null,
+   "market_cap_usd_m": 66500,
+   "market_cap_date": "2026-10-08",
+   "maturities_usd_m": {
+    "2026": 825,
+    "2027": 2160,
+    "2028": null,
+    "2029": null,
+    "2030": null,
+    "2031+": null
+   },
+   "ratings": {
+    "sp": "BBB+ / Stable (corporate credit; preferred BBB-)",
+    "moodys": "Baa2 / Positive (outlook moved from Stable to Positive in H1 2026; preferred Baa3)",
+    "fitch": "BBB / Stable (IDR; preferred BB+)"
+   },
+   "subsequent_events": "2026-09-28: Digital Constellation B.V. priced CHF 510M Swiss bonds (CHF 225M due 2029, CHF 185M due 2032, CHF 100M due 2036), issued/closed 2026-10-06; net ~CHF 508.4M to temporarily repay revolver and fund development. 2026-10-06: Digital Euro Finco, LLC priced EUR 1.0B 5.125% Guaranteed (green) Notes due 2036-10-09 at 99.289%, closing expected 2026-10-09; guaranteed by DLR and operating partnership; proceeds to eligible green projects / temporarily repay global revolver. Combined ~$1.8B new unsecured debt (computed, at approx FX). ATM: 13.5M shares / ~$2.5B net YTD through 6/30/26 (Q2: 6.2M sh at $191.63, ~$1.2B); Q3 ATM/forward activity not retrieved. No rating actions found Jul 1-Oct 9 2026.",
+   "covenants_and_key_terms": "Unsecured notes: total unencumbered assets must be not less than 150% of aggregate unsecured debt principal; Q4'25 actual 256% (notes covenant) / 281% (credit facility) - Q2'26 ratio not retrieved. Other financial coverage ratios exist (levels not retrieved). Company metrics 6/30/26: net debt/Adj EBITDA 4.7x (includes finance leases and pro-rata unconsolidated JV debt; Q2 annualized), fixed charge coverage 5.2x, debt+preferred/TEV 22.3%. Weighted average interest rate ~2.99% (supplemental, column header not confirmed); weighted average term to initial maturity 4.4 yrs (4.5 yrs with extensions); ~94% fixed/hedged. Liquidity ~$6B per call.",
+   "credit_view": "Digital Realty is a solid BBB/Baa2 credit with positive momentum (Moody's outlook Positive, S&P already BBB+): net debt/Adj EBITDA of 4.7x is a multi-year low, fixed charge coverage is 5.2x, and debt+preferred is only 22.3% of TEV, helped by ~$2.5B of H1'26 ATM equity, which shows a clear equity-first funding policy. Debt is ~94% fixed/hedged at a ~3.0% average cost, but WAM is short at 4.4 yrs and the wall is front-loaded ($0.8B rem-2026, ~$2.2B 2027), so refinancing at current coupons (EUR 2036 notes at 5.125%) will lift interest cost. The main risk is execution and funding of the ~$20B, 1.4 GW pipeline (63% pre-leased) and $4.25-4.75B of 2026 net capex against dividends that consume ~50% of AFFO, so continued equity issuance and JV capital are needed to hold leverage near 5x. Unconsolidated JV debt and $755M of preferreds (treated as fixed charges by agencies) add to effective leverage.",
+   "sources": [
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001297996/000110465926086270/dlr-20260723xex99d1.htm",
+     "title": "Digital Realty Reports Second Quarter 2026 Results (8-K Ex.99.1)",
+     "type": "earnings-release",
+     "date": "2026-07-23",
+     "quote": "Digital Realty had approximately $18.6 billion of total debt outstanding as of June 30, 2026, comprised of $17.0 billion of unsecured debt and approximately $1.6 billion of secured debt and other debt. ... At the end of the second quarter of 2026, net debt-to-Adjusted EBITDA was 4.7x, debt-plus-preferred-to-total enterprise value was 22.3% and fixed charge coverage was 5.2x."
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001297996/000110465926086270/dlr-20260723xex99d1.htm",
+     "title": "Digital Realty Q2 2026 release - ATM and Adjusted EBITDA (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-07-23",
+     "quote": "From our first quarter earnings report on April 23, 2026 through June 30, 2026, the company sold approximately 6.2 million shares of common stock under its At-The-Market (ATM) equity issuance program at a weighted average price of $191.63 per share, for net proceeds of approximately $1.2 billion. [Adjusted EBITDA $978 million, up 6% QoQ and 19% YoY]"
+    },
+    {
+     "url": "https://investor.digitalrealty.com/static-files/678a7e32-514a-41c8-aebc-9492d513bf61",
+     "title": "Digital Realty Q2 2026 Financial Supplement (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-07-23",
+     "quote": "weighted average term to initial maturity of 4.4 years and 4.5 years assuming exercise of extension options; [weighted average interest rate row ending] 2.990%; unhedged variable rate debt ~$1.20 billion; total fixed rate / hedged variable rate debt ~$17.57 billion; global revolving credit facilities maximum available $4,452,064 [thousand]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1297996/000110465926089296/dlr-20260630x10q.htm",
+     "title": "Digital Realty 10-Q June 30, 2026 (via search rendering)",
+     "type": "10-Q",
+     "date": "2026-07",
+     "quote": "30,200 shares issued and outstanding as of June 30, 2026 and December 31, 2025 [preferred, $755,000 thousand liquidation preference; carrying 731,690]; GAAP interest expense was $114 million, capitalized interest was $37 million and preferred stock dividends were $10 million [quarter ended June 30, 2026]; maturities 2026 ~$825 million, 2027 ~$2.16 billion"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1297996/000110465926054255/dlr-20260331x10q.htm",
+     "title": "Digital Realty 10-Q March 31, 2026 - covenant (via search rendering)",
+     "type": "10-Q",
+     "date": "2026-05-01",
+     "quote": "In addition, we are required to maintain financial coverage ratios, including with respect to unencumbered assets ... require us to maintain total unencumbered assets of not less than 150% of the aggregate principal amount of unsecured debt."
+    },
+    {
+     "url": "https://investor.digitalrealty.com/static-files/4bac803d-f2a7-400a-b4db-1e8804a60414",
+     "title": "Digital Realty Q4 2025 Financial Supplement - covenant table (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-02-05",
+     "quote": "Total unencumbered assets / unsecured debt. Greater than 150%. [Actual 256% / 281%]"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001297996/000110465926047702/dlr-20260423xex99d1.htm",
+     "title": "Digital Realty Q1 2026 release and supplement - ratings and EBITDA (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-04-23",
+     "quote": "Adjusted EBITDA $920 million; S&P BBB+ (Stable), Moody's Baa2 (Positive), Fitch BBB (Stable); preferred BBB- / Baa3 / BB+; 2026 Adjusted EBITDA outlook $3.650 - $3.750 billion"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1297996/000110465926010887/dlr-20260205xex99d1.htm",
+     "title": "Digital Realty Q4 2025 results (via search rendering)",
+     "type": "earnings-release",
+     "date": "2026-02-05",
+     "quote": "Adjusted EBITDA of $857 million, down 1% from the prior quarter and up 14% over the same quarter last year"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1297996/000110465925101827/dlr-20251023xex99d1.htm",
+     "title": "Digital Realty Q3 2025 results (via search rendering)",
+     "type": "earnings-release",
+     "date": "2025-10-23",
+     "quote": "Adjusted EBITDA of $868 million, up 5% from the previous quarter and up 14% over the same quarter last year"
+    },
+    {
+     "url": "https://www.investing.com/news/transcripts/earnings-call-transcript-digital-realty-lifts-2026-outlook-after-record-q2-2026-93CH-4810202",
+     "title": "Digital Realty Q2 2026 earnings call transcript",
+     "type": "call-transcript",
+     "date": "2026-07-23",
+     "quote": "available liquidity was about $6 billion; 1.4 GW under construction at a total cost of about $20 billion; $1.1 billion of development capex in the quarter net of partner share; 2026 capex net of partner contributions $4.25-4.75 billion"
+    },
+    {
+     "url": "https://quartr.com/events/digital-realty-trust-inc-dlr-q2-2026_3YmlBUY7",
+     "title": "Digital Realty Q2 2026 earnings summary",
+     "type": "news",
+     "date": "2026-07-23",
+     "quote": "quarterly dividend of $1.22 per share ... payout ratio of 44.8% of diluted FFO and 49.5% of diluted AFFO; Core FFO per share excluding net promote $2.13; 2026 Core FFO outlook $8.15 - $8.20"
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/0001297996/000119312526414921/d178810d8k.htm",
+     "title": "Digital Realty 8-K - CHF 510M Swiss notes / Euro notes launch (via search rendering)",
+     "type": "8-K",
+     "date": "2026-10-06",
+     "quote": "CHF225.0 million 2029 Notes, CHF185.0 million 2032 Notes and CHF100.0 million 2036 Notes ... approximately CHF508.4 million after deducting the managers' commissions and certain offering expenses ... the offering of Euro-denominated Guaranteed Notes on October 6, 2026"
+    },
+    {
+     "url": "https://finviz.com/news/399618/digital-realty-announces-pricing-of-1-billion-of-guaranteed-notes-due-2036",
+     "title": "Digital Realty Announces Pricing of EUR1 Billion of Guaranteed Notes due 2036",
+     "type": "news",
+     "date": "2026-10-06",
+     "quote": "priced an offering of EUR1 billion aggregate principal amount of 5.125% Guaranteed Notes due 2036 at a price of 99.289% of the principal amount ... will mature on October 9, 2036 ... Closing of the offering is expected to occur on October 9, 2026"
+    },
+    {
+     "url": "https://stockanalysis.com/stocks/dlr/",
+     "title": "DLR quote / market cap",
+     "type": "market-data",
+     "date": "2026-10-08",
+     "quote": "176.07, down 4.40 (-2.44%) at 4:00 PM EDT ... market cap 66.50B"
+    }
+   ],
+   "confidence": "medium",
+   "gaps": "All primary documents blocked; figures via search-snippet rendering. Cash $1.86B is from the prior extraction and could NOT be re-verified (search budget exhausted) - treat as unverified. FY26 adj EBITDA guide $3.75-3.85B also unverified (April guide $3.65-3.75B verified). Not found: maturity buckets 2028-2031+, operating/finance lease liabilities, leases not commenced, pro-rata unconsolidated JV debt, Q2'26 unencumbered-asset ratio (Q4'25 used), other covenant levels, exchangeable notes outstanding, LTM revenue (Q2'26 ~$1.9B only), LTM interest (Q2 x4 proxy), LTM CFO/capex, book equity, Q3 ATM/forward equity. Supplemental fixed+unhedged sum (~$18.77B) differs from release $18.6B total debt - basis difference not resolved; release figure used. Weighted average rate 2.990% inferred from final column of supplemental row (header not confirmed)."
+  }
+ ]
+}
